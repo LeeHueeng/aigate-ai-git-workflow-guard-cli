@@ -1,0 +1,33 @@
+name: Bug report
+description: Report a reproducible problem in AIGate.
+title: "fix: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Reproduction Steps
+      description: List the exact steps or command sequence.
+      placeholder: |
+        1. Run `aigate check`
+        2. See ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      placeholder: 0.0.0
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: OS, Node.js version, package manager, Git version
