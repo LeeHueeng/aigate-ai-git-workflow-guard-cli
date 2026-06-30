@@ -1,0 +1,35 @@
+{
+  "name": "@aigate/cli",
+  "version": "0.0.0",
+  "description": "AI Git Workflow Guard CLI for checks, reports, project evaluation, and branch strategy design.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "aigate": "./src/cli.mjs"
+  },
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "check": "node --check src/cli.mjs",
+    "test": "node --test",
+    "start": "node src/cli.mjs"
+  },
+  "keywords": [
+    "git",
+    "cli",
+    "workflow",
+    "branch-strategy",
+    "pull-request",
+    "ai"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "tag": "next"
+  }
+}

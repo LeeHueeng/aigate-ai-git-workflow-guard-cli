@@ -1,0 +1,56 @@
+version: 1
+
+project:
+  name: AIGate
+  package: "@aigate/cli"
+  defaultBranch: main
+
+distribution:
+  primaryRegistry: npm
+  packageName: "@aigate/cli"
+  releaseChannels:
+    stable: latest
+    candidate: next
+    beta: beta
+    experimental: canary
+
+reports:
+  defaultFormat: markdown
+  outputs:
+    - markdown
+    - html
+    - json
+    - sarif
+
+notifications:
+  defaults:
+    BLOCK:
+      - terminal
+      - slack
+    WARN:
+      - terminal
+    PR_ONLY:
+      - terminal
+      - slack
+    SECRET_DETECTED:
+      - terminal
+      - slack
+      - email
+
+branchStrategy:
+  default: github-flow-with-release-channels
+  protectedBranches:
+    - main
+  workBranches:
+    - codex/*
+    - feature/*
+    - fix/*
+    - docs/*
+    - chore/*
+    - test/*
+    - experiment/*
+  releaseBranches:
+    - release/*
+    - hotfix/*
+  requiredChecks:
+    - npm test
