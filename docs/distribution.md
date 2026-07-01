@@ -5,20 +5,27 @@ GitHub Actions, Homebrew, and standalone binaries as staged distribution paths.
 
 ## npm
 
-The target package is `@aigate/cli`.
+The target package is `aigate-cli`.
 
 ```sh
-npm install -g @aigate/cli
-npx @aigate/cli check
+npm install -g aigate-cli
+npx aigate-cli check
 ```
 
 Before the first npm publish:
 
-1. Confirm npm access for `@aigate/cli`.
-2. Configure npm Trusted Publishing for this repository.
-3. Run `aigate release-check`.
-4. Run the Release workflow with `dry_run=true`.
-5. Create and push the release tag, for example `v0.1.0`.
+1. Enable 2FA on the npm account that will own `aigate-cli`.
+2. Confirm the package name is still available with `npm view aigate-cli`.
+3. Run `npm run ci`.
+4. Create the package with `npm publish --access public`.
+5. Configure npm Trusted Publishing for this repository.
+6. Run `aigate release-check`.
+7. Run the Release workflow with `dry_run=true`.
+8. Create and push the release tag, for example `v0.1.0`.
+
+The first manual publish creates the package on npm so Trusted Publishing can
+be attached. If `v0.1.0` was already published manually, the Release workflow
+will skip the duplicate publish when the matching tag is pushed.
 
 Use these npm Trusted Publisher settings:
 
@@ -38,7 +45,7 @@ logging in with an npm account that has package write access and account-level
 2FA enabled:
 
 ```sh
-npx npm@latest trust github @aigate/cli \
+npx npm@latest trust github aigate-cli \
   --file release.yml \
   --repo LeeHueeng/aigate-ai-git-workflow-guard-cli \
   --allow-publish \
@@ -48,7 +55,7 @@ npx npm@latest trust github @aigate/cli \
 To preview the configuration without writing to npm:
 
 ```sh
-npx npm@latest trust github @aigate/cli \
+npx npm@latest trust github aigate-cli \
   --file release.yml \
   --repo LeeHueeng/aigate-ai-git-workflow-guard-cli \
   --allow-publish \

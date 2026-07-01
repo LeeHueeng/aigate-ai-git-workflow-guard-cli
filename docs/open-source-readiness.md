@@ -39,9 +39,9 @@ This checklist keeps AIGate useful and trustworthy for public contributors.
 
 ## Before First npm Publish
 
-- Claim or confirm npm access for `@aigate/cli`.
+- Claim or confirm npm access for `aigate-cli`.
 - Configure npm Trusted Publisher for this GitHub repository.
 - Run `aigate release-check`.
 - Set version to the first intended release, for example `0.1.0`.
 - Create a GitHub release tag, for example `v0.1.0`.
-- Confirm `npm view @aigate/cli` after publish.
+- Confirm `npm view aigate-cli` after publish.

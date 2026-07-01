@@ -30,14 +30,14 @@ These channels define the public distribution target. Until the first npm
 release is published, clone the repository and use `npm link` for local use.
 
 ```sh
-npm install -g @aigate/cli
-npx @aigate/cli check
-yarn global add @aigate/cli
-yarn dlx @aigate/cli check
-pnpm add -g @aigate/cli
-pnpm dlx @aigate/cli check
-bun add -g @aigate/cli
-bunx @aigate/cli check
+npm install -g aigate-cli
+npx aigate-cli check
+yarn global add aigate-cli
+yarn dlx aigate-cli check
+pnpm add -g aigate-cli
+pnpm dlx aigate-cli check
+bun add -g aigate-cli
+bunx aigate-cli check
 brew install aigate
 docker run --rm -v "$PWD:/repo" aigate/cli check
 ```

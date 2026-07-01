@@ -1177,6 +1177,7 @@ function branchRulesForStrategy(strategyName) {
 function buildReleaseCheck() {
   const packageJson = readJsonFile("package.json");
   const version = packageJson.version ?? "0.0.0";
+  const packageName = packageJson.name ?? "";
   const expectedTag = `v${version}`;
   const tags = (git(["tag", "--list"]) ?? "")
     .split("\n")
@@ -1186,21 +1187,22 @@ function buildReleaseCheck() {
   const checks = [
     { name: "package.json exists", pass: existsSync("package.json") },
     { name: "package-lock.json version matches package.json", pass: readJsonFile("package-lock.json").version === version },
-    { name: "package has a public npm name", pass: Boolean(packageJson.name?.startsWith("@aigate/") || packageJson.name === "aigate") },
+    { name: "package has a public npm name", pass: /^(@[a-z0-9-]+\/)?aigate(?:-[a-z0-9]+)*$/.test(packageName) },
     { name: "package version is not 0.0.0", pass: version !== "0.0.0" },
     { name: "package exposes aigate bin", pass: Boolean(packageJson.bin?.aigate) },
     { name: "publishConfig access is public", pass: packageJson.publishConfig?.access === "public" },
     { name: "release workflow exists", pass: existsSync(join(".github", "workflows", "release.yml")) },
     { name: "release workflow uses npm provenance", pass: fileIncludes(join(".github", "workflows", "release.yml"), "--provenance") },
     { name: "release workflow disables package manager cache", pass: fileIncludes(join(".github", "workflows", "release.yml"), "package-manager-cache: false") },
-    { name: "README documents install channels", pass: fileIncludes("README.md", "npm install -g @aigate/cli") },
+    { name: "README documents install channels", pass: fileIncludes("README.md", `npm install -g ${packageName}`) },
     { name: `${expectedTag} tag exists`, pass: hasExpectedTag }
   ];
   const status = checks.every((check) => check.pass) ? "READY" : "ACTION_REQUIRED";
   const nextSteps = [];
 
   if (!hasExpectedTag) {
-    nextSteps.push("Configure trusted publishing: npx npm@latest trust github @aigate/cli --file release.yml --repo LeeHueeng/aigate-ai-git-workflow-guard-cli --allow-publish --yes");
+    nextSteps.push(`If ${packageName} is not on npm yet, enable npm account 2FA and create it with: npm publish --access public`);
+    nextSteps.push(`Configure trusted publishing after the package exists: npx npm@latest trust github ${packageName} --file release.yml --repo LeeHueeng/aigate-ai-git-workflow-guard-cli --allow-publish --yes`);
     nextSteps.push(`Create release tag ${expectedTag} after npm Trusted Publishing is configured.`);
   }
 
@@ -1920,7 +1922,7 @@ function renderDefaultConfig(packageJson) {
     "",
     "distribution:",
     "  primaryRegistry: npm",
-    `  packageName: ${quoteYamlScalar(packageJson.name ?? "@aigate/cli")}`,
+    `  packageName: ${quoteYamlScalar(packageJson.name ?? "aigate-cli")}`,
     "  releaseChannels:",
     "    stable: latest",
     "    candidate: next",

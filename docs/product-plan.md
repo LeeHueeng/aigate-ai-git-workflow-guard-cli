@@ -11,7 +11,7 @@ evaluate repository health, and design branch strategies that match the team.
 
 ## Distribution Strategy
 
-The primary package target is `@aigate/cli` on npm. npm gives the project fast
+The primary package target is `aigate-cli` on npm. npm gives the project fast
 MVP iteration, global installs, and `npx` execution while remaining compatible
 with yarn, pnpm, and bun.
 
@@ -19,14 +19,14 @@ Supported and planned channels:
 
 | Channel | Command | Phase |
 | --- | --- | --- |
-| npm | `npm install -g @aigate/cli` | MVP |
-| npx | `npx @aigate/cli check` | MVP |
-| yarn | `yarn global add @aigate/cli` | MVP |
-| yarn dlx | `yarn dlx @aigate/cli check` | MVP |
-| pnpm | `pnpm add -g @aigate/cli` | MVP |
-| pnpm dlx | `pnpm dlx @aigate/cli check` | MVP |
-| bun | `bun add -g @aigate/cli` | MVP |
-| bunx | `bunx @aigate/cli check` | MVP |
+| npm | `npm install -g aigate-cli` | MVP |
+| npx | `npx aigate-cli check` | MVP |
+| yarn | `yarn global add aigate-cli` | MVP |
+| yarn dlx | `yarn dlx aigate-cli check` | MVP |
+| pnpm | `pnpm add -g aigate-cli` | MVP |
+| pnpm dlx | `pnpm dlx aigate-cli check` | MVP |
+| bun | `bun add -g aigate-cli` | MVP |
+| bunx | `bunx aigate-cli check` | MVP |
 | Homebrew | `brew install aigate` | V1.5 |
 | Docker | `docker run --rm -v "$PWD:/repo" aigate/cli check` | V1.5 |
 | GitHub Releases | standalone binary download | V2 |
@@ -44,7 +44,7 @@ Release channels:
 
 The MVP starts as a single public CLI package:
 
-- `@aigate/cli`: user-facing command line interface.
+- `aigate-cli`: user-facing command line interface.
 
 Future package split:
 
