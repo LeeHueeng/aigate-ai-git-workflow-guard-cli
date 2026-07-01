@@ -1,7 +1,7 @@
 {
   "name": "aigate-cli",
   "version": "0.1.2",
-  "description": "AI Git Workflow Guard CLI for checks, reports, project evaluation, and branch strategy design.",
+  "description": "Pre-push Git safety CLI for AI-assisted coding.",
   "license": "MIT",
   "type": "module",
   "homepage": "https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli#readme",
@@ -17,6 +17,8 @@
   },
   "files": [
     "src",
+    "docs",
+    "assets",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
@@ -35,12 +37,16 @@
   "keywords": [
     "git",
     "cli",
+    "ai-coding",
     "workflow",
+    "pre-push",
     "branch-strategy",
     "pull-request",
+    "pr-readiness",
     "repository-health",
     "developer-tools",
     "devops",
+    "devsecops",
     "open-source",
     "security",
     "sarif",

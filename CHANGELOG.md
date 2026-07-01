@@ -9,6 +9,9 @@ All notable changes to AIGate are documented here.
 - Added Slack BLOCK webhook notifications for readiness gate failures.
 - Added Discord and Teams webhook payload support for notification tests and
   sends.
+- Reworked the GitHub landing README around a 60-second quickstart, demo output,
+  shipped features, and planned channels.
+- Added demo assets and a basic Node.js usage example.
 - Improved tests for multilingual output and webhook notification payloads.
 
 ## 0.1.0 - 2026-07-01

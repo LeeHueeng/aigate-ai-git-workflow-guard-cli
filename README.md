@@ -1,181 +1,192 @@
-# AIGate AI Git Workflow Guard CLI
+# AIGate
+
+Stop risky AI-generated Git changes before push.
 
 [![CI](https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli/actions/workflows/scorecard.yml/badge.svg)](https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli/actions/workflows/scorecard.yml)
 [![npm version](https://img.shields.io/npm/v/aigate-cli.svg)](https://www.npmjs.com/package/aigate-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-AIGate is an AI Git Workflow Guard CLI for safer local changes, cleaner pull
-requests, project health reporting, and repository-specific branch strategy
-design.
+AIGate is a zero-config pre-push safety CLI for AI-assisted coding. It checks
+changed files, possible secrets, repository readiness, PR risk, and branch
+strategy before changes reach your remote branch or pull request review.
 
-Search keywords: AI Git CLI, Git workflow guard, pull request readiness,
-repository health report, branch strategy designer, developer workflow
-automation.
+![AIGate terminal demo](assets/aigate-terminal-demo.svg)
 
-Status: open source MVP. npm distribution is live; commercial team features are
-in preparation.
+## 60-Second Quickstart
 
-## What AIGate Does
+Run it without installing:
 
-- Checks local Git changes before push or pull request creation.
-- Produces Markdown, HTML, JSON, and SARIF reports.
-- Scores repository workflow quality across Git, tests, CI, security, and docs.
-- Recommends branch strategies based on team size, release cadence, and risk.
-- Routes important workflow events to terminal, Slack, Discord, and Teams
-  webhooks, with email, pull request comments, and GitHub Checks planned as
-  the product matures.
+```sh
+npx -y aigate-cli check
+npx -y aigate-cli pr-check
+npx -y aigate-cli evaluate-project
+```
 
-## Install
-
-AIGate is published on npm as `aigate-cli`.
+Or install it globally:
 
 ```sh
 npm install -g aigate-cli
-npx aigate-cli check
-yarn global add aigate-cli
-yarn dlx aigate-cli check
-pnpm add -g aigate-cli
-pnpm dlx aigate-cli check
-bun add -g aigate-cli
-bunx aigate-cli check
-brew install aigate
-docker run --rm -v "$PWD:/repo" aigate/cli check
+aigate check
+aigate git-ready
+aigate pr-check
 ```
 
-## Local Development
+Try it from source:
 
 ```sh
+git clone https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli.git
+cd aigate-ai-git-workflow-guard-cli
 npm install
 npm test
-npm run git:ready
-node src/cli.mjs --help
-node src/cli.mjs init --output-dir /tmp/aigate-demo
-node src/cli.mjs branch-strategy
+node src/cli.mjs check
 ```
 
-Set the CLI output language. AIGate supports `en`, `ko`, `ja`, and `zh`.
+## What You Get
+
+```text
+AIGate git-ready: READY
+Branch: feature/my-work
+Changed files: 4
+Secret findings: 0
+Project score: 92/100
+Blockers: none
+Warnings: none
+Recommendation: Run npm test, commit focused changes, push the branch, and open a pull request.
+```
+
+AIGate is useful when AI coding assistants move quickly and you need one
+repeatable local gate before `git push` or PR creation.
+
+## Works Today
+
+| Capability | Command |
+| --- | --- |
+| Local Git readiness check | `aigate check` |
+| Pre-push safety gate | `aigate git-ready` |
+| Guarded push wrapper | `aigate push -u origin <branch>` |
+| Pull request readiness report | `aigate pr-check` |
+| Markdown, HTML, JSON, SARIF reports | `aigate report --format <format>` |
+| Changed-file secret scan | `aigate report --format sarif` |
+| Repository health score | `aigate evaluate-project` |
+| Deep project report | `aigate evaluate-project --deep --report` |
+| Branch strategy recommendation | `aigate branch-strategy` |
+| Release readiness check | `aigate release-check --npm` |
+| Slack BLOCK notifications | `aigate git-ready --notify-channel slack` |
+| Discord and Teams webhook payloads | `aigate notify test --channel discord` |
+| Codex and Gemini instructions | `aigate integrate all` |
+
+## Why Not Just Husky, Lefthook, pre-commit, Or Gitleaks?
+
+| Tool | Main job | How AIGate is different |
+| --- | --- | --- |
+| Husky | Git hook setup for JavaScript projects | AIGate is a runnable readiness gate, not only hook wiring. |
+| Lefthook | Fast multi-language hook runner | AIGate focuses on PR readiness, repo health, and branch strategy. |
+| pre-commit | Hook framework and hook ecosystem | AIGate is zero-config and Git/PR workflow focused. |
+| Gitleaks | Deep secret scanning | AIGate includes lightweight changed-file checks and SARIF output, and can complement Gitleaks. |
+
+## Typical Workflow
+
+```sh
+git switch -c feature/my-work
+aigate git-ready
+git add <files>
+git commit -m "feat: my focused change"
+aigate push -u origin feature/my-work
+aigate pr-check --output .aigate/reports/pr.md
+aigate pr --title "feat: my focused change"
+```
+
+Send a Slack notification when a blocker appears:
+
+```sh
+AIGATE_SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..." \
+  aigate git-ready --notify-channel slack
+```
+
+## GitHub Actions
+
+This repository ships a local composite action:
+
+```yaml
+name: AIGate
+on:
+  pull_request:
+jobs:
+  aigate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/aigate
+        with:
+          command: pr-check
+```
+
+## AI Agent Integration
+
+Generate repository instructions for Codex and Gemini:
+
+```sh
+aigate integrate all
+```
+
+This creates `AGENTS.md`, `GEMINI.md`, and `.aigate/integrations/*` so AI
+assistants follow the same branch, validation, and guarded push workflow as
+human contributors.
+
+## Output Languages
+
+AIGate supports English, Korean, Japanese, and Chinese CLI output:
 
 ```sh
 aigate setup --language en
 aigate setup --language ko
 aigate setup --language ja
 aigate setup --language zh
-aigate settings
 ```
 
-## Initial Commands
+## Planned, Not Shipped Yet
 
-| Command | Purpose |
-| --- | --- |
-| `aigate init` | Create starter AIGate configuration for a project. |
-| `aigate check` | Summarize current Git readiness. |
-| `aigate git-ready` | Run the before-push readiness gate. |
-| `aigate push` | Run AIGate checks, then run `git push`. |
-| `aigate pr` | Run AIGate checks, then create a GitHub pull request with `gh`. |
-| `aigate pr-check` | Generate a pull request readiness report. |
-| `aigate setup --language <en|ko|ja|zh>` | Save local AIGate settings and output language. |
-| `aigate settings` | Show current AIGate settings. |
-| `aigate integrate all` | Generate Codex and Gemini assistant integration files. |
-| `aigate report --output .aigate/reports/local.md` | Write a local workflow report. |
-| `aigate report --format sarif` | Print a SARIF report for secret findings. |
-| `aigate evaluate-project` | Score project workflow foundations. |
-| `aigate evaluate-project --deep --report` | Generate a project health report with Git signals. |
-| `aigate score` | Print only the project score. |
-| `aigate branch-strategy` | Recommend a repository branch strategy. |
-| `aigate branch-strategy --apply` | Generate branch policy, release, hotfix, PR, and CODEOWNERS drafts. |
-| `aigate release-check` | Validate package release readiness before tagging. |
-| `aigate release-check --npm` | Include npm registry publication state. |
-| `aigate audit-report` | Generate a policy and governance audit report. |
-| `aigate notify send --channel terminal` | Send a local notification event. |
-| `aigate git-ready --notify-channel slack` | Send a Slack BLOCK webhook when the gate blocks. |
-| `aigate notify test --channel slack` | Test Slack, Discord, or Teams webhook payloads. |
+These are intentionally not in the quickstart until they are publicly
+distributed:
 
-## Roadmap Snapshot
+- Published Docker image
+- Homebrew formula
+- Standalone binaries
+- GitHub PR comments
+- GitHub Checks reporter
+- Hosted dashboard
+- Linear and Jira integrations
 
-- V1: npm distribution, local reports, Slack BLOCK notifications, basic project
-  evaluation, and branch strategy recommendations.
-- V1.5: Docker and GitHub Action foundations, Homebrew distribution, richer
-  policy packs, and guided setup.
-- V2: GitHub PR comments, GitHub Checks, weekly team reports, health trends,
-  Linear/Jira integrations, and standalone binaries.
-- V3: Enterprise governance, audit/compliance reports, central policies,
-  self-hosted reporting, SSO/SAML, and organization-wide strategy evaluation.
+## Documentation
 
-## Branch Strategy
-
-This repository uses GitHub Flow with release-channel extensions:
-
-- `main` is protected, always releasable, and receives changes through pull
-  requests.
-- `codex/*` is used for AI-assisted implementation branches.
-- `feature/*`, `fix/*`, `docs/*`, and `chore/*` are normal contributor branch
-  prefixes.
-- `release/*` and `hotfix/*` are reserved for package release stabilization.
-- npm dist-tags map to product channels: `latest`, `next`, `beta`, `canary`.
-
-Read the full strategy in [docs/branch-strategy.md](docs/branch-strategy.md).
-
-## Before Pushing To Git
-
-Use the local AIGate gate before every push:
-
-```sh
-npm run git:ready
-git status --short --branch
-git add <files>
-git commit -m "type: short summary"
-aigate push -u origin <branch>
-aigate pr-check --output .aigate/reports/pr.md
-aigate pr --title "feat: short summary"
-```
-
-Read the full workflow in [docs/git-upload-workflow.md](docs/git-upload-workflow.md).
-
-## AI Assistant Integrations
-
-Generate assistant instructions for Codex and Gemini:
-
-```sh
-aigate integrate all
-aigate integrate codex
-aigate integrate gemini
-```
-
-This creates `AGENTS.md`, `GEMINI.md`, and `.aigate/integrations/*` so AI
-assistants can follow the same branch, validation, and guarded push workflow.
-
-Read the full guide in [docs/ai-integrations.md](docs/ai-integrations.md).
-
-## Multilingual HTML Guides
-
+- [Distribution guide](docs/distribution.md)
+- [Notifications guide](docs/notifications.md)
+- [AI integrations](docs/ai-integrations.md)
+- [Basic Node project example](docs/examples/basic-node-project.md)
+- [Branch strategy](docs/branch-strategy.md)
+- [Git upload workflow](docs/git-upload-workflow.md)
+- [Roadmap](docs/roadmap.md)
+- [Changelog](CHANGELOG.md)
 - [한국어 운영 문서](docs/aigate-overview.ko.html)
 - [English operations guide](docs/aigate-overview.en.html)
 - [日本語運用ドキュメント](docs/aigate-overview.ja.html)
 - [中文运维说明](docs/aigate-overview.zh.html)
 
-## Public Repository Standards
+## Contributing
 
-- Use Conventional Commits.
-- Keep pull requests focused and reviewable.
-- Update docs when commands, configuration, or behavior changes.
-- Keep release changes recorded in `CHANGELOG.md`.
-- Run `npm test` before requesting review.
-- Treat generated reports as artifacts, not source files, unless explicitly
-  checked in for documentation.
+Small issues are welcome. Good first contributions include docs examples,
+Windows smoke-test notes, GitHub Actions examples, and real-world repository
+case studies.
 
-## Open Source And Commercial Roadmap
+```sh
+npm install
+npm test
+npm run ci
+```
 
-AIGate is open source first. The CLI core stays useful for individual
-developers and maintainers, while paid team and enterprise offerings can build
-around hosted reports, policy packs, integrations, and governance.
-
-- [Open source readiness](docs/open-source-readiness.md)
-- [Commercialization plan](docs/commercialization.md)
-- [Distribution guide](docs/distribution.md)
-- [Notifications guide](docs/notifications.md)
-- [Roadmap](docs/roadmap.md)
-- [Changelog](CHANGELOG.md)
+Read [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and
+[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before opening a pull request.
 
 ## License
 
