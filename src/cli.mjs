@@ -79,6 +79,7 @@ Options:
   --language <en|ko>       Select output language.
   --output-dir <path>      Select integration output directory.
   --force                  Overwrite generated integration files.
+  --npm                    Check npm registry state for release-check.
   --dry-run                Preview an AIGate command without changing remotes.
   --no-verify              Skip the AIGate readiness gate for push.
   --version                Print CLI version.
@@ -627,19 +628,21 @@ function commandScore() {
 
 function commandReleaseCheck(args) {
   const options = parseOptions(args);
-  const check = buildReleaseCheck();
+  const check = buildReleaseCheck({ checkNpm: Boolean(options.npm) });
 
   if (options.format === "json") {
     return JSON.stringify(check, null, 2);
   }
 
   const rows = check.checks.map((item) => `- ${item.pass ? "PASS" : "TODO"}: ${item.name}`);
+  const registryLine = renderRegistryLine(check.registry);
 
   return [
     `AIGate release-check: ${check.status}`,
     `Package: ${check.packageName}`,
     `Version: ${check.version}`,
     `Release tag: ${check.expectedTag}`,
+    registryLine,
     "",
     ...rows,
     "",
@@ -1174,7 +1177,7 @@ function branchRulesForStrategy(strategyName) {
   ];
 }
 
-function buildReleaseCheck() {
+function buildReleaseCheck(options = {}) {
   const packageJson = readJsonFile("package.json");
   const version = packageJson.version ?? "0.0.0";
   const packageName = packageJson.name ?? "";
@@ -1197,13 +1200,37 @@ function buildReleaseCheck() {
     { name: "README documents install channels", pass: fileIncludes("README.md", `npm install -g ${packageName}`) },
     { name: `${expectedTag} tag exists`, pass: hasExpectedTag }
   ];
-  const status = checks.every((check) => check.pass) ? "READY" : "ACTION_REQUIRED";
+  const registry = options.checkNpm
+    ? lookupNpmPublication(packageName, version)
+    : { checked: false };
+  const localReady = checks.every((check) => check.pass);
+  const status = localReady && registry.checked && registry.published
+    ? "RELEASED"
+    : (localReady ? "READY" : "ACTION_REQUIRED");
   const nextSteps = [];
 
   if (!hasExpectedTag) {
-    nextSteps.push(`If ${packageName} is not on npm yet, enable npm account 2FA and create it with: npm publish --access public`);
-    nextSteps.push(`Configure trusted publishing after the package exists: npx npm@latest trust github ${packageName} --file release.yml --repo LeeHueeng/aigate-ai-git-workflow-guard-cli --allow-publish --yes`);
-    nextSteps.push(`Create release tag ${expectedTag} after npm Trusted Publishing is configured.`);
+    if (registry.checked && registry.published) {
+      nextSteps.push(`${packageName}@${version} is already on npm; create release tag ${expectedTag} to record the release.`);
+    } else if (registry.checked && registry.packageExists) {
+      nextSteps.push(`${packageName}@${version} is not on npm yet; create release tag ${expectedTag} to publish with Trusted Publishing.`);
+    } else {
+      nextSteps.push(`If ${packageName} is not on npm yet, enable npm account 2FA and create it with: npm publish --access public`);
+      nextSteps.push(`Configure trusted publishing after the package exists: npx npm@latest trust github ${packageName} --file release.yml --repo LeeHueeng/aigate-ai-git-workflow-guard-cli --allow-publish --yes`);
+      nextSteps.push(`Create release tag ${expectedTag} after npm Trusted Publishing is configured.`);
+    }
+  }
+
+  if (registry.checked && registry.published && hasExpectedTag) {
+    nextSteps.push(`${packageName}@${version} is released; bump package.json before the next npm release.`);
+  }
+
+  if (registry.checked && registry.error) {
+    nextSteps.push(`Review npm registry lookup error: ${registry.error}`);
+  }
+
+  if (!registry.checked) {
+    nextSteps.push("Run release-check --npm to confirm npm registry publication state.");
   }
 
   if (!checks.find((check) => check.name === "release workflow uses npm provenance")?.pass) {
@@ -1219,9 +1246,95 @@ function buildReleaseCheck() {
     packageName: packageJson.name ?? null,
     version,
     expectedTag,
+    registry,
     checks,
     nextSteps
   };
+}
+
+function lookupNpmPublication(packageName, version) {
+  const base = {
+    checked: true,
+    packageName,
+    version,
+    packageExists: null,
+    published: false,
+    publishedVersion: null,
+    error: null
+  };
+
+  if (!packageName || !version) {
+    return { ...base, published: null, error: "Missing package name or version." };
+  }
+
+  const result = spawnSync("npm", ["view", `${packageName}@${version}`, "version", "--json"], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+
+  if (result.status === 0) {
+    const rawVersion = result.stdout.trim();
+    let publishedVersion = rawVersion;
+    try {
+      publishedVersion = JSON.parse(rawVersion);
+    } catch {
+      // Keep raw npm output when the registry returns non-JSON text.
+    }
+
+    return {
+      ...base,
+      packageExists: true,
+      published: Boolean(publishedVersion),
+      publishedVersion: publishedVersion ? String(publishedVersion) : null
+    };
+  }
+
+  const output = `${result.stdout}\n${result.stderr}`;
+  if (/E404|404 Not Found|not in this registry/i.test(output)) {
+    const packageResult = spawnSync("npm", ["view", packageName, "name", "--json"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+
+    if (packageResult.status === 0) {
+      return { ...base, packageExists: true };
+    }
+
+    const packageOutput = `${packageResult.stdout}\n${packageResult.stderr}`;
+    if (/E404|404 Not Found|not in this registry/i.test(packageOutput)) {
+      return { ...base, packageExists: false };
+    }
+
+    const packageError = packageOutput
+      .split("\n")
+      .map((line) => line.trim())
+      .find(Boolean) ?? "npm package lookup failed";
+
+    return { ...base, published: null, error: packageError };
+  }
+
+  const error = output
+    .split("\n")
+    .map((line) => line.trim())
+    .find(Boolean) ?? "npm view failed";
+
+  return { ...base, published: null, error };
+}
+
+function renderRegistryLine(registry) {
+  if (!registry?.checked) {
+    return "npm registry: not checked (use --npm)";
+  }
+
+  if (registry.error) {
+    return `npm registry: lookup failed (${registry.error})`;
+  }
+
+  if (registry.published) {
+    return `npm registry: published ${registry.packageName}@${registry.publishedVersion}`;
+  }
+
+  return `npm registry: ${registry.packageName}@${registry.version} not published`;
 }
 
 function buildAuditReport() {

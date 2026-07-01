@@ -12,7 +12,22 @@ npm install -g aigate-cli
 npx aigate-cli check
 ```
 
-Before the first npm publish:
+The first public release is live on npm:
+
+- Package: <https://www.npmjs.com/package/aigate-cli>
+- Current release tag: `v0.1.0`
+- Trusted Publishing: GitHub Actions `release.yml`
+
+Routine release flow:
+
+1. Update the package version.
+2. Run `npm run ci`.
+3. Run `aigate release-check --npm`.
+4. Run the Release workflow with `dry_run=true`.
+5. Create and push the matching release tag, for example `v0.1.1`.
+6. Confirm `npm view aigate-cli version`.
+
+First publish record:
 
 1. Enable 2FA on the npm account that will own `aigate-cli`.
 2. Confirm the package name is still available with `npm view aigate-cli`.
@@ -23,8 +38,8 @@ Before the first npm publish:
 7. Run the Release workflow with `dry_run=true`.
 8. Create and push the release tag, for example `v0.1.0`.
 
-The first manual publish creates the package on npm so Trusted Publishing can
-be attached. If `v0.1.0` was already published manually, the Release workflow
+The first manual publish created the package on npm so Trusted Publishing could
+be attached. If a version was already published manually, the Release workflow
 will skip the duplicate publish when the matching tag is pushed.
 
 Use these npm Trusted Publisher settings:

@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli/actions/workflows/scorecard.yml/badge.svg)](https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli/actions/workflows/scorecard.yml)
+[![npm version](https://img.shields.io/npm/v/aigate-cli.svg)](https://www.npmjs.com/package/aigate-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 AIGate is an AI Git Workflow Guard CLI for safer local changes, cleaner pull
@@ -12,8 +13,8 @@ Search keywords: AI Git CLI, Git workflow guard, pull request readiness,
 repository health report, branch strategy designer, developer workflow
 automation.
 
-Status: open source MVP. npm distribution and commercial team features are in
-preparation.
+Status: open source MVP. npm distribution is live; commercial team features are
+in preparation.
 
 ## What AIGate Does
 
@@ -24,10 +25,9 @@ preparation.
 - Routes important workflow events to terminal, Slack, Discord, Teams, email,
   pull request comments, and GitHub Checks as the product matures.
 
-## Planned Install Channels
+## Install
 
-These channels define the public distribution target. Until the first npm
-release is published, clone the repository and use `npm link` for local use.
+AIGate is published on npm as `aigate-cli`.
 
 ```sh
 npm install -g aigate-cli
@@ -81,6 +81,7 @@ aigate settings
 | `aigate branch-strategy` | Recommend a repository branch strategy. |
 | `aigate branch-strategy --apply` | Generate branch policy, release, hotfix, PR, and CODEOWNERS drafts. |
 | `aigate release-check` | Validate package release readiness before tagging. |
+| `aigate release-check --npm` | Include npm registry publication state. |
 | `aigate audit-report` | Generate a policy and governance audit report. |
 | `aigate notify send --channel terminal` | Send a local notification event. |
 

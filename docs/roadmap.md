@@ -2,16 +2,16 @@
 
 ## V1: CLI Distribution And Local Reports
 
-- Publish `aigate-cli` to npm.
-- Support npm, npx, yarn, pnpm, and bun install paths.
-- Create starter project configuration with `aigate init`.
-- Generate Markdown, HTML, JSON, and SARIF reports.
-- Generate pull request readiness reports with `aigate pr-check`.
-- Send Slack webhook notifications for blocking events.
-- Provide weighted project evaluation with optional deep Git signals.
-- Recommend a basic branch strategy from repository and team signals.
-- Validate first package release readiness with `aigate release-check`.
-- Generate governance snapshots with `aigate audit-report`.
+- [x] Publish `aigate-cli` to npm.
+- [x] Support npm, npx, yarn, pnpm, and bun install paths.
+- [x] Create starter project configuration with `aigate init`.
+- [x] Generate Markdown, HTML, JSON, and SARIF reports.
+- [x] Generate pull request readiness reports with `aigate pr-check`.
+- [ ] Send Slack webhook notifications for blocking events.
+- [x] Provide weighted project evaluation with optional deep Git signals.
+- [x] Recommend a basic branch strategy from repository and team signals.
+- [x] Validate first package release readiness with `aigate release-check`.
+- [x] Generate governance snapshots with `aigate audit-report`.
 
 ## V1.5: Workflow Intelligence
 
