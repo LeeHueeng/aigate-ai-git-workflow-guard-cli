@@ -30,7 +30,7 @@
 - [x] Comment on GitHub pull requests with AIGate summaries.
 - [x] Prepare GitHub Checks and Actions summaries with `aigate github check`.
 - [x] Generate weekly team reports.
-- [ ] Track project health trends.
+- [x] Track project health trends with `aigate trends`.
 - [ ] Integrate with Linear and Jira.
 - [ ] Publish standalone binaries.
 - [ ] Compare multiple AI-generated branch strategy proposals.

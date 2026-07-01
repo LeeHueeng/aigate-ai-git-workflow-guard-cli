@@ -32,7 +32,7 @@
 - [x] GitHub pull request に AIGate summary を comment
 - [x] `aigate github check` で GitHub Checks と Actions summary を準備
 - [x] weekly team report を生成
-- [ ] project health trend を追跡
+- [x] `aigate trends` でプロジェクト状態トレンドを追跡
 - [ ] Linear と Jira と連携
 - [ ] standalone binary を publish
 - [ ] 複数の AI-generated branch strategy proposal を比較

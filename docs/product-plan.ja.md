@@ -70,7 +70,8 @@ Linear、Jira は staged integration です。
 ### Report generator
 
 local change report、pull request readiness report、weekly team report、
-audit/compliance report を Markdown、HTML、JSON、SARIF、GitHub-native format で生成します。
+プロジェクト状態トレンド履歴、audit/compliance report を Markdown、HTML、JSON、
+SARIF、GitHub-native format で生成します。
 
 ### Project evaluator
 

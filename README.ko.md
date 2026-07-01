@@ -49,6 +49,7 @@ aigate pr-check
 | GitHub Checks 요약 payload | `aigate github check --format json` |
 | Markdown, HTML, JSON, SARIF 리포트 | `aigate report --format <format>` |
 | 저장소 건강 점수 | `aigate evaluate-project` |
+| 프로젝트 상태 추세 기록 | `aigate trends record` |
 | 브랜치 전략 추천 | `aigate branch-strategy` |
 | npm 릴리스 준비 확인 | `aigate release-check --npm` |
 | Codex/Gemini 연동 파일 생성 | `aigate integrate all` |
@@ -67,6 +68,7 @@ aigate pr-check --output .aigate/reports/pr.md
 aigate pr --title "feat: focused change"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
+aigate trends record
 ```
 
 ## 언어 설정

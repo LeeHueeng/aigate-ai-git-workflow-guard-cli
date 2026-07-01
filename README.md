@@ -85,6 +85,7 @@ repeatable local gate before `git push` or PR creation.
 | Changed-file secret scan | `aigate report --format sarif` |
 | Repository health score | `aigate evaluate-project` |
 | Deep project report | `aigate evaluate-project --deep --report` |
+| Project health trend history | `aigate trends record` |
 | Branch strategy recommendation | `aigate branch-strategy` |
 | Release readiness check | `aigate release-check --npm` |
 | Slack BLOCK notifications | `aigate git-ready --notify-channel slack` |
@@ -114,6 +115,7 @@ aigate pr-check --output .aigate/reports/pr.md
 aigate pr --title "feat: my focused change"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
+aigate trends record
 ```
 
 Send a Slack notification when a blocker appears:

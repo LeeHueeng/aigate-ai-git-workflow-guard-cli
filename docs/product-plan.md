@@ -76,8 +76,8 @@ summary payloads. Email, Linear, and Jira remain staged integrations.
 ### Report Generator
 
 Generate local change reports, pull request readiness reports, weekly team
-reports, and audit or compliance reports in Markdown, HTML, JSON, SARIF, and
-GitHub-native formats.
+reports, project health trend history, and audit or compliance reports in
+Markdown, HTML, JSON, SARIF, and GitHub-native formats.
 
 ### Project Evaluator
 
