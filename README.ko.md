@@ -47,6 +47,7 @@ aigate pr-check
 | PR 준비 상태 리포트 | `aigate pr-check` |
 | GitHub PR 요약 댓글 | `aigate github comment --pr <number>` |
 | GitHub Checks 요약 payload | `aigate github check --format json` |
+| GitHub PR 템플릿과 CODEOWNERS 설정 | `aigate github setup` |
 | Markdown, HTML, JSON, SARIF 리포트 | `aigate report --format <format>` |
 | 저장소 건강 점수 | `aigate evaluate-project` |
 | 프로젝트 상태 추세 기록 | `aigate trends record` |
@@ -69,6 +70,7 @@ aigate pr --title "feat: focused change"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate github setup --owner @your-org/team --dry-run
 ```
 
 ## 언어 설정

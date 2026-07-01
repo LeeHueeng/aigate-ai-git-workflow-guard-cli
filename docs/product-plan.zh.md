@@ -85,7 +85,8 @@ branch history 推荐 GitHub Flow、Git Flow、trunk-based development 或 hybri
 
 - 通过 npm 和 `npx` 安装/执行
 - 通过 `aigate init` 初始化 project
-- local `check`、`report`、`evaluate-project`、`branch-strategy` commands
+- local `check`、`report`、`evaluate-project`、`branch-strategy`、
+  `github setup` commands
 - 通过 `aigate pr-check` 提供 pull request readiness
 - Markdown、HTML、JSON、SARIF reports
 - basic branch strategy recommendation

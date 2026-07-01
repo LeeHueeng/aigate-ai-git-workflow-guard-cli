@@ -81,6 +81,7 @@ repeatable local gate before `git push` or PR creation.
 | Pull request readiness report | `aigate pr-check` |
 | GitHub PR summary comment | `aigate github comment --pr <number>` |
 | GitHub Checks summary payload | `aigate github check --format json` |
+| GitHub PR template and CODEOWNERS setup | `aigate github setup` |
 | Markdown, HTML, JSON, SARIF reports | `aigate report --format <format>` |
 | Changed-file secret scan | `aigate report --format sarif` |
 | Repository health score | `aigate evaluate-project` |
@@ -116,6 +117,7 @@ aigate pr --title "feat: my focused change"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate github setup --owner @your-org/team --dry-run
 ```
 
 Send a Slack notification when a blocker appears:

@@ -87,7 +87,8 @@ hybrid strategy를 추천합니다.
 
 - npm과 `npx`로 설치/실행 가능
 - `aigate init` 기반 project initialization
-- local `check`, `report`, `evaluate-project`, `branch-strategy` command
+- local `check`, `report`, `evaluate-project`, `branch-strategy`, `github setup`
+  command
 - `aigate pr-check` 기반 pull request readiness
 - Markdown, HTML, JSON, SARIF report
 - basic branch strategy recommendation

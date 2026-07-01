@@ -25,7 +25,7 @@
 - [ ] bundled GitHub composite action を reusable public action に昇格
 - [x] Discord と Teams webhook notification payload を追加
 - [ ] generated branch strategy docs を richer policy pack に拡張
-- [ ] PR template と CODEOWNERS draft を guided setup に昇格
+- [x] PR テンプレートと CODEOWNERS 草案をガイド付き設定に昇格
 
 ## V2: Team reports and GitHub integration
 

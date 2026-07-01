@@ -96,7 +96,8 @@ The first public MVP should prove:
 
 - Installability through npm and `npx` after the first package publish.
 - Project initialization through `aigate init`.
-- Local `check`, `report`, `evaluate-project`, and `branch-strategy` commands.
+- Local `check`, `report`, `evaluate-project`, `branch-strategy`, and
+  `github setup` commands.
 - Pull request readiness through `aigate pr-check`.
 - Clear Markdown, HTML, JSON, and SARIF reports.
 - Basic branch strategy recommendation.

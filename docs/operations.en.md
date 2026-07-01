@@ -59,6 +59,7 @@ aigate pr --title "feat: short summary"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate github setup --owner @your-org/team --dry-run
 aigate release-check --npm
 ```
 
@@ -72,6 +73,7 @@ aigate release-check --npm
 - Secret pattern detection and SARIF output
 - `git-ready`, guarded push, and guarded PR creation
 - GitHub PR comments and Checks summaries through `aigate github`
+- GitHub PR template and CODEOWNERS setup through `aigate github setup`
 - Markdown, HTML, JSON, and SARIF reports
 - Project score and deep Git signal evaluation
 - Project health trend history through `aigate trends`

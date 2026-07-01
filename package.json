@@ -27,7 +27,7 @@
   "scripts": {
     "aigate:check": "node src/cli.mjs check",
     "aigate:git-ready": "node src/cli.mjs git-ready",
-    "check": "node --check src/cli.mjs && node --check src/commands/first-run.mjs && node --check src/core/first-run.mjs && node --check src/renderers/first-run.mjs && node --check src/commands/github-reporting.mjs && node --check src/core/github-reporting.mjs && node --check src/renderers/github-reporting.mjs && node --check src/commands/trends.mjs && node --check src/core/trends.mjs && node --check src/renderers/trends.mjs",
+    "check": "node --check src/cli.mjs && node --check src/commands/first-run.mjs && node --check src/core/first-run.mjs && node --check src/renderers/first-run.mjs && node --check src/commands/github-reporting.mjs && node --check src/core/github-reporting.mjs && node --check src/core/github-setup.mjs && node --check src/renderers/github-reporting.mjs && node --check src/renderers/github-setup.mjs && node --check src/commands/trends.mjs && node --check src/core/trends.mjs && node --check src/renderers/trends.mjs",
     "ci": "npm run check && npm test && npm run docs:check-locales && npm run aigate:git-ready && npm pack --dry-run",
     "docs:check-locales": "node scripts/check-doc-locales.mjs",
     "docs:html": "node scripts/generate-multilingual-html-docs.mjs",

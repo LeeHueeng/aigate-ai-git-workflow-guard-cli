@@ -124,7 +124,7 @@ test("shows help", () => {
   assert.match(result.stdout, /doctor/);
   assert.match(result.stdout, /demo/);
   assert.match(result.stdout, /install-hook/);
-  assert.match(result.stdout, /github <comment\|check>/);
+  assert.match(result.stdout, /github <comment\|check\|setup>/);
   assert.match(result.stdout, /setup/);
   assert.match(result.stdout, /settings/);
   assert.match(result.stdout, /integrate/);
@@ -280,6 +280,68 @@ test("writes localized GitHub Checks summary output", () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /書き込みました/);
   assert.match(readFileSync(outputPath, "utf8"), /^# AIGate PR レポート/m);
+});
+
+test("sets up GitHub pull request template and CODEOWNERS", () => {
+  const outputDir = createOutputDir();
+  const result = run([
+    "github",
+    "setup",
+    "--output-dir",
+    outputDir,
+    "--owner",
+    "@example/team",
+    "--format",
+    "json"
+  ]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "github setup");
+  assert.equal(output.owner, "@example/team");
+  assert.deepEqual(output.files.map((file) => file.action), ["created", "created"]);
+  assert.match(readFileSync(join(outputDir, ".github", "pull_request_template.md"), "utf8"), /## Summary/);
+  assert.equal(readFileSync(join(outputDir, ".github", "CODEOWNERS"), "utf8"), "* @example/team\n");
+});
+
+test("previews localized GitHub setup without writing files", () => {
+  const outputDir = createOutputDir();
+  const result = run([
+    "github",
+    "--owner",
+    "hueeng",
+    "setup",
+    "--dry-run",
+    "--output-dir",
+    outputDir,
+    "--language",
+    "ko"
+  ]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /AIGate GitHub 설정/);
+  assert.match(result.stdout, /소유자: @hueeng/);
+  assert.match(result.stdout, /미리보기: 예/);
+  assert.equal(existsSync(join(outputDir, ".github", "pull_request_template.md")), false);
+  assert.equal(existsSync(join(outputDir, ".github", "CODEOWNERS")), false);
+});
+
+test("protects GitHub setup files unless forced", () => {
+  const outputDir = createOutputDir();
+  const githubDir = join(outputDir, ".github");
+  mkdirSync(githubDir, { recursive: true });
+  const templatePath = join(githubDir, "pull_request_template.md");
+  writeFileSync(templatePath, "custom template\n", "utf8");
+
+  const skipped = run(["github", "setup", "--pr-template", "--output-dir", outputDir, "--format", "json"]);
+  assert.equal(skipped.status, 0);
+  assert.equal(JSON.parse(skipped.stdout).files[0].action, "skipped");
+  assert.equal(readFileSync(templatePath, "utf8"), "custom template\n");
+
+  const forced = run(["github", "setup", "--pr-template", "--output-dir", outputDir, "--force", "--format", "json"]);
+  assert.equal(forced.status, 0);
+  assert.equal(JSON.parse(forced.stdout).files[0].action, "updated");
+  assert.match(readFileSync(templatePath, "utf8"), /## Summary/);
 });
 
 test("records and shows project health trends", () => {

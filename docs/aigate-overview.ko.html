@@ -530,7 +530,7 @@ npx aigate-cli check</code></pre>
       <div><span>check</span><span>git-ready</span><span>push</span><span>pr</span></div>
     </article><article class="command-group group-3">
       <h3>보고서</h3>
-      <div><span>pr-check</span><span>github comment</span><span>github check</span><span>trends</span><span>report</span><span>evaluate-project</span><span>audit-report</span></div>
+      <div><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>audit-report</span></div>
     </article><article class="command-group group-4">
       <h3>릴리스</h3>
       <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>notify</span></div>
@@ -605,6 +605,10 @@ npx aigate-cli check</code></pre>
     <td><code>aigate github check --format json</code></td>
     <td>GitHub Checks/Actions용 summary payload를 생성합니다.</td>
     <td>CI에서 AIGate 결과를 표시할 때</td>
+  </tr><tr>
+    <td><code>aigate github setup --owner @team</code></td>
+    <td>PR 템플릿과 CODEOWNERS를 설정합니다.</td>
+    <td>공개 기여 흐름을 정리할 때</td>
   </tr><tr>
     <td><code>aigate trends record</code></td>
     <td>프로젝트 상태 스냅샷을 기록합니다.</td>
@@ -690,6 +694,7 @@ aigate pr --title &quot;feat: short summary&quot;
 aigate github comment --pr &lt;number&gt;
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate github setup --owner @your-org/team --dry-run
 aigate release-check --npm</code></pre>
     </section>
 
@@ -698,7 +703,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">기능</p>
         <h2>현재 구현된 기능</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm 패키지 aigate-cli 공개 배포와 npx 실행</div><div class="feature done">Git 변경사항과 untracked 파일 기반 readiness check</div><div class="feature done">doctor, demo, install-hook 기반 첫 실행 UX</div><div class="feature done">pre-push Git hook 설치</div><div class="feature done">secret 패턴 탐지와 SARIF 출력</div><div class="feature done">git-ready, guarded push, guarded PR 생성 흐름</div><div class="feature done">GitHub PR comment와 GitHub Checks summary payload</div><div class="feature done">프로젝트 상태 추세 기록</div><div class="feature done">Markdown, HTML, JSON, SARIF 리포트</div><div class="feature done">프로젝트 점수와 deep Git signal 평가</div><div class="feature done">브랜치 전략 추천과 정책 초안 생성</div><div class="feature done">Codex/Gemini 통합 파일 생성</div><div class="feature done">한국어/영어/일본어/중국어 CLI 설정</div><div class="feature done">release-check와 release-check --npm</div><div class="feature done">npm Trusted Publishing 기반 자동 배포</div><div class="feature done">GitHub CI, OpenSSF Scorecard, GitHub Release 운영</div><div class="feature done">터미널, Slack BLOCK, Discord, Teams webhook 알림</div></div>
+      <div class="feature-grid"><div class="feature done">npm 패키지 aigate-cli 공개 배포와 npx 실행</div><div class="feature done">Git 변경사항과 untracked 파일 기반 readiness check</div><div class="feature done">doctor, demo, install-hook 기반 첫 실행 UX</div><div class="feature done">pre-push Git hook 설치</div><div class="feature done">secret 패턴 탐지와 SARIF 출력</div><div class="feature done">git-ready, guarded push, guarded PR 생성 흐름</div><div class="feature done">GitHub PR comment와 GitHub Checks summary payload</div><div class="feature done">PR 템플릿과 CODEOWNERS 안내형 설정</div><div class="feature done">프로젝트 상태 추세 기록</div><div class="feature done">Markdown, HTML, JSON, SARIF 리포트</div><div class="feature done">프로젝트 점수와 deep Git signal 평가</div><div class="feature done">브랜치 전략 추천과 정책 초안 생성</div><div class="feature done">Codex/Gemini 통합 파일 생성</div><div class="feature done">한국어/영어/일본어/중국어 CLI 설정</div><div class="feature done">release-check와 release-check --npm</div><div class="feature done">npm Trusted Publishing 기반 자동 배포</div><div class="feature done">GitHub CI, OpenSSF Scorecard, GitHub Release 운영</div><div class="feature done">터미널, Slack BLOCK, Discord, Teams webhook 알림</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">

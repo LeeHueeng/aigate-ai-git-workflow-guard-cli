@@ -58,6 +58,7 @@ aigate pr --title "feat: short summary"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate github setup --owner @your-org/team --dry-run
 aigate release-check --npm
 ```
 
@@ -71,6 +72,7 @@ aigate release-check --npm
 - secret pattern detection 和 SARIF output
 - `git-ready`、guarded push、guarded PR creation
 - 通过 `aigate github` 发布 GitHub PR 评论并准备 Checks 摘要
+- 通过 `aigate github setup` 设置 PR 模板和 CODEOWNERS
 - Markdown, HTML, JSON, SARIF reports
 - project score 和 deep Git signal evaluation
 - 通过 `aigate trends` 记录项目状态趋势历史

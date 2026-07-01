@@ -25,7 +25,7 @@
 - [ ] 将 bundled GitHub composite action 升级为 reusable public action
 - [x] 添加 Discord 和 Teams webhook notification payload
 - [ ] 将 generated branch strategy docs 扩展为 richer policy pack
-- [ ] 将 PR template 和 CODEOWNERS draft 升级为 guided setup
+- [x] 将 PR 模板和 CODEOWNERS 草案升级为引导式设置
 
 ## V2: Team reports and GitHub integration
 
