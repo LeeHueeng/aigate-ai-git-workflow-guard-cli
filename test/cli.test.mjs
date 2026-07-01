@@ -79,6 +79,16 @@ function createGenericReleaseProject() {
   return projectDir;
 }
 
+function createMinimalGitProject() {
+  const projectDir = mkdtempSync(join(tmpdir(), "aigate-minimal-project-"));
+  writeFileSync(join(projectDir, "package.json"), `${JSON.stringify({
+    name: "minimal-project",
+    version: "1.0.0"
+  }, null, 2)}\n`);
+  spawnSync("git", ["init"], { cwd: projectDir, encoding: "utf8" });
+  return projectDir;
+}
+
 test("shows help", () => {
   const result = run(["--help"]);
 
@@ -160,6 +170,18 @@ test("generates pull request readiness report", () => {
   assert.equal(output.type, "pr");
   assert.equal(typeof output.riskScore, "number");
   assert.equal(typeof output.prReadinessScore, "number");
+});
+
+test("renders localized pull request readiness report", () => {
+  const settingsPath = createSettingsPath();
+  run(["setup", "--language", "ko"], { settingsPath });
+  const result = run(["pr-check"], { settingsPath });
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /^# AIGate pr 리포트/m);
+  assert.match(result.stdout, /## 변경 경로/);
+  assert.match(result.stdout, /## 권장 조치/);
+  assert.doesNotMatch(result.stdout, /## Changed Paths/);
 });
 
 test("can skip push readiness gate in dry-run mode", () => {
@@ -348,6 +370,43 @@ test("blocks possible secrets in changed files", () => {
   } finally {
     unlinkSync(secretPath);
   }
+});
+
+test("warns but does not block only for a low project foundation score", () => {
+  const projectDir = createMinimalGitProject();
+  const result = run(["git-ready", "--format", "json"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.status, "READY");
+  assert.deepEqual(output.blockers, []);
+  assert.ok(output.warnings.some((warning) => /Project foundation score/.test(warning)));
+});
+
+test("blocks Playwright auth state files as sensitive findings", () => {
+  const projectDir = createMinimalGitProject();
+  const authDir = join(projectDir, "apps", "admin", "playwright", ".auth");
+  mkdirSync(authDir, { recursive: true });
+  writeFileSync(join(authDir, "admin.json"), JSON.stringify({
+    cookies: [
+      {
+        name: "session",
+        value: "example-session-cookie-value",
+        domain: "example.test"
+      }
+    ]
+  }, null, 2));
+
+  const check = run(["check", "--format", "json"], { cwd: projectDir });
+  assert.equal(check.status, 0);
+  const checkOutput = JSON.parse(check.stdout);
+  assert.equal(checkOutput.status, "BLOCK");
+  assert.ok(checkOutput.secretFindings.some((finding) => finding.ruleId === "sensitive-auth-state"));
+
+  const ready = run(["git-ready", "--format", "json"], { cwd: projectDir });
+  assert.equal(ready.status, 1);
+  const readyOutput = JSON.parse(ready.stdout);
+  assert.equal(readyOutput.status, "BLOCK");
 });
 
 test("scores repository foundations", () => {
