@@ -37,6 +37,22 @@ notifications:
       - slack
       - email
 
+aiIntegrations:
+  providers:
+    - codex
+    - gemini
+  generatedFiles:
+    - AGENTS.md
+    - GEMINI.md
+    - .aigate/integrations.json
+    - .aigate/integrations/README.md
+    - .aigate/integrations/codex.md
+    - .aigate/integrations/gemini.md
+  requiredCommands:
+    - npm run ci
+    - aigate git-ready
+    - aigate push --dry-run origin <branch>
+
 branchStrategy:
   default: github-flow-with-release-channels
   protectedBranches:

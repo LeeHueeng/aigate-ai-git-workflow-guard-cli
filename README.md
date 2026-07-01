@@ -63,6 +63,7 @@ aigate settings
 | `aigate push` | Run AIGate checks, then run `git push`. |
 | `aigate setup --language ko` | Save local AIGate settings. |
 | `aigate settings` | Show current AIGate settings. |
+| `aigate integrate all` | Generate Codex and Gemini assistant integration files. |
 | `aigate report` | Print a local workflow report. |
 | `aigate evaluate-project` | Score project workflow foundations. |
 | `aigate score` | Print only the project score. |
@@ -107,6 +108,21 @@ aigate push -u origin <branch>
 ```
 
 Read the full workflow in [docs/git-upload-workflow.md](docs/git-upload-workflow.md).
+
+## AI Assistant Integrations
+
+Generate assistant instructions for Codex and Gemini:
+
+```sh
+aigate integrate all
+aigate integrate codex
+aigate integrate gemini
+```
+
+This creates `AGENTS.md`, `GEMINI.md`, and `.aigate/integrations/*` so AI
+assistants can follow the same branch, validation, and guarded push workflow.
+
+Read the full guide in [docs/ai-integrations.md](docs/ai-integrations.md).
 
 ## Public Repository Standards
 

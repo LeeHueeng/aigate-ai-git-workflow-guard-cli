@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 
 const VERSION = "0.0.0";
 const SUPPORTED_LANGUAGES = ["en", "ko"];
+const SUPPORTED_INTEGRATIONS = ["codex", "gemini"];
 const DEFAULT_SETTINGS = {
   version: 1,
   language: "en"
@@ -34,6 +35,7 @@ Commands:
   push                     Run AIGate checks, then run git push.
   setup                    Configure AIGate project settings.
   settings                 Show current AIGate settings.
+  integrate <provider>     Generate Codex/Gemini assistant integration files.
   report                   Print a workflow report.
   evaluate-project         Score repository workflow foundations.
   score                    Print only the project score.
@@ -48,6 +50,8 @@ Options:
   --github                 Include GitHub protection guidance.
   --event <name>           Notification event name.
   --language <en|ko>       Select output language.
+  --output-dir <path>      Select integration output directory.
+  --force                  Overwrite generated integration files.
   --dry-run                Preview an AIGate command without changing remotes.
   --no-verify              Skip the AIGate readiness gate for push.
   --version                Print CLI version.
@@ -59,6 +63,7 @@ const commands = {
   push: commandPush,
   setup: commandSetup,
   settings: commandSettings,
+  integrate: commandIntegrate,
   report: commandReport,
   "evaluate-project": commandEvaluateProject,
   score: commandScore,
@@ -262,6 +267,54 @@ function commandSettings(args) {
     "AIGate settings",
     `Settings file: ${getSettingsPath()}`,
     `Language: ${settings.language}`
+  ].join("\n");
+}
+
+function commandIntegrate(args) {
+  const options = parseOptions(args);
+  const providerArg = firstPositionalArg(args) ?? "all";
+  const providers = resolveIntegrationProviders(providerArg);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  if (!providers) {
+    process.exitCode = 1;
+    return [
+      `Unsupported integration provider: ${providerArg}`,
+      `Supported providers: ${SUPPORTED_INTEGRATIONS.join(", ")}, all`
+    ].join("\n");
+  }
+
+  const outputDir = options.outputDir ?? ".";
+  const manifest = buildIntegrationManifest(providers);
+  const files = buildIntegrationFiles(providers, outputDir, manifest);
+  const results = writeIntegrationFiles(files, Boolean(options.force));
+
+  if (options.format === "json") {
+    return JSON.stringify({
+      command: "integrate",
+      providers,
+      outputDir,
+      files: results
+    }, null, 2);
+  }
+
+  if (language === "ko") {
+    return [
+      "AIGate AI 연동 파일 생성",
+      `대상: ${providers.join(", ")}`,
+      ...results.map((result) => `- ${translateIntegrationAction(result.action)}: ${result.path}`),
+      "다음 단계: 생성된 지침 파일을 검토하고 npm run ci를 실행하세요."
+    ].join("\n");
+  }
+
+  return [
+    "AIGate AI integration files",
+    `Providers: ${providers.join(", ")}`,
+    ...results.map((result) => `- ${result.action}: ${result.path}`),
+    "Next: review the generated instruction files and run npm run ci."
   ].join("\n");
 }
 
@@ -472,6 +525,9 @@ function buildEvaluation() {
     { name: "AIGate configuration exists", pass: existsSync(".aigate.yml") },
     { name: "Branch strategy is documented", pass: existsSync(join("docs", "branch-strategy.md")) },
     { name: "Git upload workflow is documented", pass: existsSync(join("docs", "git-upload-workflow.md")) },
+    { name: "AI integrations are documented", pass: existsSync(join("docs", "ai-integrations.md")) },
+    { name: "Codex instructions exist", pass: existsSync("AGENTS.md") },
+    { name: "Gemini instructions exist", pass: existsSync("GEMINI.md") },
     { name: "Pull request template exists", pass: existsSync(join(".github", "pull_request_template.md")) },
     { name: "CI workflow exists", pass: existsSync(join(".github", "workflows", "ci.yml")) },
     { name: "Package metadata exists", pass: existsSync("package.json") },
@@ -555,6 +611,196 @@ function renderBranchStrategyMarkdown(strategy) {
     "",
     ...strategy.githubProtection.map((rule) => `- ${rule}`)
   ].join("\n");
+}
+
+function resolveIntegrationProviders(providerArg) {
+  const provider = String(providerArg).trim().toLowerCase();
+  if (provider === "all") {
+    return [...SUPPORTED_INTEGRATIONS];
+  }
+
+  if (SUPPORTED_INTEGRATIONS.includes(provider)) {
+    return [provider];
+  }
+
+  return null;
+}
+
+function buildIntegrationManifest(providers) {
+  return {
+    version: 1,
+    generatedBy: `aigate ${VERSION}`,
+    providers,
+    requiredCommands: [
+      "npm run ci",
+      "aigate git-ready",
+      "aigate push --dry-run origin <branch>"
+    ],
+    branchStrategy: "GitHub Flow with release channels",
+    requiredChecks: [
+      "test (20)",
+      "test (22)"
+    ]
+  };
+}
+
+function buildIntegrationFiles(providers, outputDir, manifest) {
+  const files = [
+    {
+      path: join(outputDir, ".aigate", "integrations.json"),
+      content: `${JSON.stringify(manifest, null, 2)}\n`
+    },
+    {
+      path: join(outputDir, ".aigate", "integrations", "README.md"),
+      content: renderIntegrationReadme(providers)
+    }
+  ];
+
+  if (providers.includes("codex")) {
+    files.push(
+      {
+        path: join(outputDir, "AGENTS.md"),
+        content: renderCodexInstructions()
+      },
+      {
+        path: join(outputDir, ".aigate", "integrations", "codex.md"),
+        content: renderProviderInstructions("Codex")
+      }
+    );
+  }
+
+  if (providers.includes("gemini")) {
+    files.push(
+      {
+        path: join(outputDir, "GEMINI.md"),
+        content: renderGeminiInstructions()
+      },
+      {
+        path: join(outputDir, ".aigate", "integrations", "gemini.md"),
+        content: renderProviderInstructions("Gemini")
+      }
+    );
+  }
+
+  return files;
+}
+
+function writeIntegrationFiles(files, force) {
+  return files.map((file) => {
+    if (existsSync(file.path) && !force) {
+      return {
+        path: file.path,
+        action: "skipped"
+      };
+    }
+
+    const action = existsSync(file.path) ? "updated" : "created";
+    mkdirSync(dirname(file.path), { recursive: true });
+    writeFileSync(file.path, file.content, "utf8");
+
+    return {
+      path: file.path,
+      action
+    };
+  });
+}
+
+function renderIntegrationReadme(providers) {
+  return [
+    "# AIGate AI Integrations",
+    "",
+    "This directory contains assistant-facing instructions generated by AIGate.",
+    "",
+    "Enabled providers:",
+    "",
+    ...providers.map((provider) => `- ${provider}`),
+    "",
+    "Required local checks:",
+    "",
+    "```sh",
+    "npm run ci",
+    "aigate git-ready",
+    "```",
+    "",
+    "Use `aigate integrate all --force` to regenerate these files."
+  ].join("\n") + "\n";
+}
+
+function renderCodexInstructions() {
+  return [
+    "# AIGate Codex Instructions",
+    "",
+    "Use these instructions when working on this repository with Codex.",
+    "",
+    ...renderSharedAssistantInstructions()
+  ].join("\n") + "\n";
+}
+
+function renderGeminiInstructions() {
+  return [
+    "# AIGate Gemini Instructions",
+    "",
+    "Use these instructions when working on this repository with Gemini.",
+    "",
+    ...renderSharedAssistantInstructions()
+  ].join("\n") + "\n";
+}
+
+function renderProviderInstructions(providerName) {
+  return [
+    `# ${providerName} Integration`,
+    "",
+    `AIGate generated this ${providerName} integration guide so the assistant can follow the same Git workflow as maintainers.`,
+    "",
+    ...renderSharedAssistantInstructions()
+  ].join("\n") + "\n";
+}
+
+function renderSharedAssistantInstructions() {
+  return [
+    "## Repository Context",
+    "",
+    "- Product: AIGate AI Git Workflow Guard CLI.",
+    "- Default branch: `main`.",
+    "- Use feature branches for changes; do not push directly to `main`.",
+    "- Prefer focused commits with Conventional Commit messages.",
+    "",
+    "## Before Editing",
+    "",
+    "- Read `README.md`, `.aigate.yml`, `docs/branch-strategy.md`, and `docs/git-upload-workflow.md`.",
+    "- Inspect the current branch with `git status --short --branch`.",
+    "- Keep generated reports and local settings out of commits unless explicitly requested.",
+    "",
+    "## Validation",
+    "",
+    "Run these commands before proposing, pushing, or merging changes:",
+    "",
+    "```sh",
+    "npm run ci",
+    "aigate git-ready",
+    "```",
+    "",
+    "## Push Workflow",
+    "",
+    "Use AIGate's guarded push wrapper:",
+    "",
+    "```sh",
+    "aigate push -u origin <branch>",
+    "```",
+    "",
+    "Preview without changing the remote:",
+    "",
+    "```sh",
+    "aigate push --dry-run origin <branch>",
+    "```",
+    "",
+    "## Pull Request Rules",
+    "",
+    "- Target `main`.",
+    "- Include summary, why, validation, and release impact.",
+    "- Required checks: `test (20)` and `test (22)`.",
+    "- Wait for review approval and resolved conversations before merge."
+  ];
 }
 
 function readSettings() {
@@ -665,6 +911,35 @@ function stripAigatePushOptions(args) {
   }
 
   return pushArgs;
+}
+
+function firstPositionalArg(args) {
+  const optionsWithValues = new Set(["--format", "--type", "--event", "--language", "--output-dir"]);
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (optionsWithValues.has(arg)) {
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith("--")) {
+      continue;
+    }
+
+    return arg;
+  }
+
+  return null;
+}
+
+function translateIntegrationAction(action) {
+  return {
+    created: "생성",
+    updated: "갱신",
+    skipped: "건너뜀"
+  }[action] ?? action;
 }
 
 function parseOptions(args) {

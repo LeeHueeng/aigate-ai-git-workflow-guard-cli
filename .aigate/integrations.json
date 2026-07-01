@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "generatedBy": "aigate 0.0.0",
+  "providers": [
+    "codex",
+    "gemini"
+  ],
+  "requiredCommands": [
+    "npm run ci",
+    "aigate git-ready",
+    "aigate push --dry-run origin <branch>"
+  ],
+  "branchStrategy": "GitHub Flow with release channels",
+  "requiredChecks": [
+    "test (20)",
+    "test (22)"
+  ]
+}

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -11,6 +11,10 @@ const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 
 function createSettingsPath() {
   return join(mkdtempSync(join(tmpdir(), "aigate-settings-")), "settings.json");
+}
+
+function createOutputDir() {
+  return mkdtempSync(join(tmpdir(), "aigate-integrations-"));
 }
 
 function run(args, options = {}) {
@@ -32,6 +36,7 @@ test("shows help", () => {
   assert.match(result.stdout, /branch-strategy/);
   assert.match(result.stdout, /setup/);
   assert.match(result.stdout, /settings/);
+  assert.match(result.stdout, /integrate/);
   assert.match(result.stdout, /--language/);
   assert.match(result.stdout, /push/);
 });
@@ -105,6 +110,41 @@ test("rejects unsupported language", () => {
 
   assert.equal(result.status, 1);
   assert.match(result.stdout, /Unsupported language: jp/);
+});
+
+test("generates Codex and Gemini integration files", () => {
+  const outputDir = createOutputDir();
+  const result = run(["integrate", "all", "--output-dir", outputDir, "--format", "json"]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.deepEqual(output.providers, ["codex", "gemini"]);
+  assert.ok(existsSync(join(outputDir, "AGENTS.md")));
+  assert.ok(existsSync(join(outputDir, "GEMINI.md")));
+  assert.ok(existsSync(join(outputDir, ".aigate", "integrations.json")));
+
+  const manifest = JSON.parse(readFileSync(join(outputDir, ".aigate", "integrations.json"), "utf8"));
+  assert.deepEqual(manifest.providers, ["codex", "gemini"]);
+});
+
+test("skips integration files unless force is used", () => {
+  const outputDir = createOutputDir();
+  run(["integrate", "codex", "--output-dir", outputDir]);
+  const skipped = run(["integrate", "codex", "--output-dir", outputDir]);
+
+  assert.equal(skipped.status, 0);
+  assert.match(skipped.stdout, /skipped/);
+
+  const forced = run(["integrate", "codex", "--output-dir", outputDir, "--force"]);
+  assert.equal(forced.status, 0);
+  assert.match(forced.stdout, /updated/);
+});
+
+test("rejects unsupported integration providers", () => {
+  const result = run(["integrate", "unknown-ai"]);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /Unsupported integration provider: unknown-ai/);
 });
 
 test("renders markdown report by default", () => {
