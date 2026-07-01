@@ -1,0 +1,29 @@
+title: "[Idea] "
+labels:
+  - idea
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What workflow pain should AIGate solve?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Idea
+      description: Describe the proposed behavior or integration.
+    validations:
+      required: true
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Audience
+      options:
+        - individual developer
+        - small team
+        - open source maintainer
+        - enterprise team
+    validations:
+      required: true
