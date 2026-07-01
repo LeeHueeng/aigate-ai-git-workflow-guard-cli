@@ -84,7 +84,8 @@ When the public repository is created, enable these branch protection rules on
 
 Initial required status checks:
 
-- `test`
+- `test (20)`
+- `test (22)`
 - future: `npm run lint`
 - future: `npm run typecheck`
 

@@ -53,7 +53,8 @@ branchStrategy:
     - release/*
     - hotfix/*
   requiredChecks:
-    - test
+    - test (20)
+    - test (22)
 
 qualityGates:
   beforePush:
