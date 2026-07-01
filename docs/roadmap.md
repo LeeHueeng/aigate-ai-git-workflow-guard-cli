@@ -23,7 +23,7 @@
 - [ ] Promote the bundled GitHub composite action to a reusable public action.
 - [x] Add Discord and Teams webhook notification payloads.
 - [ ] Expand generated branch strategy docs into richer policy packs.
-- [ ] Promote pull request template and CODEOWNERS drafts into guided setup.
+- [x] Promote pull request template and CODEOWNERS drafts into guided setup.
 
 ## V2: Team Reports And GitHub Integration
 

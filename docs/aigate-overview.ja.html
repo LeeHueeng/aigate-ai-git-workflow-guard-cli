@@ -530,7 +530,7 @@ npx aigate-cli check</code></pre>
       <div><span>check</span><span>git-ready</span><span>push</span><span>pr</span></div>
     </article><article class="command-group group-3">
       <h3>レポート</h3>
-      <div><span>pr-check</span><span>github comment</span><span>github check</span><span>trends</span><span>report</span><span>evaluate-project</span><span>audit-report</span></div>
+      <div><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>audit-report</span></div>
     </article><article class="command-group group-4">
       <h3>リリース</h3>
       <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>notify</span></div>
@@ -605,6 +605,10 @@ npx aigate-cli check</code></pre>
     <td><code>aigate github check --format json</code></td>
     <td>GitHub Checks/Actions summary payload を生成します。</td>
     <td>CI で AIGate 状態を表示するとき</td>
+  </tr><tr>
+    <td><code>aigate github setup --owner @team</code></td>
+    <td>PR テンプレートと CODEOWNERS を設定します。</td>
+    <td>公開コントリビューション導線を整えるとき</td>
   </tr><tr>
     <td><code>aigate trends record</code></td>
     <td>プロジェクト状態スナップショットを記録します。</td>
@@ -690,6 +694,7 @@ aigate pr --title &quot;feat: short summary&quot;
 aigate github comment --pr &lt;number&gt;
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate github setup --owner @your-org/team --dry-run
 aigate release-check --npm</code></pre>
     </section>
 
@@ -698,7 +703,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">機能</p>
         <h2>現在実装済みの機能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">doctor、demo、install-hook による初回実行 UX</div><div class="feature done">pre-push Git hook のインストール</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">GitHub PR comment と GitHub Checks summary payload</div><div class="feature done">プロジェクト状態トレンド履歴</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦とポリシー草案生成</div><div class="feature done">Codex/Gemini 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams webhook 通知</div></div>
+      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">doctor、demo、install-hook による初回実行 UX</div><div class="feature done">pre-push Git hook のインストール</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">GitHub PR comment と GitHub Checks summary payload</div><div class="feature done">PR テンプレートと CODEOWNERS のガイド付き設定</div><div class="feature done">プロジェクト状態トレンド履歴</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦とポリシー草案生成</div><div class="feature done">Codex/Gemini 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams webhook 通知</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">

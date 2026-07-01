@@ -2,12 +2,14 @@ import { spawnSync } from "node:child_process";
 import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { buildGitHubCheckPayload, buildGitHubCommentPlan } from "../core/github-reporting.mjs";
+import { applyGithubSetupPlan, buildGithubSetupPlan } from "../core/github-setup.mjs";
 import {
   renderGithubCheckText,
   renderGithubCommentPreview,
   renderGithubCommentSent,
   renderGithubUsage
 } from "../renderers/github-reporting.mjs";
+import { renderGithubSetupResult } from "../renderers/github-setup.mjs";
 
 export function commandGithub(args, context) {
   const options = context.parseOptions(args);
@@ -29,11 +31,29 @@ export function commandGithub(args, context) {
     return commandGithubCheck(options, context, language);
   }
 
+  if (action === "setup") {
+    return commandGithubSetup(options, context, language);
+  }
+
   process.exitCode = 1;
   return [
     context.t(language, "github.unknownAction", { action }),
     renderGithubUsage(language, context.t)
   ].join("\n");
+}
+
+function commandGithubSetup(options, context, language) {
+  const plan = buildGithubSetupPlan(options, context, language);
+  const result = applyGithubSetupPlan(plan, {
+    dryRun: options.dryRun,
+    force: options.force
+  });
+
+  if (options.format === "json") {
+    return JSON.stringify(result, null, 2);
+  }
+
+  return renderGithubSetupResult(result, language);
 }
 
 function commandGithubComment(options, context, language) {

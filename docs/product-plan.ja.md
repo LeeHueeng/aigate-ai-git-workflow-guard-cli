@@ -88,7 +88,8 @@ hybrid strategy を推薦します。
 
 - npm と `npx` による installability
 - `aigate init` による project initialization
-- local `check`、`report`、`evaluate-project`、`branch-strategy` commands
+- local `check`、`report`、`evaluate-project`、`branch-strategy`、
+  `github setup` commands
 - `aigate pr-check` による pull request readiness
 - Markdown、HTML、JSON、SARIF reports
 - basic branch strategy recommendation

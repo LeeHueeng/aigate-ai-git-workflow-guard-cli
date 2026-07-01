@@ -48,6 +48,7 @@ aigate pr-check
 | PR readiness report | `aigate pr-check` |
 | GitHub PR 要約コメント | `aigate github comment --pr <number>` |
 | GitHub Checks 要約 payload | `aigate github check --format json` |
+| GitHub PR テンプレートと CODEOWNERS 設定 | `aigate github setup` |
 | Markdown, HTML, JSON, SARIF report | `aigate report --format <format>` |
 | repository health score | `aigate evaluate-project` |
 | プロジェクト状態トレンド履歴 | `aigate trends record` |
@@ -70,6 +71,7 @@ aigate pr --title "feat: focused change"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate github setup --owner @your-org/team --dry-run
 ```
 
 ## 言語設定

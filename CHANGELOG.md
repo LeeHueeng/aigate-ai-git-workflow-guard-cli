@@ -23,6 +23,8 @@ All notable changes to AIGate are documented here.
   payloads through `aigate github comment` and `aigate github check`.
 - Added project health trend history through `aigate trends record` and
   `aigate trends show`.
+- Added guided GitHub repository setup through `aigate github setup` for pull
+  request templates and CODEOWNERS.
 - Improved tests for multilingual output and webhook notification payloads.
 
 ## 0.1.0 - 2026-07-01
