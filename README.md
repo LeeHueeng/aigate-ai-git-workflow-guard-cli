@@ -53,6 +53,7 @@ node src/cli.mjs branch-strategy
 | --- | --- |
 | `aigate check` | Summarize current Git readiness. |
 | `aigate git-ready` | Run the before-push readiness gate. |
+| `aigate push` | Run AIGate checks, then run `git push`. |
 | `aigate report` | Print a local workflow report. |
 | `aigate evaluate-project` | Score project workflow foundations. |
 | `aigate score` | Print only the project score. |
@@ -93,7 +94,7 @@ npm run git:ready
 git status --short --branch
 git add <files>
 git commit -m "type: short summary"
-git push -u origin <branch>
+aigate push -u origin <branch>
 ```
 
 Read the full workflow in [docs/git-upload-workflow.md](docs/git-upload-workflow.md).

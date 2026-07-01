@@ -52,8 +52,12 @@ Use Conventional Commits:
 ## 4. Push And Open A Pull Request
 
 ```sh
-git push -u origin <branch>
+aigate push -u origin <branch>
 ```
+
+`aigate push` runs the AIGate readiness gate first. If the gate passes, it
+forwards the remaining arguments to `git push`. Use `aigate push --dry-run
+origin <branch>` to preview the command without changing the remote.
 
 Open a pull request into `main`. Include:
 
