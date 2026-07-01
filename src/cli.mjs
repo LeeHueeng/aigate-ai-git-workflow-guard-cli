@@ -81,6 +81,8 @@ const I18N = {
     "settings.complete": "AIGate setup complete",
     "settings.file": "Settings file: {path}",
     "settings.title": "AIGate settings",
+    "unknownCommand": "Unknown command: {command}",
+    "runHelp": "Run `aigate --help` for available commands.",
     "unsupportedLanguage": "Unsupported language: {language}",
     "supportedLanguages": "Supported languages: {languages}",
     "unsupportedIntegration": "Unsupported integration provider: {provider}",
@@ -100,7 +102,7 @@ const I18N = {
     "check.branch": "브랜치: {branch}",
     "check.changedFiles": "변경 파일: {count}",
     "check.recommendation": "권장 사항: {recommendation}",
-    "check.secretFindings": "Secret 탐지: {count}",
+    "check.secretFindings": "민감 정보 탐지: {count}",
     "check.status": "AIGate 검사: {status}",
     "common.next": "다음 단계: {next}",
     "common.wrote": "{path} 파일을 작성했습니다",
@@ -110,8 +112,8 @@ const I18N = {
     "gitReady.changedFiles": "변경 파일: {count}",
     "gitReady.projectScore": "프로젝트 점수: {score}/100",
     "gitReady.recommendation": "권장 사항: {recommendation}",
-    "gitReady.secretFindings": "Secret 탐지: {count}",
-    "gitReady.status": "AIGate git-ready: {status}",
+    "gitReady.secretFindings": "민감 정보 탐지: {count}",
+    "gitReady.status": "AIGate 준비 검사: {status}",
     "gitReady.warnings": "주의 사항:",
     "gitReady.warningsNone": "주의 사항: 없음",
     "init.complete": "AIGate 초기화 완료",
@@ -135,19 +137,21 @@ const I18N = {
     "release.branch": "릴리스 태그: {tag}",
     "release.nextSteps": "다음 단계:",
     "release.package": "패키지: {packageName}",
-    "release.registryNotChecked": "npm registry: 확인 안 함 (--npm 사용)",
-    "release.registryNotPublished": "npm registry: {packageName}@{version} 미배포",
-    "release.registryPublished": "npm registry: {packageName}@{version} 배포됨",
-    "release.registryFailed": "npm registry: 조회 실패 ({error})",
-    "release.status": "AIGate release-check: {status}",
+    "release.registryNotChecked": "npm 레지스트리: 확인 안 함 (--npm 사용)",
+    "release.registryNotPublished": "npm 레지스트리: {packageName}@{version} 미배포",
+    "release.registryPublished": "npm 레지스트리: {packageName}@{version} 배포됨",
+    "release.registryFailed": "npm 레지스트리: 조회 실패 ({error})",
+    "release.status": "AIGate 릴리스 검사: {status}",
     "release.version": "버전: {version}",
     "settings.complete": "AIGate 설정 완료",
     "settings.file": "설정 파일: {path}",
     "settings.title": "AIGate 설정",
+    "unknownCommand": "알 수 없는 명령어: {command}",
+    "runHelp": "사용 가능한 명령어는 `aigate --help`로 확인하세요.",
     "unsupportedLanguage": "지원하지 않는 언어: {language}",
     "supportedLanguages": "지원 언어: {languages}",
     "unsupportedIntegration": "지원하지 않는 연동 대상: {provider}",
-    "supportedIntegrations": "지원 대상: {providers}, all"
+    "supportedIntegrations": "지원 대상: {providers}, 전체(all)"
   },
   ja: {
     "action.created": "作成",
@@ -163,7 +167,7 @@ const I18N = {
     "check.branch": "ブランチ: {branch}",
     "check.changedFiles": "変更ファイル: {count}",
     "check.recommendation": "推奨事項: {recommendation}",
-    "check.secretFindings": "Secret 検出: {count}",
+    "check.secretFindings": "機密情報検出: {count}",
     "check.status": "AIGate チェック: {status}",
     "common.next": "次の手順: {next}",
     "common.wrote": "{path} を書き込みました",
@@ -173,8 +177,8 @@ const I18N = {
     "gitReady.changedFiles": "変更ファイル: {count}",
     "gitReady.projectScore": "プロジェクトスコア: {score}/100",
     "gitReady.recommendation": "推奨事項: {recommendation}",
-    "gitReady.secretFindings": "Secret 検出: {count}",
-    "gitReady.status": "AIGate git-ready: {status}",
+    "gitReady.secretFindings": "機密情報検出: {count}",
+    "gitReady.status": "AIGate 準備チェック: {status}",
     "gitReady.warnings": "警告:",
     "gitReady.warningsNone": "警告: なし",
     "init.complete": "AIGate 初期化完了",
@@ -193,24 +197,26 @@ const I18N = {
     "notify.usage": "使い方: aigate notify <setup|test|send> [--event BLOCK] [--channel terminal]",
     "notify.webhookHint": "{env} を設定するか --channel terminal を使用してください。",
     "notify.wouldSend": "{env} を使って {channel} に {event} 通知を送信予定です",
-    "push.skip": "AIGate push: --no-verify により readiness gate をスキップします。",
+    "push.skip": "AIGate push: --no-verify により準備ゲートをスキップします。",
     "push.wouldRun": "実行予定: {command}",
     "release.branch": "リリースタグ: {tag}",
     "release.nextSteps": "次の手順:",
     "release.package": "パッケージ: {packageName}",
-    "release.registryNotChecked": "npm registry: 未確認 (--npm を使用)",
-    "release.registryNotPublished": "npm registry: {packageName}@{version} は未公開",
-    "release.registryPublished": "npm registry: {packageName}@{version} は公開済み",
-    "release.registryFailed": "npm registry: 照会失敗 ({error})",
-    "release.status": "AIGate release-check: {status}",
+    "release.registryNotChecked": "npm レジストリ: 未確認 (--npm を使用)",
+    "release.registryNotPublished": "npm レジストリ: {packageName}@{version} は未公開",
+    "release.registryPublished": "npm レジストリ: {packageName}@{version} は公開済み",
+    "release.registryFailed": "npm レジストリ: 照会失敗 ({error})",
+    "release.status": "AIGate リリースチェック: {status}",
     "release.version": "バージョン: {version}",
     "settings.complete": "AIGate 設定完了",
     "settings.file": "設定ファイル: {path}",
     "settings.title": "AIGate 設定",
+    "unknownCommand": "不明なコマンド: {command}",
+    "runHelp": "利用可能なコマンドは `aigate --help` で確認してください。",
     "unsupportedLanguage": "未対応の言語: {language}",
     "supportedLanguages": "対応言語: {languages}",
     "unsupportedIntegration": "未対応の連携対象: {provider}",
-    "supportedIntegrations": "対応対象: {providers}, all"
+    "supportedIntegrations": "対応対象: {providers}, すべて(all)"
   },
   zh: {
     "action.created": "已创建",
@@ -226,7 +232,7 @@ const I18N = {
     "check.branch": "分支: {branch}",
     "check.changedFiles": "变更文件: {count}",
     "check.recommendation": "建议: {recommendation}",
-    "check.secretFindings": "Secret 发现: {count}",
+    "check.secretFindings": "敏感信息发现: {count}",
     "check.status": "AIGate 检查: {status}",
     "common.next": "下一步: {next}",
     "common.wrote": "已写入 {path}",
@@ -236,8 +242,8 @@ const I18N = {
     "gitReady.changedFiles": "变更文件: {count}",
     "gitReady.projectScore": "项目分数: {score}/100",
     "gitReady.recommendation": "建议: {recommendation}",
-    "gitReady.secretFindings": "Secret 发现: {count}",
-    "gitReady.status": "AIGate git-ready: {status}",
+    "gitReady.secretFindings": "敏感信息发现: {count}",
+    "gitReady.status": "AIGate 就绪检查: {status}",
     "gitReady.warnings": "警告:",
     "gitReady.warningsNone": "警告: 无",
     "init.complete": "AIGate 初始化完成",
@@ -256,24 +262,26 @@ const I18N = {
     "notify.usage": "用法: aigate notify <setup|test|send> [--event BLOCK] [--channel terminal]",
     "notify.webhookHint": "请设置 {env}，或使用 --channel terminal。",
     "notify.wouldSend": "将使用 {env} 向 {channel} 发送 {event} 通知",
-    "push.skip": "AIGate push: 已通过 --no-verify 跳过 readiness gate。",
+    "push.skip": "AIGate push: 已通过 --no-verify 跳过就绪关卡。",
     "push.wouldRun": "将执行: {command}",
     "release.branch": "发布标签: {tag}",
     "release.nextSteps": "下一步:",
     "release.package": "包: {packageName}",
-    "release.registryNotChecked": "npm registry: 未检查 (使用 --npm)",
-    "release.registryNotPublished": "npm registry: {packageName}@{version} 尚未发布",
-    "release.registryPublished": "npm registry: {packageName}@{version} 已发布",
-    "release.registryFailed": "npm registry: 查询失败 ({error})",
-    "release.status": "AIGate release-check: {status}",
+    "release.registryNotChecked": "npm 注册表: 未检查 (使用 --npm)",
+    "release.registryNotPublished": "npm 注册表: {packageName}@{version} 尚未发布",
+    "release.registryPublished": "npm 注册表: {packageName}@{version} 已发布",
+    "release.registryFailed": "npm 注册表: 查询失败 ({error})",
+    "release.status": "AIGate 发布检查: {status}",
     "release.version": "版本: {version}",
     "settings.complete": "AIGate 设置完成",
     "settings.file": "设置文件: {path}",
     "settings.title": "AIGate 设置",
+    "unknownCommand": "未知命令: {command}",
+    "runHelp": "运行 `aigate --help` 查看可用命令。",
     "unsupportedLanguage": "不支持的语言: {language}",
     "supportedLanguages": "支持语言: {languages}",
     "unsupportedIntegration": "不支持的集成目标: {provider}",
-    "supportedIntegrations": "支持目标: {providers}, all"
+    "supportedIntegrations": "支持目标: {providers}, 全部(all)"
   }
 };
 
@@ -309,7 +317,7 @@ const STATUS_LABELS = {
     PASS: "通過",
     READY: "準備完了",
     RELEASED: "公開済み",
-    TODO: "TODO",
+    TODO: "未対応",
     WARN: "注意"
   },
   zh: {
@@ -327,7 +335,7 @@ const RECOMMENDATION_TRANSLATIONS = {
   ko: {
     "No local changes detected.": "로컬 변경사항이 없습니다.",
     "Run AIGate inside a Git repository.": "AIGate를 Git 저장소 안에서 실행하세요.",
-    "Review possible secret-bearing files before commit or push.": "커밋 또는 푸시 전에 secret 포함 가능성이 있는 파일을 검토하세요.",
+    "Review possible secret-bearing files before commit or push.": "커밋 또는 푸시 전에 민감 정보 포함 가능성이 있는 파일을 검토하세요.",
     "Open a focused branch and pull request after tests pass.": "테스트 통과 후 범위가 명확한 브랜치와 PR을 여세요.",
     "Resolve blockers before committing, pushing, or opening a pull request.": "커밋, 푸시, PR 생성 전에 차단 사유를 해결하세요.",
     "Run npm test, commit focused changes, push the branch, and open a pull request.": "npm test를 실행하고, 범위가 명확한 변경을 커밋한 뒤 브랜치를 푸시하고 PR을 여세요.",
@@ -337,17 +345,17 @@ const RECOMMENDATION_TRANSLATIONS = {
   ja: {
     "No local changes detected.": "ローカル変更はありません。",
     "Run AIGate inside a Git repository.": "AIGate は Git リポジトリ内で実行してください。",
-    "Review possible secret-bearing files before commit or push.": "commit または push 前に secret を含む可能性があるファイルを確認してください。",
+    "Review possible secret-bearing files before commit or push.": "コミットまたはプッシュ前に機密情報を含む可能性があるファイルを確認してください。",
     "Open a focused branch and pull request after tests pass.": "テスト通過後、範囲を絞ったブランチと PR を作成してください。",
-    "Resolve blockers before committing, pushing, or opening a pull request.": "commit、push、PR 作成の前にブロッカーを解消してください。",
-    "Run npm test, commit focused changes, push the branch, and open a pull request.": "npm test を実行し、範囲を絞って commit し、ブランチを push して PR を作成してください。",
+    "Resolve blockers before committing, pushing, or opening a pull request.": "コミット、プッシュ、PR 作成の前にブロッカーを解消してください。",
+    "Run npm test, commit focused changes, push the branch, and open a pull request.": "npm test を実行し、範囲を絞ってコミットし、ブランチをプッシュして PR を作成してください。",
     "Repository foundations are ready for the next MVP slice.": "リポジトリ基盤は次の MVP スライスに進める状態です。",
     "Complete the missing repository foundations before public release.": "公開リリース前に不足しているリポジトリ基盤を整備してください。"
   },
   zh: {
     "No local changes detected.": "未检测到本地变更。",
     "Run AIGate inside a Git repository.": "请在 Git 仓库内运行 AIGate。",
-    "Review possible secret-bearing files before commit or push.": "提交或推送前，请检查可能包含 secret 的文件。",
+    "Review possible secret-bearing files before commit or push.": "提交或推送前，请检查可能包含敏感信息的文件。",
     "Open a focused branch and pull request after tests pass.": "测试通过后，创建范围清晰的分支和 PR。",
     "Resolve blockers before committing, pushing, or opening a pull request.": "提交、推送或创建 PR 前，请先解决阻塞原因。",
     "Run npm test, commit focused changes, push the branch, and open a pull request.": "运行 npm test，提交聚焦的变更，推送分支并创建 PR。",
@@ -388,7 +396,7 @@ const BRANCH_USE_TRANSLATIONS = {
     "release stabilization from develop": "develop からのリリース安定化",
     "urgent production fixes from main": "main からの緊急本番修正",
     "protected trunk and release source": "保護された trunk とリリース基準",
-    "short-lived changes merged quickly": "短期間で素早く merge する変更",
+    "short-lived changes merged quickly": "短期間で素早くマージする変更",
     "optional release hardening": "任意のリリース安定化",
     "urgent stable fixes": "緊急の安定版修正",
     "stable production source of truth": "安定した本番の基準ブランチ",
@@ -444,21 +452,21 @@ const GITHUB_PROTECTION_TRANSLATIONS = {
   ko: {
     "Require pull request before merging into main.": "main에 병합하기 전에 PR을 필수로 요구합니다.",
     "Require at least one approval.": "최소 1개의 승인을 요구합니다.",
-    "Require the CI test job before merging.": "병합 전에 CI test job 통과를 요구합니다.",
+    "Require the CI test job before merging.": "병합 전에 CI test 작업 통과를 요구합니다.",
     "Require conversation resolution.": "대화 해결을 요구합니다.",
     "Block force pushes and branch deletion.": "강제 푸시와 브랜치 삭제를 차단합니다."
   },
   ja: {
-    "Require pull request before merging into main.": "main へ merge する前に PR を必須にします。",
+    "Require pull request before merging into main.": "main へマージする前に PR を必須にします。",
     "Require at least one approval.": "少なくとも 1 件の承認を必須にします。",
-    "Require the CI test job before merging.": "merge 前に CI test job の通過を必須にします。",
+    "Require the CI test job before merging.": "マージ前に CI test ジョブの通過を必須にします。",
     "Require conversation resolution.": "会話の解決を必須にします。",
-    "Block force pushes and branch deletion.": "force push とブランチ削除をブロックします。"
+    "Block force pushes and branch deletion.": "強制プッシュとブランチ削除をブロックします。"
   },
   zh: {
     "Require pull request before merging into main.": "合并到 main 前必须创建 PR。",
     "Require at least one approval.": "至少需要 1 个审批。",
-    "Require the CI test job before merging.": "合并前必须通过 CI test job。",
+    "Require the CI test job before merging.": "合并前必须通过 CI test 作业。",
     "Require conversation resolution.": "必须解决所有对话。",
     "Block force pushes and branch deletion.": "阻止强制推送和删除分支。"
   }
@@ -473,22 +481,22 @@ const RELEASE_CHECK_TRANSLATIONS = {
     "package version is not 0.0.0": "패키지 버전이 0.0.0이 아님",
     "package declares npm entrypoint or bin": "패키지가 npm 진입점 또는 bin을 선언",
     "publishConfig access is public": "publishConfig access가 public",
-    "release workflow exists": "릴리스 workflow 존재",
-    "release workflow uses npm provenance": "릴리스 workflow가 npm provenance 사용",
-    "release workflow disables package manager cache": "릴리스 workflow가 package manager cache를 비활성화",
+    "release workflow exists": "릴리스 워크플로 존재",
+    "release workflow uses npm provenance": "릴리스 워크플로가 npm provenance 사용",
+    "release workflow disables package manager cache": "릴리스 워크플로가 패키지 관리자 캐시를 비활성화",
     "README documents npm install command": "README가 npm 설치 명령을 문서화"
   },
   ja: {
     "package.json exists": "package.json が存在",
-    "package-lock.json version matches package.json": "package-lock.json の version が package.json と一致",
+    "package-lock.json version matches package.json": "package-lock.json のバージョンが package.json と一致",
     "package is not marked private": "package.json が private パッケージではない",
     "package has a valid npm package name": "パッケージが有効な npm 名を持つ",
-    "package version is not 0.0.0": "パッケージ version が 0.0.0 ではない",
-    "package declares npm entrypoint or bin": "パッケージが npm entrypoint または bin を宣言",
+    "package version is not 0.0.0": "パッケージバージョンが 0.0.0 ではない",
+    "package declares npm entrypoint or bin": "パッケージが npm エントリポイントまたは bin を宣言",
     "publishConfig access is public": "publishConfig access が public",
-    "release workflow exists": "リリース workflow が存在",
-    "release workflow uses npm provenance": "リリース workflow が npm provenance を使用",
-    "release workflow disables package manager cache": "リリース workflow が package manager cache を無効化",
+    "release workflow exists": "リリースワークフローが存在",
+    "release workflow uses npm provenance": "リリースワークフローが npm provenance を使用",
+    "release workflow disables package manager cache": "リリースワークフローがパッケージマネージャーキャッシュを無効化",
     "README documents npm install command": "README に npm install コマンドが記載済み"
   },
   zh: {
@@ -497,11 +505,11 @@ const RELEASE_CHECK_TRANSLATIONS = {
     "package is not marked private": "package.json 未标记为 private 包",
     "package has a valid npm package name": "包具有有效 npm 名称",
     "package version is not 0.0.0": "包版本不是 0.0.0",
-    "package declares npm entrypoint or bin": "包声明 npm entrypoint 或 bin",
+    "package declares npm entrypoint or bin": "包声明 npm 入口或 bin",
     "publishConfig access is public": "publishConfig access 为 public",
-    "release workflow exists": "发布 workflow 存在",
-    "release workflow uses npm provenance": "发布 workflow 使用 npm provenance",
-    "release workflow disables package manager cache": "发布 workflow 禁用 package manager cache",
+    "release workflow exists": "发布工作流存在",
+    "release workflow uses npm provenance": "发布工作流使用 npm provenance",
+    "release workflow disables package manager cache": "发布工作流禁用包管理器缓存",
     "README documents npm install command": "README 记录 npm install 命令"
   }
 };
@@ -520,6 +528,15 @@ const REPORT_LABELS = {
     status: "Status",
     changedFiles: "Changed files",
     branch: "Branch",
+    weeklyTeamSignals: "Weekly Team Signals",
+    projectGrade: "Project grade",
+    changedPathsInWorkspace: "Changed paths in current workspace",
+    releaseStatus: "Release status",
+    riskSignals: "Risk Signals",
+    highRiskFileSignal: "High-risk file signal",
+    suggestedVerdict: "Suggested verdict",
+    yes: "yes",
+    no: "no",
     title: (type) => `AIGate ${type} report`
   },
   ko: {
@@ -530,11 +547,20 @@ const REPORT_LABELS = {
     recommendation: "권장 사항",
     recommendedActions: "권장 조치",
     riskScore: "위험 점수",
-    secretFindings: "Secret 탐지",
-    secretFindingsCount: "Secret 탐지",
+    secretFindings: "민감 정보 탐지",
+    secretFindingsCount: "민감 정보 탐지",
     status: "상태",
     changedFiles: "변경 파일",
     branch: "브랜치",
+    weeklyTeamSignals: "주간 팀 신호",
+    projectGrade: "프로젝트 등급",
+    changedPathsInWorkspace: "현재 작업공간 변경 경로",
+    releaseStatus: "릴리스 상태",
+    riskSignals: "위험 신호",
+    highRiskFileSignal: "고위험 파일 신호",
+    suggestedVerdict: "제안 판정",
+    yes: "예",
+    no: "아니오",
     title: (type) => `AIGate ${type} 리포트`
   },
   ja: {
@@ -545,11 +571,20 @@ const REPORT_LABELS = {
     recommendation: "推奨事項",
     recommendedActions: "推奨アクション",
     riskScore: "リスクスコア",
-    secretFindings: "Secret 検出",
-    secretFindingsCount: "Secret 検出",
+    secretFindings: "機密情報検出",
+    secretFindingsCount: "機密情報検出",
     status: "状態",
     changedFiles: "変更ファイル",
     branch: "ブランチ",
+    weeklyTeamSignals: "週次チームシグナル",
+    projectGrade: "プロジェクトグレード",
+    changedPathsInWorkspace: "現在の作業ツリー内の変更パス",
+    releaseStatus: "リリース状態",
+    riskSignals: "リスクシグナル",
+    highRiskFileSignal: "高リスクファイルシグナル",
+    suggestedVerdict: "推奨判定",
+    yes: "はい",
+    no: "いいえ",
     title: (type) => `AIGate ${type} レポート`
   },
   zh: {
@@ -560,18 +595,48 @@ const REPORT_LABELS = {
     recommendation: "建议",
     recommendedActions: "建议操作",
     riskScore: "风险分数",
-    secretFindings: "Secret 发现",
-    secretFindingsCount: "Secret 发现",
+    secretFindings: "敏感信息发现",
+    secretFindingsCount: "敏感信息发现",
     status: "状态",
     changedFiles: "变更文件",
     branch: "分支",
+    weeklyTeamSignals: "每周团队信号",
+    projectGrade: "项目等级",
+    changedPathsInWorkspace: "当前工作区变更路径",
+    releaseStatus: "发布状态",
+    riskSignals: "风险信号",
+    highRiskFileSignal: "高风险文件信号",
+    suggestedVerdict: "建议判定",
+    yes: "是",
+    no: "否",
     title: (type) => `AIGate ${type} 报告`
+  }
+};
+
+const REPORT_TYPE_TRANSLATIONS = {
+  ko: {
+    local: "로컬",
+    pr: "PR",
+    weekly: "주간",
+    risk: "위험"
+  },
+  ja: {
+    local: "ローカル",
+    pr: "PR",
+    weekly: "週次",
+    risk: "リスク"
+  },
+  zh: {
+    local: "本地",
+    pr: "PR",
+    weekly: "每周",
+    risk: "风险"
   }
 };
 
 const REPORT_ACTION_TRANSLATIONS = {
   ko: {
-    "Remove or rotate suspected secrets before commit or push.": "커밋 또는 푸시 전에 의심되는 secret을 제거하거나 교체하세요.",
+    "Remove or rotate suspected secrets before commit or push.": "커밋 또는 푸시 전에 의심되는 민감 정보를 제거하거나 교체하세요.",
     "Split large changes into smaller pull requests.": "큰 변경은 더 작은 PR로 나누세요.",
     "Complete missing repository foundation checks.": "부족한 저장소 기반 점검 항목을 보완하세요.",
     "Include validation commands and release impact in the pull request body.": "PR 본문에 검증 명령과 릴리스 영향을 포함하세요.",
@@ -579,15 +644,15 @@ const REPORT_ACTION_TRANSLATIONS = {
     "Move local AIGate settings out of the commit or add them to .gitignore.": "로컬 AIGate 설정은 커밋에서 빼거나 .gitignore에 추가하세요."
   },
   ja: {
-    "Remove or rotate suspected secrets before commit or push.": "commit または push 前に疑わしい secret を削除またはローテーションしてください。",
+    "Remove or rotate suspected secrets before commit or push.": "コミットまたはプッシュ前に疑わしい機密情報を削除またはローテーションしてください。",
     "Split large changes into smaller pull requests.": "大きな変更は小さな PR に分割してください。",
     "Complete missing repository foundation checks.": "不足しているリポジトリ基盤チェックを整備してください。",
     "Include validation commands and release impact in the pull request body.": "PR 本文に検証コマンドとリリース影響を含めてください。",
     "Run tests, keep the change focused, and open a pull request.": "テストを実行し、変更範囲を絞って PR を作成してください。",
-    "Move local AIGate settings out of the commit or add them to .gitignore.": "ローカル AIGate 設定は commit から外すか .gitignore に追加してください。"
+    "Move local AIGate settings out of the commit or add them to .gitignore.": "ローカル AIGate 設定はコミットから外すか .gitignore に追加してください。"
   },
   zh: {
-    "Remove or rotate suspected secrets before commit or push.": "提交或推送前，请移除或轮换疑似 secret。",
+    "Remove or rotate suspected secrets before commit or push.": "提交或推送前，请移除或轮换疑似敏感信息。",
     "Split large changes into smaller pull requests.": "将大型变更拆分为更小的 PR。",
     "Complete missing repository foundation checks.": "补齐缺失的仓库基础检查项。",
     "Include validation commands and release impact in the pull request body.": "在 PR 正文中包含验证命令和发布影响。",
@@ -598,13 +663,482 @@ const REPORT_ACTION_TRANSLATIONS = {
 
 const FINDING_LABEL_TRANSLATIONS = {
   ko: {
+    "AWS access key id": "AWS 액세스 키 ID",
+    "GitHub token": "GitHub 토큰",
+    "Slack token": "Slack 토큰",
+    "Private key block": "개인 키 블록",
+    "Generic secret assignment": "일반 민감 정보 할당",
     "Sensitive authentication state file": "민감한 인증 상태 파일"
   },
   ja: {
+    "AWS access key id": "AWS アクセスキー ID",
+    "GitHub token": "GitHub トークン",
+    "Slack token": "Slack トークン",
+    "Private key block": "秘密鍵ブロック",
+    "Generic secret assignment": "汎用機密情報の代入",
     "Sensitive authentication state file": "機密の認証状態ファイル"
   },
   zh: {
+    "AWS access key id": "AWS 访问密钥 ID",
+    "GitHub token": "GitHub 令牌",
+    "Slack token": "Slack 令牌",
+    "Private key block": "私钥块",
+    "Generic secret assignment": "通用敏感信息赋值",
     "Sensitive authentication state file": "敏感认证状态文件"
+  }
+};
+
+const HELP_CONTENT = {
+  en: {
+    subtitle: "AI Git Workflow Guard CLI",
+    usage: "Usage",
+    commandsTitle: "Commands",
+    optionsTitle: "Options",
+    commands: [
+      ["init", "Create starter AIGate project configuration."],
+      ["check", "Summarize local Git readiness."],
+      ["git-ready", "Run the before-push readiness gate."],
+      ["push", "Run AIGate checks, then run git push."],
+      ["pr", "Run AIGate checks, then create a GitHub pull request."],
+      ["pr-check", "Generate a pull request readiness report."],
+      ["setup", "Configure AIGate project settings."],
+      ["settings", "Show current AIGate settings."],
+      ["integrate <provider>", "Generate Codex/Gemini assistant integration files."],
+      ["report", "Print a workflow report."],
+      ["evaluate-project", "Score repository workflow foundations."],
+      ["score", "Print only the project score."],
+      ["branch-strategy", "Recommend a branch strategy."],
+      ["release-check", "Validate package release readiness."],
+      ["audit-report", "Generate a policy and governance audit report."],
+      ["notify <setup|test|send>", "Preview or send notification workflows."],
+      ["help", "Show this help message."]
+    ],
+    options: [
+      ["--format <text|json|markdown|html|sarif>", "Select output format."],
+      ["--type <local|pr|weekly>", "Select report type."],
+      ["--output <path>", "Write report output to a file."],
+      ["--base <branch>", "Pull request base branch."],
+      ["--title <text>", "Pull request title."],
+      ["--body <text>", "Pull request body."],
+      ["--generate", "Write generated branch strategy guidance."],
+      ["--apply", "Apply branch strategy policy files locally."],
+      ["--github", "Include GitHub protection guidance."],
+      ["--deep", "Include deeper project history signals."],
+      ["--report", "Render a project evaluation report."],
+      ["--team-size <number>", "Team size signal for strategy recommendations."],
+      ["--release <cadence>", "Release cadence signal for strategy recommendations."],
+      ["--event <name>", "Notification event name."],
+      ["--channel <name>", "Notification channel."],
+      ["--notify-channel <name>", "Send BLOCK notification when a gate blocks."],
+      ["--language <en|ko|ja|zh>", "Select output language."],
+      ["--output-dir <path>", "Select integration output directory."],
+      ["--force", "Overwrite generated integration files."],
+      ["--npm", "Check npm registry state for release-check."],
+      ["--dry-run", "Preview an AIGate command without changing remotes."],
+      ["--no-verify", "Skip the AIGate readiness gate for push."],
+      ["--version", "Print CLI version."]
+    ]
+  },
+  ko: {
+    subtitle: "AI Git 워크플로 보호 CLI",
+    usage: "사용법",
+    commandsTitle: "명령어",
+    optionsTitle: "옵션",
+    commands: [
+      ["init", "AIGate 프로젝트 기본 설정을 생성합니다."],
+      ["check", "로컬 Git 준비 상태를 요약합니다."],
+      ["git-ready", "푸시 전 준비 게이트를 실행합니다."],
+      ["push", "AIGate 검사 후 git push를 실행합니다."],
+      ["pr", "AIGate 검사 후 GitHub PR을 생성합니다."],
+      ["pr-check", "PR 준비 상태 리포트를 생성합니다."],
+      ["setup", "AIGate 프로젝트 설정을 구성합니다."],
+      ["settings", "현재 AIGate 설정을 표시합니다."],
+      ["integrate <provider>", "Codex/Gemini 어시스턴트 연동 파일을 생성합니다."],
+      ["report", "워크플로 리포트를 출력합니다."],
+      ["evaluate-project", "저장소 워크플로 기반 점수를 계산합니다."],
+      ["score", "프로젝트 점수만 출력합니다."],
+      ["branch-strategy", "브랜치 전략을 추천합니다."],
+      ["release-check", "패키지 릴리스 준비 상태를 검증합니다."],
+      ["audit-report", "정책과 거버넌스 감사 리포트를 생성합니다."],
+      ["notify <setup|test|send>", "알림 흐름을 미리 보거나 전송합니다."],
+      ["help", "도움말을 표시합니다."]
+    ],
+    options: [
+      ["--format <text|json|markdown|html|sarif>", "출력 형식을 선택합니다."],
+      ["--type <local|pr|weekly>", "리포트 유형을 선택합니다."],
+      ["--output <path>", "리포트 출력을 파일로 저장합니다."],
+      ["--base <branch>", "PR 대상 브랜치를 지정합니다."],
+      ["--title <text>", "PR 제목을 지정합니다."],
+      ["--body <text>", "PR 본문을 지정합니다."],
+      ["--generate", "브랜치 전략 가이드를 생성합니다."],
+      ["--apply", "브랜치 전략 정책 파일을 로컬에 적용합니다."],
+      ["--github", "GitHub 보호 규칙 가이드를 포함합니다."],
+      ["--deep", "더 깊은 프로젝트 히스토리 신호를 포함합니다."],
+      ["--report", "프로젝트 평가 리포트를 렌더링합니다."],
+      ["--team-size <number>", "전략 추천용 팀 규모 신호입니다."],
+      ["--release <cadence>", "전략 추천용 릴리스 주기 신호입니다."],
+      ["--event <name>", "알림 이벤트 이름입니다."],
+      ["--channel <name>", "알림 채널입니다."],
+      ["--notify-channel <name>", "게이트가 차단될 때 BLOCK 알림을 보냅니다."],
+      ["--language <en|ko|ja|zh>", "출력 언어를 선택합니다."],
+      ["--output-dir <path>", "연동 파일 출력 디렉터리를 선택합니다."],
+      ["--force", "생성된 연동 파일을 덮어씁니다."],
+      ["--npm", "release-check에서 npm 레지스트리 상태를 확인합니다."],
+      ["--dry-run", "원격 변경 없이 AIGate 명령을 미리 봅니다."],
+      ["--no-verify", "푸시 준비 게이트를 건너뜁니다."],
+      ["--version", "CLI 버전을 출력합니다."]
+    ]
+  },
+  ja: {
+    subtitle: "AI Git ワークフロー保護 CLI",
+    usage: "使い方",
+    commandsTitle: "コマンド",
+    optionsTitle: "オプション",
+    commands: [
+      ["init", "AIGate プロジェクトの初期設定を作成します。"],
+      ["check", "ローカル Git 準備状態を要約します。"],
+      ["git-ready", "プッシュ前の準備ゲートを実行します。"],
+      ["push", "AIGate チェック後に git push を実行します。"],
+      ["pr", "AIGate チェック後に GitHub PR を作成します。"],
+      ["pr-check", "PR 準備レポートを生成します。"],
+      ["setup", "AIGate プロジェクト設定を構成します。"],
+      ["settings", "現在の AIGate 設定を表示します。"],
+      ["integrate <provider>", "Codex/Gemini アシスタント連携ファイルを生成します。"],
+      ["report", "ワークフローレポートを出力します。"],
+      ["evaluate-project", "リポジトリのワークフロー基盤を採点します。"],
+      ["score", "プロジェクトスコアのみ出力します。"],
+      ["branch-strategy", "ブランチ戦略を推薦します。"],
+      ["release-check", "パッケージのリリース準備状況を検証します。"],
+      ["audit-report", "ポリシーとガバナンスの監査レポートを生成します。"],
+      ["notify <setup|test|send>", "通知ワークフローをプレビューまたは送信します。"],
+      ["help", "このヘルプを表示します。"]
+    ],
+    options: [
+      ["--format <text|json|markdown|html|sarif>", "出力形式を選択します。"],
+      ["--type <local|pr|weekly>", "レポート種別を選択します。"],
+      ["--output <path>", "レポート出力をファイルに保存します。"],
+      ["--base <branch>", "PR の基準ブランチを指定します。"],
+      ["--title <text>", "PR タイトルを指定します。"],
+      ["--body <text>", "PR 本文を指定します。"],
+      ["--generate", "ブランチ戦略ガイドを生成します。"],
+      ["--apply", "ブランチ戦略ポリシーファイルをローカルに適用します。"],
+      ["--github", "GitHub 保護ルールガイドを含めます。"],
+      ["--deep", "より深いプロジェクト履歴シグナルを含めます。"],
+      ["--report", "プロジェクト評価レポートをレンダリングします。"],
+      ["--team-size <number>", "戦略推薦用のチームサイズシグナルです。"],
+      ["--release <cadence>", "戦略推薦用のリリース頻度シグナルです。"],
+      ["--event <name>", "通知イベント名です。"],
+      ["--channel <name>", "通知チャンネルです。"],
+      ["--notify-channel <name>", "ゲートがブロックしたときに BLOCK 通知を送ります。"],
+      ["--language <en|ko|ja|zh>", "出力言語を選択します。"],
+      ["--output-dir <path>", "連携ファイルの出力ディレクトリを選択します。"],
+      ["--force", "生成済み連携ファイルを上書きします。"],
+      ["--npm", "release-check で npm レジストリ状態を確認します。"],
+      ["--dry-run", "リモートを変更せずに AIGate コマンドをプレビューします。"],
+      ["--no-verify", "プッシュ準備ゲートをスキップします。"],
+      ["--version", "CLI バージョンを出力します。"]
+    ]
+  },
+  zh: {
+    subtitle: "AI Git 工作流守护 CLI",
+    usage: "用法",
+    commandsTitle: "命令",
+    optionsTitle: "选项",
+    commands: [
+      ["init", "创建 AIGate 项目初始配置。"],
+      ["check", "汇总本地 Git 就绪状态。"],
+      ["git-ready", "运行推送前的就绪关卡。"],
+      ["push", "运行 AIGate 检查后执行 git push。"],
+      ["pr", "运行 AIGate 检查后创建 GitHub PR。"],
+      ["pr-check", "生成 PR 就绪报告。"],
+      ["setup", "配置 AIGate 项目设置。"],
+      ["settings", "显示当前 AIGate 设置。"],
+      ["integrate <provider>", "生成 Codex/Gemini 助手集成文件。"],
+      ["report", "输出工作流报告。"],
+      ["evaluate-project", "评估仓库工作流基础分。"],
+      ["score", "仅输出项目分数。"],
+      ["branch-strategy", "推荐分支策略。"],
+      ["release-check", "验证包发布就绪状态。"],
+      ["audit-report", "生成政策和治理审计报告。"],
+      ["notify <setup|test|send>", "预览或发送通知工作流。"],
+      ["help", "显示此帮助。"]
+    ],
+    options: [
+      ["--format <text|json|markdown|html|sarif>", "选择输出格式。"],
+      ["--type <local|pr|weekly>", "选择报告类型。"],
+      ["--output <path>", "将报告输出写入文件。"],
+      ["--base <branch>", "PR 基准分支。"],
+      ["--title <text>", "PR 标题。"],
+      ["--body <text>", "PR 正文。"],
+      ["--generate", "生成分支策略指南。"],
+      ["--apply", "在本地应用分支策略政策文件。"],
+      ["--github", "包含 GitHub 保护规则指南。"],
+      ["--deep", "包含更深入的项目历史信号。"],
+      ["--report", "渲染项目评估报告。"],
+      ["--team-size <number>", "用于策略推荐的团队规模信号。"],
+      ["--release <cadence>", "用于策略推荐的发布节奏信号。"],
+      ["--event <name>", "通知事件名称。"],
+      ["--channel <name>", "通知频道。"],
+      ["--notify-channel <name>", "关卡阻塞时发送 BLOCK 通知。"],
+      ["--language <en|ko|ja|zh>", "选择输出语言。"],
+      ["--output-dir <path>", "选择集成输出目录。"],
+      ["--force", "覆盖已生成的集成文件。"],
+      ["--npm", "在 release-check 中检查 npm 注册表状态。"],
+      ["--dry-run", "不修改远端，仅预览 AIGate 命令。"],
+      ["--no-verify", "跳过推送准备关卡。"],
+      ["--version", "输出 CLI 版本。"]
+    ]
+  }
+};
+
+const EVALUATION_LABELS = {
+  en: {
+    title: "AIGate Project Evaluation",
+    textTitle: "AIGate project score",
+    score: "Score",
+    grade: "Grade",
+    recommendation: "Recommendation",
+    categories: "Categories",
+    checks: "Checks",
+    deepSignals: "Deep Signals",
+    commitsInspected: "Commits inspected",
+    branchesDetected: "Branches detected",
+    tagsDetected: "Tags detected",
+    releaseWorkflows: "Release workflows",
+    releaseProcessDocs: "Release process docs",
+    hotfixProcessDocs: "Hotfix process docs",
+    yes: "yes",
+    no: "no"
+  },
+  ko: {
+    title: "AIGate 프로젝트 평가",
+    textTitle: "AIGate 프로젝트 점수",
+    score: "점수",
+    grade: "등급",
+    recommendation: "권장 사항",
+    categories: "카테고리",
+    checks: "점검 항목",
+    deepSignals: "상세 신호",
+    commitsInspected: "검사한 커밋",
+    branchesDetected: "감지된 브랜치",
+    tagsDetected: "감지된 태그",
+    releaseWorkflows: "릴리스 워크플로",
+    releaseProcessDocs: "릴리스 프로세스 문서",
+    hotfixProcessDocs: "핫픽스 프로세스 문서",
+    yes: "예",
+    no: "아니오"
+  },
+  ja: {
+    title: "AIGate プロジェクト評価",
+    textTitle: "AIGate プロジェクトスコア",
+    score: "スコア",
+    grade: "グレード",
+    recommendation: "推奨事項",
+    categories: "カテゴリ",
+    checks: "チェック項目",
+    deepSignals: "詳細シグナル",
+    commitsInspected: "検査したコミット",
+    branchesDetected: "検出ブランチ",
+    tagsDetected: "検出タグ",
+    releaseWorkflows: "リリースワークフロー",
+    releaseProcessDocs: "リリースプロセス文書",
+    hotfixProcessDocs: "ホットフィックスプロセス文書",
+    yes: "はい",
+    no: "いいえ"
+  },
+  zh: {
+    title: "AIGate 项目评估",
+    textTitle: "AIGate 项目分数",
+    score: "分数",
+    grade: "等级",
+    recommendation: "建议",
+    categories: "类别",
+    checks: "检查项",
+    deepSignals: "详细信号",
+    commitsInspected: "已检查提交数",
+    branchesDetected: "检测到的分支",
+    tagsDetected: "检测到的标签",
+    releaseWorkflows: "发布工作流",
+    releaseProcessDocs: "发布流程文档",
+    hotfixProcessDocs: "Hotfix 流程文档",
+    yes: "是",
+    no: "否"
+  }
+};
+
+const EVALUATION_CATEGORY_TRANSLATIONS = {
+  ko: {
+    git_workflow: "Git 워크플로",
+    pr_quality: "PR 품질",
+    testing: "테스트",
+    ci_cd: "CI/CD",
+    security: "보안",
+    documentation: "문서",
+    maintainability: "유지보수성"
+  },
+  ja: {
+    git_workflow: "Git ワークフロー",
+    pr_quality: "PR 品質",
+    testing: "テスト",
+    ci_cd: "CI/CD",
+    security: "セキュリティ",
+    documentation: "ドキュメント",
+    maintainability: "保守性"
+  },
+  zh: {
+    git_workflow: "Git 工作流",
+    pr_quality: "PR 质量",
+    testing: "测试",
+    ci_cd: "CI/CD",
+    security: "安全",
+    documentation: "文档",
+    maintainability: "可维护性"
+  }
+};
+
+const EVALUATION_CHECK_TRANSLATIONS = {
+  ko: {
+    "AIGate configuration exists": "AIGate 설정 존재",
+    "Branch strategy is documented": "브랜치 전략 문서화",
+    "Git upload workflow is documented": "Git 업로드 워크플로 문서화",
+    "Pull request template exists": "PR 템플릿 존재",
+    "CODEOWNERS exists": "CODEOWNERS 존재",
+    "Contribution guide exists": "기여 가이드 존재",
+    "Issue templates exist": "Issue 템플릿 존재",
+    "AI assistant instructions exist": "AI 어시스턴트 지침 존재",
+    "Test directory exists": "테스트 디렉터리 존재",
+    "npm test script exists": "npm test 스크립트 존재",
+    "CI gate script exists": "CI 게이트 스크립트 존재",
+    "CI workflow exists": "CI 워크플로 존재",
+    "Release workflow exists": "릴리스 워크플로 존재",
+    "Dependabot exists": "Dependabot 존재",
+    "Security policy exists": "보안 정책 존재",
+    "Security scanning is documented": "보안 스캔 문서화",
+    "OpenSSF Scorecard workflow exists": "OpenSSF Scorecard 워크플로 존재",
+    "README exists": "README 존재",
+    "License exists": "라이선스 존재",
+    "Roadmap exists": "로드맵 존재",
+    "Package metadata exists": "패키지 메타데이터 존재",
+    "Support policy exists": "지원 정책 존재",
+    "Governance exists": "거버넌스 문서 존재"
+  },
+  ja: {
+    "AIGate configuration exists": "AIGate 設定が存在",
+    "Branch strategy is documented": "ブランチ戦略が文書化済み",
+    "Git upload workflow is documented": "Git アップロードワークフローが文書化済み",
+    "Pull request template exists": "PR テンプレートが存在",
+    "CODEOWNERS exists": "CODEOWNERS が存在",
+    "Contribution guide exists": "コントリビューションガイドが存在",
+    "Issue templates exist": "Issue テンプレートが存在",
+    "AI assistant instructions exist": "AI アシスタント指示が存在",
+    "Test directory exists": "テストディレクトリが存在",
+    "npm test script exists": "npm test スクリプトが存在",
+    "CI gate script exists": "CI ゲートスクリプトが存在",
+    "CI workflow exists": "CI ワークフローが存在",
+    "Release workflow exists": "リリースワークフローが存在",
+    "Dependabot exists": "Dependabot が存在",
+    "Security policy exists": "セキュリティポリシーが存在",
+    "Security scanning is documented": "セキュリティスキャンが文書化済み",
+    "OpenSSF Scorecard workflow exists": "OpenSSF Scorecard ワークフローが存在",
+    "README exists": "README が存在",
+    "License exists": "ライセンスが存在",
+    "Roadmap exists": "ロードマップが存在",
+    "Package metadata exists": "パッケージメタデータが存在",
+    "Support policy exists": "サポートポリシーが存在",
+    "Governance exists": "ガバナンス文書が存在"
+  },
+  zh: {
+    "AIGate configuration exists": "AIGate 配置存在",
+    "Branch strategy is documented": "分支策略已文档化",
+    "Git upload workflow is documented": "Git 上传工作流已文档化",
+    "Pull request template exists": "PR 模板存在",
+    "CODEOWNERS exists": "CODEOWNERS 存在",
+    "Contribution guide exists": "贡献指南存在",
+    "Issue templates exist": "Issue 模板存在",
+    "AI assistant instructions exist": "AI 助手指令存在",
+    "Test directory exists": "测试目录存在",
+    "npm test script exists": "npm test 脚本存在",
+    "CI gate script exists": "CI 关卡脚本存在",
+    "CI workflow exists": "CI 工作流存在",
+    "Release workflow exists": "发布工作流存在",
+    "Dependabot exists": "Dependabot 存在",
+    "Security policy exists": "安全政策存在",
+    "Security scanning is documented": "安全扫描已文档化",
+    "OpenSSF Scorecard workflow exists": "OpenSSF Scorecard 工作流存在",
+    "README exists": "README 存在",
+    "License exists": "许可证存在",
+    "Roadmap exists": "路线图存在",
+    "Package metadata exists": "包元数据存在",
+    "Support policy exists": "支持政策存在",
+    "Governance exists": "治理文档存在"
+  }
+};
+
+const AUDIT_LABELS = {
+  en: {
+    title: "AIGate Audit Report",
+    status: "Status",
+    branch: "Branch",
+    projectScore: "Project score",
+    releaseStatus: "Release status",
+    findings: "Findings",
+    recentCommits: "Recent Commits",
+    recommendations: "Recommendations",
+    none: "None"
+  },
+  ko: {
+    title: "AIGate 감사 리포트",
+    status: "상태",
+    branch: "브랜치",
+    projectScore: "프로젝트 점수",
+    releaseStatus: "릴리스 상태",
+    findings: "발견 항목",
+    recentCommits: "최근 커밋",
+    recommendations: "권장 사항",
+    none: "없음"
+  },
+  ja: {
+    title: "AIGate 監査レポート",
+    status: "状態",
+    branch: "ブランチ",
+    projectScore: "プロジェクトスコア",
+    releaseStatus: "リリース状態",
+    findings: "検出項目",
+    recentCommits: "最近のコミット",
+    recommendations: "推奨事項",
+    none: "なし"
+  },
+  zh: {
+    title: "AIGate 审计报告",
+    status: "状态",
+    branch: "分支",
+    projectScore: "项目分数",
+    releaseStatus: "发布状态",
+    findings: "发现项",
+    recentCommits: "最近提交",
+    recommendations: "建议",
+    none: "无"
+  }
+};
+
+const AUDIT_RECOMMENDATION_TRANSLATIONS = {
+  ko: {
+    "Keep all changes going through pull requests into main.": "모든 변경은 main으로 들어가는 PR을 통해 처리하세요.",
+    "Run npm run ci and aigate git-ready before release tags.": "릴리스 태그 전에 npm run ci와 aigate git-ready를 실행하세요.",
+    "Review release-check output before publishing npm packages.": "npm 패키지 배포 전에 release-check 출력을 검토하세요.",
+    "Attach audit-report output to release readiness discussions when governance matters.": "거버넌스가 중요한 릴리스 준비 논의에는 audit-report 출력을 첨부하세요."
+  },
+  ja: {
+    "Keep all changes going through pull requests into main.": "すべての変更は main 向け PR 経由で入れてください。",
+    "Run npm run ci and aigate git-ready before release tags.": "リリースタグの前に npm run ci と aigate git-ready を実行してください。",
+    "Review release-check output before publishing npm packages.": "npm パッケージ公開前に release-check 出力を確認してください。",
+    "Attach audit-report output to release readiness discussions when governance matters.": "ガバナンスが重要なリリース準備の議論には audit-report 出力を添付してください。"
+  },
+  zh: {
+    "Keep all changes going through pull requests into main.": "所有变更都应通过指向 main 的 PR 进入。",
+    "Run npm run ci and aigate git-ready before release tags.": "发布标签前运行 npm run ci 和 aigate git-ready。",
+    "Review release-check output before publishing npm packages.": "发布 npm 包前请检查 release-check 输出。",
+    "Attach audit-report output to release readiness discussions when governance matters.": "治理要求较高的发布准备讨论中，请附上 audit-report 输出。"
   }
 };
 
@@ -623,58 +1157,6 @@ function languageName(language) {
   return LANGUAGE_NAMES[language] ?? language;
 }
 
-const helpText = `AIGate ${VERSION}
-
-AI Git Workflow Guard CLI
-
-Usage:
-  aigate <command> [options]
-
-Commands:
-  init                     Create starter AIGate project configuration.
-  check                    Summarize local Git readiness.
-  git-ready                Run the before-push readiness gate.
-  push                     Run AIGate checks, then run git push.
-  pr                       Run AIGate checks, then create a GitHub pull request.
-  pr-check                 Generate a pull request readiness report.
-  setup                    Configure AIGate project settings.
-  settings                 Show current AIGate settings.
-  integrate <provider>     Generate Codex/Gemini assistant integration files.
-  report                   Print a workflow report.
-  evaluate-project         Score repository workflow foundations.
-  score                    Print only the project score.
-  branch-strategy          Recommend a branch strategy.
-  release-check            Validate package release readiness.
-  audit-report             Generate a policy and governance audit report.
-  notify <setup|test|send> Preview or send notification workflows.
-  help                     Show this help message.
-
-Options:
-  --format <text|json|markdown|html|sarif>
-  --type <local|pr|weekly>
-  --output <path>          Write report output to a file.
-  --base <branch>          Pull request base branch.
-  --title <text>           Pull request title.
-  --body <text>            Pull request body.
-  --generate               Write generated branch strategy guidance.
-  --apply                  Apply branch strategy policy files locally.
-  --github                 Include GitHub protection guidance.
-  --deep                   Include deeper project history signals.
-  --report                 Render a project evaluation report.
-  --team-size <number>     Team size signal for strategy recommendations.
-  --release <cadence>      Release cadence signal for strategy recommendations.
-  --event <name>           Notification event name.
-  --channel <name>         Notification channel.
-  --notify-channel <name>  Send BLOCK notification when a gate blocks.
-  --language <en|ko|ja|zh> Select output language.
-  --output-dir <path>      Select integration output directory.
-  --force                  Overwrite generated integration files.
-  --npm                    Check npm registry state for release-check.
-  --dry-run                Preview an AIGate command without changing remotes.
-  --no-verify              Skip the AIGate readiness gate for push.
-  --version                Print CLI version.
-`;
-
 const commands = {
   init: commandInit,
   check: commandCheck,
@@ -692,14 +1174,14 @@ const commands = {
   "release-check": commandReleaseCheck,
   "audit-report": commandAuditReport,
   notify: commandNotify,
-  help: () => helpText.trimEnd()
+  help: commandHelp
 };
 
 function main(argv) {
   const [commandName, ...args] = argv;
 
   if (!commandName || commandName === "--help" || commandName === "-h") {
-    return print(helpText.trimEnd());
+    return print(commandHelp(args));
   }
 
   if (commandName === "--version" || commandName === "-v") {
@@ -708,8 +1190,9 @@ function main(argv) {
 
   const command = commands[commandName];
   if (!command) {
-    printError(`Unknown command: ${commandName}`);
-    print("Run `aigate --help` for available commands.");
+    const language = resolveLanguage(parseOptions(args)) ?? DEFAULT_SETTINGS.language;
+    printError(t(language, "unknownCommand", { command: commandName }));
+    print(t(language, "runHelp"));
     process.exitCode = 1;
     return;
   }
@@ -718,6 +1201,32 @@ function main(argv) {
   if (output) {
     print(output);
   }
+}
+
+function commandHelp(args = []) {
+  const language = resolveLanguage(parseOptions(args)) ?? DEFAULT_SETTINGS.language;
+  return renderHelp(language);
+}
+
+function renderHelp(language = "en") {
+  const content = HELP_CONTENT[language] ?? HELP_CONTENT.en;
+  const commandWidth = Math.max(...content.commands.map(([name]) => name.length)) + 2;
+  const optionWidth = Math.max(...content.options.map(([name]) => name.length)) + 2;
+
+  return [
+    `AIGate ${VERSION}`,
+    "",
+    content.subtitle,
+    "",
+    `${content.usage}:`,
+    "  aigate <command> [options]",
+    "",
+    `${content.commandsTitle}:`,
+    ...content.commands.map(([name, description]) => `  ${name.padEnd(commandWidth)}${description}`),
+    "",
+    `${content.optionsTitle}:`,
+    ...content.options.map(([name, description]) => `  ${name.padEnd(optionWidth)}${description}`)
+  ].join("\n");
 }
 
 function commandInit(args) {
@@ -1011,7 +1520,7 @@ function commandIntegrate(args) {
 
   const outputDir = options.outputDir ?? ".";
   const manifest = buildIntegrationManifest(providers);
-  const files = buildIntegrationFiles(providers, outputDir, manifest);
+  const files = buildIntegrationFiles(providers, outputDir, manifest, language);
   const results = writeIntegrationFiles(files, Boolean(options.force));
 
   if (options.format === "json") {
@@ -1123,7 +1632,7 @@ function commandEvaluateProject(args) {
 
   if (options.report) {
     const format = options.format ?? "markdown";
-    const output = renderProjectEvaluationReport(evaluation, format);
+    const output = renderProjectEvaluationReport(evaluation, format, language);
 
     if (options.output) {
       mkdirSync(dirname(options.output), { recursive: true });
@@ -1139,34 +1648,35 @@ function commandEvaluateProject(args) {
   }
 
   const rows = evaluation.checks.map((check) => {
-    const mark = check.pass ? "PASS" : "TODO";
-    return `- ${mark}: ${check.name}`;
+    const mark = statusLabel(check.pass ? "PASS" : "TODO", language);
+    return `- ${mark}: ${translateEvaluationCheckName(check.name, language)}`;
   });
   const categoryRows = evaluation.categories.map((category) => (
-    `- ${category.name}: ${category.score}/${category.weight}`
+    `- ${translateEvaluationCategory(category.name, language)}: ${category.score}/${category.weight}`
   ));
+  const labels = evaluationLabels(language);
   const signalRows = evaluation.deepSignals
     ? [
         "",
-        "Deep signals:",
-        `- Commits inspected: ${evaluation.deepSignals.commitCount}`,
-        `- Branches detected: ${evaluation.deepSignals.branchCount}`,
-        `- Tags detected: ${evaluation.deepSignals.tagCount}`,
-        `- Release workflows: ${evaluation.deepSignals.releaseWorkflowCount}`
+        `${labels.deepSignals}:`,
+        `- ${labels.commitsInspected}: ${evaluation.deepSignals.commitCount}`,
+        `- ${labels.branchesDetected}: ${evaluation.deepSignals.branchCount}`,
+        `- ${labels.tagsDetected}: ${evaluation.deepSignals.tagCount}`,
+        `- ${labels.releaseWorkflows}: ${evaluation.deepSignals.releaseWorkflowCount}`
       ]
     : [];
 
   return [
-    `AIGate project score: ${evaluation.score}/100 (${evaluation.grade})`,
+    `${labels.textTitle}: ${evaluation.score}/100 (${evaluation.grade})`,
     "",
-    "Categories:",
+    `${labels.categories}:`,
     ...categoryRows,
     "",
-    "Checks:",
+    `${labels.checks}:`,
     ...rows,
     ...signalRows,
     "",
-    `Recommendation: ${evaluation.recommendation}`
+    `${labels.recommendation}: ${translateRecommendation(evaluation.recommendation, language)}`
   ].join("\n");
 }
 
@@ -1262,7 +1772,7 @@ function commandAuditReport(args) {
   }
   const format = options.format ?? "markdown";
   const report = buildAuditReport();
-  const output = renderAuditReport(report, format);
+  const output = renderAuditReport(report, format, language);
 
   if (options.output) {
     mkdirSync(dirname(options.output), { recursive: true });
@@ -1286,10 +1796,7 @@ function commandNotify(args) {
   if (subcommand === "setup") {
     return [
       t(language, "notify.setup"),
-      "- MVP: terminal",
-      "- V1: Slack",
-      "- V1.5: Discord and Teams",
-      "- V2: email, GitHub PR comments, GitHub Checks"
+      ...notificationPlanLines(language)
     ].join("\n");
   }
 
@@ -2163,8 +2670,9 @@ function renderReport(report, format, language = "en") {
 
 function renderMarkdownReport(report, language = "en") {
   const labels = reportLabels(language);
+  const reportType = translateReportType(report.type, language);
   const lines = [
-    `# ${labels.title(report.type)}`,
+    `# ${labels.title(reportType)}`,
     "",
     `- ${labels.status}: ${statusLabel(report.status, language)}`,
     `- ${labels.riskScore}: ${report.riskScore}/100`,
@@ -2182,7 +2690,7 @@ function renderMarkdownReport(report, language = "en") {
     `## ${labels.secretFindings}`,
     "",
     ...(report.secretFindings.length
-      ? report.secretFindings.map((finding) => `- ${translateFindingLabel(finding.label, language)} in ${finding.file}:${finding.line}`)
+      ? report.secretFindings.map((finding) => formatFindingLine(finding, language))
       : [`- ${labels.none}`]),
     "",
     `## ${labels.recommendedActions}`,
@@ -2193,22 +2701,22 @@ function renderMarkdownReport(report, language = "en") {
   if (report.type === "weekly") {
     lines.push(
       "",
-      "## Weekly Team Signals",
+      `## ${labels.weeklyTeamSignals}`,
       "",
-      `- Project grade: ${report.projectGrade}`,
-      `- Changed paths in current workspace: ${report.changedPaths.length}`,
-      `- Release status: ${buildReleaseCheck().status}`
+      `- ${labels.projectGrade}: ${report.projectGrade}`,
+      `- ${labels.changedPathsInWorkspace}: ${report.changedPaths.length}`,
+      `- ${labels.releaseStatus}: ${statusLabel(buildReleaseCheck().status, language)}`
     );
   }
 
   if (report.type === "risk") {
     lines.push(
       "",
-      "## Risk Signals",
+      `## ${labels.riskSignals}`,
       "",
-      `- High-risk file signal: ${report.riskScore >= 65 ? "yes" : "no"}`,
-      `- Secret findings: ${report.secretFindings.length}`,
-      `- Suggested verdict: ${report.finalVerdict}`
+      `- ${labels.highRiskFileSignal}: ${report.riskScore >= 65 ? labels.yes : labels.no}`,
+      `- ${labels.secretFindingsCount}: ${report.secretFindings.length}`,
+      `- ${labels.suggestedVerdict}: ${statusLabel(report.finalVerdict, language)}`
     );
   }
 
@@ -2217,12 +2725,13 @@ function renderMarkdownReport(report, language = "en") {
 
 function renderHtmlReport(report, language = "en") {
   const labels = reportLabels(language);
+  const reportType = translateReportType(report.type, language);
   return [
     "<!doctype html>",
     "<html>",
     "<head><meta charset=\"utf-8\"><title>AIGate report</title></head>",
     "<body>",
-    `<h1>${escapeHtml(labels.title(report.type))}</h1>`,
+    `<h1>${escapeHtml(labels.title(reportType))}</h1>`,
     "<ul>",
     `<li>${escapeHtml(labels.status)}: ${escapeHtml(statusLabel(report.status, language))}</li>`,
     `<li>${escapeHtml(labels.riskScore)}: ${report.riskScore}/100</li>`,
@@ -2290,87 +2799,91 @@ function renderSarifReport(report) {
   };
 }
 
-function renderProjectEvaluationReport(evaluation, format) {
+function renderProjectEvaluationReport(evaluation, format, language = "en") {
   if (format === "json") {
     return JSON.stringify(evaluation, null, 2);
   }
+
+  const labels = evaluationLabels(language);
 
   if (format === "html") {
     return [
       "<!doctype html>",
       "<html>",
-      "<head><meta charset=\"utf-8\"><title>AIGate project evaluation</title></head>",
+      `<head><meta charset="utf-8"><title>${escapeHtml(labels.title)}</title></head>`,
       "<body>",
-      "<h1>AIGate project evaluation</h1>",
-      `<p>Score: ${evaluation.score}/100 (${escapeHtml(evaluation.grade)})</p>`,
-      "<h2>Categories</h2>",
+      `<h1>${escapeHtml(labels.title)}</h1>`,
+      `<p>${escapeHtml(labels.score)}: ${evaluation.score}/100 (${escapeHtml(evaluation.grade)})</p>`,
+      `<h2>${escapeHtml(labels.categories)}</h2>`,
       "<ul>",
       ...evaluation.categories.map((category) => (
-        `<li>${escapeHtml(category.name)}: ${category.score}/${category.weight}</li>`
+        `<li>${escapeHtml(translateEvaluationCategory(category.name, language))}: ${category.score}/${category.weight}</li>`
       )),
       "</ul>",
-      "<h2>Checks</h2>",
+      `<h2>${escapeHtml(labels.checks)}</h2>`,
       "<ul>",
       ...evaluation.checks.map((check) => (
-        `<li>${check.pass ? "PASS" : "TODO"}: ${escapeHtml(check.name)}</li>`
+        `<li>${escapeHtml(statusLabel(check.pass ? "PASS" : "TODO", language))}: ${escapeHtml(translateEvaluationCheckName(check.name, language))}</li>`
       )),
       "</ul>",
-      `<p>Recommendation: ${escapeHtml(evaluation.recommendation)}</p>`,
+      `<p>${escapeHtml(labels.recommendation)}: ${escapeHtml(translateRecommendation(evaluation.recommendation, language))}</p>`,
       "</body>",
       "</html>"
     ].join("\n");
   }
 
   return [
-    "# AIGate Project Evaluation",
+    `# ${labels.title}`,
     "",
-    `- Score: ${evaluation.score}/100`,
-    `- Grade: ${evaluation.grade}`,
-    `- Recommendation: ${evaluation.recommendation}`,
+    `- ${labels.score}: ${evaluation.score}/100`,
+    `- ${labels.grade}: ${evaluation.grade}`,
+    `- ${labels.recommendation}: ${translateRecommendation(evaluation.recommendation, language)}`,
     "",
-    "## Categories",
+    `## ${labels.categories}`,
     "",
-    ...evaluation.categories.map((category) => `- ${category.name}: ${category.score}/${category.weight}`),
+    ...evaluation.categories.map((category) => `- ${translateEvaluationCategory(category.name, language)}: ${category.score}/${category.weight}`),
     "",
-    "## Checks",
+    `## ${labels.checks}`,
     "",
-    ...evaluation.checks.map((check) => `- ${check.pass ? "PASS" : "TODO"}: ${check.name}`),
+    ...evaluation.checks.map((check) => `- ${statusLabel(check.pass ? "PASS" : "TODO", language)}: ${translateEvaluationCheckName(check.name, language)}`),
     ...(evaluation.deepSignals
       ? [
           "",
-          "## Deep Signals",
+          `## ${labels.deepSignals}`,
           "",
-          `- Commits inspected: ${evaluation.deepSignals.commitCount}`,
-          `- Branches detected: ${evaluation.deepSignals.branchCount}`,
-          `- Tags detected: ${evaluation.deepSignals.tagCount}`,
-          `- Release workflows: ${evaluation.deepSignals.releaseWorkflowCount}`,
-          `- Release process docs: ${evaluation.deepSignals.hasReleaseProcessDocs ? "yes" : "no"}`,
-          `- Hotfix process docs: ${evaluation.deepSignals.hasHotfixFlowDocs ? "yes" : "no"}`
+          `- ${labels.commitsInspected}: ${evaluation.deepSignals.commitCount}`,
+          `- ${labels.branchesDetected}: ${evaluation.deepSignals.branchCount}`,
+          `- ${labels.tagsDetected}: ${evaluation.deepSignals.tagCount}`,
+          `- ${labels.releaseWorkflows}: ${evaluation.deepSignals.releaseWorkflowCount}`,
+          `- ${labels.releaseProcessDocs}: ${evaluation.deepSignals.hasReleaseProcessDocs ? labels.yes : labels.no}`,
+          `- ${labels.hotfixProcessDocs}: ${evaluation.deepSignals.hasHotfixFlowDocs ? labels.yes : labels.no}`
         ]
       : [])
   ].join("\n");
 }
 
-function renderAuditReport(report, format) {
+function renderAuditReport(report, format, language = "en") {
   if (format === "json") {
     return JSON.stringify(report, null, 2);
   }
+
+  const labels = auditLabels(language);
 
   if (format === "html") {
     return [
       "<!doctype html>",
       "<html>",
-      "<head><meta charset=\"utf-8\"><title>AIGate audit report</title></head>",
+      `<head><meta charset="utf-8"><title>${escapeHtml(labels.title)}</title></head>`,
       "<body>",
-      "<h1>AIGate audit report</h1>",
-      `<p>Status: ${escapeHtml(report.status)}</p>`,
-      `<p>Project score: ${report.projectScore}/100 (${escapeHtml(report.projectGrade)})</p>`,
-      `<p>Release status: ${escapeHtml(report.releaseStatus)}</p>`,
-      "<h2>Findings</h2>",
+      `<h1>${escapeHtml(labels.title)}</h1>`,
+      `<p>${escapeHtml(labels.status)}: ${escapeHtml(statusLabel(report.status, language))}</p>`,
+      `<p>${escapeHtml(labels.projectScore)}: ${report.projectScore}/100 (${escapeHtml(report.projectGrade)})</p>`,
+      `<p>${escapeHtml(labels.releaseStatus)}: ${escapeHtml(statusLabel(report.releaseStatus, language))}</p>`,
+      `<h2>${escapeHtml(labels.findings)}</h2>`,
       "<ul>",
       ...(report.findings.length
-        ? report.findings.map((finding) => `<li>${escapeHtml(finding.severity)} ${escapeHtml(finding.area)}: ${escapeHtml(finding.message)}</li>`)
-        : ["<li>None</li>"]),
+        ? report.findings.map((finding) => `<li>${escapeHtml(translateAuditFinding(finding, language))}</li>`)
+        : [`<li>${escapeHtml(labels.none)}</li>`]),
       "</ul>",
       "</body>",
       "</html>"
@@ -2378,26 +2891,26 @@ function renderAuditReport(report, format) {
   }
 
   return [
-    "# AIGate Audit Report",
+    `# ${labels.title}`,
     "",
-    `- Status: ${report.status}`,
-    `- Branch: ${report.branch}`,
-    `- Project score: ${report.projectScore}/100 (${report.projectGrade})`,
-    `- Release status: ${report.releaseStatus}`,
+    `- ${labels.status}: ${statusLabel(report.status, language)}`,
+    `- ${labels.branch}: ${report.branch}`,
+    `- ${labels.projectScore}: ${report.projectScore}/100 (${report.projectGrade})`,
+    `- ${labels.releaseStatus}: ${statusLabel(report.releaseStatus, language)}`,
     "",
-    "## Findings",
+    `## ${labels.findings}`,
     "",
     ...(report.findings.length
-      ? report.findings.map((finding) => `- ${finding.severity} ${finding.area}: ${finding.message}`)
-      : ["- None"]),
+      ? report.findings.map((finding) => `- ${translateAuditFinding(finding, language)}`)
+      : [`- ${labels.none}`]),
     "",
-    "## Recent Commits",
+    `## ${labels.recentCommits}`,
     "",
-    ...(report.recentCommits.length ? report.recentCommits.map((commit) => `- ${commit}`) : ["- None"]),
+    ...(report.recentCommits.length ? report.recentCommits.map((commit) => `- ${commit}`) : [`- ${labels.none}`]),
     "",
-    "## Recommendations",
+    `## ${labels.recommendations}`,
     "",
-    ...report.recommendations.map((recommendation) => `- ${recommendation}`)
+    ...report.recommendations.map((recommendation) => `- ${translateAuditRecommendation(recommendation, language)}`)
   ].join("\n");
 }
 
@@ -2467,7 +2980,7 @@ function renderReleaseProcess(strategy, language = "en") {
       "2. 릴리스 준비 전에 `npm run ci`와 `aigate git-ready`를 실행합니다.",
       "3. 별도 안정화가 필요할 때만 `release/vX.Y.Z`를 생성합니다.",
       "4. 안정 릴리스는 `vX.Y.Z` 태그로 표시합니다.",
-      "5. npm Trusted Publishing 설정 후 Release workflow로 npm 패키지를 배포합니다.",
+      "5. npm Trusted Publishing 설정 후 릴리스 워크플로로 npm 패키지를 배포합니다.",
       ""
     ].join("\n");
   }
@@ -2481,8 +2994,8 @@ function renderReleaseProcess(strategy, language = "en") {
       "1. `main` は PR 経由で常にリリース可能な状態に保ちます。",
       "2. リリース準備前に `npm run ci` と `aigate git-ready` を実行します。",
       "3. 個別の安定化が必要な場合のみ `release/vX.Y.Z` を作成します。",
-      "4. 安定リリースは `vX.Y.Z` tag で示します。",
-      "5. npm Trusted Publishing 設定後、Release workflow で npm パッケージを公開します。",
+      "4. 安定リリースは `vX.Y.Z` タグで示します。",
+      "5. npm Trusted Publishing 設定後、リリースワークフローで npm パッケージを公開します。",
       ""
     ].join("\n");
   }
@@ -2497,7 +3010,7 @@ function renderReleaseProcess(strategy, language = "en") {
       "2. 发布准备前运行 `npm run ci` 和 `aigate git-ready`。",
       "3. 仅在需要单独稳定时创建 `release/vX.Y.Z`。",
       "4. 稳定发布使用 `vX.Y.Z` 标签。",
-      "5. 配置 npm Trusted Publishing 后，通过 Release workflow 发布 npm 包。",
+      "5. 配置 npm Trusted Publishing 后，通过发布工作流发布 npm 包。",
       ""
     ].join("\n");
   }
@@ -2527,7 +3040,7 @@ function renderHotfixProcess(strategy, language = "en") {
       "2. 변경 범위를 최소화하고 집중합니다.",
       "3. `npm run ci`, `aigate git-ready`, 필요한 회귀 검사를 실행합니다.",
       "4. 롤백 노트를 포함해 `main` 대상 PR을 엽니다.",
-      "5. 검사와 리뷰 통과 후 patch 릴리스를 배포합니다.",
+      "5. 검사와 리뷰 통과 후 패치 릴리스를 배포합니다.",
       ""
     ].join("\n");
   }
@@ -2538,11 +3051,11 @@ function renderHotfixProcess(strategy, language = "en") {
       "",
       `推奨戦略: ${translateStrategyName(strategy.name, language)}`,
       "",
-      "1. `main` または最新の安定 tag から `hotfix/<short-description>` ブランチを作成します。",
-      "2. 変更は最小限かつ focused に保ちます。",
+      "1. `main` または最新の安定タグから `hotfix/<short-description>` ブランチを作成します。",
+      "2. 変更は最小限かつ集中した範囲に保ちます。",
       "3. `npm run ci`、`aigate git-ready`、必要な回帰確認を実行します。",
-      "4. rollback note を含めて `main` 向け PR を作成します。",
-      "5. check と review 通過後に patch release を公開します。",
+      "4. ロールバックメモを含めて `main` 向け PR を作成します。",
+      "5. チェックとレビュー通過後にパッチリリースを公開します。",
       ""
     ].join("\n");
   }
@@ -2557,7 +3070,7 @@ function renderHotfixProcess(strategy, language = "en") {
       "2. 保持变更最小且聚焦。",
       "3. 运行 `npm run ci`、`aigate git-ready` 和必要的回归检查。",
       "4. 创建指向 `main` 的 PR，并附上回滚说明。",
-      "5. 检查和 review 通过后发布 patch 版本。",
+      "5. 检查和评审通过后发布补丁版本。",
       ""
     ].join("\n");
   }
@@ -2615,7 +3128,7 @@ function renderPullRequestTemplateDraft(language = "en") {
       "",
       "- [ ] 低リスク変更",
       "- [ ] セキュリティに関わる変更",
-      "- [ ] リリースまたは migration 変更",
+      "- [ ] リリースまたは移行変更",
       "",
       "## 検証",
       "",
@@ -2628,7 +3141,7 @@ function renderPullRequestTemplateDraft(language = "en") {
       "- [ ] リリース影響なし",
       "- [ ] ドキュメント更新が必要",
       "- [ ] パッケージ動作変更",
-      "- [ ] 新しい設定または migration が必要",
+      "- [ ] 新しい設定または移行が必要",
       ""
     ].join("\n");
   }
@@ -2719,7 +3232,7 @@ function buildIntegrationManifest(providers) {
   };
 }
 
-function buildIntegrationFiles(providers, outputDir, manifest) {
+function buildIntegrationFiles(providers, outputDir, manifest, language = "en") {
   const files = [
     {
       path: join(outputDir, ".aigate", "integrations.json"),
@@ -2727,7 +3240,7 @@ function buildIntegrationFiles(providers, outputDir, manifest) {
     },
     {
       path: join(outputDir, ".aigate", "integrations", "README.md"),
-      content: renderIntegrationReadme(providers)
+      content: renderIntegrationReadme(providers, language)
     }
   ];
 
@@ -2735,11 +3248,11 @@ function buildIntegrationFiles(providers, outputDir, manifest) {
     files.push(
       {
         path: join(outputDir, "AGENTS.md"),
-        content: renderCodexInstructions()
+        content: renderCodexInstructions(language)
       },
       {
         path: join(outputDir, ".aigate", "integrations", "codex.md"),
-        content: renderProviderInstructions("Codex")
+        content: renderProviderInstructions("Codex", language)
       }
     );
   }
@@ -2748,11 +3261,11 @@ function buildIntegrationFiles(providers, outputDir, manifest) {
     files.push(
       {
         path: join(outputDir, "GEMINI.md"),
-        content: renderGeminiInstructions()
+        content: renderGeminiInstructions(language)
       },
       {
         path: join(outputDir, ".aigate", "integrations", "gemini.md"),
-        content: renderProviderInstructions("Gemini")
+        content: renderProviderInstructions("Gemini", language)
       }
     );
   }
@@ -2780,7 +3293,70 @@ function writeIntegrationFiles(files, force) {
   });
 }
 
-function renderIntegrationReadme(providers) {
+function renderIntegrationReadme(providers, language = "en") {
+  if (language === "ko") {
+    return [
+      "# AIGate AI 연동",
+      "",
+      "이 디렉터리는 AIGate가 생성한 AI 어시스턴트용 지침을 담습니다.",
+      "",
+      "활성 제공자:",
+      "",
+      ...providers.map((provider) => `- ${provider}`),
+      "",
+      "필수 로컬 검사:",
+      "",
+      "```sh",
+      "npm run ci",
+      "aigate git-ready",
+      "```",
+      "",
+      "`aigate integrate all --force`로 이 파일들을 다시 생성할 수 있습니다."
+    ].join("\n") + "\n";
+  }
+
+  if (language === "ja") {
+    return [
+      "# AIGate AI 連携",
+      "",
+      "このディレクトリには、AIGate が生成した AI アシスタント向け指示が含まれます。",
+      "",
+      "有効なプロバイダー:",
+      "",
+      ...providers.map((provider) => `- ${provider}`),
+      "",
+      "必須ローカルチェック:",
+      "",
+      "```sh",
+      "npm run ci",
+      "aigate git-ready",
+      "```",
+      "",
+      "`aigate integrate all --force` でこれらのファイルを再生成できます。"
+    ].join("\n") + "\n";
+  }
+
+  if (language === "zh") {
+    return [
+      "# AIGate AI 集成",
+      "",
+      "此目录包含 AIGate 生成的 AI 助手指令。",
+      "",
+      "已启用提供方:",
+      "",
+      ...providers.map((provider) => `- ${provider}`),
+      "",
+      "必需本地检查:",
+      "",
+      "```sh",
+      "npm run ci",
+      "aigate git-ready",
+      "```",
+      "",
+      "使用 `aigate integrate all --force` 可重新生成这些文件。"
+    ].join("\n") + "\n";
+  }
+
   return [
     "# AIGate AI Integrations",
     "",
@@ -2801,37 +3377,194 @@ function renderIntegrationReadme(providers) {
   ].join("\n") + "\n";
 }
 
-function renderCodexInstructions() {
+function renderCodexInstructions(language = "en") {
   return [
-    "# AIGate Codex Instructions",
+    language === "ko" ? "# AIGate Codex 지침" : language === "ja" ? "# AIGate Codex 指示" : language === "zh" ? "# AIGate Codex 指令" : "# AIGate Codex Instructions",
     "",
-    "Use these instructions when working on this repository with Codex.",
+    providerIntro("Codex", language),
     "",
-    ...renderSharedAssistantInstructions()
+    ...renderSharedAssistantInstructions(language)
   ].join("\n") + "\n";
 }
 
-function renderGeminiInstructions() {
+function renderGeminiInstructions(language = "en") {
   return [
-    "# AIGate Gemini Instructions",
+    language === "ko" ? "# AIGate Gemini 지침" : language === "ja" ? "# AIGate Gemini 指示" : language === "zh" ? "# AIGate Gemini 指令" : "# AIGate Gemini Instructions",
     "",
-    "Use these instructions when working on this repository with Gemini.",
+    providerIntro("Gemini", language),
     "",
-    ...renderSharedAssistantInstructions()
+    ...renderSharedAssistantInstructions(language)
   ].join("\n") + "\n";
 }
 
-function renderProviderInstructions(providerName) {
+function renderProviderInstructions(providerName, language = "en") {
   return [
-    `# ${providerName} Integration`,
+    language === "ko" ? `# ${providerName} 연동` : language === "ja" ? `# ${providerName} 連携` : language === "zh" ? `# ${providerName} 集成` : `# ${providerName} Integration`,
     "",
-    `AIGate generated this ${providerName} integration guide so the assistant can follow the same Git workflow as maintainers.`,
+    providerGuideIntro(providerName, language),
     "",
-    ...renderSharedAssistantInstructions()
+    ...renderSharedAssistantInstructions(language)
   ].join("\n") + "\n";
 }
 
-function renderSharedAssistantInstructions() {
+function providerIntro(providerName, language) {
+  return {
+    ko: `${providerName}로 이 저장소를 작업할 때 이 지침을 사용하세요.`,
+    ja: `${providerName} でこのリポジトリを扱うときは、この指示を使用してください。`,
+    zh: `使用 ${providerName} 处理此仓库时，请遵循这些指令。`
+  }[language] ?? `Use these instructions when working on this repository with ${providerName}.`;
+}
+
+function providerGuideIntro(providerName, language) {
+  return {
+    ko: `AIGate는 AI 어시스턴트가 관리자와 같은 Git 워크플로를 따르도록 이 ${providerName} 연동 가이드를 생성했습니다.`,
+    ja: `AIGate は、AI アシスタントがメンテナーと同じ Git ワークフローに従えるよう、この ${providerName} 連携ガイドを生成しました。`,
+    zh: `AIGate 生成此 ${providerName} 集成指南，让 AI 助手遵循与维护者相同的 Git 工作流。`
+  }[language] ?? `AIGate generated this ${providerName} integration guide so the assistant can follow the same Git workflow as maintainers.`;
+}
+
+function renderSharedAssistantInstructions(language = "en") {
+  if (language === "ko") {
+    return [
+      "## 저장소 컨텍스트",
+      "",
+      "- 제품: AIGate AI Git 워크플로 보호 CLI.",
+      "- 기본 브랜치: `main`.",
+      "- 변경은 작업 브랜치를 사용하고 `main`에 직접 푸시하지 않습니다.",
+      "- Conventional Commit 메시지로 범위가 명확한 커밋을 선호합니다.",
+      "",
+      "## 편집 전",
+      "",
+      "- `README.md`, `.aigate.yml`, `docs/branch-strategy.md`, `docs/git-upload-workflow.md`를 읽습니다.",
+      "- `git status --short --branch`로 현재 브랜치를 확인합니다.",
+      "- 명시 요청이 없으면 생성 리포트와 로컬 설정은 커밋하지 않습니다.",
+      "",
+      "## 검증",
+      "",
+      "제안, 푸시, 병합 전에 다음 명령을 실행합니다:",
+      "",
+      "```sh",
+      "npm run ci",
+      "aigate git-ready",
+      "```",
+      "",
+      "## 푸시 워크플로",
+      "",
+      "AIGate의 보호 푸시 래퍼를 사용합니다:",
+      "",
+      "```sh",
+      "aigate push -u origin <branch>",
+      "```",
+      "",
+      "원격 변경 없이 미리 보려면:",
+      "",
+      "```sh",
+      "aigate push --dry-run origin <branch>",
+      "```",
+      "",
+      "## PR 규칙",
+      "",
+      "- 대상은 `main`입니다.",
+      "- 요약, 이유, 검증, 릴리스 영향을 포함합니다.",
+      "- 필수 검사: `test (20)`, `test (22)`.",
+      "- 리뷰 승인과 대화 해결을 기다린 뒤 병합합니다."
+    ];
+  }
+
+  if (language === "ja") {
+    return [
+      "## リポジトリコンテキスト",
+      "",
+      "- 製品: AIGate AI Git ワークフロー保護 CLI.",
+      "- デフォルトブランチ: `main`.",
+      "- 変更には作業ブランチを使い、`main` へ直接プッシュしません。",
+      "- Conventional Commit メッセージで範囲を絞ったコミットを推奨します。",
+      "",
+      "## 編集前",
+      "",
+      "- `README.md`, `.aigate.yml`, `docs/branch-strategy.md`, `docs/git-upload-workflow.md` を読みます。",
+      "- `git status --short --branch` で現在のブランチを確認します。",
+      "- 明示されない限り、生成レポートとローカル設定はコミットしません。",
+      "",
+      "## 検証",
+      "",
+      "提案、プッシュ、マージ前に次のコマンドを実行します:",
+      "",
+      "```sh",
+      "npm run ci",
+      "aigate git-ready",
+      "```",
+      "",
+      "## プッシュワークフロー",
+      "",
+      "AIGate の保護付きプッシュラッパーを使用します:",
+      "",
+      "```sh",
+      "aigate push -u origin <branch>",
+      "```",
+      "",
+      "リモートを変更せずにプレビューするには:",
+      "",
+      "```sh",
+      "aigate push --dry-run origin <branch>",
+      "```",
+      "",
+      "## PR ルール",
+      "",
+      "- 対象は `main` です。",
+      "- 概要、理由、検証、リリース影響を含めます。",
+      "- 必須チェック: `test (20)`, `test (22)`.",
+      "- レビュー承認と会話解決を待ってからマージします。"
+    ];
+  }
+
+  if (language === "zh") {
+    return [
+      "## 仓库上下文",
+      "",
+      "- 产品: AIGate AI Git 工作流守护 CLI.",
+      "- 默认分支: `main`.",
+      "- 使用工作分支进行变更，不要直接推送到 `main`。",
+      "- 优先使用 Conventional Commit，并保持提交范围清晰。",
+      "",
+      "## 编辑前",
+      "",
+      "- 阅读 `README.md`, `.aigate.yml`, `docs/branch-strategy.md`, `docs/git-upload-workflow.md`。",
+      "- 使用 `git status --short --branch` 检查当前分支。",
+      "- 除非明确要求，不要提交生成报告和本地设置。",
+      "",
+      "## 验证",
+      "",
+      "在提议、推送或合并前运行以下命令:",
+      "",
+      "```sh",
+      "npm run ci",
+      "aigate git-ready",
+      "```",
+      "",
+      "## 推送工作流",
+      "",
+      "使用 AIGate 的受保护推送封装命令:",
+      "",
+      "```sh",
+      "aigate push -u origin <branch>",
+      "```",
+      "",
+      "不修改远端，仅预览:",
+      "",
+      "```sh",
+      "aigate push --dry-run origin <branch>",
+      "```",
+      "",
+      "## PR 规则",
+      "",
+      "- 目标分支是 `main`。",
+      "- 包含摘要、原因、验证和发布影响。",
+      "- 必需检查: `test (20)`, `test (22)`。",
+      "- 等待评审批准和对话解决后再合并。"
+    ];
+  }
+
   return [
     "## Repository Context",
     "",
@@ -3086,18 +3819,18 @@ function translateBlocker(blocker, language) {
 
   if (blocker === "Possible secret-bearing file names are present in local changes.") {
     return {
-      ko: "로컬 변경사항에 secret이 포함될 수 있는 파일명이 있습니다.",
-      ja: "ローカル変更に secret を含む可能性があるファイル名があります。",
-      zh: "本地变更中存在可能包含 secret 的文件名。"
+      ko: "로컬 변경사항에 민감 정보가 포함될 수 있는 파일명이 있습니다.",
+      ja: "ローカル変更に機密情報を含む可能性があるファイル名があります。",
+      zh: "本地变更中存在可能包含敏感信息的文件名。"
     }[language] ?? blocker;
   }
 
   const secretCountMatch = blocker.match(/^(\d+) possible secret finding\(s\) detected in changed files\.$/);
   if (secretCountMatch) {
     return {
-      ko: `변경 파일에서 secret 의심 항목 ${secretCountMatch[1]}개가 감지됐습니다.`,
-      ja: `変更ファイルで secret の疑いがある項目を ${secretCountMatch[1]} 件検出しました。`,
-      zh: `在变更文件中检测到 ${secretCountMatch[1]} 个疑似 secret。`
+      ko: `변경 파일에서 민감 정보 의심 항목 ${secretCountMatch[1]}개가 감지됐습니다.`,
+      ja: `変更ファイルで機密情報の疑いがある項目を ${secretCountMatch[1]} 件検出しました。`,
+      zh: `在变更文件中检测到 ${secretCountMatch[1]} 个疑似敏感信息。`
     }[language] ?? blocker;
   }
 
@@ -3123,6 +3856,122 @@ function translateReportAction(action, language) {
 
 function translateFindingLabel(label, language) {
   return FINDING_LABEL_TRANSLATIONS[language]?.[label] ?? label;
+}
+
+function translateReportType(type, language) {
+  return REPORT_TYPE_TRANSLATIONS[language]?.[type] ?? type;
+}
+
+function formatFindingLine(finding, language) {
+  const label = translateFindingLabel(finding.label, language);
+  if (language === "ko" || language === "ja" || language === "zh") {
+    return `- ${label}: ${finding.file}:${finding.line}`;
+  }
+
+  return `- ${label} in ${finding.file}:${finding.line}`;
+}
+
+function evaluationLabels(language) {
+  return EVALUATION_LABELS[language] ?? EVALUATION_LABELS.en;
+}
+
+function translateEvaluationCategory(category, language) {
+  return EVALUATION_CATEGORY_TRANSLATIONS[language]?.[category] ?? category;
+}
+
+function translateEvaluationCheckName(name, language) {
+  return EVALUATION_CHECK_TRANSLATIONS[language]?.[name] ?? name;
+}
+
+function auditLabels(language) {
+  return AUDIT_LABELS[language] ?? AUDIT_LABELS.en;
+}
+
+function translateAuditRecommendation(recommendation, language) {
+  return AUDIT_RECOMMENDATION_TRANSLATIONS[language]?.[recommendation] ?? recommendation;
+}
+
+function translateAuditFinding(finding, language) {
+  const severity = translateSeverity(finding.severity, language);
+  const area = translateAuditArea(finding.area, language);
+  const message = translateFindingMessage(finding, language);
+  return `${severity} ${area}: ${message}`;
+}
+
+function translateSeverity(severity, language) {
+  if (language === "ko") {
+    return { high: "높음", medium: "중간", low: "낮음" }[severity] ?? severity;
+  }
+
+  if (language === "ja") {
+    return { high: "高", medium: "中", low: "低" }[severity] ?? severity;
+  }
+
+  if (language === "zh") {
+    return { high: "高", medium: "中", low: "低" }[severity] ?? severity;
+  }
+
+  return severity;
+}
+
+function translateAuditArea(area, language) {
+  if (area === "readiness") {
+    return { ko: "준비 상태", ja: "準備状態", zh: "就绪状态" }[language] ?? area;
+  }
+
+  if (area === "release") {
+    return { ko: "릴리스", ja: "リリース", zh: "发布" }[language] ?? area;
+  }
+
+  return translateEvaluationCategory(area, language);
+}
+
+function translateFindingMessage(finding, language) {
+  if (finding.area === "readiness") {
+    return translateBlocker(finding.message, language);
+  }
+
+  if (finding.area === "release") {
+    return translateReleaseCheckName(finding.message, language);
+  }
+
+  return translateEvaluationCheckName(finding.message, language);
+}
+
+function notificationPlanLines(language) {
+  if (language === "ko") {
+    return [
+      "- MVP: 터미널",
+      "- V1: Slack",
+      "- V1.5: Discord 및 Teams",
+      "- V2: 이메일, GitHub PR 댓글, GitHub Checks"
+    ];
+  }
+
+  if (language === "ja") {
+    return [
+      "- MVP: ターミナル",
+      "- V1: Slack",
+      "- V1.5: Discord と Teams",
+      "- V2: メール、GitHub PR コメント、GitHub Checks"
+    ];
+  }
+
+  if (language === "zh") {
+    return [
+      "- MVP: 终端",
+      "- V1: Slack",
+      "- V1.5: Discord 和 Teams",
+      "- V2: 邮件、GitHub PR 评论、GitHub Checks"
+    ];
+  }
+
+  return [
+    "- MVP: terminal",
+    "- V1: Slack",
+    "- V1.5: Discord and Teams",
+    "- V2: email, GitHub PR comments, GitHub Checks"
+  ];
 }
 
 function translateBranchUse(use, language) {
@@ -3207,7 +4056,7 @@ function translateReleaseCheckName(name, language) {
   if (tagMatch) {
     return {
       ko: `${tagMatch[1]} 태그 존재`,
-      ja: `${tagMatch[1]} tag が存在`,
+      ja: `${tagMatch[1]} タグが存在`,
       zh: `${tagMatch[1]} 标签存在`
     }[language] ?? name;
   }
@@ -3224,7 +4073,7 @@ function translateReleaseNextStep(step, language) {
   if (match) {
     return {
       ko: `${match[1]}@${match[2]}는 이미 npm에 있습니다. 릴리스 기록을 위해 ${match[3]} 태그를 생성하세요.`,
-      ja: `${match[1]}@${match[2]} はすでに npm にあります。リリース記録として ${match[3]} tag を作成してください。`,
+      ja: `${match[1]}@${match[2]} はすでに npm にあります。リリース記録として ${match[3]} タグを作成してください。`,
       zh: `${match[1]}@${match[2]} 已在 npm 上。请创建 ${match[3]} 标签来记录发布。`
     }[language] ?? step;
   }
@@ -3233,7 +4082,7 @@ function translateReleaseNextStep(step, language) {
   if (match) {
     return {
       ko: `${match[1]}@${match[2]}는 아직 npm에 없습니다. Trusted Publishing으로 배포하려면 ${match[3]} 태그를 생성하세요.`,
-      ja: `${match[1]}@${match[2]} はまだ npm にありません。Trusted Publishing で公開するには ${match[3]} tag を作成してください。`,
+      ja: `${match[1]}@${match[2]} はまだ npm にありません。Trusted Publishing で公開するには ${match[3]} タグを作成してください。`,
       zh: `${match[1]}@${match[2]} 尚未发布到 npm。请创建 ${match[3]} 标签并通过 Trusted Publishing 发布。`
     }[language] ?? step;
   }
@@ -3260,7 +4109,7 @@ function translateReleaseNextStep(step, language) {
   if (match) {
     return {
       ko: `npm Trusted Publishing 설정 후 ${match[1]} 릴리스 태그를 생성하세요.`,
-      ja: `npm Trusted Publishing 設定後に ${match[1]} リリース tag を作成してください。`,
+      ja: `npm Trusted Publishing 設定後に ${match[1]} リリースタグを作成してください。`,
       zh: `npm Trusted Publishing 配置完成后，请创建 ${match[1]} 发布标签。`
     }[language] ?? step;
   }
@@ -3277,28 +4126,28 @@ function translateReleaseNextStep(step, language) {
   match = step.match(/^Review npm registry lookup error: (.+)$/);
   if (match) {
     return {
-      ko: `npm registry 조회 오류를 확인하세요: ${match[1]}`,
-      ja: `npm registry 照会エラーを確認してください: ${match[1]}`,
-      zh: `请检查 npm registry 查询错误: ${match[1]}`
+      ko: `npm 레지스트리 조회 오류를 확인하세요: ${match[1]}`,
+      ja: `npm レジストリ照会エラーを確認してください: ${match[1]}`,
+      zh: `请检查 npm 注册表查询错误: ${match[1]}`
     }[language] ?? step;
   }
 
   return {
     ko: {
-      "Run release-check --npm to confirm npm registry publication state.": "npm registry 배포 상태를 확인하려면 release-check --npm을 실행하세요.",
-      "Ensure release workflow publishes with npm provenance.": "릴리스 workflow가 npm provenance로 배포하는지 확인하세요.",
+      "Run release-check --npm to confirm npm registry publication state.": "npm 레지스트리 배포 상태를 확인하려면 release-check --npm을 실행하세요.",
+      "Ensure release workflow publishes with npm provenance.": "릴리스 워크플로가 npm provenance로 배포하는지 확인하세요.",
       "Run npm run ci before tagging a release.": "릴리스 태그 생성 전에 npm run ci를 실행하세요.",
-      "Run npm publish dry-run through the Release workflow_dispatch dry_run input.": "Release workflow_dispatch dry_run 입력으로 npm publish dry-run을 실행하세요."
+      "Run npm publish dry-run through the Release workflow_dispatch dry_run input.": "릴리스 workflow_dispatch dry_run 입력으로 npm publish dry-run을 실행하세요."
     },
     ja: {
-      "Run release-check --npm to confirm npm registry publication state.": "npm registry の公開状態を確認するには release-check --npm を実行してください。",
-      "Ensure release workflow publishes with npm provenance.": "リリース workflow が npm provenance 付きで公開することを確認してください。",
-      "Run npm run ci before tagging a release.": "リリース tag を作成する前に npm run ci を実行してください。",
-      "Run npm publish dry-run through the Release workflow_dispatch dry_run input.": "Release workflow_dispatch の dry_run 入力で npm publish dry-run を実行してください。"
+      "Run release-check --npm to confirm npm registry publication state.": "npm レジストリの公開状態を確認するには release-check --npm を実行してください。",
+      "Ensure release workflow publishes with npm provenance.": "リリースワークフローが npm provenance 付きで公開することを確認してください。",
+      "Run npm run ci before tagging a release.": "リリースタグを作成する前に npm run ci を実行してください。",
+      "Run npm publish dry-run through the Release workflow_dispatch dry_run input.": "リリース workflow_dispatch の dry_run 入力で npm publish dry-run を実行してください。"
     },
     zh: {
-      "Run release-check --npm to confirm npm registry publication state.": "运行 release-check --npm 确认 npm registry 发布状态。",
-      "Ensure release workflow publishes with npm provenance.": "确保发布 workflow 使用 npm provenance 发布。",
+      "Run release-check --npm to confirm npm registry publication state.": "运行 release-check --npm 确认 npm 注册表发布状态。",
+      "Ensure release workflow publishes with npm provenance.": "确保发布工作流使用 npm provenance 发布。",
       "Run npm run ci before tagging a release.": "创建发布标签前运行 npm run ci。",
       "Run npm publish dry-run through the Release workflow_dispatch dry_run input.": "通过 Release workflow_dispatch 的 dry_run 输入运行 npm publish dry-run。"
     }
