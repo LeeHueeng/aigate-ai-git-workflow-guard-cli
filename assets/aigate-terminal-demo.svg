@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="520" viewBox="0 0 980 520" role="img" aria-labelledby="title desc">
+  <title id="title">AIGate terminal demo</title>
+  <desc id="desc">Terminal output showing AIGate checking a branch before push.</desc>
+  <rect width="980" height="520" rx="18" fill="#0d1117"/>
+  <rect x="0" y="0" width="980" height="48" rx="18" fill="#161b22"/>
+  <circle cx="28" cy="24" r="7" fill="#ff5f56"/>
+  <circle cx="52" cy="24" r="7" fill="#ffbd2e"/>
+  <circle cx="76" cy="24" r="7" fill="#27c93f"/>
+  <text x="112" y="30" fill="#8b949e" font-family="SFMono-Regular,Consolas,monospace" font-size="15">aigate pre-push safety check</text>
+
+  <text x="34" y="92" fill="#58a6ff" font-family="SFMono-Regular,Consolas,monospace" font-size="22">$ npx -y aigate-cli git-ready</text>
+  <text x="34" y="140" fill="#3fb950" font-family="SFMono-Regular,Consolas,monospace" font-size="22">AIGate git-ready: READY</text>
+  <text x="34" y="178" fill="#c9d1d9" font-family="SFMono-Regular,Consolas,monospace" font-size="20">Branch: feature/ai-generated-login-flow</text>
+  <text x="34" y="214" fill="#c9d1d9" font-family="SFMono-Regular,Consolas,monospace" font-size="20">Changed files: 6</text>
+  <text x="34" y="250" fill="#c9d1d9" font-family="SFMono-Regular,Consolas,monospace" font-size="20">Secret findings: 0</text>
+  <text x="34" y="286" fill="#c9d1d9" font-family="SFMono-Regular,Consolas,monospace" font-size="20">Project score: 92/100</text>
+  <text x="34" y="322" fill="#c9d1d9" font-family="SFMono-Regular,Consolas,monospace" font-size="20">Blockers: none</text>
+
+  <rect x="34" y="354" width="912" height="110" rx="12" fill="#111820" stroke="#30363d"/>
+  <text x="58" y="392" fill="#f0f6fc" font-family="SFMono-Regular,Consolas,monospace" font-size="19">Next:</text>
+  <text x="58" y="428" fill="#c9d1d9" font-family="SFMono-Regular,Consolas,monospace" font-size="18">npm test &amp;&amp; git commit -m "feat: focused change"</text>
+  <text x="58" y="458" fill="#c9d1d9" font-family="SFMono-Regular,Consolas,monospace" font-size="18">aigate push -u origin feature/ai-generated-login-flow</text>
+
+  <text x="34" y="498" fill="#8b949e" font-family="SFMono-Regular,Consolas,monospace" font-size="16">Catch risky AI-assisted Git changes before they reach your PR.</text>
+</svg>

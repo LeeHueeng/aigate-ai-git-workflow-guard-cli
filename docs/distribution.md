@@ -1,7 +1,8 @@
 # Distribution
 
-AIGate starts with npm as the primary package channel and keeps Docker,
-GitHub Actions, Homebrew, and standalone binaries as staged distribution paths.
+AIGate ships through npm first. Docker, Homebrew, and standalone binaries are
+planned public distribution channels and should not be presented as copy-paste
+install paths until they are published.
 
 ## npm
 
@@ -15,7 +16,8 @@ npx aigate-cli check
 The first public release is live on npm:
 
 - Package: <https://www.npmjs.com/package/aigate-cli>
-- Current release tag: `v0.1.0`
+- Latest tagged public release: `v0.1.0`
+- Current repository package version: see `package.json` and `CHANGELOG.md`
 - Trusted Publishing: GitHub Actions `release.yml`
 
 Routine release flow:
@@ -80,7 +82,8 @@ npx npm@latest trust github aigate-cli \
 
 ## Docker
 
-Build locally:
+The Docker image is not published yet. Build it locally when validating
+container usage:
 
 ```sh
 docker build -t aigate/cli .
@@ -108,6 +111,6 @@ to produce richer workflow reports.
 
 ## Later Channels
 
-- Homebrew formula after the npm package has real users.
 - Published Docker image after container usage is validated.
+- Homebrew formula after the npm package has real users.
 - Standalone binaries for environments without Node.js.
