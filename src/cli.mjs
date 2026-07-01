@@ -49,6 +49,8 @@ const I18N = {
     "gitReady.recommendation": "Recommendation: {recommendation}",
     "gitReady.secretFindings": "Secret findings: {count}",
     "gitReady.status": "AIGate git-ready: {status}",
+    "gitReady.warnings": "Warnings:",
+    "gitReady.warningsNone": "Warnings: none",
     "init.complete": "AIGate init complete",
     "integrate.complete": "AIGate AI integration files",
     "integrate.next": "Next: review the generated instruction files and run npm run ci.",
@@ -110,6 +112,8 @@ const I18N = {
     "gitReady.recommendation": "권장 사항: {recommendation}",
     "gitReady.secretFindings": "Secret 탐지: {count}",
     "gitReady.status": "AIGate git-ready: {status}",
+    "gitReady.warnings": "주의 사항:",
+    "gitReady.warningsNone": "주의 사항: 없음",
     "init.complete": "AIGate 초기화 완료",
     "integrate.complete": "AIGate AI 연동 파일 생성",
     "integrate.next": "다음 단계: 생성된 지침 파일을 검토하고 npm run ci를 실행하세요.",
@@ -171,6 +175,8 @@ const I18N = {
     "gitReady.recommendation": "推奨事項: {recommendation}",
     "gitReady.secretFindings": "Secret 検出: {count}",
     "gitReady.status": "AIGate git-ready: {status}",
+    "gitReady.warnings": "警告:",
+    "gitReady.warningsNone": "警告: なし",
     "init.complete": "AIGate 初期化完了",
     "integrate.complete": "AIGate AI 連携ファイル",
     "integrate.next": "次の手順: 生成された指示ファイルを確認し、npm run ci を実行してください。",
@@ -232,6 +238,8 @@ const I18N = {
     "gitReady.recommendation": "建议: {recommendation}",
     "gitReady.secretFindings": "Secret 发现: {count}",
     "gitReady.status": "AIGate git-ready: {status}",
+    "gitReady.warnings": "警告:",
+    "gitReady.warningsNone": "警告: 无",
     "init.complete": "AIGate 初始化完成",
     "integrate.complete": "AIGate AI 集成文件",
     "integrate.next": "下一步: 检查生成的说明文件并运行 npm run ci。",
@@ -498,6 +506,108 @@ const RELEASE_CHECK_TRANSLATIONS = {
   }
 };
 
+const REPORT_LABELS = {
+  en: {
+    changedPaths: "Changed Paths",
+    none: "None",
+    prReadinessScore: "PR readiness score",
+    projectScore: "Project score",
+    recommendation: "Recommendation",
+    recommendedActions: "Recommended Actions",
+    riskScore: "Risk score",
+    secretFindings: "Secret Findings",
+    secretFindingsCount: "Secret findings",
+    status: "Status",
+    changedFiles: "Changed files",
+    branch: "Branch",
+    title: (type) => `AIGate ${type} report`
+  },
+  ko: {
+    changedPaths: "변경 경로",
+    none: "없음",
+    prReadinessScore: "PR 준비 점수",
+    projectScore: "프로젝트 점수",
+    recommendation: "권장 사항",
+    recommendedActions: "권장 조치",
+    riskScore: "위험 점수",
+    secretFindings: "Secret 탐지",
+    secretFindingsCount: "Secret 탐지",
+    status: "상태",
+    changedFiles: "변경 파일",
+    branch: "브랜치",
+    title: (type) => `AIGate ${type} 리포트`
+  },
+  ja: {
+    changedPaths: "変更パス",
+    none: "なし",
+    prReadinessScore: "PR 準備スコア",
+    projectScore: "プロジェクトスコア",
+    recommendation: "推奨事項",
+    recommendedActions: "推奨アクション",
+    riskScore: "リスクスコア",
+    secretFindings: "Secret 検出",
+    secretFindingsCount: "Secret 検出",
+    status: "状態",
+    changedFiles: "変更ファイル",
+    branch: "ブランチ",
+    title: (type) => `AIGate ${type} レポート`
+  },
+  zh: {
+    changedPaths: "变更路径",
+    none: "无",
+    prReadinessScore: "PR 就绪分数",
+    projectScore: "项目分数",
+    recommendation: "建议",
+    recommendedActions: "建议操作",
+    riskScore: "风险分数",
+    secretFindings: "Secret 发现",
+    secretFindingsCount: "Secret 发现",
+    status: "状态",
+    changedFiles: "变更文件",
+    branch: "分支",
+    title: (type) => `AIGate ${type} 报告`
+  }
+};
+
+const REPORT_ACTION_TRANSLATIONS = {
+  ko: {
+    "Remove or rotate suspected secrets before commit or push.": "커밋 또는 푸시 전에 의심되는 secret을 제거하거나 교체하세요.",
+    "Split large changes into smaller pull requests.": "큰 변경은 더 작은 PR로 나누세요.",
+    "Complete missing repository foundation checks.": "부족한 저장소 기반 점검 항목을 보완하세요.",
+    "Include validation commands and release impact in the pull request body.": "PR 본문에 검증 명령과 릴리스 영향을 포함하세요.",
+    "Run tests, keep the change focused, and open a pull request.": "테스트를 실행하고 변경 범위를 집중시킨 뒤 PR을 여세요.",
+    "Move local AIGate settings out of the commit or add them to .gitignore.": "로컬 AIGate 설정은 커밋에서 빼거나 .gitignore에 추가하세요."
+  },
+  ja: {
+    "Remove or rotate suspected secrets before commit or push.": "commit または push 前に疑わしい secret を削除またはローテーションしてください。",
+    "Split large changes into smaller pull requests.": "大きな変更は小さな PR に分割してください。",
+    "Complete missing repository foundation checks.": "不足しているリポジトリ基盤チェックを整備してください。",
+    "Include validation commands and release impact in the pull request body.": "PR 本文に検証コマンドとリリース影響を含めてください。",
+    "Run tests, keep the change focused, and open a pull request.": "テストを実行し、変更範囲を絞って PR を作成してください。",
+    "Move local AIGate settings out of the commit or add them to .gitignore.": "ローカル AIGate 設定は commit から外すか .gitignore に追加してください。"
+  },
+  zh: {
+    "Remove or rotate suspected secrets before commit or push.": "提交或推送前，请移除或轮换疑似 secret。",
+    "Split large changes into smaller pull requests.": "将大型变更拆分为更小的 PR。",
+    "Complete missing repository foundation checks.": "补齐缺失的仓库基础检查项。",
+    "Include validation commands and release impact in the pull request body.": "在 PR 正文中包含验证命令和发布影响。",
+    "Run tests, keep the change focused, and open a pull request.": "运行测试，保持变更聚焦，然后创建 PR。",
+    "Move local AIGate settings out of the commit or add them to .gitignore.": "请将本地 AIGate 设置移出提交，或加入 .gitignore。"
+  }
+};
+
+const FINDING_LABEL_TRANSLATIONS = {
+  ko: {
+    "Sensitive authentication state file": "민감한 인증 상태 파일"
+  },
+  ja: {
+    "Sensitive authentication state file": "機密の認証状態ファイル"
+  },
+  zh: {
+    "Sensitive authentication state file": "敏感认证状态文件"
+  }
+};
+
 function t(language, key, values = {}) {
   const template = I18N[language]?.[key] ?? I18N.en[key] ?? key;
   return template.replace(/\{([A-Za-z0-9_]+)\}/g, (_, name) => (
@@ -659,7 +769,7 @@ function commandCheck(args) {
     command: "check",
     status: analysis.secretFindings.length ? "BLOCK" : status.riskLevel === "high" ? "BLOCK" : status.changedFiles.length ? "WARN" : "PASS",
     branch: status.branch,
-    changedFiles: status.changedFiles.length,
+    changedFiles: analysis.paths.length,
     changedPaths: analysis.paths,
     secretFindings: analysis.secretFindings,
     tracked: status.insideGitRepository,
@@ -762,7 +872,7 @@ function commandPr(args) {
   const branch = git(["branch", "--show-current"]) || "HEAD";
   const base = options.base ?? "main";
   const title = options.title ?? `feat: update ${branch}`;
-  const body = options.body ?? renderMarkdownReport(buildReport("pr"));
+  const body = options.body ?? renderMarkdownReport(buildReport("pr"), language);
   const ghArgs = [
     "pr",
     "create",
@@ -813,7 +923,7 @@ function commandPrCheck(args) {
   }
   const format = options.format ?? "markdown";
   const report = buildReport("pr");
-  const output = renderReport(report, format);
+  const output = renderReport(report, format, language);
 
   if (options.output) {
     mkdirSync(dirname(options.output), { recursive: true });
@@ -926,6 +1036,7 @@ function buildGitReadyResult() {
   const evaluation = buildEvaluation();
   const analysis = buildChangeAnalysis();
   const blockers = [];
+  const warnings = [];
 
   if (!status.insideGitRepository) {
     blockers.push("AIGate must run inside a Git repository.");
@@ -940,18 +1051,19 @@ function buildGitReadyResult() {
   }
 
   if (evaluation.score < 80) {
-    blockers.push(`Project foundation score is ${evaluation.score}/100; minimum is 80.`);
+    warnings.push(`Project foundation score is ${evaluation.score}/100; recommended minimum is 80.`);
   }
 
   return {
     command: "git-ready",
     status: blockers.length ? "BLOCK" : "READY",
     branch: status.branch,
-    changedFiles: status.changedFiles.length,
+    changedFiles: analysis.paths.length,
     changedPaths: analysis.paths,
     projectScore: evaluation.score,
     secretFindings: analysis.secretFindings,
     blockers,
+    warnings,
     recommendation: blockers.length
       ? "Resolve blockers before committing, pushing, or opening a pull request."
       : "Run npm test, commit focused changes, push the branch, and open a pull request."
@@ -975,6 +1087,8 @@ function formatGitReadyResult(result, options, language = "en") {
     t(language, "gitReady.projectScore", { score: result.projectScore }),
     result.blockers.length ? t(language, "gitReady.blockers") : t(language, "gitReady.blockersNone"),
     ...result.blockers.map((blocker) => `- ${translateBlocker(blocker, language)}`),
+    result.warnings?.length ? t(language, "gitReady.warnings") : t(language, "gitReady.warningsNone"),
+    ...(result.warnings ?? []).map((warning) => `- ${translateWarning(warning, language)}`),
     t(language, "gitReady.recommendation", { recommendation: translateRecommendation(result.recommendation, language) })
   ].join("\n");
 }
@@ -988,7 +1102,7 @@ function commandReport(args) {
   const format = options.format ?? "markdown";
   const type = options.type ?? "local";
   const report = buildReport(type);
-  const output = renderReport(report, format);
+  const output = renderReport(report, format, language);
 
   if (options.output) {
     mkdirSync(dirname(options.output), { recursive: true });
@@ -1293,6 +1407,11 @@ function scanSecrets(paths) {
   const findings = [];
 
   for (const filePath of paths) {
+    const pathFinding = sensitivePathFinding(filePath);
+    if (pathFinding) {
+      findings.push(pathFinding);
+    }
+
     if (!existsSync(filePath) || !isScannableFile(filePath)) {
       continue;
     }
@@ -1321,6 +1440,28 @@ function scanSecrets(paths) {
   }
 
   return findings;
+}
+
+function sensitivePathFinding(filePath) {
+  if (!isSensitiveAuthStatePath(filePath)) {
+    return null;
+  }
+
+  return {
+    ruleId: "sensitive-auth-state",
+    label: "Sensitive authentication state file",
+    file: filePath,
+    line: 1,
+    excerpt: "[redacted path-based finding]"
+  };
+}
+
+function isSensitiveAuthStatePath(filePath) {
+  const normalized = filePath.replace(/\\/g, "/");
+  return /(^|\/)(playwright|\.playwright)\/\.auth\/.*\.json$/i.test(normalized) ||
+    /(^|\/)\.auth\/.*\.json$/i.test(normalized) ||
+    /(^|\/)(auth|cookies|session|storage-state|storageState)\.json$/i.test(normalized) ||
+    /(^|\/).*storage[-_]?state.*\.json$/i.test(normalized);
 }
 
 function isScannableFile(filePath) {
@@ -1362,7 +1503,10 @@ function buildGitStatus() {
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
-  const highRisk = changedFiles.some((line) => /(\.env|secret|token|private[_-]?key)/i.test(line));
+  const changedPaths = insideGitRepository ? getChangedPaths() : [];
+  const highRisk = [...changedFiles, ...changedPaths].some((line) => (
+    /(\.env|secret|token|private[_-]?key)/i.test(line) || isSensitiveAuthStatePath(line)
+  ));
 
   let recommendation = "No local changes detected.";
   if (!insideGitRepository) {
@@ -1937,7 +2081,7 @@ function buildReport(type) {
     finalVerdict: reportStatus,
     riskScore,
     prReadinessScore: Math.max(0, 100 - riskScore),
-    changedFiles: status.changedFiles.length,
+    changedFiles: analysis.paths.length,
     changedPaths: analysis.paths,
     secretFindings: analysis.secretFindings,
     projectScore: evaluation.score,
@@ -1982,6 +2126,10 @@ function recommendedActionsForReport(status, evaluation, analysis, type) {
     actions.push("Split large changes into smaller pull requests.");
   }
 
+  if (analysis.paths.includes(".aigate/settings.json")) {
+    actions.push("Move local AIGate settings out of the commit or add them to .gitignore.");
+  }
+
   if (evaluation.score < 100) {
     actions.push("Complete missing repository foundation checks.");
   }
@@ -1997,48 +2145,49 @@ function recommendedActionsForReport(status, evaluation, analysis, type) {
   return actions;
 }
 
-function renderReport(report, format) {
+function renderReport(report, format, language = "en") {
   if (format === "json") {
     return JSON.stringify(report, null, 2);
   }
 
   if (format === "html") {
-    return renderHtmlReport(report);
+    return renderHtmlReport(report, language);
   }
 
   if (format === "sarif") {
     return JSON.stringify(renderSarifReport(report), null, 2);
   }
 
-  return renderMarkdownReport(report);
+  return renderMarkdownReport(report, language);
 }
 
-function renderMarkdownReport(report) {
+function renderMarkdownReport(report, language = "en") {
+  const labels = reportLabels(language);
   const lines = [
-    `# AIGate ${report.type} report`,
+    `# ${labels.title(report.type)}`,
     "",
-    `- Status: ${report.status}`,
-    `- Risk score: ${report.riskScore}/100`,
-    `- PR readiness score: ${report.prReadinessScore}/100`,
-    `- Branch: ${report.branch}`,
-    `- Changed files: ${report.changedFiles}`,
-    `- Secret findings: ${report.secretFindings.length}`,
-    `- Project score: ${report.projectScore}/100 (${report.projectGrade})`,
-    `- Recommendation: ${report.recommendation}`,
+    `- ${labels.status}: ${statusLabel(report.status, language)}`,
+    `- ${labels.riskScore}: ${report.riskScore}/100`,
+    `- ${labels.prReadinessScore}: ${report.prReadinessScore}/100`,
+    `- ${labels.branch}: ${report.branch}`,
+    `- ${labels.changedFiles}: ${report.changedFiles}`,
+    `- ${labels.secretFindingsCount}: ${report.secretFindings.length}`,
+    `- ${labels.projectScore}: ${report.projectScore}/100 (${report.projectGrade})`,
+    `- ${labels.recommendation}: ${translateRecommendation(report.recommendation, language)}`,
     "",
-    "## Changed Paths",
+    `## ${labels.changedPaths}`,
     "",
-    ...(report.changedPaths.length ? report.changedPaths.map((path) => `- ${path}`) : ["- None"]),
+    ...(report.changedPaths.length ? report.changedPaths.map((path) => `- ${path}`) : [`- ${labels.none}`]),
     "",
-    "## Secret Findings",
+    `## ${labels.secretFindings}`,
     "",
     ...(report.secretFindings.length
-      ? report.secretFindings.map((finding) => `- ${finding.label} in ${finding.file}:${finding.line}`)
-      : ["- None"]),
+      ? report.secretFindings.map((finding) => `- ${translateFindingLabel(finding.label, language)} in ${finding.file}:${finding.line}`)
+      : [`- ${labels.none}`]),
     "",
-    "## Recommended Actions",
+    `## ${labels.recommendedActions}`,
     "",
-    ...report.recommendedActions.map((action) => `- ${action}`)
+    ...report.recommendedActions.map((action) => `- ${translateReportAction(action, language)}`)
   ];
 
   if (report.type === "weekly") {
@@ -2066,26 +2215,27 @@ function renderMarkdownReport(report) {
   return lines.join("\n");
 }
 
-function renderHtmlReport(report) {
+function renderHtmlReport(report, language = "en") {
+  const labels = reportLabels(language);
   return [
     "<!doctype html>",
     "<html>",
     "<head><meta charset=\"utf-8\"><title>AIGate report</title></head>",
     "<body>",
-    `<h1>AIGate ${escapeHtml(report.type)} report</h1>`,
+    `<h1>${escapeHtml(labels.title(report.type))}</h1>`,
     "<ul>",
-    `<li>Status: ${escapeHtml(report.status)}</li>`,
-    `<li>Risk score: ${report.riskScore}/100</li>`,
-    `<li>PR readiness score: ${report.prReadinessScore}/100</li>`,
-    `<li>Branch: ${escapeHtml(report.branch)}</li>`,
-    `<li>Changed files: ${report.changedFiles}</li>`,
-    `<li>Secret findings: ${report.secretFindings.length}</li>`,
-    `<li>Project score: ${report.projectScore}/100 (${escapeHtml(report.projectGrade)})</li>`,
-    `<li>Recommendation: ${escapeHtml(report.recommendation)}</li>`,
+    `<li>${escapeHtml(labels.status)}: ${escapeHtml(statusLabel(report.status, language))}</li>`,
+    `<li>${escapeHtml(labels.riskScore)}: ${report.riskScore}/100</li>`,
+    `<li>${escapeHtml(labels.prReadinessScore)}: ${report.prReadinessScore}/100</li>`,
+    `<li>${escapeHtml(labels.branch)}: ${escapeHtml(report.branch)}</li>`,
+    `<li>${escapeHtml(labels.changedFiles)}: ${report.changedFiles}</li>`,
+    `<li>${escapeHtml(labels.secretFindingsCount)}: ${report.secretFindings.length}</li>`,
+    `<li>${escapeHtml(labels.projectScore)}: ${report.projectScore}/100 (${escapeHtml(report.projectGrade)})</li>`,
+    `<li>${escapeHtml(labels.recommendation)}: ${escapeHtml(translateRecommendation(report.recommendation, language))}</li>`,
     "</ul>",
-    "<h2>Recommended Actions</h2>",
+    `<h2>${escapeHtml(labels.recommendedActions)}</h2>`,
     "<ul>",
-    ...report.recommendedActions.map((action) => `<li>${escapeHtml(action)}</li>`),
+    ...report.recommendedActions.map((action) => `<li>${escapeHtml(translateReportAction(action, language))}</li>`),
     "</ul>",
     "</body>",
     "</html>"
@@ -2904,6 +3054,23 @@ function translateRecommendation(recommendation, language) {
   return RECOMMENDATION_TRANSLATIONS[language]?.[recommendation] ?? recommendation;
 }
 
+function translateWarning(warning, language) {
+  if (language === "en") {
+    return warning;
+  }
+
+  const scoreMatch = warning.match(/^Project foundation score is (\d+)\/100; recommended minimum is 80\.$/);
+  if (scoreMatch) {
+    return {
+      ko: `프로젝트 기반 점수는 ${scoreMatch[1]}/100이며 권장 기준은 80입니다.`,
+      ja: `プロジェクト基盤スコアは ${scoreMatch[1]}/100 で、推奨基準は 80 です。`,
+      zh: `项目基础分为 ${scoreMatch[1]}/100，建议最低为 80。`
+    }[language] ?? warning;
+  }
+
+  return warning;
+}
+
 function translateBlocker(blocker, language) {
   if (language === "en") {
     return blocker;
@@ -2944,6 +3111,18 @@ function translateBlocker(blocker, language) {
   }
 
   return blocker;
+}
+
+function reportLabels(language) {
+  return REPORT_LABELS[language] ?? REPORT_LABELS.en;
+}
+
+function translateReportAction(action, language) {
+  return REPORT_ACTION_TRANSLATIONS[language]?.[action] ?? action;
+}
+
+function translateFindingLabel(label, language) {
+  return FINDING_LABEL_TRANSLATIONS[language]?.[label] ?? label;
 }
 
 function translateBranchUse(use, language) {
