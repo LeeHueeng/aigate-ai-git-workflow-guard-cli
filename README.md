@@ -14,7 +14,7 @@ this repo, while package registry distribution is still planned.
 ## What AIGate Does
 
 - Checks local Git changes before push or pull request creation.
-- Produces Markdown, HTML, JSON, and future GitHub-native reports.
+- Produces Markdown, HTML, JSON, and SARIF reports.
 - Scores repository workflow quality across Git, tests, CI, security, and docs.
 - Recommends branch strategies based on team size, release cadence, and risk.
 - Routes important workflow events to terminal, Slack, Discord, Teams, email,
@@ -61,14 +61,16 @@ aigate settings
 | `aigate check` | Summarize current Git readiness. |
 | `aigate git-ready` | Run the before-push readiness gate. |
 | `aigate push` | Run AIGate checks, then run `git push`. |
+| `aigate pr` | Run AIGate checks, then create a GitHub pull request with `gh`. |
 | `aigate setup --language ko` | Save local AIGate settings. |
 | `aigate settings` | Show current AIGate settings. |
 | `aigate integrate all` | Generate Codex and Gemini assistant integration files. |
-| `aigate report` | Print a local workflow report. |
+| `aigate report --output .aigate/reports/local.md` | Write a local workflow report. |
+| `aigate report --format sarif` | Print a SARIF report for secret findings. |
 | `aigate evaluate-project` | Score project workflow foundations. |
 | `aigate score` | Print only the project score. |
 | `aigate branch-strategy` | Recommend a repository branch strategy. |
-| `aigate notify test` | Preview a notification event. |
+| `aigate notify send --channel terminal` | Send a local notification event. |
 
 ## Roadmap Snapshot
 
@@ -105,6 +107,7 @@ git status --short --branch
 git add <files>
 git commit -m "type: short summary"
 aigate push -u origin <branch>
+aigate pr --title "feat: short summary"
 ```
 
 Read the full workflow in [docs/git-upload-workflow.md](docs/git-upload-workflow.md).

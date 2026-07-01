@@ -72,6 +72,12 @@ Open a pull request into `main`. Include:
 - validation commands
 - release or documentation impact
 
+You can also let AIGate call GitHub CLI:
+
+```sh
+aigate pr --title "feat: short summary"
+```
+
 ## 5. Merge Rules
 
 Do not merge until:

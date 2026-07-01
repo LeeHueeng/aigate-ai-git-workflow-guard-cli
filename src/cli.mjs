@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 const VERSION = "0.0.0";
@@ -10,6 +10,14 @@ const DEFAULT_SETTINGS = {
   version: 1,
   language: "en"
 };
+const MAX_SECRET_SCAN_BYTES = 250_000;
+const SECRET_PATTERNS = [
+  { id: "aws-access-key-id", label: "AWS access key id", pattern: /AKIA[0-9A-Z]{16}/g },
+  { id: "github-token", label: "GitHub token", pattern: /gh[pousr]_[A-Za-z0-9_]{30,}/g },
+  { id: "slack-token", label: "Slack token", pattern: /xox[baprs]-[A-Za-z0-9-]{20,}/g },
+  { id: "private-key", label: "Private key block", pattern: /-----BEGIN [A-Z ]*PRIVATE KEY-----/g },
+  { id: "generic-secret", label: "Generic secret assignment", pattern: /\b(api[_-]?key|secret|token|password|private[_-]?key)\b\s*[:=]\s*["']?([A-Za-z0-9_./+=-]{16,})/gi }
+];
 
 const RECOMMENDATIONS_KO = new Map([
   ["No local changes detected.", "로컬 변경사항이 없습니다."],
@@ -33,6 +41,7 @@ Commands:
   check                    Summarize local Git readiness.
   git-ready                Run the before-push readiness gate.
   push                     Run AIGate checks, then run git push.
+  pr                       Run AIGate checks, then create a GitHub pull request.
   setup                    Configure AIGate project settings.
   settings                 Show current AIGate settings.
   integrate <provider>     Generate Codex/Gemini assistant integration files.
@@ -40,15 +49,20 @@ Commands:
   evaluate-project         Score repository workflow foundations.
   score                    Print only the project score.
   branch-strategy          Recommend a branch strategy.
-  notify <setup|test>      Preview notification workflows.
+  notify <setup|test|send> Preview or send notification workflows.
   help                     Show this help message.
 
 Options:
-  --format <text|json|markdown|html>
+  --format <text|json|markdown|html|sarif>
   --type <local|pr|weekly>
+  --output <path>          Write report output to a file.
+  --base <branch>          Pull request base branch.
+  --title <text>           Pull request title.
+  --body <text>            Pull request body.
   --generate               Write generated branch strategy guidance.
   --github                 Include GitHub protection guidance.
   --event <name>           Notification event name.
+  --channel <name>         Notification channel.
   --language <en|ko>       Select output language.
   --output-dir <path>      Select integration output directory.
   --force                  Overwrite generated integration files.
@@ -61,6 +75,7 @@ const commands = {
   check: commandCheck,
   "git-ready": commandGitReady,
   push: commandPush,
+  pr: commandPr,
   setup: commandSetup,
   settings: commandSettings,
   integrate: commandIntegrate,
@@ -104,13 +119,18 @@ function commandCheck(args) {
     return unsupportedLanguage(options.language);
   }
   const status = buildGitStatus();
+  const analysis = buildChangeAnalysis();
   const result = {
     command: "check",
-    status: status.riskLevel === "high" ? "BLOCK" : status.changedFiles.length ? "WARN" : "PASS",
+    status: analysis.secretFindings.length ? "BLOCK" : status.riskLevel === "high" ? "BLOCK" : status.changedFiles.length ? "WARN" : "PASS",
     branch: status.branch,
     changedFiles: status.changedFiles.length,
+    changedPaths: analysis.paths,
+    secretFindings: analysis.secretFindings,
     tracked: status.insideGitRepository,
-    recommendation: status.recommendation
+    recommendation: analysis.secretFindings.length
+      ? "Review possible secret-bearing files before commit or push."
+      : status.recommendation
   };
 
   if (options.format === "json") {
@@ -122,6 +142,7 @@ function commandCheck(args) {
       `AIGate 검사: ${result.status}`,
       `브랜치: ${result.branch}`,
       `변경 파일: ${result.changedFiles}`,
+      `Secret 탐지: ${result.secretFindings.length}`,
       `권장 사항: ${translateRecommendation(result.recommendation, language)}`
     ].join("\n");
   }
@@ -130,6 +151,7 @@ function commandCheck(args) {
     `AIGate check: ${result.status}`,
     `Branch: ${result.branch}`,
     `Changed files: ${result.changedFiles}`,
+    `Secret findings: ${result.secretFindings.length}`,
     `Recommendation: ${result.recommendation}`
   ].join("\n");
 }
@@ -177,6 +199,70 @@ function commandPush(args) {
   }
 
   const result = spawnSync("git", gitArgs, {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+
+  if (result.stdout.trim()) {
+    lines.push(result.stdout.trim());
+  }
+
+  if (result.stderr.trim()) {
+    lines.push(result.stderr.trim());
+  }
+
+  if (result.status !== 0) {
+    process.exitCode = result.status ?? 1;
+  }
+
+  return lines.join("\n");
+}
+
+function commandPr(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const lines = [];
+  if (!options.noVerify) {
+    const readiness = buildGitReadyResult();
+    lines.push(formatGitReadyResult(readiness, { format: "text" }, language));
+
+    if (readiness.blockers.length) {
+      process.exitCode = 1;
+      return lines.join("\n");
+    }
+  }
+
+  const branch = git(["branch", "--show-current"]) || "HEAD";
+  const base = options.base ?? "main";
+  const title = options.title ?? `feat: update ${branch}`;
+  const body = options.body ?? renderMarkdownReport(buildReport("pr"));
+  const ghArgs = [
+    "pr",
+    "create",
+    "--base",
+    base,
+    "--head",
+    branch,
+    "--title",
+    title,
+    "--body",
+    body
+  ];
+
+  if (options.draft) {
+    ghArgs.push("--draft");
+  }
+
+  if (options.dryRun) {
+    lines.push(`Would run: gh ${quoteArgs(ghArgs).join(" ")}`);
+    return lines.join("\n");
+  }
+
+  const result = spawnSync("gh", ghArgs, {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"]
   });
@@ -321,6 +407,7 @@ function commandIntegrate(args) {
 function buildGitReadyResult() {
   const status = buildGitStatus();
   const evaluation = buildEvaluation();
+  const analysis = buildChangeAnalysis();
   const blockers = [];
 
   if (!status.insideGitRepository) {
@@ -329,6 +416,10 @@ function buildGitReadyResult() {
 
   if (status.riskLevel === "high") {
     blockers.push("Possible secret-bearing file names are present in local changes.");
+  }
+
+  if (analysis.secretFindings.length) {
+    blockers.push(`${analysis.secretFindings.length} possible secret finding(s) detected in changed files.`);
   }
 
   if (evaluation.score < 80) {
@@ -340,7 +431,9 @@ function buildGitReadyResult() {
     status: blockers.length ? "BLOCK" : "READY",
     branch: status.branch,
     changedFiles: status.changedFiles.length,
+    changedPaths: analysis.paths,
     projectScore: evaluation.score,
+    secretFindings: analysis.secretFindings,
     blockers,
     recommendation: blockers.length
       ? "Resolve blockers before committing, pushing, or opening a pull request."
@@ -362,6 +455,7 @@ function formatGitReadyResult(result, options, language = "en") {
       `AIGate git-ready: ${result.status === "READY" ? "준비 완료" : "차단"}`,
       `브랜치: ${result.branch}`,
       `변경 파일: ${result.changedFiles}`,
+      `Secret 탐지: ${result.secretFindings.length}`,
       `프로젝트 점수: ${result.projectScore}/100`,
       result.blockers.length ? "차단 사유:" : "차단 사유: 없음",
       ...result.blockers.map((blocker) => `- ${translateBlocker(blocker, language)}`),
@@ -373,6 +467,7 @@ function formatGitReadyResult(result, options, language = "en") {
     `AIGate git-ready: ${result.status}`,
     `Branch: ${result.branch}`,
     `Changed files: ${result.changedFiles}`,
+    `Secret findings: ${result.secretFindings.length}`,
     `Project score: ${result.projectScore}/100`,
     result.blockers.length ? "Blockers:" : "Blockers: none",
     ...result.blockers.map((blocker) => `- ${blocker}`),
@@ -384,27 +479,16 @@ function commandReport(args) {
   const options = parseOptions(args);
   const format = options.format ?? "markdown";
   const type = options.type ?? "local";
-  const status = buildGitStatus();
-  const evaluation = buildEvaluation();
-  const report = {
-    command: "report",
-    type,
-    branch: status.branch,
-    status: status.changedFiles.length ? "WARN" : "PASS",
-    changedFiles: status.changedFiles.length,
-    projectScore: evaluation.score,
-    recommendation: status.recommendation
-  };
+  const report = buildReport(type);
+  const output = renderReport(report, format);
 
-  if (format === "json") {
-    return JSON.stringify(report, null, 2);
+  if (options.output) {
+    mkdirSync(dirname(options.output), { recursive: true });
+    writeFileSync(options.output, `${output}\n`, "utf8");
+    return `Wrote ${options.output}`;
   }
 
-  if (format === "html") {
-    return renderHtmlReport(report);
-  }
-
-  return renderMarkdownReport(report);
+  return output;
 }
 
 function commandEvaluateProject(args) {
@@ -467,6 +551,7 @@ function commandNotify(args) {
   const [subcommand, ...rest] = args;
   const options = parseOptions(rest);
   const event = options.event ?? "BLOCK";
+  const channel = options.channel ?? "terminal";
 
   if (subcommand === "setup") {
     return [
@@ -481,13 +566,166 @@ function commandNotify(args) {
   if (subcommand === "test") {
     return [
       `Notification test event: ${event}`,
-      "Target: terminal",
+      `Target: ${channel}`,
       "Status: ready"
     ].join("\n");
   }
 
+  if (subcommand === "send") {
+    return sendNotification(event, channel, options);
+  }
+
   process.exitCode = 1;
-  return "Usage: aigate notify <setup|test> [--event BLOCK]";
+  return "Usage: aigate notify <setup|test|send> [--event BLOCK] [--channel terminal]";
+}
+
+function sendNotification(event, channel, options) {
+  const payload = {
+    event,
+    channel,
+    branch: git(["branch", "--show-current"]) || "unknown",
+    status: buildGitReadyResult().status,
+    generatedAt: new Date().toISOString()
+  };
+
+  if (channel === "terminal") {
+    return [
+      `AIGate notification: ${event}`,
+      `Branch: ${payload.branch}`,
+      `Status: ${payload.status}`
+    ].join("\n");
+  }
+
+  const webhookEnv = options.webhookEnv ?? defaultWebhookEnv(channel);
+  const webhookUrl = process.env[webhookEnv];
+
+  if (!webhookUrl) {
+    process.exitCode = 1;
+    return [
+      `Missing webhook environment variable: ${webhookEnv}`,
+      `Set ${webhookEnv} or use --channel terminal.`
+    ].join("\n");
+  }
+
+  if (options.dryRun) {
+    return `Would send ${event} notification to ${channel} using ${webhookEnv}`;
+  }
+
+  const result = spawnSync("curl", [
+    "-sS",
+    "-X",
+    "POST",
+    "-H",
+    "Content-Type: application/json",
+    "--data",
+    JSON.stringify({ text: `AIGate ${event}: ${payload.status} on ${payload.branch}`, ...payload }),
+    webhookUrl
+  ], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+
+  if (result.status !== 0) {
+    process.exitCode = result.status ?? 1;
+    return result.stderr.trim() || `Failed to send notification to ${channel}`;
+  }
+
+  return `Sent ${event} notification to ${channel}`;
+}
+
+function defaultWebhookEnv(channel) {
+  return {
+    slack: "AIGATE_SLACK_WEBHOOK_URL",
+    discord: "AIGATE_DISCORD_WEBHOOK_URL",
+    teams: "AIGATE_TEAMS_WEBHOOK_URL"
+  }[channel] ?? "AIGATE_WEBHOOK_URL";
+}
+
+function buildChangeAnalysis() {
+  const paths = getChangedPaths();
+  return {
+    paths,
+    secretFindings: scanSecrets(paths)
+  };
+}
+
+function getChangedPaths() {
+  const outputs = [
+    git(["diff", "--name-only", "HEAD"]),
+    git(["diff", "--name-only", "--cached"]),
+    git(["ls-files", "--others", "--exclude-standard"])
+  ];
+
+  return [...new Set(outputs
+    .flatMap((output) => (output ?? "").split("\n"))
+    .map((path) => path.trim())
+    .filter(Boolean)
+    .filter((path) => !path.startsWith(".git/")))];
+}
+
+function scanSecrets(paths) {
+  const findings = [];
+
+  for (const filePath of paths) {
+    if (!existsSync(filePath) || !isScannableFile(filePath)) {
+      continue;
+    }
+
+    const content = readFileSync(filePath, "utf8");
+    const lines = content.split(/\r?\n/);
+
+    for (const secretPattern of SECRET_PATTERNS) {
+      secretPattern.pattern.lastIndex = 0;
+      let match;
+      while ((match = secretPattern.pattern.exec(content)) !== null) {
+        if (isLikelyPlaceholder(match[0])) {
+          continue;
+        }
+
+        const line = lineNumberForIndex(lines, content, match.index);
+        findings.push({
+          ruleId: secretPattern.id,
+          label: secretPattern.label,
+          file: filePath,
+          line,
+          excerpt: redactSecret(match[0])
+        });
+      }
+    }
+  }
+
+  return findings;
+}
+
+function isScannableFile(filePath) {
+  try {
+    const stat = statSync(filePath);
+    return stat.isFile() && stat.size <= MAX_SECRET_SCAN_BYTES && !isBinaryPath(filePath);
+  } catch {
+    return false;
+  }
+}
+
+function isBinaryPath(filePath) {
+  return /\.(png|jpe?g|gif|webp|pdf|zip|gz|tgz|tar|ico|woff2?|ttf|otf)$/i.test(filePath);
+}
+
+function isLikelyPlaceholder(value) {
+  return /(example|placeholder|dummy|fake|sample|<|your_|replace_me)/i.test(value);
+}
+
+function lineNumberForIndex(lines, content, index) {
+  const prefix = content.slice(0, index);
+  return prefix.split(/\r?\n/).length;
+}
+
+function redactSecret(value) {
+  const text = String(value).replace(/\s+/g, " ").trim();
+  if (text.length <= 12) {
+    return "[redacted]";
+  }
+
+  return `${text.slice(0, 6)}...[redacted]`;
 }
 
 function buildGitStatus() {
@@ -525,6 +763,7 @@ function buildEvaluation() {
     { name: "AIGate configuration exists", pass: existsSync(".aigate.yml") },
     { name: "Branch strategy is documented", pass: existsSync(join("docs", "branch-strategy.md")) },
     { name: "Git upload workflow is documented", pass: existsSync(join("docs", "git-upload-workflow.md")) },
+    { name: "Security scanning is documented", pass: existsSync(join("docs", "security-scanning.md")) },
     { name: "AI integrations are documented", pass: existsSync(join("docs", "ai-integrations.md")) },
     { name: "Codex instructions exist", pass: existsSync("AGENTS.md") },
     { name: "Gemini instructions exist", pass: existsSync("GEMINI.md") },
@@ -543,9 +782,31 @@ function buildEvaluation() {
 }
 
 function buildBranchStrategy() {
+  const packageJson = readJsonFile("package.json");
+  const hasCi = existsSync(join(".github", "workflows", "ci.yml"));
+  const hasReleaseDocs = existsSync(join("docs", "roadmap.md"));
+  const reasonParts = [
+    "AIGate needs fast public contribution flow",
+    "npm channel control for latest, next, beta, and canary releases"
+  ];
+
+  if (hasCi) {
+    reasonParts.push("CI-backed pull request protection is already present");
+  }
+
+  if (hasReleaseDocs || packageJson.name) {
+    reasonParts.push("release documentation and package metadata exist");
+  }
+
   return {
     name: "GitHub Flow with release channels",
-    reason: "AIGate needs fast public contribution flow plus npm channel control for latest, next, beta, and canary releases.",
+    reason: `${reasonParts.join("; ")}.`,
+    signals: {
+      packageName: packageJson.name ?? null,
+      hasCi,
+      hasReleaseDocs,
+      changedPaths: getChangedPaths().length
+    },
     branches: [
       { name: "main", use: "protected stable source of truth" },
       { name: "codex/*", use: "AI-assisted implementation branches" },
@@ -566,6 +827,49 @@ function buildBranchStrategy() {
   };
 }
 
+function buildReport(type) {
+  const status = buildGitStatus();
+  const evaluation = buildEvaluation();
+  const analysis = buildChangeAnalysis();
+  const reportStatus = analysis.secretFindings.length
+    ? "BLOCK"
+    : status.changedFiles.length
+      ? "WARN"
+      : "PASS";
+
+  return {
+    command: "report",
+    type,
+    generatedAt: new Date().toISOString(),
+    branch: status.branch,
+    status: reportStatus,
+    changedFiles: status.changedFiles.length,
+    changedPaths: analysis.paths,
+    secretFindings: analysis.secretFindings,
+    projectScore: evaluation.score,
+    checks: evaluation.checks,
+    recommendation: analysis.secretFindings.length
+      ? "Review possible secret-bearing files before commit or push."
+      : status.recommendation
+  };
+}
+
+function renderReport(report, format) {
+  if (format === "json") {
+    return JSON.stringify(report, null, 2);
+  }
+
+  if (format === "html") {
+    return renderHtmlReport(report);
+  }
+
+  if (format === "sarif") {
+    return JSON.stringify(renderSarifReport(report), null, 2);
+  }
+
+  return renderMarkdownReport(report);
+}
+
 function renderMarkdownReport(report) {
   return [
     `# AIGate ${report.type} report`,
@@ -573,8 +877,19 @@ function renderMarkdownReport(report) {
     `- Status: ${report.status}`,
     `- Branch: ${report.branch}`,
     `- Changed files: ${report.changedFiles}`,
+    `- Secret findings: ${report.secretFindings.length}`,
     `- Project score: ${report.projectScore}/100`,
-    `- Recommendation: ${report.recommendation}`
+    `- Recommendation: ${report.recommendation}`,
+    "",
+    "## Changed Paths",
+    "",
+    ...(report.changedPaths.length ? report.changedPaths.map((path) => `- ${path}`) : ["- None"]),
+    "",
+    "## Secret Findings",
+    "",
+    ...(report.secretFindings.length
+      ? report.secretFindings.map((finding) => `- ${finding.label} in ${finding.file}:${finding.line}`)
+      : ["- None"])
   ].join("\n");
 }
 
@@ -589,12 +904,61 @@ function renderHtmlReport(report) {
     `<li>Status: ${escapeHtml(report.status)}</li>`,
     `<li>Branch: ${escapeHtml(report.branch)}</li>`,
     `<li>Changed files: ${report.changedFiles}</li>`,
+    `<li>Secret findings: ${report.secretFindings.length}</li>`,
     `<li>Project score: ${report.projectScore}/100</li>`,
     `<li>Recommendation: ${escapeHtml(report.recommendation)}</li>`,
     "</ul>",
     "</body>",
     "</html>"
   ].join("\n");
+}
+
+function renderSarifReport(report) {
+  const rules = [...new Map(report.secretFindings.map((finding) => [
+    finding.ruleId,
+    {
+      id: finding.ruleId,
+      name: finding.label,
+      shortDescription: {
+        text: finding.label
+      }
+    }
+  ])).values()];
+
+  return {
+    version: "2.1.0",
+    $schema: "https://json.schemastore.org/sarif-2.1.0.json",
+    runs: [
+      {
+        tool: {
+          driver: {
+            name: "AIGate",
+            informationUri: "https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli",
+            rules
+          }
+        },
+        results: report.secretFindings.map((finding) => ({
+          ruleId: finding.ruleId,
+          level: "error",
+          message: {
+            text: `${finding.label}: ${finding.excerpt}`
+          },
+          locations: [
+            {
+              physicalLocation: {
+                artifactLocation: {
+                  uri: finding.file
+                },
+                region: {
+                  startLine: finding.line
+                }
+              }
+            }
+          ]
+        }))
+      }
+    ]
+  };
 }
 
 function renderBranchStrategyMarkdown(strategy) {
@@ -816,6 +1180,18 @@ function readSettings() {
   }
 }
 
+function readJsonFile(filePath) {
+  if (!existsSync(filePath)) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(readFileSync(filePath, "utf8"));
+  } catch {
+    return {};
+  }
+}
+
 function writeSettings(settings) {
   const settingsPath = getSettingsPath();
   mkdirSync(dirname(settingsPath), { recursive: true });
@@ -876,6 +1252,11 @@ function translateBlocker(blocker, language) {
 
   if (blocker === "Possible secret-bearing file names are present in local changes.") {
     return "로컬 변경사항에 secret이 포함될 수 있는 파일명이 있습니다.";
+  }
+
+  const secretCountMatch = blocker.match(/^(\d+) possible secret finding\(s\) detected in changed files\.$/);
+  if (secretCountMatch) {
+    return `변경 파일에서 secret 의심 항목 ${secretCountMatch[1]}개가 감지됐습니다.`;
   }
 
   return blocker.replace(
@@ -940,6 +1321,16 @@ function translateIntegrationAction(action) {
     updated: "갱신",
     skipped: "건너뜀"
   }[action] ?? action;
+}
+
+function quoteArgs(args) {
+  return args.map((arg) => {
+    if (/^[A-Za-z0-9_./:=@-]+$/.test(String(arg))) {
+      return String(arg);
+    }
+
+    return JSON.stringify(String(arg));
+  });
 }
 
 function parseOptions(args) {

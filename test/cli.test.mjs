@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,7 +23,8 @@ function run(args, options = {}) {
     encoding: "utf8",
     env: {
       ...process.env,
-      AIGATE_SETTINGS_PATH: options.settingsPath ?? createSettingsPath()
+      AIGATE_SETTINGS_PATH: options.settingsPath ?? createSettingsPath(),
+      AIGATE_SLACK_WEBHOOK_URL: options.slackWebhook ?? ""
     }
   });
 }
@@ -68,6 +69,15 @@ test("previews guarded push in dry-run mode", () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /AIGate git-ready: READY/);
   assert.match(result.stdout, /Would run: git push origin main/);
+});
+
+test("previews pull request creation in dry-run mode", () => {
+  const result = run(["pr", "--dry-run", "--title", "feat: dry run"]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /AIGate git-ready: READY/);
+  assert.match(result.stdout, /Would run: gh pr create/);
+  assert.match(result.stdout, /feat: dry run/);
 });
 
 test("can skip push readiness gate in dry-run mode", () => {
@@ -147,6 +157,21 @@ test("rejects unsupported integration providers", () => {
   assert.match(result.stdout, /Unsupported integration provider: unknown-ai/);
 });
 
+test("sends terminal notifications", () => {
+  const result = run(["notify", "send", "--event", "WARN", "--channel", "terminal"]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /AIGate notification: WARN/);
+  assert.match(result.stdout, /Status: READY/);
+});
+
+test("requires webhook env for webhook notifications", () => {
+  const result = run(["notify", "send", "--event", "BLOCK", "--channel", "slack"]);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /Missing webhook environment variable: AIGATE_SLACK_WEBHOOK_URL/);
+});
+
 test("renders markdown report by default", () => {
   const result = run(["report"]);
 
@@ -155,12 +180,52 @@ test("renders markdown report by default", () => {
   assert.match(result.stdout, /Project score:/);
 });
 
+test("writes report output to a file", () => {
+  const outputDir = createOutputDir();
+  const outputPath = join(outputDir, "report.md");
+  const result = run(["report", "--output", outputPath]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /Wrote/);
+  assert.match(readFileSync(outputPath, "utf8"), /# AIGate local report/);
+});
+
+test("renders sarif report", () => {
+  const result = run(["report", "--format", "sarif"]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.version, "2.1.0");
+  assert.equal(output.runs[0].tool.driver.name, "AIGate");
+});
+
 test("renders html report safely", () => {
   const result = run(["report", "--format", "html", "--type", "pr"]);
 
   assert.equal(result.status, 0);
   assert.match(result.stdout, /<!doctype html>/);
   assert.match(result.stdout, /AIGate pr report/);
+});
+
+test("blocks possible secrets in changed files", () => {
+  const secretPath = join(repoRoot, "tmp-aigate-secret-fixture.txt");
+  const secretValue = ["abcdefghijklmnop", "qrstuvwxyz123456"].join("");
+  writeFileSync(secretPath, `api_key = "${secretValue}"\n`, "utf8");
+
+  try {
+    const result = run(["check", "--format", "json"]);
+    assert.equal(result.status, 0);
+    const output = JSON.parse(result.stdout);
+    assert.equal(output.status, "BLOCK");
+    assert.equal(output.secretFindings.length, 1);
+
+    const ready = run(["git-ready", "--format", "json"]);
+    assert.equal(ready.status, 1);
+    const readyOutput = JSON.parse(ready.stdout);
+    assert.equal(readyOutput.status, "BLOCK");
+  } finally {
+    unlinkSync(secretPath);
+  }
 });
 
 test("scores repository foundations", () => {
