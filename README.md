@@ -22,8 +22,9 @@ in preparation.
 - Produces Markdown, HTML, JSON, and SARIF reports.
 - Scores repository workflow quality across Git, tests, CI, security, and docs.
 - Recommends branch strategies based on team size, release cadence, and risk.
-- Routes important workflow events to terminal, Slack, Discord, Teams, email,
-  pull request comments, and GitHub Checks as the product matures.
+- Routes important workflow events to terminal, Slack, Discord, and Teams
+  webhooks, with email, pull request comments, and GitHub Checks planned as
+  the product matures.
 
 ## Install
 
@@ -87,13 +88,15 @@ aigate settings
 | `aigate release-check --npm` | Include npm registry publication state. |
 | `aigate audit-report` | Generate a policy and governance audit report. |
 | `aigate notify send --channel terminal` | Send a local notification event. |
+| `aigate git-ready --notify-channel slack` | Send a Slack BLOCK webhook when the gate blocks. |
+| `aigate notify test --channel slack` | Test Slack, Discord, or Teams webhook payloads. |
 
 ## Roadmap Snapshot
 
 - V1: npm distribution, local reports, Slack BLOCK notifications, basic project
   evaluation, and branch strategy recommendations.
-- V1.5: Docker and GitHub Action foundations, Homebrew distribution,
-  Discord and Teams notifications, and richer policy packs.
+- V1.5: Docker and GitHub Action foundations, Homebrew distribution, richer
+  policy packs, and guided setup.
 - V2: GitHub PR comments, GitHub Checks, weekly team reports, health trends,
   Linear/Jira integrations, and standalone binaries.
 - V3: Enterprise governance, audit/compliance reports, central policies,
@@ -156,6 +159,7 @@ Read the full guide in [docs/ai-integrations.md](docs/ai-integrations.md).
 - Use Conventional Commits.
 - Keep pull requests focused and reviewable.
 - Update docs when commands, configuration, or behavior changes.
+- Keep release changes recorded in `CHANGELOG.md`.
 - Run `npm test` before requesting review.
 - Treat generated reports as artifacts, not source files, unless explicitly
   checked in for documentation.
@@ -169,7 +173,9 @@ around hosted reports, policy packs, integrations, and governance.
 - [Open source readiness](docs/open-source-readiness.md)
 - [Commercialization plan](docs/commercialization.md)
 - [Distribution guide](docs/distribution.md)
+- [Notifications guide](docs/notifications.md)
 - [Roadmap](docs/roadmap.md)
+- [Changelog](CHANGELOG.md)
 
 ## License
 

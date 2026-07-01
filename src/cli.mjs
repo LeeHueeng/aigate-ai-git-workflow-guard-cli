@@ -67,6 +67,7 @@ const I18N = {
     "notify.usage": "Usage: aigate notify <setup|test|send> [--event BLOCK] [--channel terminal]",
     "notify.webhookHint": "Set {env} or use --channel terminal.",
     "notify.wouldSend": "Would send {event} notification to {channel} using {env}",
+    "notify.failed": "Failed to send notification to {channel}",
     "push.skip": "AIGate push: readiness gate skipped with --no-verify",
     "push.wouldRun": "Would run: {command}",
     "release.branch": "Release tag: {tag}",
@@ -132,6 +133,7 @@ const I18N = {
     "notify.usage": "사용법: aigate notify <setup|test|send> [--event BLOCK] [--channel terminal]",
     "notify.webhookHint": "{env}를 설정하거나 --channel terminal을 사용하세요.",
     "notify.wouldSend": "{env}를 사용해 {channel} 채널로 {event} 알림을 보낼 예정입니다",
+    "notify.failed": "{channel} 채널로 알림 전송에 실패했습니다",
     "push.skip": "AIGate push: --no-verify로 준비 게이트를 건너뜁니다.",
     "push.wouldRun": "실행 예정: {command}",
     "release.branch": "릴리스 태그: {tag}",
@@ -197,6 +199,7 @@ const I18N = {
     "notify.usage": "使い方: aigate notify <setup|test|send> [--event BLOCK] [--channel terminal]",
     "notify.webhookHint": "{env} を設定するか --channel terminal を使用してください。",
     "notify.wouldSend": "{env} を使って {channel} に {event} 通知を送信予定です",
+    "notify.failed": "{channel} への通知送信に失敗しました",
     "push.skip": "AIGate push: --no-verify により準備ゲートをスキップします。",
     "push.wouldRun": "実行予定: {command}",
     "release.branch": "リリースタグ: {tag}",
@@ -262,6 +265,7 @@ const I18N = {
     "notify.usage": "用法: aigate notify <setup|test|send> [--event BLOCK] [--channel terminal]",
     "notify.webhookHint": "请设置 {env}，或使用 --channel terminal。",
     "notify.wouldSend": "将使用 {env} 向 {channel} 发送 {event} 通知",
+    "notify.failed": "向 {channel} 发送通知失败",
     "push.skip": "AIGate push: 已通过 --no-verify 跳过就绪关卡。",
     "push.wouldRun": "将执行: {command}",
     "release.branch": "发布标签: {tag}",
@@ -484,7 +488,8 @@ const RELEASE_CHECK_TRANSLATIONS = {
     "release workflow exists": "릴리스 워크플로 존재",
     "release workflow uses npm provenance": "릴리스 워크플로가 npm provenance 사용",
     "release workflow disables package manager cache": "릴리스 워크플로가 패키지 관리자 캐시를 비활성화",
-    "README documents npm install command": "README가 npm 설치 명령을 문서화"
+    "README documents npm install command": "README가 npm 설치 명령을 문서화",
+    "CHANGELOG documents package version": "CHANGELOG가 패키지 버전을 문서화"
   },
   ja: {
     "package.json exists": "package.json が存在",
@@ -497,7 +502,8 @@ const RELEASE_CHECK_TRANSLATIONS = {
     "release workflow exists": "リリースワークフローが存在",
     "release workflow uses npm provenance": "リリースワークフローが npm provenance を使用",
     "release workflow disables package manager cache": "リリースワークフローがパッケージマネージャーキャッシュを無効化",
-    "README documents npm install command": "README に npm install コマンドが記載済み"
+    "README documents npm install command": "README に npm install コマンドが記載済み",
+    "CHANGELOG documents package version": "CHANGELOG にパッケージバージョンが記載済み"
   },
   zh: {
     "package.json exists": "package.json 存在",
@@ -510,7 +516,8 @@ const RELEASE_CHECK_TRANSLATIONS = {
     "release workflow exists": "发布工作流存在",
     "release workflow uses npm provenance": "发布工作流使用 npm provenance",
     "release workflow disables package manager cache": "发布工作流禁用包管理器缓存",
-    "README documents npm install command": "README 记录 npm install 命令"
+    "README documents npm install command": "README 记录 npm install 命令",
+    "CHANGELOG documents package version": "CHANGELOG 记录包版本"
   }
 };
 
@@ -1017,6 +1024,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "OpenSSF Scorecard workflow exists": "OpenSSF Scorecard 워크플로 존재",
     "README exists": "README 존재",
     "License exists": "라이선스 존재",
+    "Changelog exists": "CHANGELOG 존재",
     "Roadmap exists": "로드맵 존재",
     "Package metadata exists": "패키지 메타데이터 존재",
     "Support policy exists": "지원 정책 존재",
@@ -1042,6 +1050,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "OpenSSF Scorecard workflow exists": "OpenSSF Scorecard ワークフローが存在",
     "README exists": "README が存在",
     "License exists": "ライセンスが存在",
+    "Changelog exists": "CHANGELOG が存在",
     "Roadmap exists": "ロードマップが存在",
     "Package metadata exists": "パッケージメタデータが存在",
     "Support policy exists": "サポートポリシーが存在",
@@ -1067,6 +1076,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "OpenSSF Scorecard workflow exists": "OpenSSF Scorecard 工作流存在",
     "README exists": "README 存在",
     "License exists": "许可证存在",
+    "Changelog exists": "CHANGELOG 存在",
     "Roadmap exists": "路线图存在",
     "Package metadata exists": "包元数据存在",
     "Support policy exists": "支持政策存在",
@@ -1307,7 +1317,14 @@ function commandGitReady(args) {
     return unsupportedLanguage(options.language);
   }
 
-  return formatGitReadyResult(buildGitReadyResult(), options, language);
+  const result = buildGitReadyResult();
+  const lines = [formatGitReadyResult(result, options, language)];
+
+  if (result.blockers.length && options.format !== "json") {
+    appendBlockNotification(lines, options, language);
+  }
+
+  return lines.join("\n");
 }
 
 function commandPush(args) {
@@ -1801,11 +1818,18 @@ function commandNotify(args) {
   }
 
   if (subcommand === "test") {
-    return [
+    const lines = [
       t(language, "notify.test", { event }),
-      t(language, "notify.target", { channel }),
-      t(language, "notify.ready")
-    ].join("\n");
+      t(language, "notify.target", { channel })
+    ];
+    const originalExitCode = process.exitCode;
+    const result = sendNotification(event, channel, options, language);
+    lines.push(result);
+    if (channel === "terminal") {
+      process.exitCode = originalExitCode;
+      lines.push(t(language, "notify.ready"));
+    }
+    return lines.join("\n");
   }
 
   if (subcommand === "send") {
@@ -1817,11 +1841,19 @@ function commandNotify(args) {
 }
 
 function sendNotification(event, channel, options, language = "en") {
+  const readiness = buildGitReadyResult();
   const payload = {
     event,
     channel,
     branch: git(["branch", "--show-current"]) || "unknown",
-    status: buildGitReadyResult().status,
+    status: readiness.status,
+    statusLabel: statusLabel(readiness.status, language),
+    changedFiles: readiness.changedFiles,
+    projectScore: readiness.projectScore,
+    secretFindings: readiness.secretFindings.length,
+    blockers: readiness.blockers.map((blocker) => translateBlocker(blocker, language)),
+    warnings: (readiness.warnings ?? []).map((warning) => translateWarning(warning, language)),
+    recommendation: translateRecommendation(readiness.recommendation, language),
     generatedAt: new Date().toISOString()
   };
 
@@ -1855,7 +1887,7 @@ function sendNotification(event, channel, options, language = "en") {
     "-H",
     "Content-Type: application/json",
     "--data",
-    JSON.stringify({ text: `AIGate ${event}: ${payload.status} on ${payload.branch}`, ...payload }),
+    JSON.stringify(buildNotificationPayload(payload, channel, language)),
     webhookUrl
   ], {
     encoding: "utf8",
@@ -1864,10 +1896,126 @@ function sendNotification(event, channel, options, language = "en") {
 
   if (result.status !== 0) {
     process.exitCode = result.status ?? 1;
-    return result.stderr.trim() || `Failed to send notification to ${channel}`;
+    return result.stderr.trim() || t(language, "notify.failed", { channel });
   }
 
   return t(language, "notify.sent", { event, channel });
+}
+
+function buildNotificationPayload(payload, channel, language = "en") {
+  const text = notificationText(payload, language);
+
+  if (channel === "slack") {
+    return {
+      text,
+      blocks: [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `*${text}*`
+          }
+        },
+        {
+          type: "section",
+          fields: notificationFields(payload, language).map((field) => ({
+            type: "mrkdwn",
+            text: `*${field.label}*\n${field.value}`
+          }))
+        },
+        ...(payload.blockers.length
+          ? [
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text: `*${notificationBlockerTitle(language)}*\n${payload.blockers.map((blocker) => `• ${blocker}`).join("\n")}`
+                }
+              }
+            ]
+          : [])
+      ],
+      aigate: payload
+    };
+  }
+
+  if (channel === "discord") {
+    return {
+      content: text,
+      embeds: [
+        {
+          title: text,
+          color: payload.status === "BLOCK" ? 0xd73a49 : 0x2ea44f,
+          fields: notificationFields(payload, language).map((field) => ({
+            name: field.label,
+            value: String(field.value),
+            inline: true
+          })),
+          description: payload.blockers.length ? payload.blockers.map((blocker) => `- ${blocker}`).join("\n") : payload.recommendation
+        }
+      ],
+      aigate: payload
+    };
+  }
+
+  if (channel === "teams") {
+    return {
+      "@type": "MessageCard",
+      "@context": "https://schema.org/extensions",
+      summary: text,
+      themeColor: payload.status === "BLOCK" ? "D73A49" : "2EA44F",
+      title: text,
+      sections: [
+        {
+          facts: notificationFields(payload, language).map((field) => ({
+            name: field.label,
+            value: String(field.value)
+          })),
+          text: payload.blockers.length ? payload.blockers.map((blocker) => `- ${blocker}`).join("\n") : payload.recommendation
+        }
+      ],
+      aigate: payload
+    };
+  }
+
+  return {
+    text,
+    ...payload
+  };
+}
+
+function notificationText(payload, language = "en") {
+  if (language === "ko") {
+    return `AIGate ${payload.event}: ${payload.statusLabel} (${payload.branch})`;
+  }
+
+  if (language === "ja") {
+    return `AIGate ${payload.event}: ${payload.statusLabel} (${payload.branch})`;
+  }
+
+  if (language === "zh") {
+    return `AIGate ${payload.event}: ${payload.statusLabel} (${payload.branch})`;
+  }
+
+  return `AIGate ${payload.event}: ${payload.status} on ${payload.branch}`;
+}
+
+function notificationFields(payload, language = "en") {
+  return [
+    { label: notificationLabel(t(language, "gitReady.branch", { branch: "" })), value: payload.branch },
+    { label: notificationLabel(t(language, "notify.status", { status: "" })), value: payload.statusLabel },
+    { label: notificationLabel(t(language, "gitReady.changedFiles", { count: "" })), value: payload.changedFiles },
+    { label: notificationLabel(t(language, "gitReady.secretFindings", { count: "" })), value: payload.secretFindings },
+    { label: notificationLabel(t(language, "gitReady.projectScore", { score: "" })), value: `${payload.projectScore}/100` }
+  ];
+}
+
+function notificationBlockerTitle(language = "en") {
+  return t(language, "gitReady.blockers").replace(/:$/, "");
+}
+
+function notificationLabel(value) {
+  return String(value).replace(/[:：].*$/, "").trim();
 }
 
 function appendBlockNotification(lines, options, language = "en") {
@@ -2055,6 +2203,7 @@ function buildEvaluation(options = {}) {
     { category: "security", name: "OpenSSF Scorecard workflow exists", pass: existsSync(join(".github", "workflows", "scorecard.yml")) },
     { category: "documentation", name: "README exists", pass: existsSync("README.md") },
     { category: "documentation", name: "License exists", pass: existsSync("LICENSE") },
+    { category: "documentation", name: "Changelog exists", pass: existsSync("CHANGELOG.md") },
     { category: "documentation", name: "Roadmap exists", pass: existsSync(join("docs", "roadmap.md")) },
     { category: "maintainability", name: "Package metadata exists", pass: existsSync("package.json") },
     { category: "maintainability", name: "Support policy exists", pass: existsSync("SUPPORT.md") },
@@ -2305,6 +2454,7 @@ function buildReleaseCheck(options = {}) {
     { name: "release workflow uses npm provenance", pass: fileIncludes(join(".github", "workflows", "release.yml"), "--provenance") },
     { name: "release workflow disables package manager cache", pass: fileIncludes(join(".github", "workflows", "release.yml"), "package-manager-cache: false") },
     { name: "README documents npm install command", pass: readmeDocumentsNpmInstall(packageName) },
+    { name: "CHANGELOG documents package version", pass: changelogDocumentsVersion(version) },
     { name: `${expectedTag} tag exists`, pass: hasExpectedTag }
   ];
   const registry = options.checkNpm
@@ -2342,6 +2492,10 @@ function buildReleaseCheck(options = {}) {
 
   if (!checks.find((check) => check.name === "release workflow uses npm provenance")?.pass) {
     nextSteps.push("Ensure release workflow publishes with npm provenance.");
+  }
+
+  if (!checks.find((check) => check.name === "CHANGELOG documents package version")?.pass) {
+    nextSteps.push(`Document ${version} in CHANGELOG.md before tagging the release.`);
   }
 
   nextSteps.push("Run npm run ci before tagging a release.");
@@ -2399,6 +2553,16 @@ function readmeDocumentsNpmInstall(packageName) {
   const escapedName = escapeRegExp(packageName);
   return new RegExp(`\\b(?:npm|pnpm|yarn|bun)\\s+(?:install|add|dlx|x|global\\s+add)\\s+(?:-g\\s+)?${escapedName}\\b`).test(readme) ||
     new RegExp(`\\bnpx\\s+${escapedName}\\b`).test(readme);
+}
+
+function changelogDocumentsVersion(version) {
+  if (!version || !existsSync("CHANGELOG.md")) {
+    return false;
+  }
+
+  const changelog = readFileSync("CHANGELOG.md", "utf8");
+  const escapedVersion = escapeRegExp(version);
+  return new RegExp(`^##\\s+v?${escapedVersion}(?:\\s|$)`, "m").test(changelog);
 }
 
 function detectRepositorySlug(packageJson) {
@@ -4129,6 +4293,15 @@ function translateReleaseNextStep(step, language) {
       ko: `npm 레지스트리 조회 오류를 확인하세요: ${match[1]}`,
       ja: `npm レジストリ照会エラーを確認してください: ${match[1]}`,
       zh: `请检查 npm 注册表查询错误: ${match[1]}`
+    }[language] ?? step;
+  }
+
+  match = step.match(/^Document (.+) in CHANGELOG\.md before tagging the release\.$/);
+  if (match) {
+    return {
+      ko: `릴리스 태그 생성 전에 CHANGELOG.md에 ${match[1]} 항목을 작성하세요.`,
+      ja: `リリースタグを作成する前に CHANGELOG.md に ${match[1]} の項目を記載してください。`,
+      zh: `创建发布标签前，请在 CHANGELOG.md 中记录 ${match[1]}。`
     }[language] ?? step;
   }
 

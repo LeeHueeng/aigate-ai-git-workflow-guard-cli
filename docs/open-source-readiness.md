@@ -10,6 +10,7 @@ This checklist keeps AIGate useful and trustworthy for public contributors.
 - [x] SECURITY
 - [x] SUPPORT
 - [x] CODE_OF_CONDUCT
+- [x] CHANGELOG
 - [x] issue templates
 - [x] pull request template
 - [x] CODEOWNERS
@@ -45,4 +46,4 @@ This checklist keeps AIGate useful and trustworthy for public contributors.
 - [x] Publish the first version, `0.1.0`.
 - [x] Create a GitHub release tag, `v0.1.0`.
 - [x] Confirm `npm view aigate-cli` after publish.
-- [ ] Keep future releases tied to changelog entries and tagged GitHub Releases.
+- [x] Keep future releases tied to changelog entries and tagged GitHub Releases.
