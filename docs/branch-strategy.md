@@ -45,7 +45,7 @@ request when the GitHub remote is ready.
   `feature/report-generator` or `codex/bootstrap-aigate-repo`.
 - Include a summary, validation steps, and release or documentation impact.
 - Resolve all review conversations before merge.
-- Run `npm test` locally before requesting review.
+- Run `npm run git:ready` locally before requesting review.
 - Require CODEOWNERS review once maintainers are finalized.
 
 ## Commit Strategy
@@ -84,7 +84,7 @@ When the public repository is created, enable these branch protection rules on
 
 Initial required status checks:
 
-- `npm test`
+- `test`
 - future: `npm run lint`
 - future: `npm run typecheck`
 
@@ -113,3 +113,4 @@ Initial required status checks:
 - Stage files explicitly when unrelated work exists.
 - Prefer multiple small commits over one mixed commit.
 - Include the validation command in the pull request body.
+- Run `npm run git:ready` before pushing AI-assisted work.

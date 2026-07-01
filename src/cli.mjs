@@ -14,6 +14,7 @@ Usage:
 
 Commands:
   check                    Summarize local Git readiness.
+  git-ready                Run the before-push readiness gate.
   report                   Print a workflow report.
   evaluate-project         Score repository workflow foundations.
   score                    Print only the project score.
@@ -32,6 +33,7 @@ Options:
 
 const commands = {
   check: commandCheck,
+  "git-ready": commandGitReady,
   report: commandReport,
   "evaluate-project": commandEvaluateProject,
   score: commandScore,
@@ -85,6 +87,55 @@ function commandCheck(args) {
     `AIGate check: ${result.status}`,
     `Branch: ${result.branch}`,
     `Changed files: ${result.changedFiles}`,
+    `Recommendation: ${result.recommendation}`
+  ].join("\n");
+}
+
+function commandGitReady(args) {
+  const options = parseOptions(args);
+  const status = buildGitStatus();
+  const evaluation = buildEvaluation();
+  const blockers = [];
+
+  if (!status.insideGitRepository) {
+    blockers.push("AIGate must run inside a Git repository.");
+  }
+
+  if (status.riskLevel === "high") {
+    blockers.push("Possible secret-bearing file names are present in local changes.");
+  }
+
+  if (evaluation.score < 80) {
+    blockers.push(`Project foundation score is ${evaluation.score}/100; minimum is 80.`);
+  }
+
+  const result = {
+    command: "git-ready",
+    status: blockers.length ? "BLOCK" : "READY",
+    branch: status.branch,
+    changedFiles: status.changedFiles.length,
+    projectScore: evaluation.score,
+    blockers,
+    recommendation: blockers.length
+      ? "Resolve blockers before committing, pushing, or opening a pull request."
+      : "Run npm test, commit focused changes, push the branch, and open a pull request."
+  };
+
+  if (blockers.length) {
+    process.exitCode = 1;
+  }
+
+  if (options.format === "json") {
+    return JSON.stringify(result, null, 2);
+  }
+
+  return [
+    `AIGate git-ready: ${result.status}`,
+    `Branch: ${result.branch}`,
+    `Changed files: ${result.changedFiles}`,
+    `Project score: ${result.projectScore}/100`,
+    blockers.length ? "Blockers:" : "Blockers: none",
+    ...blockers.map((blocker) => `- ${blocker}`),
     `Recommendation: ${result.recommendation}`
   ].join("\n");
 }
@@ -231,8 +282,11 @@ function buildEvaluation() {
   const checks = [
     { name: "README exists", pass: existsSync("README.md") },
     { name: "License exists", pass: existsSync("LICENSE") },
+    { name: "AIGate configuration exists", pass: existsSync(".aigate.yml") },
     { name: "Branch strategy is documented", pass: existsSync(join("docs", "branch-strategy.md")) },
+    { name: "Git upload workflow is documented", pass: existsSync(join("docs", "git-upload-workflow.md")) },
     { name: "Pull request template exists", pass: existsSync(join(".github", "pull_request_template.md")) },
+    { name: "CI workflow exists", pass: existsSync(join(".github", "workflows", "ci.yml")) },
     { name: "Package metadata exists", pass: existsSync("package.json") },
     { name: "Tests exist", pass: existsSync("test") }
   ];
@@ -262,7 +316,7 @@ function buildBranchStrategy() {
     githubProtection: [
       "Require pull request before merging into main.",
       "Require at least one approval.",
-      "Require status checks, starting with npm test.",
+      "Require the CI test job before merging.",
       "Require conversation resolution.",
       "Block force pushes and branch deletion."
     ]
