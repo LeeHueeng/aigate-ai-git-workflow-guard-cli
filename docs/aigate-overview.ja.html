@@ -290,7 +290,7 @@ footer p + p { margin-top: 6px; }
     <p class="eyebrow">オープンソース AI Git Workflow Guard CLI</p>
     <h1>AIGate 運用ドキュメント</h1>
     <p class="subtitle">AIGate の動作プロセス、提供コマンド、現在実装済みの機能、今後の計画をまとめた HTML ガイドです。</p>
-    <div class="badges"><span>npm 公開済み</span><span>Trusted Publishing</span><span>GitHub Release</span><span>CLI v0.1.1</span></div>
+    <div class="badges"><span>npm 公開済み</span><span>Trusted Publishing</span><span>GitHub Release</span><span>CLI v0.1.2</span></div>
   </header>
 
   <main>
@@ -555,7 +555,7 @@ npx aigate-cli check</code></pre>
     <td>基本設定とレポート用フォルダを作成します。</td>
     <td>新しいプロジェクトに導入するとき</td>
   </tr><tr>
-    <td><code>aigate setup --language ko</code></td>
+    <td><code>aigate setup --language &lt;en|ko|ja|zh&gt;</code></td>
     <td>CLI 出力言語を保存します。</td>
     <td>チームの出力言語をそろえるとき</td>
   </tr><tr>
@@ -638,7 +638,7 @@ npx aigate-cli check</code></pre>
         <p>main は保護された安定ブランチです。作業は codex/*、feature/*、fix/*、docs/*、chore/* で行い、PR 経由で main に入れます。release/* と hotfix/* はリリース安定化と緊急修正用です。</p>
       </div>
       <pre><code>npm install -g aigate-cli
-aigate setup --language ko
+aigate setup --language ja
 git switch -c feature/my-change
 aigate git-ready
 git add &lt;files&gt;
@@ -654,7 +654,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">機能</p>
         <h2>現在実装済みの機能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦とポリシー草案生成</div><div class="feature done">Codex/Gemini 統合ファイル生成</div><div class="feature done">韓国語/英語 CLI 設定</div><div class="feature done">release-check と release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル通知と webhook 送信基盤</div></div>
+      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦とポリシー草案生成</div><div class="feature done">Codex/Gemini 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル通知と webhook 送信基盤</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -668,7 +668,7 @@ aigate release-check --npm</code></pre>
 
   <footer>
     <p>この文書は AIGate の公開リリース後の運用状態を説明します。</p>
-    <p>Generated 2026-07-01. Package version 0.1.1.</p>
+    <p>Generated 2026-07-01. Package version 0.1.2.</p>
   </footer>
 </body>
 </html>
