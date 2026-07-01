@@ -25,6 +25,7 @@
     "aigate:git-ready": "node src/cli.mjs git-ready",
     "check": "node --check src/cli.mjs",
     "ci": "npm run check && npm test && npm run aigate:git-ready && npm pack --dry-run",
+    "docs:html": "node scripts/generate-multilingual-html-docs.mjs",
     "git:ready": "npm run ci",
     "prepare:push": "npm run git:ready && node src/cli.mjs report --format markdown",
     "test": "node --test",
