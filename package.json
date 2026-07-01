@@ -4,6 +4,14 @@
   "description": "AI Git Workflow Guard CLI for checks, reports, project evaluation, and branch strategy design.",
   "license": "MIT",
   "type": "module",
+  "homepage": "https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli/issues"
+  },
   "bin": {
     "aigate": "./src/cli.mjs"
   },
@@ -23,6 +31,9 @@
     "workflow",
     "branch-strategy",
     "pull-request",
+    "repository-health",
+    "developer-tools",
+    "devops",
     "ai"
   ],
   "engines": {
