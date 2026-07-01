@@ -85,6 +85,29 @@ aigate setup --language ja
 aigate setup --language zh
 ```
 
+## GitHub Actions
+
+他のリポジトリでも、AIGate を再利用可能な公開 GitHub Action として実行
+できます。
+
+```yaml
+name: AIGate
+on:
+  pull_request:
+jobs:
+  aigate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+        with:
+          command: git-ready
+          language: ja
+```
+
+この action を含む次のリリースタグが作成された後は、タグに固定してください。
+入力一覧は [GitHub Action ドキュメント](docs/github-action.ja.md) にまとめています。
+
 ## AI エージェント連携
 
 ```sh

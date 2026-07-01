@@ -20,7 +20,7 @@
 
 - [ ] Publish Homebrew formula.
 - [ ] Publish Docker image after local Docker usage is validated.
-- [ ] Promote the bundled GitHub composite action to a reusable public action.
+- [x] Promote the bundled GitHub composite action to a reusable public action.
 - [x] Add Discord and Teams webhook notification payloads.
 - [ ] Expand generated branch strategy docs into richer policy packs.
 - [x] Promote pull request template and CODEOWNERS drafts into guided setup.

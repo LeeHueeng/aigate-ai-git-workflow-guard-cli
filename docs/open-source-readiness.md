@@ -28,7 +28,7 @@ This checklist keeps AIGate useful and trustworthy for public contributors.
 - [x] release readiness check
 - [x] audit report command
 - [x] local Dockerfile
-- [x] local GitHub composite action
+- [x] reusable public GitHub Action
 
 ## Maintainer Workflow
 

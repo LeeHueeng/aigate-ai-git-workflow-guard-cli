@@ -64,7 +64,9 @@ docker run --rm -v "$PWD:/repo" -w /repo aigate/cli audit-report
 
 ## GitHub Actions
 
-이 repository는 `.github/actions/aigate` local composite action을 포함합니다.
+이 repository는 루트에 재사용 가능한 공개 action을 포함합니다. 최신 action
+동작은 `@main`으로 사용하고, 다음 action 포함 릴리스 태그가 만들어진 뒤에는
+태그로 고정하세요.
 
 ```yaml
 jobs:
@@ -72,13 +74,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: ./.github/actions/aigate
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
         with:
           command: git-ready
+          language: ko
 ```
 
 `command: audit-report`, `command: pr-check`, `command: evaluate-project`로
 더 풍부한 workflow report를 만들 수 있습니다.
+동일한 metadata는 이 repository의 local workflow test를 위해
+`.github/actions/aigate`에도 복제되어 있습니다. 전체 입력값은
+[GitHub Action](github-action.ko.md)을 확인하세요.
 
 ## 이후 채널
 

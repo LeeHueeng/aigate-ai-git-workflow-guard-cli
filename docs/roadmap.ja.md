@@ -22,7 +22,7 @@
 
 - [ ] Homebrew formula を publish
 - [ ] local Docker usage 検証後に Docker image を publish
-- [ ] bundled GitHub composite action を reusable public action に昇格
+- [x] bundled GitHub composite action を reusable public action に昇格
 - [x] Discord と Teams webhook notification payload を追加
 - [ ] generated branch strategy docs を richer policy pack に拡張
 - [x] PR テンプレートと CODEOWNERS 草案をガイド付き設定に昇格

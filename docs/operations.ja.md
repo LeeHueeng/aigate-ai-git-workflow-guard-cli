@@ -74,6 +74,7 @@ aigate release-check --npm
 - `git-ready`、guarded push、guarded PR creation
 - `aigate github` による GitHub PR コメントと Checks サマリー
 - `aigate github setup` による PR テンプレートと CODEOWNERS 設定
+- `action.yml` による再利用可能な公開 GitHub Action
 - Markdown, HTML, JSON, SARIF reports
 - project score と deep Git signal evaluation
 - `aigate trends` によるプロジェクト状態トレンド履歴

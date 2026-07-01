@@ -13,6 +13,7 @@ const requiredGroups = [
   ["branch strategy", ["docs/branch-strategy.md", "docs/branch-strategy.ko.md", "docs/branch-strategy.ja.md", "docs/branch-strategy.zh.md"]],
   ["commercialization", ["docs/commercialization.md", "docs/commercialization.ko.md", "docs/commercialization.ja.md", "docs/commercialization.zh.md"]],
   ["distribution", ["docs/distribution.md", "docs/distribution.ko.md", "docs/distribution.ja.md", "docs/distribution.zh.md"]],
+  ["github action", ["docs/github-action.md", "docs/github-action.ko.md", "docs/github-action.ja.md", "docs/github-action.zh.md"]],
   ["git upload workflow", ["docs/git-upload-workflow.md", "docs/git-upload-workflow.ko.md", "docs/git-upload-workflow.ja.md", "docs/git-upload-workflow.zh.md"]],
   ["notifications", ["docs/notifications.md", "docs/notifications.ko.md", "docs/notifications.ja.md", "docs/notifications.zh.md"]],
   ["open source readiness", ["docs/open-source-readiness.md", "docs/open-source-readiness.ko.md", "docs/open-source-readiness.ja.md", "docs/open-source-readiness.zh.md"]],

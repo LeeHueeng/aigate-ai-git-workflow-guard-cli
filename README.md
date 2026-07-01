@@ -129,7 +129,7 @@ AIGATE_SLACK_WEBHOOK_URL="https://hooks.slack.com/services/..." \
 
 ## GitHub Actions
 
-This repository ships a local composite action:
+Use AIGate as a reusable public GitHub Action:
 
 ```yaml
 name: AIGate
@@ -140,10 +140,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: ./.github/actions/aigate
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
         with:
-          command: pr-check
+          command: git-ready
+          language: en
 ```
+
+Pin to a release tag after the next action-bearing release is tagged. Full
+inputs are documented in [GitHub Action](docs/github-action.md). The same action
+metadata is mirrored at `.github/actions/aigate` for local workflow testing.
 
 ## AI Agent Integration
 
