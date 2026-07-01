@@ -141,6 +141,13 @@ assistants can follow the same branch, validation, and guarded push workflow.
 
 Read the full guide in [docs/ai-integrations.md](docs/ai-integrations.md).
 
+## Multilingual HTML Guides
+
+- [한국어 운영 문서](docs/aigate-overview.ko.html)
+- [English operations guide](docs/aigate-overview.en.html)
+- [日本語運用ドキュメント](docs/aigate-overview.ja.html)
+- [中文运维说明](docs/aigate-overview.zh.html)
+
 ## Public Repository Standards
 
 - Use Conventional Commits.
