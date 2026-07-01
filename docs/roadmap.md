@@ -4,21 +4,20 @@
 
 - Publish `@aigate/cli` to npm.
 - Support npm, npx, yarn, pnpm, and bun install paths.
-- Generate basic Markdown reports.
-- Send Slack notifications for blocking events.
-- Provide basic project evaluation.
-- Recommend a basic branch strategy.
+- Create starter project configuration with `aigate init`.
+- Generate Markdown, HTML, JSON, and SARIF reports.
+- Generate pull request readiness reports with `aigate pr-check`.
+- Send Slack webhook notifications for blocking events.
+- Provide weighted project evaluation with optional deep Git signals.
+- Recommend a basic branch strategy from repository and team signals.
 
 ## V1.5: Workflow Intelligence
 
-- Generate PR readiness reports.
-- Generate HTML reports.
 - Publish Homebrew formula.
 - Publish Docker image.
 - Add Discord and Teams notifications.
-- Generate branch strategy docs.
-- Generate pull request template drafts.
-- Generate CODEOWNERS drafts.
+- Expand generated branch strategy docs into richer policy packs.
+- Promote pull request template and CODEOWNERS drafts into guided setup.
 
 ## V2: Team Reports And GitHub Integration
 

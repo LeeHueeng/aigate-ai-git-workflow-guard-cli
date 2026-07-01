@@ -69,12 +69,14 @@ Open a pull request into `main`. Include:
 
 - what changed
 - why it changed
+- PR readiness report findings
 - validation commands
 - release or documentation impact
 
 You can also let AIGate call GitHub CLI:
 
 ```sh
+aigate pr-check --output .aigate/reports/pr.md
 aigate pr --title "feat: short summary"
 ```
 

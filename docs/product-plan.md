@@ -90,11 +90,13 @@ CI maturity, compliance needs, and branch history.
 
 The first public MVP should prove:
 
-- Installability through npm and `npx`.
+- Installability through npm and `npx` after the first package publish.
+- Project initialization through `aigate init`.
 - Local `check`, `report`, `evaluate-project`, and `branch-strategy` commands.
-- Clear Markdown reports.
+- Pull request readiness through `aigate pr-check`.
+- Clear Markdown, HTML, JSON, and SARIF reports.
 - Basic branch strategy recommendation.
-- Basic Slack notification path for blocking events.
+- Basic Slack webhook notification path for blocking events.
 - Public documentation and contribution process.
 
 ## Business Model Direction
