@@ -1,0 +1,40 @@
+name: AIGate
+description: Run AIGate checks and reports in GitHub Actions.
+
+inputs:
+  command:
+    description: AIGate command to run.
+    required: false
+    default: git-ready
+  report-format:
+    description: Report format when command is report, pr-check, audit-report, or evaluate-project.
+    required: false
+    default: markdown
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: 22
+        cache: npm
+
+    - name: Install dependencies
+      shell: bash
+      run: npm ci
+
+    - name: Run AIGate
+      shell: bash
+      run: |
+        case "${{ inputs.command }}" in
+          report|pr-check|audit-report)
+            node src/cli.mjs "${{ inputs.command }}" --format "${{ inputs.report-format }}"
+            ;;
+          evaluate-project)
+            node src/cli.mjs evaluate-project --report --format "${{ inputs.report-format }}"
+            ;;
+          *)
+            node src/cli.mjs "${{ inputs.command }}"
+            ;;
+        esac

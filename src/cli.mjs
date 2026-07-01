@@ -54,6 +54,8 @@ Commands:
   evaluate-project         Score repository workflow foundations.
   score                    Print only the project score.
   branch-strategy          Recommend a branch strategy.
+  release-check            Validate package release readiness.
+  audit-report             Generate a policy and governance audit report.
   notify <setup|test|send> Preview or send notification workflows.
   help                     Show this help message.
 
@@ -96,6 +98,8 @@ const commands = {
   "evaluate-project": commandEvaluateProject,
   score: commandScore,
   "branch-strategy": commandBranchStrategy,
+  "release-check": commandReleaseCheck,
+  "audit-report": commandAuditReport,
   notify: commandNotify,
   help: () => helpText.trimEnd()
 };
@@ -621,6 +625,29 @@ function commandScore() {
   return String(buildEvaluation().score);
 }
 
+function commandReleaseCheck(args) {
+  const options = parseOptions(args);
+  const check = buildReleaseCheck();
+
+  if (options.format === "json") {
+    return JSON.stringify(check, null, 2);
+  }
+
+  const rows = check.checks.map((item) => `- ${item.pass ? "PASS" : "TODO"}: ${item.name}`);
+
+  return [
+    `AIGate release-check: ${check.status}`,
+    `Package: ${check.packageName}`,
+    `Version: ${check.version}`,
+    `Release tag: ${check.expectedTag}`,
+    "",
+    ...rows,
+    "",
+    "Next steps:",
+    ...check.nextSteps.map((step) => `- ${step}`)
+  ].join("\n");
+}
+
 function commandBranchStrategy(args) {
   const options = parseOptions(args);
   const strategy = buildBranchStrategy(options);
@@ -664,6 +691,21 @@ function commandBranchStrategy(args) {
   }
 
   return lines.join("\n");
+}
+
+function commandAuditReport(args) {
+  const options = parseOptions(args);
+  const format = options.format ?? "markdown";
+  const report = buildAuditReport();
+  const output = renderAuditReport(report, format);
+
+  if (options.output) {
+    mkdirSync(dirname(options.output), { recursive: true });
+    writeFileSync(options.output, `${output}\n`, "utf8");
+    return `Wrote ${options.output}`;
+  }
+
+  return output;
 }
 
 function commandNotify(args) {
@@ -1132,6 +1174,101 @@ function branchRulesForStrategy(strategyName) {
   ];
 }
 
+function buildReleaseCheck() {
+  const packageJson = readJsonFile("package.json");
+  const version = packageJson.version ?? "0.0.0";
+  const expectedTag = `v${version}`;
+  const tags = (git(["tag", "--list"]) ?? "")
+    .split("\n")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+  const hasExpectedTag = tags.includes(expectedTag);
+  const checks = [
+    { name: "package.json exists", pass: existsSync("package.json") },
+    { name: "package-lock.json version matches package.json", pass: readJsonFile("package-lock.json").version === version },
+    { name: "package has a public npm name", pass: Boolean(packageJson.name?.startsWith("@aigate/") || packageJson.name === "aigate") },
+    { name: "package version is not 0.0.0", pass: version !== "0.0.0" },
+    { name: "package exposes aigate bin", pass: Boolean(packageJson.bin?.aigate) },
+    { name: "publishConfig access is public", pass: packageJson.publishConfig?.access === "public" },
+    { name: "release workflow exists", pass: existsSync(join(".github", "workflows", "release.yml")) },
+    { name: "release workflow uses npm provenance", pass: fileIncludes(join(".github", "workflows", "release.yml"), "--provenance") },
+    { name: "README documents install channels", pass: fileIncludes("README.md", "npm install -g @aigate/cli") },
+    { name: `${expectedTag} tag exists`, pass: hasExpectedTag }
+  ];
+  const status = checks.every((check) => check.pass) ? "READY" : "ACTION_REQUIRED";
+  const nextSteps = [];
+
+  if (!hasExpectedTag) {
+    nextSteps.push(`Create release tag ${expectedTag} after npm Trusted Publishing is configured.`);
+  }
+
+  if (!checks.find((check) => check.name === "release workflow uses npm provenance")?.pass) {
+    nextSteps.push("Ensure release workflow publishes with npm provenance.");
+  }
+
+  nextSteps.push("Run npm run ci before tagging a release.");
+  nextSteps.push("Run npm publish dry-run through the Release workflow_dispatch dry_run input.");
+
+  return {
+    command: "release-check",
+    status,
+    packageName: packageJson.name ?? null,
+    version,
+    expectedTag,
+    checks,
+    nextSteps
+  };
+}
+
+function buildAuditReport() {
+  const evaluation = buildEvaluation({ deep: true });
+  const releaseCheck = buildReleaseCheck();
+  const readiness = buildGitReadyResult();
+  const recentCommits = (git(["log", "-10", "--pretty=%h %s"]) ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const findings = [
+    ...readiness.blockers.map((blocker) => ({
+      severity: "high",
+      area: "readiness",
+      message: blocker
+    })),
+    ...releaseCheck.checks
+      .filter((check) => !check.pass)
+      .map((check) => ({
+        severity: check.name.includes("tag exists") ? "medium" : "high",
+        area: "release",
+        message: check.name
+      })),
+    ...evaluation.checks
+      .filter((check) => !check.pass)
+      .map((check) => ({
+        severity: "medium",
+        area: check.category,
+        message: check.name
+      }))
+  ];
+
+  return {
+    command: "audit-report",
+    generatedAt: new Date().toISOString(),
+    branch: git(["branch", "--show-current"]) || "unknown",
+    status: findings.length ? "ACTION_REQUIRED" : "PASS",
+    projectScore: evaluation.score,
+    projectGrade: evaluation.grade,
+    releaseStatus: releaseCheck.status,
+    findings,
+    recentCommits,
+    recommendations: [
+      "Keep all changes going through pull requests into main.",
+      "Run npm run ci and aigate git-ready before release tags.",
+      "Review release-check output before publishing npm packages.",
+      "Attach audit-report output to release readiness discussions when governance matters."
+    ]
+  };
+}
+
 function buildReport(type) {
   const status = buildGitStatus();
   const evaluation = buildEvaluation();
@@ -1229,7 +1366,7 @@ function renderReport(report, format) {
 }
 
 function renderMarkdownReport(report) {
-  return [
+  const lines = [
     `# AIGate ${report.type} report`,
     "",
     `- Status: ${report.status}`,
@@ -1254,7 +1391,31 @@ function renderMarkdownReport(report) {
     "## Recommended Actions",
     "",
     ...report.recommendedActions.map((action) => `- ${action}`)
-  ].join("\n");
+  ];
+
+  if (report.type === "weekly") {
+    lines.push(
+      "",
+      "## Weekly Team Signals",
+      "",
+      `- Project grade: ${report.projectGrade}`,
+      `- Changed paths in current workspace: ${report.changedPaths.length}`,
+      `- Release status: ${buildReleaseCheck().status}`
+    );
+  }
+
+  if (report.type === "risk") {
+    lines.push(
+      "",
+      "## Risk Signals",
+      "",
+      `- High-risk file signal: ${report.riskScore >= 65 ? "yes" : "no"}`,
+      `- Secret findings: ${report.secretFindings.length}`,
+      `- Suggested verdict: ${report.finalVerdict}`
+    );
+  }
+
+  return lines.join("\n");
 }
 
 function renderHtmlReport(report) {
@@ -1389,6 +1550,56 @@ function renderProjectEvaluationReport(evaluation, format) {
           `- Hotfix process docs: ${evaluation.deepSignals.hasHotfixFlowDocs ? "yes" : "no"}`
         ]
       : [])
+  ].join("\n");
+}
+
+function renderAuditReport(report, format) {
+  if (format === "json") {
+    return JSON.stringify(report, null, 2);
+  }
+
+  if (format === "html") {
+    return [
+      "<!doctype html>",
+      "<html>",
+      "<head><meta charset=\"utf-8\"><title>AIGate audit report</title></head>",
+      "<body>",
+      "<h1>AIGate audit report</h1>",
+      `<p>Status: ${escapeHtml(report.status)}</p>`,
+      `<p>Project score: ${report.projectScore}/100 (${escapeHtml(report.projectGrade)})</p>`,
+      `<p>Release status: ${escapeHtml(report.releaseStatus)}</p>`,
+      "<h2>Findings</h2>",
+      "<ul>",
+      ...(report.findings.length
+        ? report.findings.map((finding) => `<li>${escapeHtml(finding.severity)} ${escapeHtml(finding.area)}: ${escapeHtml(finding.message)}</li>`)
+        : ["<li>None</li>"]),
+      "</ul>",
+      "</body>",
+      "</html>"
+    ].join("\n");
+  }
+
+  return [
+    "# AIGate Audit Report",
+    "",
+    `- Status: ${report.status}`,
+    `- Branch: ${report.branch}`,
+    `- Project score: ${report.projectScore}/100 (${report.projectGrade})`,
+    `- Release status: ${report.releaseStatus}`,
+    "",
+    "## Findings",
+    "",
+    ...(report.findings.length
+      ? report.findings.map((finding) => `- ${finding.severity} ${finding.area}: ${finding.message}`)
+      : ["- None"]),
+    "",
+    "## Recent Commits",
+    "",
+    ...(report.recentCommits.length ? report.recentCommits.map((commit) => `- ${commit}`) : ["- None"]),
+    "",
+    "## Recommendations",
+    "",
+    ...report.recommendations.map((recommendation) => `- ${recommendation}`)
   ].join("\n");
 }
 
@@ -1799,6 +2010,14 @@ function readJsonFile(filePath) {
   } catch {
     return {};
   }
+}
+
+function fileIncludes(filePath, pattern) {
+  if (!existsSync(filePath)) {
+    return false;
+  }
+
+  return readFileSync(filePath, "utf8").includes(pattern);
 }
 
 function writeSettings(settings) {

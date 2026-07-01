@@ -10,11 +10,14 @@
 - Send Slack webhook notifications for blocking events.
 - Provide weighted project evaluation with optional deep Git signals.
 - Recommend a basic branch strategy from repository and team signals.
+- Validate first package release readiness with `aigate release-check`.
+- Generate governance snapshots with `aigate audit-report`.
 
 ## V1.5: Workflow Intelligence
 
 - Publish Homebrew formula.
-- Publish Docker image.
+- Publish Docker image after local Docker usage is validated.
+- Promote the bundled GitHub composite action to a reusable public action.
 - Add Discord and Teams notifications.
 - Expand generated branch strategy docs into richer policy packs.
 - Promote pull request template and CODEOWNERS drafts into guided setup.

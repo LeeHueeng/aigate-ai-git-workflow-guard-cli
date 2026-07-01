@@ -1,0 +1,10 @@
+.git
+.github
+.aigate/reports
+.aigate/settings.json
+node_modules
+npm-debug.log*
+coverage
+dist
+build
+.DS_Store

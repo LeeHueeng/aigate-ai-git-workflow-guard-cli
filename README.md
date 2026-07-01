@@ -80,14 +80,16 @@ aigate settings
 | `aigate score` | Print only the project score. |
 | `aigate branch-strategy` | Recommend a repository branch strategy. |
 | `aigate branch-strategy --apply` | Generate branch policy, release, hotfix, PR, and CODEOWNERS drafts. |
+| `aigate release-check` | Validate package release readiness before tagging. |
+| `aigate audit-report` | Generate a policy and governance audit report. |
 | `aigate notify send --channel terminal` | Send a local notification event. |
 
 ## Roadmap Snapshot
 
 - V1: npm distribution, local reports, Slack BLOCK notifications, basic project
   evaluation, and branch strategy recommendations.
-- V1.5: PR readiness reports, HTML reports, Homebrew and Docker distribution,
-  Discord and Teams notifications, PR templates, and CODEOWNERS generation.
+- V1.5: Docker and GitHub Action foundations, Homebrew distribution,
+  Discord and Teams notifications, and richer policy packs.
 - V2: GitHub PR comments, GitHub Checks, weekly team reports, health trends,
   Linear/Jira integrations, and standalone binaries.
 - V3: Enterprise governance, audit/compliance reports, central policies,
@@ -155,6 +157,7 @@ around hosted reports, policy packs, integrations, and governance.
 
 - [Open source readiness](docs/open-source-readiness.md)
 - [Commercialization plan](docs/commercialization.md)
+- [Distribution guide](docs/distribution.md)
 - [Roadmap](docs/roadmap.md)
 
 ## License
