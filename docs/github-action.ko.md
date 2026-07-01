@@ -2,9 +2,9 @@
 
 [English](github-action.md) | [한국어](github-action.ko.md) | [日本語](github-action.ja.md) | [中文](github-action.zh.md)
 
-AIGate는 저장소 루트의 재사용 가능한 GitHub Action을 제공합니다. 최신 공개
-동작을 바로 확인하려면 `@main`을 쓰고, 해당 액션이 포함된 릴리스 태그가 생긴
-뒤에는 `@v0.1.2` 같은 태그로 고정하세요.
+AIGate는 저장소 루트의 재사용 가능한 GitHub Action을 제공합니다. 안정적인
+실행에는 현재 릴리스 태그를 사용하고, 아직 배포되지 않은 최신 동작을 의도적으로
+확인할 때만 `@main`을 사용하세요.
 
 ```yaml
 name: AIGate
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
         with:
           command: git-ready
           language: ko
@@ -27,7 +27,7 @@ jobs:
 PR 리포트를 만들 때:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
   with:
     command: pr-check
     report-format: markdown

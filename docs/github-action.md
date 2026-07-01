@@ -2,9 +2,9 @@
 
 [English](github-action.md) | [한국어](github-action.ko.md) | [日本語](github-action.ja.md) | [中文](github-action.zh.md)
 
-AIGate ships a reusable GitHub Action at the repository root. Use `@main` for
-the latest public action behavior, then pin to a release tag such as `@v0.1.2`
-after that tag exists.
+AIGate ships a reusable GitHub Action at the repository root. Use the current
+release tag for stable runs, or `@main` only when you intentionally want
+unreleased behavior.
 
 ```yaml
 name: AIGate
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
         with:
           command: git-ready
           language: en
@@ -27,7 +27,7 @@ jobs:
 For a pull request report:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
   with:
     command: pr-check
     report-format: markdown

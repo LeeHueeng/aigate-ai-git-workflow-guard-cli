@@ -94,8 +94,8 @@ docker run --rm -v "$PWD:/repo" -w /repo aigate/cli audit-report
 ## GitHub Actions
 
 This repository includes a reusable public action at the repository root.
-Use `@main` for the latest action behavior, then pin to a release tag after
-the next action-bearing release is tagged.
+Use the current release tag for stable runs, or `@main` only when you
+intentionally want unreleased behavior.
 
 ```yaml
 jobs:
@@ -103,7 +103,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
         with:
           command: git-ready
           language: en

@@ -98,13 +98,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
         with:
           command: git-ready
           language: ko
 ```
 
-다음 액션 포함 릴리스 태그가 만들어진 뒤에는 태그로 고정하세요. 전체 입력값은
+안정적인 실행에는 현재 릴리스 태그를 사용하고, 아직 배포되지 않은 최신 동작을
+의도적으로 확인할 때만 `@main`을 사용하세요. 전체 입력값은
 [GitHub Action 문서](docs/github-action.ko.md)에 정리했습니다.
 
 ## AI 에이전트 연동

@@ -2,9 +2,8 @@
 
 [English](github-action.md) | [한국어](github-action.ko.md) | [日本語](github-action.ja.md) | [中文](github-action.zh.md)
 
-AIGate 在仓库根目录提供可复用的 GitHub Action。要立即使用最新公开行为，
-可以使用 `@main`；当包含该 action 的发布标签创建后，再固定到
-`@v0.1.2` 这类标签。
+AIGate 在仓库根目录提供可复用的 GitHub Action。稳定运行请使用当前发布标签；
+只有在有意验证未发布的最新行为时才使用 `@main`。
 
 ```yaml
 name: AIGate
@@ -18,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
         with:
           command: git-ready
           language: zh
@@ -27,7 +26,7 @@ jobs:
 生成 PR 报告时:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
   with:
     command: pr-check
     report-format: markdown

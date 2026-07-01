@@ -3,8 +3,8 @@
 [English](github-action.md) | [한국어](github-action.ko.md) | [日本語](github-action.ja.md) | [中文](github-action.zh.md)
 
 AIGate はリポジトリルートに再利用可能な GitHub Action を提供します。
-最新の公開動作を試す場合は `@main` を使い、この action を含むリリースタグが
-作成された後は `@v0.1.2` のようなタグに固定してください。
+安定運用では現在のリリースタグを使い、未リリースの最新動作を意図的に確認
+したい場合だけ `@main` を使ってください。
 
 ```yaml
 name: AIGate
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
         with:
           command: git-ready
           language: ja
@@ -27,7 +27,7 @@ jobs:
 PR レポートを生成する場合:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
   with:
     command: pr-check
     report-format: markdown
