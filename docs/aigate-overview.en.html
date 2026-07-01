@@ -290,7 +290,7 @@ footer p + p { margin-top: 6px; }
     <p class="eyebrow">Open Source AI Git Workflow Guard CLI</p>
     <h1>AIGate Operations Guide</h1>
     <p class="subtitle">A compact guide to how AIGate works, which commands it provides, what is implemented today, and what is planned next.</p>
-    <div class="badges"><span>npm live</span><span>Trusted Publishing</span><span>GitHub Releases</span><span>CLI v0.1.1</span></div>
+    <div class="badges"><span>npm live</span><span>Trusted Publishing</span><span>GitHub Releases</span><span>CLI v0.1.2</span></div>
   </header>
 
   <main>
@@ -555,7 +555,7 @@ npx aigate-cli check</code></pre>
     <td>Create starter configuration and report folders.</td>
     <td>When adopting AIGate in a new project</td>
   </tr><tr>
-    <td><code>aigate setup --language ko</code></td>
+    <td><code>aigate setup --language &lt;en|ko|ja|zh&gt;</code></td>
     <td>Save the CLI output language.</td>
     <td>When aligning team language</td>
   </tr><tr>
@@ -638,7 +638,7 @@ npx aigate-cli check</code></pre>
         <p>main is the protected stable branch. Work happens on codex/*, feature/*, fix/*, docs/*, and chore/* branches, then lands through PRs. release/* and hotfix/* are reserved for release stabilization and urgent fixes.</p>
       </div>
       <pre><code>npm install -g aigate-cli
-aigate setup --language ko
+aigate setup --language en
 git switch -c feature/my-change
 aigate git-ready
 git add &lt;files&gt;
@@ -654,7 +654,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">Features</p>
         <h2>Implemented Features</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">Public npm package aigate-cli and npx execution</div><div class="feature done">Git change and untracked-file readiness checks</div><div class="feature done">Secret pattern detection and SARIF output</div><div class="feature done">git-ready, guarded push, and guarded PR creation</div><div class="feature done">Markdown, HTML, JSON, and SARIF reports</div><div class="feature done">Project scoring and deep Git signal evaluation</div><div class="feature done">Branch strategy recommendations and policy draft generation</div><div class="feature done">Codex/Gemini integration file generation</div><div class="feature done">Korean/English CLI settings</div><div class="feature done">release-check and release-check --npm</div><div class="feature done">Automated npm releases through Trusted Publishing</div><div class="feature done">GitHub CI, OpenSSF Scorecard, and GitHub Releases</div><div class="feature done">Terminal notifications and webhook transport foundation</div></div>
+      <div class="feature-grid"><div class="feature done">Public npm package aigate-cli and npx execution</div><div class="feature done">Git change and untracked-file readiness checks</div><div class="feature done">Secret pattern detection and SARIF output</div><div class="feature done">git-ready, guarded push, and guarded PR creation</div><div class="feature done">Markdown, HTML, JSON, and SARIF reports</div><div class="feature done">Project scoring and deep Git signal evaluation</div><div class="feature done">Branch strategy recommendations and policy draft generation</div><div class="feature done">Codex/Gemini integration file generation</div><div class="feature done">Korean/English/Japanese/Chinese CLI settings</div><div class="feature done">release-check and release-check --npm</div><div class="feature done">Automated npm releases through Trusted Publishing</div><div class="feature done">GitHub CI, OpenSSF Scorecard, and GitHub Releases</div><div class="feature done">Terminal notifications and webhook transport foundation</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -668,7 +668,7 @@ aigate release-check --npm</code></pre>
 
   <footer>
     <p>This document describes the operating state after the public AIGate release.</p>
-    <p>Generated 2026-07-01. Package version 0.1.1.</p>
+    <p>Generated 2026-07-01. Package version 0.1.2.</p>
   </footer>
 </body>
 </html>

@@ -53,10 +53,13 @@ node src/cli.mjs init --output-dir /tmp/aigate-demo
 node src/cli.mjs branch-strategy
 ```
 
-Set the CLI output language:
+Set the CLI output language. AIGate supports `en`, `ko`, `ja`, and `zh`.
 
 ```sh
+aigate setup --language en
 aigate setup --language ko
+aigate setup --language ja
+aigate setup --language zh
 aigate settings
 ```
 
@@ -70,7 +73,7 @@ aigate settings
 | `aigate push` | Run AIGate checks, then run `git push`. |
 | `aigate pr` | Run AIGate checks, then create a GitHub pull request with `gh`. |
 | `aigate pr-check` | Generate a pull request readiness report. |
-| `aigate setup --language ko` | Save local AIGate settings. |
+| `aigate setup --language <en|ko|ja|zh>` | Save local AIGate settings and output language. |
 | `aigate settings` | Show current AIGate settings. |
 | `aigate integrate all` | Generate Codex and Gemini assistant integration files. |
 | `aigate report --output .aigate/reports/local.md` | Write a local workflow report. |

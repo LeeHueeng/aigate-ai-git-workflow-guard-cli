@@ -24,7 +24,7 @@ Routine release flow:
 2. Run `npm run ci`.
 3. Run `aigate release-check --npm`.
 4. Run the Release workflow with `dry_run=true`.
-5. Create and push the matching release tag, for example `v0.1.1`.
+5. Create and push the matching release tag, for example `vX.Y.Z`.
 6. Confirm `npm view aigate-cli version`.
 
 First publish record:

@@ -290,7 +290,7 @@ footer p + p { margin-top: 6px; }
     <p class="eyebrow">开源 AI Git Workflow Guard CLI</p>
     <h1>AIGate 运维说明</h1>
     <p class="subtitle">这份 HTML 文档说明 AIGate 的运行流程、全部命令、当前已实现能力以及未来规划。</p>
-    <div class="badges"><span>npm 已发布</span><span>Trusted Publishing</span><span>GitHub Release</span><span>CLI v0.1.1</span></div>
+    <div class="badges"><span>npm 已发布</span><span>Trusted Publishing</span><span>GitHub Release</span><span>CLI v0.1.2</span></div>
   </header>
 
   <main>
@@ -555,7 +555,7 @@ npx aigate-cli check</code></pre>
     <td>创建基础配置和报告目录。</td>
     <td>在新项目中启用 AIGate</td>
   </tr><tr>
-    <td><code>aigate setup --language ko</code></td>
+    <td><code>aigate setup --language &lt;en|ko|ja|zh&gt;</code></td>
     <td>保存 CLI 输出语言。</td>
     <td>统一团队输出语言</td>
   </tr><tr>
@@ -638,7 +638,7 @@ npx aigate-cli check</code></pre>
         <p>main 是受保护的稳定分支。工作在 codex/*、feature/*、fix/*、docs/*、chore/* 分支上完成，并通过 PR 合并。release/* 和 hotfix/* 用于发布稳定和紧急修复。</p>
       </div>
       <pre><code>npm install -g aigate-cli
-aigate setup --language ko
+aigate setup --language zh
 git switch -c feature/my-change
 aigate git-ready
 git add &lt;files&gt;
@@ -654,7 +654,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">功能</p>
         <h2>当前已实现功能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐和政策草案生成</div><div class="feature done">Codex/Gemini 集成文件生成</div><div class="feature done">韩语/英语 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端通知和 webhook 传输基础</div></div>
+      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐和政策草案生成</div><div class="feature done">Codex/Gemini 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端通知和 webhook 传输基础</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -668,7 +668,7 @@ aigate release-check --npm</code></pre>
 
   <footer>
     <p>本文档说明 AIGate 公开发布后的运行状态。</p>
-    <p>Generated 2026-07-01. Package version 0.1.1.</p>
+    <p>Generated 2026-07-01. Package version 0.1.2.</p>
   </footer>
 </body>
 </html>

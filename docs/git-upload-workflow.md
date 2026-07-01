@@ -20,10 +20,14 @@ Use one of these prefixes:
 
 ## 2. Check The Work Before Commit
 
-Choose your local CLI language once:
+Choose your local CLI language once. Supported values are `en`, `ko`, `ja`, and
+`zh`:
 
 ```sh
+aigate setup --language en
 aigate setup --language ko
+aigate setup --language ja
+aigate setup --language zh
 ```
 
 ```sh

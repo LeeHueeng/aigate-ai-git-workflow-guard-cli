@@ -51,7 +51,7 @@ test("prints package version", () => {
   const result = run(["--version"]);
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /^0\.1\.1/m);
+  assert.match(result.stdout, /^0\.1\.2/m);
 });
 
 test("initializes starter project files", () => {
@@ -137,6 +137,35 @@ test("configures Korean language setting", () => {
   assert.match(check.stdout, /브랜치:/);
 });
 
+test("configures Japanese and Chinese language settings", () => {
+  const japaneseSettingsPath = createSettingsPath();
+  const japaneseSetup = run(["setup", "--language", "jp"], { settingsPath: japaneseSettingsPath });
+
+  assert.equal(japaneseSetup.status, 0);
+  assert.match(japaneseSetup.stdout, /AIGate 設定完了/);
+
+  const japaneseSettings = JSON.parse(readFileSync(japaneseSettingsPath, "utf8"));
+  assert.equal(japaneseSettings.language, "ja");
+
+  const japaneseStrategy = run(["branch-strategy", "--github"], { settingsPath: japaneseSettingsPath });
+  assert.equal(japaneseStrategy.status, 0);
+  assert.match(japaneseStrategy.stdout, /推奨戦略:/);
+  assert.match(japaneseStrategy.stdout, /GitHub 保護ルール:/);
+  assert.doesNotMatch(japaneseStrategy.stdout, /Recommended strategy:/);
+
+  const chineseSettingsPath = createSettingsPath();
+  const chineseSetup = run(["setup", "--language", "zh"], { settingsPath: chineseSettingsPath });
+
+  assert.equal(chineseSetup.status, 0);
+  assert.match(chineseSetup.stdout, /AIGate 设置完成/);
+
+  const chineseRelease = run(["release-check"], { settingsPath: chineseSettingsPath });
+  assert.equal(chineseRelease.status, 0);
+  assert.match(chineseRelease.stdout, /发布标签:/);
+  assert.match(chineseRelease.stdout, /下一步:/);
+  assert.doesNotMatch(chineseRelease.stdout, /Release tag:/);
+});
+
 test("shows settings as json", () => {
   const settingsPath = createSettingsPath();
   run(["setup", "--language", "en"], { settingsPath });
@@ -149,10 +178,11 @@ test("shows settings as json", () => {
 });
 
 test("rejects unsupported language", () => {
-  const result = run(["setup", "--language", "jp"]);
+  const result = run(["setup", "--language", "fr"]);
 
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /Unsupported language: jp/);
+  assert.match(result.stdout, /Unsupported language: fr/);
+  assert.match(result.stdout, /en, ko, ja, zh/);
 });
 
 test("generates Codex and Gemini integration files", () => {
@@ -297,8 +327,8 @@ test("checks release readiness", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.command, "release-check");
   assert.equal(output.packageName, "aigate-cli");
-  assert.equal(output.version, "0.1.1");
-  assert.equal(output.expectedTag, "v0.1.1");
+  assert.equal(output.version, "0.1.2");
+  assert.equal(output.expectedTag, "v0.1.2");
   assert.ok(["READY", "ACTION_REQUIRED", "RELEASED"].includes(output.status));
   assert.deepEqual(output.registry, { checked: false });
 });
@@ -306,7 +336,7 @@ test("checks release readiness", () => {
 test("checks npm publication state when requested", () => {
   const binDir = mkdtempSync(join(tmpdir(), "aigate-npm-"));
   const npmPath = join(binDir, "npm");
-  writeFileSync(npmPath, "#!/bin/sh\nprintf '\"0.1.1\"\\n'\n");
+  writeFileSync(npmPath, "#!/bin/sh\nprintf '\"0.1.2\"\\n'\n");
   chmodSync(npmPath, 0o755);
 
   const result = run(["release-check", "--npm", "--format", "json"], {
@@ -319,7 +349,7 @@ test("checks npm publication state when requested", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.registry.checked, true);
   assert.equal(output.registry.published, true);
-  assert.equal(output.registry.publishedVersion, "0.1.1");
+  assert.equal(output.registry.publishedVersion, "0.1.2");
 });
 
 test("renders audit report", () => {
