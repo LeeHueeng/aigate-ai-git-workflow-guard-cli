@@ -93,7 +93,9 @@ docker run --rm -v "$PWD:/repo" -w /repo aigate/cli audit-report
 
 ## GitHub Actions
 
-This repository includes a local composite action at `.github/actions/aigate`.
+This repository includes a reusable public action at the repository root.
+Use `@main` for the latest action behavior, then pin to a release tag after
+the next action-bearing release is tagged.
 
 ```yaml
 jobs:
@@ -101,13 +103,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: ./.github/actions/aigate
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
         with:
           command: git-ready
+          language: en
 ```
 
 Use `command: audit-report`, `command: pr-check`, or `command: evaluate-project`
 to produce richer workflow reports.
+The same metadata is mirrored at `.github/actions/aigate` for local workflow
+testing in this repository. See [GitHub Action](github-action.md) for all
+inputs.
 
 ## Later Channels
 

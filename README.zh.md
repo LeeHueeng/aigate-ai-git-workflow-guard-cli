@@ -84,6 +84,28 @@ aigate setup --language ja
 aigate setup --language zh
 ```
 
+## GitHub Actions
+
+其他仓库也可以把 AIGate 作为可复用的公开 GitHub Action 运行。
+
+```yaml
+name: AIGate
+on:
+  pull_request:
+jobs:
+  aigate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+        with:
+          command: git-ready
+          language: zh
+```
+
+包含该 action 的下一个发布标签创建后，请固定到标签。完整输入见
+[GitHub Action 文档](docs/github-action.zh.md)。
+
 ## AI Agent 集成
 
 ```sh

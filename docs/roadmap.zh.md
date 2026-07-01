@@ -22,7 +22,7 @@
 
 - [ ] publish Homebrew formula
 - [ ] local Docker usage 验证后 publish Docker image
-- [ ] 将 bundled GitHub composite action 升级为 reusable public action
+- [x] 将 bundled GitHub composite action 升级为 reusable public action
 - [x] 添加 Discord 和 Teams webhook notification payload
 - [ ] 将 generated branch strategy docs 扩展为 richer policy pack
 - [x] 将 PR 模板和 CODEOWNERS 草案升级为引导式设置

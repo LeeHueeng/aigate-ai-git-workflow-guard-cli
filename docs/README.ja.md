@@ -10,6 +10,7 @@
 | AI integrations | [en](ai-integrations.md) | [ko](ai-integrations.ko.md) | [ja](ai-integrations.ja.md) | [zh](ai-integrations.zh.md) |
 | Branch strategy | [en](branch-strategy.md) | [ko](branch-strategy.ko.md) | [ja](branch-strategy.ja.md) | [zh](branch-strategy.zh.md) |
 | Distribution | [en](distribution.md) | [ko](distribution.ko.md) | [ja](distribution.ja.md) | [zh](distribution.zh.md) |
+| GitHub Action | [en](github-action.md) | [ko](github-action.ko.md) | [ja](github-action.ja.md) | [zh](github-action.zh.md) |
 | Git upload workflow | [en](git-upload-workflow.md) | [ko](git-upload-workflow.ko.md) | [ja](git-upload-workflow.ja.md) | [zh](git-upload-workflow.zh.md) |
 | Notifications | [en](notifications.md) | [ko](notifications.ko.md) | [ja](notifications.ja.md) | [zh](notifications.zh.md) |
 | Security scanning | [en](security-scanning.md) | [ko](security-scanning.ko.md) | [ja](security-scanning.ja.md) | [zh](security-scanning.zh.md) |

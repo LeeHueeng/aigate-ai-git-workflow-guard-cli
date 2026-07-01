@@ -64,7 +64,9 @@ docker run --rm -v "$PWD:/repo" -w /repo aigate/cli audit-report
 
 ## GitHub Actions
 
-この repository は `.github/actions/aigate` の local composite action を含みます。
+この repository はルートに再利用可能な公開 action を含みます。最新の action
+動作は `@main` で利用し、この action を含む次のリリースタグが作成された後は
+タグに固定してください。
 
 ```yaml
 jobs:
@@ -72,13 +74,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: ./.github/actions/aigate
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
         with:
           command: git-ready
+          language: ja
 ```
 
 `command: audit-report`、`command: pr-check`、`command: evaluate-project` で
 より詳しい workflow report を作れます。
+同じ metadata は、この repository の local workflow test 用に
+`.github/actions/aigate` にも複製されています。入力一覧は
+[GitHub Action](github-action.ja.md) を確認してください。
 
 ## 今後の channel
 

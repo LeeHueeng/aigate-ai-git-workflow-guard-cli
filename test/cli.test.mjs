@@ -161,6 +161,19 @@ test("prints package version", () => {
   assert.match(result.stdout, /^0\.1\.2/m);
 });
 
+test("ships reusable GitHub Action metadata", () => {
+  const rootAction = readFileSync(join(repoRoot, "action.yml"), "utf8");
+  const bundledAction = readFileSync(join(repoRoot, ".github", "actions", "aigate", "action.yml"), "utf8");
+
+  assert.equal(bundledAction, rootAction);
+  assert.match(rootAction, /default: aigate-cli@latest/);
+  assert.match(rootAction, /uses: actions\/setup-node@v6/);
+  assert.match(rootAction, /package-manager-cache: false/);
+  assert.match(rootAction, /github-check\)/);
+  assert.match(rootAction, /npx -y "\$PACKAGE"/);
+  assert.doesNotMatch(rootAction, /node src\/cli\.mjs/);
+});
+
 test("initializes starter project files", () => {
   const outputDir = createOutputDir();
   const result = run(["init", "--output-dir", outputDir, "--format", "json"]);

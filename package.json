@@ -16,6 +16,8 @@
     "aigate": "src/cli.mjs"
   },
   "files": [
+    "action.yml",
+    ".github/actions/aigate/action.yml",
     "src",
     "docs",
     "assets",
@@ -49,6 +51,7 @@
     "developer-tools",
     "devops",
     "devsecops",
+    "github-action",
     "open-source",
     "security",
     "sarif",

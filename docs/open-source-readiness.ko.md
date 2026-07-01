@@ -30,7 +30,7 @@
 - [x] release readiness check
 - [x] audit report command
 - [x] local Dockerfile
-- [x] local GitHub composite action
+- [x] 재사용 가능한 공개 GitHub Action
 
 ## Maintainer workflow
 

@@ -73,6 +73,7 @@ aigate release-check --npm
 - `git-ready`、guarded push、guarded PR creation
 - 通过 `aigate github` 发布 GitHub PR 评论并准备 Checks 摘要
 - 通过 `aigate github setup` 设置 PR 模板和 CODEOWNERS
+- 通过 `action.yml` 提供可复用的公开 GitHub Action
 - Markdown, HTML, JSON, SARIF reports
 - project score 和 deep Git signal evaluation
 - 通过 `aigate trends` 记录项目状态趋势历史

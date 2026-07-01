@@ -25,6 +25,8 @@ All notable changes to AIGate are documented here.
   `aigate trends show`.
 - Added guided GitHub repository setup through `aigate github setup` for pull
   request templates and CODEOWNERS.
+- Added reusable public GitHub Action metadata at `action.yml`, mirrored at
+  `.github/actions/aigate`.
 - Improved tests for multilingual output and webhook notification payloads.
 
 ## 0.1.0 - 2026-07-01
