@@ -9,15 +9,16 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
-  security-events: write
-  id-token: write
+permissions: read-all
 
 jobs:
   scorecard:
     name: scorecard
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
 
     steps:
       - name: Checkout
