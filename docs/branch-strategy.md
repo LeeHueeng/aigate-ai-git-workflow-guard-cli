@@ -89,6 +89,20 @@ Initial required status checks:
 - future: `npm run lint`
 - future: `npm run typecheck`
 
+## Proposal Comparison
+
+`aigate branch-strategy --compare` compares GitHub Flow with release channels,
+Trunk-Based Development, Hybrid Flow, and Git Flow. Each proposal includes a
+fit score, branch rules, best-fit situation, strengths, risks, migration steps,
+and policy fit.
+
+Use it when a repository has enough signal to debate more than one branch model:
+
+```sh
+aigate branch-strategy --compare --team-size 8 --release weekly
+aigate branch-strategy --compare --team-size 14 --release monthly --language ko
+```
+
 ## Generated Policy Packs
 
 `aigate branch-strategy --apply` creates reusable policy packs under

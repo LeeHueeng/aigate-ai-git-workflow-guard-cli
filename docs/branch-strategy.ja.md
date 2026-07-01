@@ -74,6 +74,20 @@ chore: initialize public repository metadata
 - future: `npm run lint`
 - future: `npm run typecheck`
 
+## 提案比較
+
+`aigate branch-strategy --compare` は、リリースチャンネル付き GitHub Flow、
+Trunk-Based Development、Hybrid Flow、Git Flow を比較します。各提案には
+適合スコア、ブランチルール、適した状況、強み、リスク、移行手順、
+ポリシー適合が含まれます。
+
+リポジトリに複数のブランチモデルを検討するだけのシグナルがある場合に使います。
+
+```sh
+aigate branch-strategy --compare --team-size 8 --release weekly
+aigate branch-strategy --compare --team-size 14 --release monthly --language ja
+```
+
 ## 生成されるポリシーパック
 
 `aigate branch-strategy --apply` は `.aigate/policy-packs/` に再利用可能な

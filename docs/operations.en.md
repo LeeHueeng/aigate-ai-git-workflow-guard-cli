@@ -40,7 +40,7 @@ flowchart LR
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `git-ready`, `push`, `pr` |
 | Reports | `pr-check`, `report`, `evaluate-project`, `audit-report` |
-| Release | `release-check`, `release-check --npm`, `branch-strategy`, `notify` |
+| Release | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
 ## Typical Command Path
 
@@ -59,6 +59,7 @@ aigate pr --title "feat: short summary"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate branch-strategy --compare
 aigate github setup --owner @your-org/team --dry-run
 aigate release-check --npm
 ```
@@ -78,7 +79,7 @@ aigate release-check --npm
 - Markdown, HTML, JSON, and SARIF reports
 - Project score and deep Git signal evaluation
 - Project health trend history through `aigate trends`
-- Branch strategy recommendation and generated policy packs
+- Branch strategy recommendation, proposal comparison, and generated policy packs
 - Codex/Gemini integration file generation
 - English, Korean, Japanese, and Chinese CLI settings
 - Release checks and npm Trusted Publishing workflow

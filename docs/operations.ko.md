@@ -39,7 +39,7 @@ flowchart LR
 | 첫 실행 | `doctor`, `demo`, `install-hook --pre-push` |
 | 보호 게이트 | `check`, `git-ready`, `push`, `pr` |
 | 리포트 | `pr-check`, `report`, `evaluate-project`, `audit-report` |
-| 릴리스 | `release-check`, `release-check --npm`, `branch-strategy`, `notify` |
+| 릴리스 | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
 ## 대표 실행 경로
 
@@ -58,6 +58,7 @@ aigate pr --title "feat: short summary"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate branch-strategy --compare
 aigate github setup --owner @your-org/team --dry-run
 aigate release-check --npm
 ```
@@ -77,7 +78,7 @@ aigate release-check --npm
 - Markdown, HTML, JSON, SARIF 리포트
 - 프로젝트 점수와 deep Git signal 평가
 - `aigate trends` 기반 프로젝트 상태 추세 기록
-- 브랜치 전략 추천과 정책 팩 생성
+- 브랜치 전략 추천, 제안 비교, 정책 팩 생성
 - Codex/Gemini 통합 파일 생성
 - 영어, 한국어, 일본어, 중국어 CLI 설정
 - release-check와 npm Trusted Publishing workflow

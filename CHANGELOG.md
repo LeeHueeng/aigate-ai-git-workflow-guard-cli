@@ -4,6 +4,9 @@ All notable changes to AIGate are documented here.
 
 ## 0.1.3 - Unreleased
 
+- Added `aigate branch-strategy --compare` for scored branch strategy proposal
+  comparison across GitHub Flow, Trunk-Based Development, Hybrid Flow, and
+  Git Flow.
 - Expanded generated branch strategy output into reusable policy packs for
   branch protection, pull request quality, release channels, and AI collaboration.
 

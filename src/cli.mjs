@@ -499,6 +499,135 @@ const BRANCH_REASON_TRANSLATIONS = {
   }
 };
 
+const STRATEGY_COMPARISON_TRANSLATIONS = {
+  ko: {
+    "small teams, public OSS projects, and on-demand releases": "소규모 팀, 공개 오픈소스 프로젝트, 필요 시 릴리스",
+    "teams with strong CI, small pull requests, and very frequent releases": "강한 CI, 작은 PR, 매우 잦은 릴리스를 운영하는 팀",
+    "growing teams that need fast feature work plus planned stabilization": "빠른 기능 개발과 계획된 안정화가 모두 필요한 성장 중인 팀",
+    "larger teams, scheduled releases, and strict production governance": "큰 팀, 정기 릴리스, 엄격한 프로덕션 거버넌스",
+    "Simple branch model for public contributors.": "공개 기여자가 이해하기 쉬운 단순한 브랜치 모델입니다.",
+    "Release channels separate npm latest, next, beta, and canary.": "npm latest, next, beta, canary 릴리스 채널을 분리합니다.",
+    "Works well for small teams and fast merges.": "소규모 팀과 빠른 병합 흐름에 잘 맞습니다.",
+    "Keeps main close to production at all times.": "main을 항상 프로덕션에 가까운 상태로 유지합니다.",
+    "Fits strong CI and short-lived changes.": "강한 CI와 짧게 유지되는 변경에 잘 맞습니다.",
+    "Reduces long-running branch drift.": "오래 열린 브랜치의 드리프트를 줄입니다.",
+    "Balances fast feature work with planned release stabilization.": "빠른 기능 작업과 계획된 릴리스 안정화의 균형을 잡습니다.",
+    "Gives larger changes an integration branch without requiring full Git Flow.": "전체 Git Flow까지 도입하지 않고도 큰 변경을 위한 통합 브랜치를 제공합니다.",
+    "Preserves release/* and hotfix/* escape hatches.": "release/*와 hotfix/* 비상 경로를 유지합니다.",
+    "Clear separation between production, integration, release, and hotfix work.": "프로덕션, 통합, 릴리스, 핫픽스 작업을 명확히 분리합니다.",
+    "Fits scheduled releases and larger teams.": "정기 릴리스와 큰 팀에 잘 맞습니다.",
+    "Makes npm channel governance explicit.": "npm 채널 거버넌스를 명확하게 만듭니다.",
+    "Can become noisy if large teams queue many changes at once.": "큰 팀이 많은 변경을 동시에 올리면 흐름이 복잡해질 수 있습니다.",
+    "Needs disciplined release tagging because there is no develop branch.": "develop 브랜치가 없으므로 릴리스 태그 규율이 필요합니다.",
+    "Requires strong automated tests and small pull requests.": "강한 자동화 테스트와 작은 PR이 필요합니다.",
+    "Can feel too strict for teams that need long stabilization windows.": "긴 안정화 기간이 필요한 팀에는 너무 엄격하게 느껴질 수 있습니다.",
+    "Needs clear rules for when develop is used.": "develop을 언제 쓰는지에 대한 명확한 규칙이 필요합니다.",
+    "May drift if integration branches stay open too long.": "통합 브랜치가 오래 열려 있으면 드리프트가 생길 수 있습니다.",
+    "Adds process overhead for small or fast-moving teams.": "작거나 빠르게 움직이는 팀에는 프로세스 부담이 늘어납니다.",
+    "Long-lived develop branches can hide integration risk.": "오래 유지되는 develop 브랜치가 통합 위험을 숨길 수 있습니다.",
+    "Protect main and require AIGate checks before merge.": "main을 보호하고 병합 전에 AIGate 검사를 필수로 둡니다.",
+    "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "집중된 작업에는 feature/*, fix/*, docs/*, chore/*, codex/*를 사용합니다.",
+    "Publish npm releases from main tags and use dist-tags for channels.": "main 태그에서 npm 릴리스를 배포하고 채널에는 dist-tag를 사용합니다.",
+    "Keep pull requests small enough to merge quickly into main.": "PR을 main에 빠르게 병합할 수 있을 만큼 작게 유지합니다.",
+    "Add short/* only for changes that will merge within a day.": "하루 안에 병합될 변경에만 short/*를 사용합니다.",
+    "Use release/* only when a production hardening window is unavoidable.": "프로덕션 안정화 기간이 불가피할 때만 release/*를 사용합니다.",
+    "Keep main stable and use develop only for planned integration.": "main은 안정적으로 유지하고 develop은 계획된 통합에만 사용합니다.",
+    "Use feature/* and codex/* branches for focused work.": "집중된 작업에는 feature/*와 codex/* 브랜치를 사용합니다.",
+    "Create release/* branches for stabilization and hotfix/* for urgent fixes.": "안정화에는 release/*, 긴급 수정에는 hotfix/* 브랜치를 만듭니다.",
+    "Create develop as the next-release integration branch.": "develop을 다음 릴리스 통합 브랜치로 만듭니다.",
+    "Route feature/* and codex/* branches into develop.": "feature/*와 codex/* 브랜치는 develop으로 병합합니다.",
+    "Cut release/* from develop, then merge release and hotfix work back to main.": "develop에서 release/*를 만들고, 릴리스와 핫픽스 작업은 main으로 다시 병합합니다.",
+    "Use main branch protection, required AIGate checks, and tag-driven npm release channels.": "main 브랜치 보호, 필수 AIGate 검사, 태그 기반 npm 릴리스 채널을 사용합니다.",
+    "Use strict main protection, fast required checks, and short-lived branch age limits.": "엄격한 main 보호, 빠른 필수 검사, 짧은 브랜치 유지 기간 제한을 사용합니다.",
+    "Use main protection, optional develop protection, release/* stabilization rules, and AI collaboration policy packs.": "main 보호, 선택적 develop 보호, release/* 안정화 규칙, AI 협업 정책 팩을 사용합니다.",
+    "Use protected main/develop/release/*/hotfix/* rules with explicit release and hotfix ownership.": "main/develop/release/*/hotfix/* 보호 규칙과 명확한 릴리스/핫픽스 소유권을 사용합니다."
+  },
+  ja: {
+    "small teams, public OSS projects, and on-demand releases": "小規模チーム、公開 OSS プロジェクト、必要時リリース",
+    "teams with strong CI, small pull requests, and very frequent releases": "強い CI、小さな PR、高頻度リリースを運用するチーム",
+    "growing teams that need fast feature work plus planned stabilization": "速い機能開発と計画的な安定化の両方が必要な成長中のチーム",
+    "larger teams, scheduled releases, and strict production governance": "大きなチーム、定期リリース、厳格な本番ガバナンス",
+    "Simple branch model for public contributors.": "公開コントリビューターが理解しやすい単純なブランチモデルです。",
+    "Release channels separate npm latest, next, beta, and canary.": "npm latest、next、beta、canary のリリースチャンネルを分離します。",
+    "Works well for small teams and fast merges.": "小規模チームと速いマージフローに適しています。",
+    "Keeps main close to production at all times.": "main を常に本番に近い状態に保ちます。",
+    "Fits strong CI and short-lived changes.": "強い CI と短期間の変更に適しています。",
+    "Reduces long-running branch drift.": "長期間残るブランチのドリフトを減らします。",
+    "Balances fast feature work with planned release stabilization.": "速い機能作業と計画的なリリース安定化のバランスを取ります。",
+    "Gives larger changes an integration branch without requiring full Git Flow.": "完全な Git Flow を要求せず、大きな変更向けの統合ブランチを提供します。",
+    "Preserves release/* and hotfix/* escape hatches.": "release/* と hotfix/* の退避経路を維持します。",
+    "Clear separation between production, integration, release, and hotfix work.": "本番、統合、リリース、ホットフィックス作業を明確に分離します。",
+    "Fits scheduled releases and larger teams.": "定期リリースと大きなチームに適しています。",
+    "Makes npm channel governance explicit.": "npm チャンネルのガバナンスを明確にします。",
+    "Can become noisy if large teams queue many changes at once.": "大きなチームが多くの変更を同時に積むと流れが複雑になります。",
+    "Needs disciplined release tagging because there is no develop branch.": "develop ブランチがないため、リリースタグの規律が必要です。",
+    "Requires strong automated tests and small pull requests.": "強い自動テストと小さな PR が必要です。",
+    "Can feel too strict for teams that need long stabilization windows.": "長い安定化期間が必要なチームには厳しすぎる場合があります。",
+    "Needs clear rules for when develop is used.": "develop をいつ使うかの明確なルールが必要です。",
+    "May drift if integration branches stay open too long.": "統合ブランチが長く開いたままだとドリフトが生じます。",
+    "Adds process overhead for small or fast-moving teams.": "小規模または高速に動くチームにはプロセス負荷が増えます。",
+    "Long-lived develop branches can hide integration risk.": "長期間残る develop ブランチは統合リスクを隠すことがあります。",
+    "Protect main and require AIGate checks before merge.": "main を保護し、マージ前に AIGate チェックを必須にします。",
+    "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "集中した作業には feature/*、fix/*、docs/*、chore/*、codex/* を使います。",
+    "Publish npm releases from main tags and use dist-tags for channels.": "main のタグから npm リリースを公開し、チャンネルには dist-tag を使います。",
+    "Keep pull requests small enough to merge quickly into main.": "PR は main へ素早くマージできる大きさに保ちます。",
+    "Add short/* only for changes that will merge within a day.": "1 日以内にマージする変更にだけ short/* を使います。",
+    "Use release/* only when a production hardening window is unavoidable.": "本番安定化期間が避けられない場合だけ release/* を使います。",
+    "Keep main stable and use develop only for planned integration.": "main は安定させ、develop は計画的な統合にだけ使います。",
+    "Use feature/* and codex/* branches for focused work.": "集中した作業には feature/* と codex/* ブランチを使います。",
+    "Create release/* branches for stabilization and hotfix/* for urgent fixes.": "安定化には release/*、緊急修正には hotfix/* ブランチを作成します。",
+    "Create develop as the next-release integration branch.": "develop を次回リリースの統合ブランチとして作成します。",
+    "Route feature/* and codex/* branches into develop.": "feature/* と codex/* ブランチは develop に統合します。",
+    "Cut release/* from develop, then merge release and hotfix work back to main.": "develop から release/* を切り、リリースとホットフィックス作業を main に戻します。",
+    "Use main branch protection, required AIGate checks, and tag-driven npm release channels.": "main ブランチ保護、必須 AIGate チェック、タグ駆動の npm リリースチャンネルを使います。",
+    "Use strict main protection, fast required checks, and short-lived branch age limits.": "厳格な main 保護、速い必須チェック、短命ブランチの期間制限を使います。",
+    "Use main protection, optional develop protection, release/* stabilization rules, and AI collaboration policy packs.": "main 保護、任意の develop 保護、release/* 安定化ルール、AI 協業ポリシーパックを使います。",
+    "Use protected main/develop/release/*/hotfix/* rules with explicit release and hotfix ownership.": "main/develop/release/*/hotfix/* の保護ルールと明確なリリース/ホットフィックス所有権を使います。"
+  },
+  zh: {
+    "small teams, public OSS projects, and on-demand releases": "小团队、公开开源项目和按需发布",
+    "teams with strong CI, small pull requests, and very frequent releases": "拥有强 CI、小 PR 和高频发布的团队",
+    "growing teams that need fast feature work plus planned stabilization": "既需要快速功能开发又需要计划内稳定期的成长团队",
+    "larger teams, scheduled releases, and strict production governance": "大型团队、定期发布和严格生产治理",
+    "Simple branch model for public contributors.": "公开贡献者容易理解的简单分支模型。",
+    "Release channels separate npm latest, next, beta, and canary.": "将 npm latest、next、beta、canary 发布频道分开。",
+    "Works well for small teams and fast merges.": "适合小团队和快速合并流程。",
+    "Keeps main close to production at all times.": "让 main 始终接近生产状态。",
+    "Fits strong CI and short-lived changes.": "适合强 CI 和短生命周期变更。",
+    "Reduces long-running branch drift.": "减少长期分支漂移。",
+    "Balances fast feature work with planned release stabilization.": "平衡快速功能开发和计划内发布稳定。",
+    "Gives larger changes an integration branch without requiring full Git Flow.": "无需完整 Git Flow，也能为大型变更提供集成分支。",
+    "Preserves release/* and hotfix/* escape hatches.": "保留 release/* 和 hotfix/* 应急路径。",
+    "Clear separation between production, integration, release, and hotfix work.": "清晰分离生产、集成、发布和热修复工作。",
+    "Fits scheduled releases and larger teams.": "适合定期发布和大型团队。",
+    "Makes npm channel governance explicit.": "让 npm 频道治理更明确。",
+    "Can become noisy if large teams queue many changes at once.": "大型团队同时排队大量变更时，流程可能变得嘈杂。",
+    "Needs disciplined release tagging because there is no develop branch.": "没有 develop 分支，因此需要严格的发布标签纪律。",
+    "Requires strong automated tests and small pull requests.": "需要强自动化测试和小 PR。",
+    "Can feel too strict for teams that need long stabilization windows.": "对于需要长稳定期的团队，可能显得过于严格。",
+    "Needs clear rules for when develop is used.": "需要明确何时使用 develop 的规则。",
+    "May drift if integration branches stay open too long.": "如果集成分支长期打开，可能产生漂移。",
+    "Adds process overhead for small or fast-moving teams.": "会给小团队或快速推进的团队增加流程成本。",
+    "Long-lived develop branches can hide integration risk.": "长期存在的 develop 分支可能隐藏集成风险。",
+    "Protect main and require AIGate checks before merge.": "保护 main，并在合并前要求 AIGate 检查。",
+    "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "聚焦工作使用 feature/*、fix/*、docs/*、chore/* 和 codex/*。",
+    "Publish npm releases from main tags and use dist-tags for channels.": "从 main 标签发布 npm，并使用 dist-tag 管理频道。",
+    "Keep pull requests small enough to merge quickly into main.": "保持 PR 足够小，以便快速合并到 main。",
+    "Add short/* only for changes that will merge within a day.": "仅对一天内会合并的变更使用 short/*。",
+    "Use release/* only when a production hardening window is unavoidable.": "只有无法避免生产加固窗口时才使用 release/*。",
+    "Keep main stable and use develop only for planned integration.": "保持 main 稳定，仅将 develop 用于计划内集成。",
+    "Use feature/* and codex/* branches for focused work.": "聚焦工作使用 feature/* 和 codex/* 分支。",
+    "Create release/* branches for stabilization and hotfix/* for urgent fixes.": "稳定期创建 release/*，紧急修复创建 hotfix/*。",
+    "Create develop as the next-release integration branch.": "将 develop 创建为下一版本集成分支。",
+    "Route feature/* and codex/* branches into develop.": "将 feature/* 和 codex/* 分支合入 develop。",
+    "Cut release/* from develop, then merge release and hotfix work back to main.": "从 develop 切出 release/*，再将发布和热修复工作合回 main。",
+    "Use main branch protection, required AIGate checks, and tag-driven npm release channels.": "使用 main 分支保护、必需 AIGate 检查和标签驱动的 npm 发布频道。",
+    "Use strict main protection, fast required checks, and short-lived branch age limits.": "使用严格 main 保护、快速必需检查和短生命周期分支限制。",
+    "Use main protection, optional develop protection, release/* stabilization rules, and AI collaboration policy packs.": "使用 main 保护、可选 develop 保护、release/* 稳定规则和 AI 协作政策包。",
+    "Use protected main/develop/release/*/hotfix/* rules with explicit release and hotfix ownership.": "使用受保护的 main/develop/release/*/hotfix/* 规则，并明确发布和热修复所有权。"
+  }
+};
+
 const GITHUB_PROTECTION_TRANSLATIONS = {
   ko: {
     "Require pull request before merging into main.": "main에 병합하기 전에 PR을 필수로 요구합니다.",
@@ -772,7 +901,7 @@ const HELP_CONTENT = {
       ["evaluate-project", "Score repository workflow foundations."],
       ["score", "Print only the project score."],
       ["trends <record|show>", "Track repository health trend history."],
-      ["branch-strategy", "Recommend a branch strategy."],
+      ["branch-strategy", "Recommend or compare branch strategies."],
       ["release-check", "Validate package release readiness."],
       ["audit-report", "Generate a policy and governance audit report."],
       ["notify <setup|test|send>", "Preview or send notification workflows."],
@@ -792,6 +921,7 @@ const HELP_CONTENT = {
       ["--body <text>", "Pull request body."],
       ["--generate", "Write generated branch strategy guidance."],
       ["--apply", "Apply branch strategy policy files locally."],
+      ["--compare", "Compare branch strategy proposals."],
       ["--github", "Include GitHub protection guidance."],
       ["--deep", "Include deeper project history signals."],
       ["--report", "Render a project evaluation report."],
@@ -833,7 +963,7 @@ const HELP_CONTENT = {
       ["evaluate-project", "저장소 워크플로 기반 점수를 계산합니다."],
       ["score", "프로젝트 점수만 출력합니다."],
       ["trends <record|show>", "저장소 상태 추세 기록을 관리합니다."],
-      ["branch-strategy", "브랜치 전략을 추천합니다."],
+      ["branch-strategy", "브랜치 전략을 추천하거나 비교합니다."],
       ["release-check", "패키지 릴리스 준비 상태를 검증합니다."],
       ["audit-report", "정책과 거버넌스 감사 리포트를 생성합니다."],
       ["notify <setup|test|send>", "알림 흐름을 미리 보거나 전송합니다."],
@@ -853,6 +983,7 @@ const HELP_CONTENT = {
       ["--body <text>", "PR 본문을 지정합니다."],
       ["--generate", "브랜치 전략 가이드를 생성합니다."],
       ["--apply", "브랜치 전략 정책 파일을 로컬에 적용합니다."],
+      ["--compare", "브랜치 전략 제안을 비교합니다."],
       ["--github", "GitHub 보호 규칙 가이드를 포함합니다."],
       ["--deep", "더 깊은 프로젝트 히스토리 신호를 포함합니다."],
       ["--report", "프로젝트 평가 리포트를 렌더링합니다."],
@@ -894,7 +1025,7 @@ const HELP_CONTENT = {
       ["evaluate-project", "リポジトリのワークフロー基盤を採点します。"],
       ["score", "プロジェクトスコアのみ出力します。"],
       ["trends <record|show>", "リポジトリ状態トレンド履歴を管理します。"],
-      ["branch-strategy", "ブランチ戦略を推薦します。"],
+      ["branch-strategy", "ブランチ戦略を推薦または比較します。"],
       ["release-check", "パッケージのリリース準備状況を検証します。"],
       ["audit-report", "ポリシーとガバナンスの監査レポートを生成します。"],
       ["notify <setup|test|send>", "通知ワークフローをプレビューまたは送信します。"],
@@ -914,6 +1045,7 @@ const HELP_CONTENT = {
       ["--body <text>", "PR 本文を指定します。"],
       ["--generate", "ブランチ戦略ガイドを生成します。"],
       ["--apply", "ブランチ戦略ポリシーファイルをローカルに適用します。"],
+      ["--compare", "ブランチ戦略提案を比較します。"],
       ["--github", "GitHub 保護ルールガイドを含めます。"],
       ["--deep", "より深いプロジェクト履歴シグナルを含めます。"],
       ["--report", "プロジェクト評価レポートをレンダリングします。"],
@@ -955,7 +1087,7 @@ const HELP_CONTENT = {
       ["evaluate-project", "评估仓库工作流基础分。"],
       ["score", "仅输出项目分数。"],
       ["trends <record|show>", "管理仓库状态趋势历史。"],
-      ["branch-strategy", "推荐分支策略。"],
+      ["branch-strategy", "推荐或比较分支策略。"],
       ["release-check", "验证包发布就绪状态。"],
       ["audit-report", "生成政策和治理审计报告。"],
       ["notify <setup|test|send>", "预览或发送通知工作流。"],
@@ -975,6 +1107,7 @@ const HELP_CONTENT = {
       ["--body <text>", "PR 正文。"],
       ["--generate", "生成分支策略指南。"],
       ["--apply", "在本地应用分支策略政策文件。"],
+      ["--compare", "比较分支策略提案。"],
       ["--github", "包含 GitHub 保护规则指南。"],
       ["--deep", "包含更深入的项目历史信号。"],
       ["--report", "渲染项目评估报告。"],
@@ -1861,6 +1994,19 @@ function commandBranchStrategy(args) {
   }
   const strategy = buildBranchStrategy(options);
 
+  if (options.compare) {
+    const comparison = buildBranchStrategyComparison(options, strategy);
+
+    if (options.format === "json") {
+      return JSON.stringify({
+        command: "branch-strategy",
+        comparison
+      }, null, 2);
+    }
+
+    return renderBranchStrategyComparison(comparison, language);
+  }
+
   if (options.generate || options.apply) {
     const files = buildBranchStrategyFiles(strategy, options.outputDir ?? ".", language);
     const results = writeProjectFiles(files, Boolean(options.force));
@@ -2490,6 +2636,77 @@ function buildBranchStrategy(options = {}) {
   };
 }
 
+function buildBranchStrategyComparison(options = {}, recommendedStrategy = buildBranchStrategy(options)) {
+  const candidates = [
+    "GitHub Flow with release channels",
+    "Trunk-Based Development",
+    "Hybrid Flow",
+    "Git Flow"
+  ];
+
+  const proposals = candidates
+    .map((strategyName) => buildBranchStrategyProposal(strategyName, recommendedStrategy))
+    .sort((left, right) => right.score - left.score || left.name.localeCompare(right.name));
+
+  return {
+    command: "branch-strategy compare",
+    recommended: recommendedStrategy.name,
+    signals: recommendedStrategy.signals,
+    proposals
+  };
+}
+
+function buildBranchStrategyProposal(strategyName, recommendedStrategy) {
+  const signals = recommendedStrategy.signals;
+  const teamSize = signals.teamSize ?? 0;
+  const releaseCadence = signals.releaseCadence ?? "auto";
+  let score = 50;
+
+  if (strategyName === recommendedStrategy.name) {
+    score += 15;
+  }
+
+  if (strategyName === "GitHub Flow with release channels") {
+    if (!teamSize || teamSize <= 5) score += 10;
+    if (["on-demand", "continuous", "daily", "auto"].includes(releaseCadence)) score += 8;
+  }
+
+  if (strategyName === "Trunk-Based Development") {
+    if (signals.hasCi) score += 10;
+    if (!teamSize || teamSize <= 10) score += 8;
+    if (["continuous", "daily"].includes(releaseCadence)) score += 10;
+    if (["monthly", "quarterly", "scheduled"].includes(releaseCadence)) score -= 12;
+  }
+
+  if (strategyName === "Hybrid Flow") {
+    if (teamSize >= 6 && teamSize <= 15) score += 12;
+    if (["weekly", "biweekly"].includes(releaseCadence)) score += 10;
+    if (signals.hasCi) score += 4;
+  }
+
+  if (strategyName === "Git Flow") {
+    if (teamSize >= 12) score += 12;
+    if (["monthly", "quarterly", "scheduled"].includes(releaseCadence)) score += 10;
+    if (signals.branchCount >= 6) score += 8;
+  }
+
+  return {
+    name: strategyName,
+    recommended: strategyName === recommendedStrategy.name,
+    score: clampScore(score),
+    branches: branchRulesForStrategy(strategyName),
+    bestFor: strategyBestFor(strategyName),
+    strengths: strategyStrengths(strategyName),
+    risks: strategyRisks(strategyName),
+    migration: strategyMigrationSteps(strategyName),
+    policyFit: strategyPolicyFit(strategyName)
+  };
+}
+
+function clampScore(score) {
+  return Math.max(45, Math.min(95, score));
+}
+
 function selectBranchStrategy({ branchNames, hasCi, teamSize, releaseCadence }) {
   const hasDevelop = branchNames.some((branch) => branch === "develop" || branch.endsWith("/develop"));
   const hasReleaseBranches = branchNames.some((branch) => /(^|\/)release\//.test(branch));
@@ -2554,6 +2771,95 @@ function branchRulesForStrategy(strategyName) {
     { name: "release/*", use: "release stabilization" },
     { name: "hotfix/*", use: "urgent stable fixes" }
   ];
+}
+
+function strategyBestFor(strategyName) {
+  return {
+    "GitHub Flow with release channels": "small teams, public OSS projects, and on-demand releases",
+    "Trunk-Based Development": "teams with strong CI, small pull requests, and very frequent releases",
+    "Hybrid Flow": "growing teams that need fast feature work plus planned stabilization",
+    "Git Flow": "larger teams, scheduled releases, and strict production governance"
+  }[strategyName];
+}
+
+function strategyStrengths(strategyName) {
+  return {
+    "GitHub Flow with release channels": [
+      "Simple branch model for public contributors.",
+      "Release channels separate npm latest, next, beta, and canary.",
+      "Works well for small teams and fast merges."
+    ],
+    "Trunk-Based Development": [
+      "Keeps main close to production at all times.",
+      "Fits strong CI and short-lived changes.",
+      "Reduces long-running branch drift."
+    ],
+    "Hybrid Flow": [
+      "Balances fast feature work with planned release stabilization.",
+      "Gives larger changes an integration branch without requiring full Git Flow.",
+      "Preserves release/* and hotfix/* escape hatches."
+    ],
+    "Git Flow": [
+      "Clear separation between production, integration, release, and hotfix work.",
+      "Fits scheduled releases and larger teams.",
+      "Makes npm channel governance explicit."
+    ]
+  }[strategyName] ?? [];
+}
+
+function strategyRisks(strategyName) {
+  return {
+    "GitHub Flow with release channels": [
+      "Can become noisy if large teams queue many changes at once.",
+      "Needs disciplined release tagging because there is no develop branch."
+    ],
+    "Trunk-Based Development": [
+      "Requires strong automated tests and small pull requests.",
+      "Can feel too strict for teams that need long stabilization windows."
+    ],
+    "Hybrid Flow": [
+      "Needs clear rules for when develop is used.",
+      "May drift if integration branches stay open too long."
+    ],
+    "Git Flow": [
+      "Adds process overhead for small or fast-moving teams.",
+      "Long-lived develop branches can hide integration risk."
+    ]
+  }[strategyName] ?? [];
+}
+
+function strategyMigrationSteps(strategyName) {
+  return {
+    "GitHub Flow with release channels": [
+      "Protect main and require AIGate checks before merge.",
+      "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.",
+      "Publish npm releases from main tags and use dist-tags for channels."
+    ],
+    "Trunk-Based Development": [
+      "Keep pull requests small enough to merge quickly into main.",
+      "Add short/* only for changes that will merge within a day.",
+      "Use release/* only when a production hardening window is unavoidable."
+    ],
+    "Hybrid Flow": [
+      "Keep main stable and use develop only for planned integration.",
+      "Use feature/* and codex/* branches for focused work.",
+      "Create release/* branches for stabilization and hotfix/* for urgent fixes."
+    ],
+    "Git Flow": [
+      "Create develop as the next-release integration branch.",
+      "Route feature/* and codex/* branches into develop.",
+      "Cut release/* from develop, then merge release and hotfix work back to main."
+    ]
+  }[strategyName] ?? [];
+}
+
+function strategyPolicyFit(strategyName) {
+  return {
+    "GitHub Flow with release channels": "Use main branch protection, required AIGate checks, and tag-driven npm release channels.",
+    "Trunk-Based Development": "Use strict main protection, fast required checks, and short-lived branch age limits.",
+    "Hybrid Flow": "Use main protection, optional develop protection, release/* stabilization rules, and AI collaboration policy packs.",
+    "Git Flow": "Use protected main/develop/release/*/hotfix/* rules with explicit release and hotfix ownership."
+  }[strategyName];
 }
 
 function buildReleaseCheck(options = {}) {
@@ -3222,6 +3528,138 @@ function renderBranchStrategyMarkdown(strategy, language = "en") {
     "",
     ...strategy.generatedOutputs.map((file) => `- \`${file}\``)
   ].join("\n");
+}
+
+function renderBranchStrategyComparison(comparison, language = "en") {
+  const labels = branchStrategyComparisonLabels(language);
+  const lines = [
+    `# ${labels.title}`,
+    "",
+    `${labels.recommended}: ${translateStrategyName(comparison.recommended, language)}`,
+    `${labels.signals}: ${renderStrategySignals(comparison.signals, language)}`
+  ];
+
+  for (const proposal of comparison.proposals) {
+    lines.push(
+      "",
+      `## ${translateStrategyName(proposal.name, language)}${proposal.recommended ? ` (${labels.recommended})` : ""}`,
+      "",
+      `- ${labels.score}: ${proposal.score}/100`,
+      `- ${labels.bestFor}: ${translateStrategyComparisonText(proposal.bestFor, language)}`,
+      `- ${labels.policyFit}: ${translateStrategyComparisonText(proposal.policyFit, language)}`,
+      "",
+      `### ${labels.branches}`,
+      "",
+      ...proposal.branches.map((branch) => `- \`${branch.name}\`: ${translateBranchUse(branch.use, language)}`),
+      "",
+      `### ${labels.strengths}`,
+      "",
+      ...proposal.strengths.map((item) => `- ${translateStrategyComparisonText(item, language)}`),
+      "",
+      `### ${labels.risks}`,
+      "",
+      ...proposal.risks.map((item) => `- ${translateStrategyComparisonText(item, language)}`),
+      "",
+      `### ${labels.migration}`,
+      "",
+      ...proposal.migration.map((item) => `- ${translateStrategyComparisonText(item, language)}`)
+    );
+  }
+
+  return lines.join("\n");
+}
+
+function branchStrategyComparisonLabels(language = "en") {
+  return {
+    en: {
+      title: "Branch Strategy Proposals",
+      recommended: "Recommended strategy",
+      signals: "Signals",
+      score: "Fit score",
+      bestFor: "Best for",
+      policyFit: "Policy fit",
+      branches: "Branches",
+      strengths: "Strengths",
+      risks: "Risks",
+      migration: "Migration steps",
+      teamSize: "team size",
+      releaseCadence: "release cadence",
+      ci: "CI",
+      branchCount: "branches",
+      yes: "yes",
+      no: "no"
+    },
+    ko: {
+      title: "브랜치 전략 제안 비교",
+      recommended: "권장 전략",
+      signals: "판단 신호",
+      score: "적합 점수",
+      bestFor: "적합한 상황",
+      policyFit: "정책 적용",
+      branches: "브랜치",
+      strengths: "강점",
+      risks: "위험",
+      migration: "전환 단계",
+      teamSize: "팀 규모",
+      releaseCadence: "릴리스 주기",
+      ci: "CI",
+      branchCount: "브랜치 수",
+      yes: "예",
+      no: "아니오"
+    },
+    ja: {
+      title: "ブランチ戦略提案の比較",
+      recommended: "推奨戦略",
+      signals: "判断シグナル",
+      score: "適合スコア",
+      bestFor: "適した状況",
+      policyFit: "ポリシー適合",
+      branches: "ブランチ",
+      strengths: "強み",
+      risks: "リスク",
+      migration: "移行手順",
+      teamSize: "チームサイズ",
+      releaseCadence: "リリース頻度",
+      ci: "CI",
+      branchCount: "ブランチ数",
+      yes: "はい",
+      no: "いいえ"
+    },
+    zh: {
+      title: "分支策略提案比较",
+      recommended: "推荐策略",
+      signals: "判断信号",
+      score: "适配分数",
+      bestFor: "适用场景",
+      policyFit: "政策适配",
+      branches: "分支",
+      strengths: "优势",
+      risks: "风险",
+      migration: "迁移步骤",
+      teamSize: "团队规模",
+      releaseCadence: "发布节奏",
+      ci: "CI",
+      branchCount: "分支数",
+      yes: "是",
+      no: "否"
+    }
+  }[language] ?? branchStrategyComparisonLabels("en");
+}
+
+function renderStrategySignals(signals, language = "en") {
+  const labels = branchStrategyComparisonLabels(language);
+  const autoValue = {
+    en: "auto",
+    ko: "자동",
+    ja: "自動",
+    zh: "自动"
+  }[language] ?? "auto";
+  return [
+    `${labels.teamSize}: ${signals.teamSize ?? autoValue}`,
+    `${labels.releaseCadence}: ${translateStrategySignalValue(signals.releaseCadence, language)}`,
+    `${labels.ci}: ${signals.hasCi ? labels.yes : labels.no}`,
+    `${labels.branchCount}: ${signals.branchCount}`
+  ].join(", ");
 }
 
 function buildBranchStrategyFiles(strategy, outputDir, language = "en") {
@@ -4550,6 +4988,56 @@ function translateBranchReasonPart(part, language) {
   }
 
   return part;
+}
+
+function translateStrategySignalValue(value, language) {
+  if (language === "en") {
+    return value;
+  }
+
+  return {
+    ko: {
+      auto: "자동",
+      daily: "매일",
+      continuous: "상시",
+      "on-demand": "필요 시",
+      weekly: "매주",
+      biweekly: "격주",
+      monthly: "매월",
+      quarterly: "분기별",
+      scheduled: "정기"
+    },
+    ja: {
+      auto: "自動",
+      daily: "毎日",
+      continuous: "継続的",
+      "on-demand": "必要時",
+      weekly: "毎週",
+      biweekly: "隔週",
+      monthly: "毎月",
+      quarterly: "四半期ごと",
+      scheduled: "定期"
+    },
+    zh: {
+      auto: "自动",
+      daily: "每日",
+      continuous: "持续",
+      "on-demand": "按需",
+      weekly: "每周",
+      biweekly: "每两周",
+      monthly: "每月",
+      quarterly: "每季度",
+      scheduled: "定期"
+    }
+  }[language]?.[value] ?? value;
+}
+
+function translateStrategyComparisonText(value, language) {
+  if (language === "en") {
+    return value;
+  }
+
+  return STRATEGY_COMPARISON_TRANSLATIONS[language]?.[value] ?? value;
 }
 
 function translateGithubProtection(rule, language) {

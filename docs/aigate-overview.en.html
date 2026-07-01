@@ -533,7 +533,7 @@ npx aigate-cli check</code></pre>
       <div><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>audit-report</span></div>
     </article><article class="command-group group-4">
       <h3>Release</h3>
-      <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>notify</span></div>
+      <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>branch-strategy --compare</span><span>notify</span></div>
     </article></div>
     </section>
 
@@ -638,6 +638,10 @@ npx aigate-cli check</code></pre>
     <td>Recommend a branch strategy for team and release cadence.</td>
     <td>Branch policy design</td>
   </tr><tr>
+    <td><code>aigate branch-strategy --compare</code></td>
+    <td>Compare branch strategy proposals by score, strengths, risks, and migration steps.</td>
+    <td>Choosing the right branch model for a team</td>
+  </tr><tr>
     <td><code>aigate branch-strategy --apply</code></td>
     <td>Generate branch policy, release, hotfix, PR, CODEOWNERS, and policy pack drafts.</td>
     <td>Starting policy files</td>
@@ -694,6 +698,7 @@ aigate pr --title &quot;feat: short summary&quot;
 aigate github comment --pr &lt;number&gt;
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate branch-strategy --compare
 aigate github setup --owner @your-org/team --dry-run
 aigate release-check --npm</code></pre>
     </section>
@@ -703,7 +708,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">Features</p>
         <h2>Implemented Features</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">Public npm package aigate-cli and npx execution</div><div class="feature done">Git change and untracked-file readiness checks</div><div class="feature done">First-run UX through doctor, demo, and install-hook</div><div class="feature done">Pre-push Git hook installation</div><div class="feature done">Secret pattern detection and SARIF output</div><div class="feature done">git-ready, guarded push, and guarded PR creation</div><div class="feature done">GitHub PR comments and GitHub Checks summary payloads</div><div class="feature done">PR template and CODEOWNERS guided setup</div><div class="feature done">Reusable public GitHub Action</div><div class="feature done">Project health trend history</div><div class="feature done">Markdown, HTML, JSON, and SARIF reports</div><div class="feature done">Project scoring and deep Git signal evaluation</div><div class="feature done">Branch strategy recommendations and policy pack generation</div><div class="feature done">Codex/Gemini integration file generation</div><div class="feature done">Korean/English/Japanese/Chinese CLI settings</div><div class="feature done">release-check and release-check --npm</div><div class="feature done">Automated npm releases through Trusted Publishing</div><div class="feature done">GitHub CI, OpenSSF Scorecard, and GitHub Releases</div><div class="feature done">Terminal, Slack BLOCK, Discord, and Teams webhook notifications</div></div>
+      <div class="feature-grid"><div class="feature done">Public npm package aigate-cli and npx execution</div><div class="feature done">Git change and untracked-file readiness checks</div><div class="feature done">First-run UX through doctor, demo, and install-hook</div><div class="feature done">Pre-push Git hook installation</div><div class="feature done">Secret pattern detection and SARIF output</div><div class="feature done">git-ready, guarded push, and guarded PR creation</div><div class="feature done">GitHub PR comments and GitHub Checks summary payloads</div><div class="feature done">PR template and CODEOWNERS guided setup</div><div class="feature done">Reusable public GitHub Action</div><div class="feature done">Project health trend history</div><div class="feature done">Markdown, HTML, JSON, and SARIF reports</div><div class="feature done">Project scoring and deep Git signal evaluation</div><div class="feature done">Branch strategy recommendations, proposal comparison, and policy pack generation</div><div class="feature done">Codex/Gemini integration file generation</div><div class="feature done">Korean/English/Japanese/Chinese CLI settings</div><div class="feature done">release-check and release-check --npm</div><div class="feature done">Automated npm releases through Trusted Publishing</div><div class="feature done">GitHub CI, OpenSSF Scorecard, and GitHub Releases</div><div class="feature done">Terminal, Slack BLOCK, Discord, and Teams webhook notifications</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">

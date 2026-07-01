@@ -52,6 +52,7 @@ aigate pr-check
 | repository health score | `aigate evaluate-project` |
 | 项目状态趋势历史 | `aigate trends record` |
 | 分支策略政策包 | `aigate branch-strategy --apply` |
+| 分支策略提案比较 | `aigate branch-strategy --compare` |
 | npm release readiness check | `aigate release-check --npm` |
 | Codex/Gemini integration files | `aigate integrate all` |
 
