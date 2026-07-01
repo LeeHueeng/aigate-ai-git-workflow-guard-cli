@@ -20,6 +20,19 @@ Before the first npm publish:
 4. Run the Release workflow with `dry_run=true`.
 5. Create and push the release tag, for example `v0.1.0`.
 
+Use these npm Trusted Publisher settings:
+
+| Field | Value |
+| --- | --- |
+| Provider | GitHub Actions |
+| Organization or user | `LeeHueeng` |
+| Repository | `aigate-ai-git-workflow-guard-cli` |
+| Workflow filename | `release.yml` |
+| Allowed actions | `npm publish` |
+
+The release workflow uses GitHub OIDC with `id-token: write`, npm CLI
+`11.5.1+`, and Node.js `24`.
+
 ## Docker
 
 Build locally:

@@ -1192,6 +1192,7 @@ function buildReleaseCheck() {
     { name: "publishConfig access is public", pass: packageJson.publishConfig?.access === "public" },
     { name: "release workflow exists", pass: existsSync(join(".github", "workflows", "release.yml")) },
     { name: "release workflow uses npm provenance", pass: fileIncludes(join(".github", "workflows", "release.yml"), "--provenance") },
+    { name: "release workflow disables package manager cache", pass: fileIncludes(join(".github", "workflows", "release.yml"), "package-manager-cache: false") },
     { name: "README documents install channels", pass: fileIncludes("README.md", "npm install -g @aigate/cli") },
     { name: `${expectedTag} tag exists`, pass: hasExpectedTag }
   ];
