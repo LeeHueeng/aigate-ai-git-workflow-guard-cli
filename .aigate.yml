@@ -22,6 +22,17 @@ reports:
     - json
     - sarif
 
+security:
+  scanChangedFiles: true
+  maxFileBytes: 250000
+  blockOnSecretFindings: true
+  rules:
+    - aws-access-key-id
+    - github-token
+    - slack-token
+    - private-key
+    - generic-secret
+
 notifications:
   defaults:
     BLOCK:
