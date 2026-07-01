@@ -1,0 +1,21 @@
+# Changelog
+
+All notable changes to AIGate are documented here.
+
+## 0.1.2 - Unreleased
+
+- Expanded CLI localization across help, reports, release checks, audit output,
+  notifications, and generated assistant instructions.
+- Added Slack BLOCK webhook notifications for readiness gate failures.
+- Added Discord and Teams webhook payload support for notification tests and
+  sends.
+- Improved tests for multilingual output and webhook notification payloads.
+
+## 0.1.0 - 2026-07-01
+
+- Published the first public `aigate-cli` npm package.
+- Added local Git readiness checks, guarded push, pull request readiness
+  reports, project scoring, branch strategy recommendations, release checks,
+  audit reports, and AI assistant integration file generation.
+- Added public repository foundations including CI, OpenSSF Scorecard,
+  Dependabot, security policy, governance, support, and contribution docs.

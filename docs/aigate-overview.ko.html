@@ -626,6 +626,14 @@ npx aigate-cli check</code></pre>
     <td><code>aigate notify send --channel terminal</code></td>
     <td>로컬 알림 이벤트를 출력합니다.</td>
     <td>게이트 차단 상황 확인</td>
+  </tr><tr>
+    <td><code>aigate git-ready --notify-channel slack</code></td>
+    <td>BLOCK 상황에서 Slack webhook 알림을 전송합니다.</td>
+    <td>민감 정보나 고위험 변경이 차단될 때</td>
+  </tr><tr>
+    <td><code>aigate notify test --channel slack</code></td>
+    <td>Slack, Discord, Teams webhook payload를 테스트합니다.</td>
+    <td>팀 채널 연동 점검</td>
   </tr></tbody>
     </table>
   </div>
@@ -654,7 +662,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">기능</p>
         <h2>현재 구현된 기능</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm 패키지 aigate-cli 공개 배포와 npx 실행</div><div class="feature done">Git 변경사항과 untracked 파일 기반 readiness check</div><div class="feature done">secret 패턴 탐지와 SARIF 출력</div><div class="feature done">git-ready, guarded push, guarded PR 생성 흐름</div><div class="feature done">Markdown, HTML, JSON, SARIF 리포트</div><div class="feature done">프로젝트 점수와 deep Git signal 평가</div><div class="feature done">브랜치 전략 추천과 정책 초안 생성</div><div class="feature done">Codex/Gemini 통합 파일 생성</div><div class="feature done">한국어/영어/일본어/중국어 CLI 설정</div><div class="feature done">release-check와 release-check --npm</div><div class="feature done">npm Trusted Publishing 기반 자동 배포</div><div class="feature done">GitHub CI, OpenSSF Scorecard, GitHub Release 운영</div><div class="feature done">터미널 알림과 webhook 전송 기반</div></div>
+      <div class="feature-grid"><div class="feature done">npm 패키지 aigate-cli 공개 배포와 npx 실행</div><div class="feature done">Git 변경사항과 untracked 파일 기반 readiness check</div><div class="feature done">secret 패턴 탐지와 SARIF 출력</div><div class="feature done">git-ready, guarded push, guarded PR 생성 흐름</div><div class="feature done">Markdown, HTML, JSON, SARIF 리포트</div><div class="feature done">프로젝트 점수와 deep Git signal 평가</div><div class="feature done">브랜치 전략 추천과 정책 초안 생성</div><div class="feature done">Codex/Gemini 통합 파일 생성</div><div class="feature done">한국어/영어/일본어/중국어 CLI 설정</div><div class="feature done">release-check와 release-check --npm</div><div class="feature done">npm Trusted Publishing 기반 자동 배포</div><div class="feature done">GitHub CI, OpenSSF Scorecard, GitHub Release 운영</div><div class="feature done">터미널, Slack BLOCK, Discord, Teams webhook 알림</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -662,7 +670,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">기능</p>
         <h2>미래에 구현할 기능</h2>
       </div>
-      <div class="feature-grid"><div class="feature planned">Slack BLOCK 알림을 제품 수준 UX로 정리</div><div class="feature planned">Docker image 공개 배포</div><div class="feature planned">Homebrew formula 배포</div><div class="feature planned">재사용 가능한 GitHub Action marketplace 공개</div><div class="feature planned">Discord, Teams, email 알림 채널 강화</div><div class="feature planned">GitHub PR comment와 GitHub Checks 연동</div><div class="feature planned">주간 팀 리포트와 추세 분석</div><div class="feature planned">Linear/Jira 이슈 추적 연동</div><div class="feature planned">standalone binary 배포</div><div class="feature planned">조직 대시보드, 정책 pack, 감사/컴플라이언스 리포트</div><div class="feature planned">self-hosted reporting, SSO/SAML, 엔터프라이즈 거버넌스</div></div>
+      <div class="feature-grid"><div class="feature planned">Slack BLOCK 알림을 제품 수준 UX로 고도화</div><div class="feature planned">Docker image 공개 배포</div><div class="feature planned">Homebrew formula 배포</div><div class="feature planned">재사용 가능한 GitHub Action marketplace 공개</div><div class="feature planned">email 알림 채널과 알림 정책 강화</div><div class="feature planned">GitHub PR comment와 GitHub Checks 연동</div><div class="feature planned">주간 팀 리포트와 추세 분석</div><div class="feature planned">Linear/Jira 이슈 추적 연동</div><div class="feature planned">standalone binary 배포</div><div class="feature planned">조직 대시보드, 정책 pack, 감사/컴플라이언스 리포트</div><div class="feature planned">self-hosted reporting, SSO/SAML, 엔터프라이즈 거버넌스</div></div>
     </section>
   </main>
 

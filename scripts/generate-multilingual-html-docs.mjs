@@ -93,7 +93,9 @@ const locales = {
       ["aigate release-check", "패키지, workflow, tag 상태를 점검합니다.", "릴리스 태그 생성 전"],
       ["aigate release-check --npm", "npm registry에 해당 버전이 있는지 확인합니다.", "자동 배포 전후"],
       ["aigate audit-report", "거버넌스와 정책 상태를 요약합니다.", "운영 감사와 공개 준비 리뷰"],
-      ["aigate notify send --channel terminal", "로컬 알림 이벤트를 출력합니다.", "게이트 차단 상황 확인"]
+      ["aigate notify send --channel terminal", "로컬 알림 이벤트를 출력합니다.", "게이트 차단 상황 확인"],
+      ["aigate git-ready --notify-channel slack", "BLOCK 상황에서 Slack webhook 알림을 전송합니다.", "민감 정보나 고위험 변경이 차단될 때"],
+      ["aigate notify test --channel slack", "Slack, Discord, Teams webhook payload를 테스트합니다.", "팀 채널 연동 점검"]
     ],
     branchTitle: "브랜치와 배포 흐름",
     branchText: "main은 보호된 안정 브랜치이며, codex/*와 feature/* 같은 작업 브랜치에서 PR을 만든 뒤 병합합니다. release/*와 hotfix/*는 배포 안정화와 긴급 수정에 예약되어 있습니다.",
@@ -125,14 +127,14 @@ const locales = {
       "release-check와 release-check --npm",
       "npm Trusted Publishing 기반 자동 배포",
       "GitHub CI, OpenSSF Scorecard, GitHub Release 운영",
-      "터미널 알림과 webhook 전송 기반"
+      "터미널, Slack BLOCK, Discord, Teams webhook 알림"
     ],
     future: [
-      "Slack BLOCK 알림을 제품 수준 UX로 정리",
+      "Slack BLOCK 알림을 제품 수준 UX로 고도화",
       "Docker image 공개 배포",
       "Homebrew formula 배포",
       "재사용 가능한 GitHub Action marketplace 공개",
-      "Discord, Teams, email 알림 채널 강화",
+      "email 알림 채널과 알림 정책 강화",
       "GitHub PR comment와 GitHub Checks 연동",
       "주간 팀 리포트와 추세 분석",
       "Linear/Jira 이슈 추적 연동",
@@ -212,7 +214,9 @@ const locales = {
       ["aigate release-check", "Check package, workflow, and tag readiness.", "Before creating a release tag"],
       ["aigate release-check --npm", "Check whether the version exists on npm.", "Before and after automated publishing"],
       ["aigate audit-report", "Summarize governance and policy posture.", "Operational audit and public readiness"],
-      ["aigate notify send --channel terminal", "Print a local notification event.", "Checking gate-block events"]
+      ["aigate notify send --channel terminal", "Print a local notification event.", "Checking gate-block events"],
+      ["aigate git-ready --notify-channel slack", "Send a Slack webhook notification when a BLOCK occurs.", "When secrets or risky changes block the gate"],
+      ["aigate notify test --channel slack", "Test Slack, Discord, and Teams webhook payloads.", "Validating team channel integrations"]
     ],
     branchTitle: "Branch And Delivery Flow",
     branchText: "main is the protected stable branch. Work happens on codex/*, feature/*, fix/*, docs/*, and chore/* branches, then lands through PRs. release/* and hotfix/* are reserved for release stabilization and urgent fixes.",
@@ -244,14 +248,14 @@ const locales = {
       "release-check and release-check --npm",
       "Automated npm releases through Trusted Publishing",
       "GitHub CI, OpenSSF Scorecard, and GitHub Releases",
-      "Terminal notifications and webhook transport foundation"
+      "Terminal, Slack BLOCK, Discord, and Teams webhook notifications"
     ],
     future: [
       "Product-grade Slack BLOCK notification UX",
       "Published Docker image",
       "Homebrew formula",
       "Reusable GitHub Action marketplace release",
-      "Stronger Discord, Teams, and email channels",
+      "Email channel and notification policy hardening",
       "GitHub PR comments and GitHub Checks integration",
       "Weekly team reports and trend analytics",
       "Linear/Jira issue tracker integrations",
@@ -331,7 +335,9 @@ const locales = {
       ["aigate release-check", "パッケージ、workflow、tag の準備状態を確認します。", "リリース tag 作成前"],
       ["aigate release-check --npm", "該当バージョンが npm に存在するか確認します。", "自動公開の前後"],
       ["aigate audit-report", "ガバナンスとポリシー状態を要約します。", "運用監査と公開準備レビュー"],
-      ["aigate notify send --channel terminal", "ローカル通知イベントを出力します。", "ゲートブロック確認"]
+      ["aigate notify send --channel terminal", "ローカル通知イベントを出力します。", "ゲートブロック確認"],
+      ["aigate git-ready --notify-channel slack", "BLOCK 時に Slack webhook 通知を送信します。", "secret や高リスク変更でゲートが止まるとき"],
+      ["aigate notify test --channel slack", "Slack、Discord、Teams webhook payload をテストします。", "チームチャンネル連携の確認"]
     ],
     branchTitle: "ブランチとデリバリーの流れ",
     branchText: "main は保護された安定ブランチです。作業は codex/*、feature/*、fix/*、docs/*、chore/* で行い、PR 経由で main に入れます。release/* と hotfix/* はリリース安定化と緊急修正用です。",
@@ -363,14 +369,14 @@ const locales = {
       "release-check と release-check --npm",
       "Trusted Publishing による npm 自動リリース",
       "GitHub CI、OpenSSF Scorecard、GitHub Release 運用",
-      "ターミナル通知と webhook 送信基盤"
+      "ターミナル、Slack BLOCK、Discord、Teams webhook 通知"
     ],
     future: [
       "製品レベルの Slack BLOCK 通知 UX",
       "Docker image の公開配布",
       "Homebrew formula",
       "再利用可能な GitHub Action marketplace 公開",
-      "Discord、Teams、email チャンネル強化",
+      "email チャンネルと通知ポリシー強化",
       "GitHub PR comment と GitHub Checks 連携",
       "週次チームレポートとトレンド分析",
       "Linear/Jira 連携",
@@ -450,7 +456,9 @@ const locales = {
       ["aigate release-check", "检查包、workflow 和 tag 准备状态。", "创建发布 tag 前"],
       ["aigate release-check --npm", "检查该版本是否存在于 npm。", "自动发布前后"],
       ["aigate audit-report", "汇总治理和政策状态。", "运维审计和公开准备"],
-      ["aigate notify send --channel terminal", "输出本地通知事件。", "检查门禁阻塞事件"]
+      ["aigate notify send --channel terminal", "输出本地通知事件。", "检查门禁阻塞事件"],
+      ["aigate git-ready --notify-channel slack", "BLOCK 时发送 Slack webhook 通知。", "敏感信息或高风险变更阻塞门禁时"],
+      ["aigate notify test --channel slack", "测试 Slack、Discord、Teams webhook payload。", "验证团队频道集成"]
     ],
     branchTitle: "分支与交付流程",
     branchText: "main 是受保护的稳定分支。工作在 codex/*、feature/*、fix/*、docs/*、chore/* 分支上完成，并通过 PR 合并。release/* 和 hotfix/* 用于发布稳定和紧急修复。",
@@ -482,14 +490,14 @@ const locales = {
       "release-check 和 release-check --npm",
       "基于 Trusted Publishing 的 npm 自动发布",
       "GitHub CI、OpenSSF Scorecard、GitHub Release 运维",
-      "终端通知和 webhook 传输基础"
+      "终端、Slack BLOCK、Discord、Teams webhook 通知"
     ],
     future: [
       "产品级 Slack BLOCK 通知体验",
       "公开 Docker image",
       "Homebrew formula",
       "可复用 GitHub Action marketplace 发布",
-      "增强 Discord、Teams、email 通道",
+      "email 通道和通知政策强化",
       "GitHub PR comment 和 GitHub Checks 集成",
       "每周团队报告和趋势分析",
       "Linear/Jira 问题追踪集成",

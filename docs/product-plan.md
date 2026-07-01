@@ -69,6 +69,10 @@ Route important events such as `BLOCK`, `WARN`, `PR_ONLY`, and
 `SECRET_DETECTED` to terminal, desktop notifications, Slack, Discord, Teams,
 email, GitHub pull request comments, GitHub Checks, Linear, or Jira.
 
+Current CLI support includes terminal notifications plus Slack, Discord, Teams,
+and custom webhook payloads. Email, GitHub pull request comments, GitHub
+Checks, Linear, and Jira remain staged integrations.
+
 ### Report Generator
 
 Generate local change reports, pull request readiness reports, weekly team
@@ -97,6 +101,7 @@ The first public MVP should prove:
 - Clear Markdown, HTML, JSON, and SARIF reports.
 - Basic branch strategy recommendation.
 - Basic Slack webhook notification path for blocking events.
+- Discord and Teams webhook payload foundations.
 - Release readiness checks through `aigate release-check`.
 - Governance snapshots through `aigate audit-report`.
 - Public documentation and contribution process.

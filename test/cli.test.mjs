@@ -89,6 +89,27 @@ function createMinimalGitProject() {
   return projectDir;
 }
 
+function createFakeCurlBin() {
+  const binDir = mkdtempSync(join(tmpdir(), "aigate-curl-"));
+  const curlPath = join(binDir, "curl");
+  const payloadPath = join(binDir, "payload.json");
+  writeFileSync(curlPath, [
+    "#!/bin/sh",
+    "payload=''",
+    "while [ \"$#\" -gt 0 ]; do",
+    "  if [ \"$1\" = \"--data\" ]; then",
+    "    shift",
+    "    payload=\"$1\"",
+    "  fi",
+    "  shift",
+    "done",
+    "printf '%s\\n' \"$payload\" > \"$AIGATE_CURL_CAPTURE\"",
+    "exit 0"
+  ].join("\n"));
+  chmodSync(curlPath, 0o755);
+  return { binDir, payloadPath };
+}
+
 test("shows help", () => {
   const result = run(["--help"]);
 
@@ -341,6 +362,62 @@ test("requires webhook env for webhook notifications", () => {
 
   assert.equal(result.status, 1);
   assert.match(result.stdout, /Missing webhook environment variable: AIGATE_SLACK_WEBHOOK_URL/);
+});
+
+test("sends Slack webhook notification when git-ready blocks", () => {
+  const projectDir = createMinimalGitProject();
+  const { binDir, payloadPath } = createFakeCurlBin();
+  const secretValue = ["abcdefghijklmnop", "qrstuvwxyz123456"].join("");
+  writeFileSync(join(projectDir, "tmp-aigate-secret-fixture.txt"), `api_key = "${secretValue}"\n`, "utf8");
+
+  const result = run(["git-ready", "--notify-channel", "slack", "--language", "ko"], {
+    cwd: projectDir,
+    env: {
+      PATH: `${binDir}:${process.env.PATH}`,
+      AIGATE_CURL_CAPTURE: payloadPath
+    },
+    slackWebhook: "https://hooks.slack.test/services/aigate"
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /AIGate 준비 검사: 차단/);
+  assert.match(result.stdout, /slack 채널로 BLOCK 알림을 보냈습니다/);
+
+  const payload = JSON.parse(readFileSync(payloadPath, "utf8"));
+  assert.match(payload.text, /AIGate BLOCK: 차단/);
+  assert.ok(Array.isArray(payload.blocks));
+  assert.equal(payload.aigate.event, "BLOCK");
+  assert.equal(payload.aigate.channel, "slack");
+  assert.equal(payload.aigate.secretFindings, 1);
+  assert.ok(payload.aigate.blockers.some((blocker) => /민감 정보/.test(blocker)));
+});
+
+test("renders Discord and Teams webhook payloads through notify test", () => {
+  const discord = createFakeCurlBin();
+  const discordResult = run(["notify", "test", "--event", "WARN", "--channel", "discord"], {
+    env: {
+      PATH: `${discord.binDir}:${process.env.PATH}`,
+      AIGATE_CURL_CAPTURE: discord.payloadPath,
+      AIGATE_DISCORD_WEBHOOK_URL: "https://discord.test/webhook"
+    }
+  });
+  assert.equal(discordResult.status, 0);
+  const discordPayload = JSON.parse(readFileSync(discord.payloadPath, "utf8"));
+  assert.match(discordPayload.content, /AIGate WARN:/);
+  assert.ok(Array.isArray(discordPayload.embeds));
+
+  const teams = createFakeCurlBin();
+  const teamsResult = run(["notify", "test", "--event", "WARN", "--channel", "teams"], {
+    env: {
+      PATH: `${teams.binDir}:${process.env.PATH}`,
+      AIGATE_CURL_CAPTURE: teams.payloadPath,
+      AIGATE_TEAMS_WEBHOOK_URL: "https://teams.test/webhook"
+    }
+  });
+  assert.equal(teamsResult.status, 0);
+  const teamsPayload = JSON.parse(readFileSync(teams.payloadPath, "utf8"));
+  assert.equal(teamsPayload["@type"], "MessageCard");
+  assert.match(teamsPayload.summary, /AIGate WARN:/);
 });
 
 test("renders markdown report by default", () => {

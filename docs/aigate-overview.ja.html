@@ -626,6 +626,14 @@ npx aigate-cli check</code></pre>
     <td><code>aigate notify send --channel terminal</code></td>
     <td>ローカル通知イベントを出力します。</td>
     <td>ゲートブロック確認</td>
+  </tr><tr>
+    <td><code>aigate git-ready --notify-channel slack</code></td>
+    <td>BLOCK 時に Slack webhook 通知を送信します。</td>
+    <td>secret や高リスク変更でゲートが止まるとき</td>
+  </tr><tr>
+    <td><code>aigate notify test --channel slack</code></td>
+    <td>Slack、Discord、Teams webhook payload をテストします。</td>
+    <td>チームチャンネル連携の確認</td>
   </tr></tbody>
     </table>
   </div>
@@ -654,7 +662,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">機能</p>
         <h2>現在実装済みの機能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦とポリシー草案生成</div><div class="feature done">Codex/Gemini 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル通知と webhook 送信基盤</div></div>
+      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦とポリシー草案生成</div><div class="feature done">Codex/Gemini 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams webhook 通知</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -662,7 +670,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">機能</p>
         <h2>今後実装する機能</h2>
       </div>
-      <div class="feature-grid"><div class="feature planned">製品レベルの Slack BLOCK 通知 UX</div><div class="feature planned">Docker image の公開配布</div><div class="feature planned">Homebrew formula</div><div class="feature planned">再利用可能な GitHub Action marketplace 公開</div><div class="feature planned">Discord、Teams、email チャンネル強化</div><div class="feature planned">GitHub PR comment と GitHub Checks 連携</div><div class="feature planned">週次チームレポートとトレンド分析</div><div class="feature planned">Linear/Jira 連携</div><div class="feature planned">standalone binary 配布</div><div class="feature planned">組織ダッシュボード、policy pack、監査/コンプライアンスレポート</div><div class="feature planned">self-hosted reporting、SSO/SAML、エンタープライズガバナンス</div></div>
+      <div class="feature-grid"><div class="feature planned">製品レベルの Slack BLOCK 通知 UX</div><div class="feature planned">Docker image の公開配布</div><div class="feature planned">Homebrew formula</div><div class="feature planned">再利用可能な GitHub Action marketplace 公開</div><div class="feature planned">email チャンネルと通知ポリシー強化</div><div class="feature planned">GitHub PR comment と GitHub Checks 連携</div><div class="feature planned">週次チームレポートとトレンド分析</div><div class="feature planned">Linear/Jira 連携</div><div class="feature planned">standalone binary 配布</div><div class="feature planned">組織ダッシュボード、policy pack、監査/コンプライアンスレポート</div><div class="feature planned">self-hosted reporting、SSO/SAML、エンタープライズガバナンス</div></div>
     </section>
   </main>
 
