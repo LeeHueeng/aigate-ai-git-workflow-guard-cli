@@ -61,7 +61,7 @@ Future package split:
 ### Package Distribution Manager
 
 Manage install channels, version tags, and release documentation across npm,
-yarn, pnpm, bun, Homebrew, Docker, and GitHub Releases.
+yarn, pnpm, bun, Homebrew, Docker, GitHub Actions, and GitHub Releases.
 
 ### Notification Center
 
@@ -97,6 +97,8 @@ The first public MVP should prove:
 - Clear Markdown, HTML, JSON, and SARIF reports.
 - Basic branch strategy recommendation.
 - Basic Slack webhook notification path for blocking events.
+- Release readiness checks through `aigate release-check`.
+- Governance snapshots through `aigate audit-report`.
 - Public documentation and contribution process.
 
 ## Business Model Direction

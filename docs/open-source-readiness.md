@@ -24,6 +24,10 @@ This checklist keeps AIGate useful and trustworthy for public contributors.
 - [x] SARIF report output
 - [x] OpenSSF Scorecard workflow
 - [x] npm Trusted Publishing workflow scaffold
+- [x] release readiness check
+- [x] audit report command
+- [x] local Dockerfile
+- [x] local GitHub composite action
 
 ## Maintainer Workflow
 
@@ -37,6 +41,7 @@ This checklist keeps AIGate useful and trustworthy for public contributors.
 
 - Claim or confirm npm access for `@aigate/cli`.
 - Configure npm Trusted Publisher for this GitHub repository.
+- Run `aigate release-check`.
 - Set version to the first intended release, for example `0.1.0`.
 - Create a GitHub release tag, for example `v0.1.0`.
 - Confirm `npm view @aigate/cli` after publish.

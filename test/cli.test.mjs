@@ -36,6 +36,8 @@ test("shows help", () => {
   assert.match(result.stdout, /AI Git Workflow Guard CLI/);
   assert.match(result.stdout, /init/);
   assert.match(result.stdout, /pr-check/);
+  assert.match(result.stdout, /release-check/);
+  assert.match(result.stdout, /audit-report/);
   assert.match(result.stdout, /branch-strategy/);
   assert.match(result.stdout, /setup/);
   assert.match(result.stdout, /settings/);
@@ -237,6 +239,16 @@ test("renders html report safely", () => {
   assert.match(result.stdout, /AIGate pr report/);
 });
 
+test("renders weekly and risk report sections", () => {
+  const weekly = run(["report", "--type", "weekly"]);
+  assert.equal(weekly.status, 0);
+  assert.match(weekly.stdout, /Weekly Team Signals/);
+
+  const risk = run(["report", "--type", "risk"]);
+  assert.equal(risk.status, 0);
+  assert.match(risk.stdout, /Risk Signals/);
+});
+
 test("blocks possible secrets in changed files", () => {
   const secretPath = join(repoRoot, "tmp-aigate-secret-fixture.txt");
   const secretValue = ["abcdefghijklmnop", "qrstuvwxyz123456"].join("");
@@ -275,6 +287,29 @@ test("renders deep project evaluation report", () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /# AIGate Project Evaluation/);
   assert.match(result.stdout, /Deep Signals/);
+});
+
+test("checks release readiness", () => {
+  const result = run(["release-check", "--format", "json"]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "release-check");
+  assert.equal(output.packageName, "@aigate/cli");
+  assert.equal(output.version, "0.1.0");
+  assert.equal(output.expectedTag, "v0.1.0");
+  assert.ok(["READY", "ACTION_REQUIRED"].includes(output.status));
+});
+
+test("renders audit report", () => {
+  const result = run(["audit-report", "--format", "json"]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "audit-report");
+  assert.equal(typeof output.projectScore, "number");
+  assert.ok(Array.isArray(output.findings));
+  assert.ok(Array.isArray(output.recommendations));
 });
 
 test("recommends branch strategy", () => {
