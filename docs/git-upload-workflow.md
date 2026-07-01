@@ -66,7 +66,7 @@ Open a pull request into `main`. Include:
 
 Do not merge until:
 
-- the `test` CI job passes
+- the `test (20)` and `test (22)` CI jobs pass
 - at least one approval exists
 - review conversations are resolved
 - the branch has no unrelated changes
