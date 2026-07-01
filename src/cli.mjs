@@ -1,9 +1,25 @@
 #!/usr/bin/env node
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 
 const VERSION = "0.0.0";
+const SUPPORTED_LANGUAGES = ["en", "ko"];
+const DEFAULT_SETTINGS = {
+  version: 1,
+  language: "en"
+};
+
+const RECOMMENDATIONS_KO = new Map([
+  ["No local changes detected.", "로컬 변경사항이 없습니다."],
+  ["Run AIGate inside a Git repository.", "Git 저장소 안에서 AIGate를 실행하세요."],
+  ["Review possible secret-bearing files before commit or push.", "커밋이나 푸시 전에 secret이 포함될 수 있는 파일을 확인하세요."],
+  ["Open a focused branch and pull request after tests pass.", "테스트 통과 후 범위가 분명한 브랜치와 pull request를 만드세요."],
+  ["Resolve blockers before committing, pushing, or opening a pull request.", "커밋, 푸시, pull request 생성 전에 차단 사유를 해결하세요."],
+  ["Run npm test, commit focused changes, push the branch, and open a pull request.", "npm test를 실행한 뒤 범위가 분명한 변경을 커밋하고 브랜치를 푸시한 다음 pull request를 만드세요."],
+  ["Repository foundations are ready for the next MVP slice.", "저장소 기반이 다음 MVP 작업을 진행할 준비가 됐습니다."],
+  ["Complete the missing repository foundations before public release.", "공개 릴리스 전에 누락된 저장소 기반을 보완하세요."]
+]);
 
 const helpText = `AIGate ${VERSION}
 
@@ -16,6 +32,8 @@ Commands:
   check                    Summarize local Git readiness.
   git-ready                Run the before-push readiness gate.
   push                     Run AIGate checks, then run git push.
+  setup                    Configure AIGate project settings.
+  settings                 Show current AIGate settings.
   report                   Print a workflow report.
   evaluate-project         Score repository workflow foundations.
   score                    Print only the project score.
@@ -29,6 +47,7 @@ Options:
   --generate               Write generated branch strategy guidance.
   --github                 Include GitHub protection guidance.
   --event <name>           Notification event name.
+  --language <en|ko>       Select output language.
   --dry-run                Preview an AIGate command without changing remotes.
   --no-verify              Skip the AIGate readiness gate for push.
   --version                Print CLI version.
@@ -38,6 +57,8 @@ const commands = {
   check: commandCheck,
   "git-ready": commandGitReady,
   push: commandPush,
+  setup: commandSetup,
+  settings: commandSettings,
   report: commandReport,
   "evaluate-project": commandEvaluateProject,
   score: commandScore,
@@ -73,6 +94,10 @@ function main(argv) {
 
 function commandCheck(args) {
   const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
   const status = buildGitStatus();
   const result = {
     command: "check",
@@ -87,6 +112,15 @@ function commandCheck(args) {
     return JSON.stringify(result, null, 2);
   }
 
+  if (language === "ko") {
+    return [
+      `AIGate 검사: ${result.status}`,
+      `브랜치: ${result.branch}`,
+      `변경 파일: ${result.changedFiles}`,
+      `권장 사항: ${translateRecommendation(result.recommendation, language)}`
+    ].join("\n");
+  }
+
   return [
     `AIGate check: ${result.status}`,
     `Branch: ${result.branch}`,
@@ -96,29 +130,44 @@ function commandCheck(args) {
 }
 
 function commandGitReady(args) {
-  return formatGitReadyResult(buildGitReadyResult(), parseOptions(args));
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  return formatGitReadyResult(buildGitReadyResult(), options, language);
 }
 
 function commandPush(args) {
   const options = parseOptions(args);
-  const pushArgs = args.filter((arg) => arg !== "--dry-run" && arg !== "--no-verify");
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const pushArgs = stripAigatePushOptions(args);
   const lines = [];
 
   if (!options.noVerify) {
     const result = buildGitReadyResult();
-    lines.push(formatGitReadyResult(result, { format: "text" }));
+    lines.push(formatGitReadyResult(result, { format: "text" }, language));
 
     if (result.blockers.length) {
       process.exitCode = 1;
       return lines.join("\n");
     }
   } else {
-    lines.push("AIGate push: readiness gate skipped with --no-verify");
+    lines.push(language === "ko"
+      ? "AIGate push: --no-verify로 준비 게이트를 건너뜁니다."
+      : "AIGate push: readiness gate skipped with --no-verify");
   }
 
   const gitArgs = ["push", ...pushArgs];
   if (options.dryRun) {
-    lines.push(`Would run: git ${gitArgs.join(" ")}`);
+    lines.push(language === "ko"
+      ? `실행 예정: git ${gitArgs.join(" ")}`
+      : `Would run: git ${gitArgs.join(" ")}`);
     return lines.join("\n");
   }
 
@@ -140,6 +189,80 @@ function commandPush(args) {
   }
 
   return lines.join("\n");
+}
+
+function commandSetup(args) {
+  const options = parseOptions(args);
+  const currentSettings = readSettings();
+  const language = normalizeLanguage(options.language ?? currentSettings.language ?? DEFAULT_SETTINGS.language);
+
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    ...currentSettings,
+    language
+  };
+
+  writeSettings(settings);
+
+  if (options.format === "json") {
+    return JSON.stringify({
+      command: "setup",
+      settingsPath: getSettingsPath(),
+      settings
+    }, null, 2);
+  }
+
+  if (language === "ko") {
+    return [
+      "AIGate 설정 완료",
+      `설정 파일: ${getSettingsPath()}`,
+      `언어: ${language}`
+    ].join("\n");
+  }
+
+  return [
+    "AIGate setup complete",
+    `Settings file: ${getSettingsPath()}`,
+    `Language: ${language}`
+  ].join("\n");
+}
+
+function commandSettings(args) {
+  const options = parseOptions(args);
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    ...readSettings()
+  };
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  if (options.format === "json") {
+    return JSON.stringify({
+      command: "settings",
+      settingsPath: getSettingsPath(),
+      settings
+    }, null, 2);
+  }
+
+  if (language === "ko") {
+    return [
+      "AIGate 설정",
+      `설정 파일: ${getSettingsPath()}`,
+      `언어: ${settings.language}`
+    ].join("\n");
+  }
+
+  return [
+    "AIGate settings",
+    `Settings file: ${getSettingsPath()}`,
+    `Language: ${settings.language}`
+  ].join("\n");
 }
 
 function buildGitReadyResult() {
@@ -172,13 +295,25 @@ function buildGitReadyResult() {
   };
 }
 
-function formatGitReadyResult(result, options) {
+function formatGitReadyResult(result, options, language = "en") {
   if (result.blockers.length) {
     process.exitCode = 1;
   }
 
   if (options.format === "json") {
     return JSON.stringify(result, null, 2);
+  }
+
+  if (language === "ko") {
+    return [
+      `AIGate git-ready: ${result.status === "READY" ? "준비 완료" : "차단"}`,
+      `브랜치: ${result.branch}`,
+      `변경 파일: ${result.changedFiles}`,
+      `프로젝트 점수: ${result.projectScore}/100`,
+      result.blockers.length ? "차단 사유:" : "차단 사유: 없음",
+      ...result.blockers.map((blocker) => `- ${translateBlocker(blocker, language)}`),
+      `권장 사항: ${translateRecommendation(result.recommendation, language)}`
+    ].join("\n");
   }
 
   return [
@@ -420,6 +555,116 @@ function renderBranchStrategyMarkdown(strategy) {
     "",
     ...strategy.githubProtection.map((rule) => `- ${rule}`)
   ].join("\n");
+}
+
+function readSettings() {
+  const settingsPath = getSettingsPath();
+  if (!existsSync(settingsPath)) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(readFileSync(settingsPath, "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+function writeSettings(settings) {
+  const settingsPath = getSettingsPath();
+  mkdirSync(dirname(settingsPath), { recursive: true });
+  writeFileSync(settingsPath, `${JSON.stringify(settings, null, 2)}\n`, "utf8");
+}
+
+function getSettingsPath() {
+  return process.env.AIGATE_SETTINGS_PATH ?? join(".aigate", "settings.json");
+}
+
+function resolveLanguage(options) {
+  if (options.language !== undefined) {
+    return normalizeLanguage(options.language);
+  }
+
+  const settings = readSettings();
+  return normalizeLanguage(settings.language ?? DEFAULT_SETTINGS.language);
+}
+
+function normalizeLanguage(value) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  const aliases = {
+    english: "en",
+    eng: "en",
+    korean: "ko",
+    kr: "ko",
+    "ko-kr": "ko",
+    "한국어": "ko"
+  };
+  const language = aliases[normalized] ?? normalized;
+  return SUPPORTED_LANGUAGES.includes(language) ? language : null;
+}
+
+function unsupportedLanguage(value) {
+  process.exitCode = 1;
+  return [
+    `Unsupported language: ${value ?? ""}`.trim(),
+    `Supported languages: ${SUPPORTED_LANGUAGES.join(", ")}`
+  ].join("\n");
+}
+
+function translateRecommendation(recommendation, language) {
+  if (language !== "ko") {
+    return recommendation;
+  }
+
+  return RECOMMENDATIONS_KO.get(recommendation) ?? recommendation;
+}
+
+function translateBlocker(blocker, language) {
+  if (language !== "ko") {
+    return blocker;
+  }
+
+  if (blocker === "AIGate must run inside a Git repository.") {
+    return "AIGate는 Git 저장소 안에서 실행해야 합니다.";
+  }
+
+  if (blocker === "Possible secret-bearing file names are present in local changes.") {
+    return "로컬 변경사항에 secret이 포함될 수 있는 파일명이 있습니다.";
+  }
+
+  return blocker.replace(
+    /^Project foundation score is (\d+)\/100; minimum is 80\.$/,
+    "프로젝트 기반 점수는 $1/100이며 최소 기준은 80입니다."
+  );
+}
+
+function stripAigatePushOptions(args) {
+  const pushArgs = [];
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (
+      arg === "--dry-run" ||
+      arg === "--no-verify" ||
+      arg.startsWith("--dry-run=") ||
+      arg.startsWith("--no-verify=")
+    ) {
+      continue;
+    }
+
+    if (arg === "--language") {
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith("--language=")) {
+      continue;
+    }
+
+    pushArgs.push(arg);
+  }
+
+  return pushArgs;
 }
 
 function parseOptions(args) {

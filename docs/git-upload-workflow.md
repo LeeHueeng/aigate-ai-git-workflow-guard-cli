@@ -20,6 +20,12 @@ Use one of these prefixes:
 
 ## 2. Check The Work Before Commit
 
+Choose your local CLI language once:
+
+```sh
+aigate setup --language ko
+```
+
 ```sh
 npm run git:ready
 git status --short --branch

@@ -1,15 +1,26 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { mkdtempSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 const cliPath = fileURLToPath(new URL("../src/cli.mjs", import.meta.url));
 const repoRoot = fileURLToPath(new URL("..", import.meta.url));
 
-function run(args) {
+function createSettingsPath() {
+  return join(mkdtempSync(join(tmpdir(), "aigate-settings-")), "settings.json");
+}
+
+function run(args, options = {}) {
   return spawnSync(process.execPath, [cliPath, ...args], {
     cwd: repoRoot,
-    encoding: "utf8"
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      AIGATE_SETTINGS_PATH: options.settingsPath ?? createSettingsPath()
+    }
   });
 }
 
@@ -19,6 +30,9 @@ test("shows help", () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /AI Git Workflow Guard CLI/);
   assert.match(result.stdout, /branch-strategy/);
+  assert.match(result.stdout, /setup/);
+  assert.match(result.stdout, /settings/);
+  assert.match(result.stdout, /--language/);
   assert.match(result.stdout, /push/);
 });
 
@@ -57,6 +71,40 @@ test("can skip push readiness gate in dry-run mode", () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /readiness gate skipped/);
   assert.match(result.stdout, /Would run: git push/);
+});
+
+test("configures Korean language setting", () => {
+  const settingsPath = createSettingsPath();
+  const setup = run(["setup", "--language", "ko"], { settingsPath });
+
+  assert.equal(setup.status, 0);
+  assert.match(setup.stdout, /AIGate 설정 완료/);
+
+  const settings = JSON.parse(readFileSync(settingsPath, "utf8"));
+  assert.equal(settings.language, "ko");
+
+  const check = run(["check"], { settingsPath });
+  assert.equal(check.status, 0);
+  assert.match(check.stdout, /AIGate 검사:/);
+  assert.match(check.stdout, /브랜치:/);
+});
+
+test("shows settings as json", () => {
+  const settingsPath = createSettingsPath();
+  run(["setup", "--language", "en"], { settingsPath });
+  const result = run(["settings", "--format", "json"], { settingsPath });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "settings");
+  assert.equal(output.settings.language, "en");
+});
+
+test("rejects unsupported language", () => {
+  const result = run(["setup", "--language", "jp"]);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /Unsupported language: jp/);
 });
 
 test("renders markdown report by default", () => {

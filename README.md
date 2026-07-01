@@ -47,6 +47,13 @@ node src/cli.mjs --help
 node src/cli.mjs branch-strategy
 ```
 
+Set the CLI output language:
+
+```sh
+aigate setup --language ko
+aigate settings
+```
+
 ## Initial Commands
 
 | Command | Purpose |
@@ -54,6 +61,8 @@ node src/cli.mjs branch-strategy
 | `aigate check` | Summarize current Git readiness. |
 | `aigate git-ready` | Run the before-push readiness gate. |
 | `aigate push` | Run AIGate checks, then run `git push`. |
+| `aigate setup --language ko` | Save local AIGate settings. |
+| `aigate settings` | Show current AIGate settings. |
 | `aigate report` | Print a local workflow report. |
 | `aigate evaluate-project` | Score project workflow foundations. |
 | `aigate score` | Print only the project score. |
