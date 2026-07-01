@@ -2,8 +2,11 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const VERSION = "0.0.0";
+const CLI_DIR = dirname(fileURLToPath(import.meta.url));
+const PACKAGE_ROOT = dirname(CLI_DIR);
+const VERSION = readPackageVersion();
 const SUPPORTED_LANGUAGES = ["en", "ko"];
 const SUPPORTED_INTEGRATIONS = ["codex", "gemini"];
 const DEFAULT_SETTINGS = {
@@ -38,10 +41,12 @@ Usage:
   aigate <command> [options]
 
 Commands:
+  init                     Create starter AIGate project configuration.
   check                    Summarize local Git readiness.
   git-ready                Run the before-push readiness gate.
   push                     Run AIGate checks, then run git push.
   pr                       Run AIGate checks, then create a GitHub pull request.
+  pr-check                 Generate a pull request readiness report.
   setup                    Configure AIGate project settings.
   settings                 Show current AIGate settings.
   integrate <provider>     Generate Codex/Gemini assistant integration files.
@@ -60,9 +65,15 @@ Options:
   --title <text>           Pull request title.
   --body <text>            Pull request body.
   --generate               Write generated branch strategy guidance.
+  --apply                  Apply branch strategy policy files locally.
   --github                 Include GitHub protection guidance.
+  --deep                   Include deeper project history signals.
+  --report                 Render a project evaluation report.
+  --team-size <number>     Team size signal for strategy recommendations.
+  --release <cadence>      Release cadence signal for strategy recommendations.
   --event <name>           Notification event name.
   --channel <name>         Notification channel.
+  --notify-channel <name>  Send BLOCK notification when a gate blocks.
   --language <en|ko>       Select output language.
   --output-dir <path>      Select integration output directory.
   --force                  Overwrite generated integration files.
@@ -72,10 +83,12 @@ Options:
 `;
 
 const commands = {
+  init: commandInit,
   check: commandCheck,
   "git-ready": commandGitReady,
   push: commandPush,
   pr: commandPr,
+  "pr-check": commandPrCheck,
   setup: commandSetup,
   settings: commandSettings,
   integrate: commandIntegrate,
@@ -110,6 +123,49 @@ function main(argv) {
   if (output) {
     print(output);
   }
+}
+
+function commandInit(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const packageJson = readJsonFile("package.json");
+  const outputDir = options.outputDir ?? ".";
+  const files = [
+    {
+      path: options.config ?? join(outputDir, ".aigate.yml"),
+      content: renderDefaultConfig(packageJson)
+    },
+    {
+      path: join(outputDir, ".aigate", "reports", ".gitkeep"),
+      content: ""
+    }
+  ];
+  const results = writeProjectFiles(files, Boolean(options.force));
+
+  if (options.format === "json") {
+    return JSON.stringify({
+      command: "init",
+      files: results
+    }, null, 2);
+  }
+
+  const lines = language === "ko"
+    ? [
+        "AIGate 초기화 완료",
+        ...results.map((result) => `- ${translateIntegrationAction(result.action)}: ${result.path}`),
+        "다음 단계: aigate evaluate-project && aigate branch-strategy --github"
+      ]
+    : [
+        "AIGate init complete",
+        ...results.map((result) => `- ${result.action}: ${result.path}`),
+        "Next: aigate evaluate-project && aigate branch-strategy --github"
+      ];
+
+  return lines.join("\n");
 }
 
 function commandCheck(args) {
@@ -181,6 +237,7 @@ function commandPush(args) {
     lines.push(formatGitReadyResult(result, { format: "text" }, language));
 
     if (result.blockers.length) {
+      appendBlockNotification(lines, options);
       process.exitCode = 1;
       return lines.join("\n");
     }
@@ -231,6 +288,7 @@ function commandPr(args) {
     lines.push(formatGitReadyResult(readiness, { format: "text" }, language));
 
     if (readiness.blockers.length) {
+      appendBlockNotification(lines, options);
       process.exitCode = 1;
       return lines.join("\n");
     }
@@ -280,6 +338,21 @@ function commandPr(args) {
   }
 
   return lines.join("\n");
+}
+
+function commandPrCheck(args) {
+  const options = parseOptions(args);
+  const format = options.format ?? "markdown";
+  const report = buildReport("pr");
+  const output = renderReport(report, format);
+
+  if (options.output) {
+    mkdirSync(dirname(options.output), { recursive: true });
+    writeFileSync(options.output, `${output}\n`, "utf8");
+    return `Wrote ${options.output}`;
+  }
+
+  return output;
 }
 
 function commandSetup(args) {
@@ -493,7 +566,20 @@ function commandReport(args) {
 
 function commandEvaluateProject(args) {
   const options = parseOptions(args);
-  const evaluation = buildEvaluation();
+  const evaluation = buildEvaluation({ deep: Boolean(options.deep) });
+
+  if (options.report) {
+    const format = options.format ?? "markdown";
+    const output = renderProjectEvaluationReport(evaluation, format);
+
+    if (options.output) {
+      mkdirSync(dirname(options.output), { recursive: true });
+      writeFileSync(options.output, `${output}\n`, "utf8");
+      return `Wrote ${options.output}`;
+    }
+
+    return output;
+  }
 
   if (options.format === "json") {
     return JSON.stringify(evaluation, null, 2);
@@ -503,11 +589,29 @@ function commandEvaluateProject(args) {
     const mark = check.pass ? "PASS" : "TODO";
     return `- ${mark}: ${check.name}`;
   });
+  const categoryRows = evaluation.categories.map((category) => (
+    `- ${category.name}: ${category.score}/${category.weight}`
+  ));
+  const signalRows = evaluation.deepSignals
+    ? [
+        "",
+        "Deep signals:",
+        `- Commits inspected: ${evaluation.deepSignals.commitCount}`,
+        `- Branches detected: ${evaluation.deepSignals.branchCount}`,
+        `- Tags detected: ${evaluation.deepSignals.tagCount}`,
+        `- Release workflows: ${evaluation.deepSignals.releaseWorkflowCount}`
+      ]
+    : [];
 
   return [
-    `AIGate project score: ${evaluation.score}/100`,
+    `AIGate project score: ${evaluation.score}/100 (${evaluation.grade})`,
     "",
+    "Categories:",
+    ...categoryRows,
+    "",
+    "Checks:",
     ...rows,
+    ...signalRows,
     "",
     `Recommendation: ${evaluation.recommendation}`
   ].join("\n");
@@ -519,13 +623,24 @@ function commandScore() {
 
 function commandBranchStrategy(args) {
   const options = parseOptions(args);
-  const strategy = buildBranchStrategy();
+  const strategy = buildBranchStrategy(options);
 
-  if (options.generate) {
-    mkdirSync(".aigate", { recursive: true });
-    const outputPath = join(".aigate", "generated-branch-strategy.md");
-    writeFileSync(outputPath, renderBranchStrategyMarkdown(strategy), "utf8");
-    return `Generated ${outputPath}`;
+  if (options.generate || options.apply) {
+    const files = buildBranchStrategyFiles(strategy, options.outputDir ?? ".");
+    const results = writeProjectFiles(files, Boolean(options.force));
+
+    if (options.format === "json") {
+      return JSON.stringify({
+        command: "branch-strategy",
+        strategy,
+        files: results
+      }, null, 2);
+    }
+
+    return [
+      options.apply ? "Applied branch strategy files" : "Generated branch strategy files",
+      ...results.map((result) => `- ${result.action}: ${result.path}`)
+    ].join("\n");
   }
 
   if (options.format === "json") {
@@ -542,6 +657,10 @@ function commandBranchStrategy(args) {
 
   if (options.github) {
     lines.push("", "GitHub protection:", ...strategy.githubProtection.map((rule) => `- ${rule}`));
+  }
+
+  if (strategy.generatedOutputs.length) {
+    lines.push("", "Generated outputs:", ...strategy.generatedOutputs.map((file) => `- ${file}`));
   }
 
   return lines.join("\n");
@@ -631,6 +750,16 @@ function sendNotification(event, channel, options) {
   }
 
   return `Sent ${event} notification to ${channel}`;
+}
+
+function appendBlockNotification(lines, options) {
+  if (!options.notifyChannel) {
+    return;
+  }
+
+  const originalExitCode = process.exitCode;
+  lines.push("", sendNotification("BLOCK", options.notifyChannel, options));
+  process.exitCode = originalExitCode;
 }
 
 function defaultWebhookEnv(channel) {
@@ -756,35 +885,135 @@ function buildGitStatus() {
   };
 }
 
-function buildEvaluation() {
+function buildEvaluation(options = {}) {
+  const packageJson = readJsonFile("package.json");
   const checks = [
-    { name: "README exists", pass: existsSync("README.md") },
-    { name: "License exists", pass: existsSync("LICENSE") },
-    { name: "AIGate configuration exists", pass: existsSync(".aigate.yml") },
-    { name: "Branch strategy is documented", pass: existsSync(join("docs", "branch-strategy.md")) },
-    { name: "Git upload workflow is documented", pass: existsSync(join("docs", "git-upload-workflow.md")) },
-    { name: "Security scanning is documented", pass: existsSync(join("docs", "security-scanning.md")) },
-    { name: "AI integrations are documented", pass: existsSync(join("docs", "ai-integrations.md")) },
-    { name: "Codex instructions exist", pass: existsSync("AGENTS.md") },
-    { name: "Gemini instructions exist", pass: existsSync("GEMINI.md") },
-    { name: "Pull request template exists", pass: existsSync(join(".github", "pull_request_template.md")) },
-    { name: "CI workflow exists", pass: existsSync(join(".github", "workflows", "ci.yml")) },
-    { name: "Package metadata exists", pass: existsSync("package.json") },
-    { name: "Tests exist", pass: existsSync("test") }
+    { category: "git_workflow", name: "AIGate configuration exists", pass: existsSync(".aigate.yml") },
+    { category: "git_workflow", name: "Branch strategy is documented", pass: existsSync(join("docs", "branch-strategy.md")) },
+    { category: "git_workflow", name: "Git upload workflow is documented", pass: existsSync(join("docs", "git-upload-workflow.md")) },
+    { category: "git_workflow", name: "Pull request template exists", pass: existsSync(join(".github", "pull_request_template.md")) },
+    { category: "git_workflow", name: "CODEOWNERS exists", pass: existsSync(join(".github", "CODEOWNERS")) },
+    { category: "pr_quality", name: "Contribution guide exists", pass: existsSync("CONTRIBUTING.md") },
+    { category: "pr_quality", name: "Issue templates exist", pass: existsSync(join(".github", "ISSUE_TEMPLATE")) },
+    { category: "pr_quality", name: "AI assistant instructions exist", pass: existsSync("AGENTS.md") && existsSync("GEMINI.md") },
+    { category: "testing", name: "Test directory exists", pass: existsSync("test") },
+    { category: "testing", name: "npm test script exists", pass: Boolean(packageJson.scripts?.test) },
+    { category: "testing", name: "CI gate script exists", pass: Boolean(packageJson.scripts?.ci || packageJson.scripts?.["git:ready"]) },
+    { category: "ci_cd", name: "CI workflow exists", pass: existsSync(join(".github", "workflows", "ci.yml")) },
+    { category: "ci_cd", name: "Release workflow exists", pass: existsSync(join(".github", "workflows", "release.yml")) },
+    { category: "ci_cd", name: "Dependabot exists", pass: existsSync(join(".github", "dependabot.yml")) },
+    { category: "security", name: "Security policy exists", pass: existsSync("SECURITY.md") },
+    { category: "security", name: "Security scanning is documented", pass: existsSync(join("docs", "security-scanning.md")) },
+    { category: "security", name: "OpenSSF Scorecard workflow exists", pass: existsSync(join(".github", "workflows", "scorecard.yml")) },
+    { category: "documentation", name: "README exists", pass: existsSync("README.md") },
+    { category: "documentation", name: "License exists", pass: existsSync("LICENSE") },
+    { category: "documentation", name: "Roadmap exists", pass: existsSync(join("docs", "roadmap.md")) },
+    { category: "maintainability", name: "Package metadata exists", pass: existsSync("package.json") },
+    { category: "maintainability", name: "Support policy exists", pass: existsSync("SUPPORT.md") },
+    { category: "maintainability", name: "Governance exists", pass: existsSync("GOVERNANCE.md") }
   ];
-  const passed = checks.filter((check) => check.pass).length;
-  const score = Math.round((passed / checks.length) * 100);
+  const weights = {
+    git_workflow: 20,
+    pr_quality: 15,
+    testing: 20,
+    ci_cd: 15,
+    security: 15,
+    documentation: 10,
+    maintainability: 5
+  };
+  const categories = Object.entries(weights).map(([name, weight]) => {
+    const categoryChecks = checks.filter((check) => check.category === name);
+    const passed = categoryChecks.filter((check) => check.pass).length;
+    return {
+      name,
+      weight,
+      passed,
+      total: categoryChecks.length,
+      score: Math.round((passed / categoryChecks.length) * weight)
+    };
+  });
+  const score = categories.reduce((sum, category) => sum + category.score, 0);
+  const grade = gradeForScore(score);
   const recommendation = score === 100
     ? "Repository foundations are ready for the next MVP slice."
     : "Complete the missing repository foundations before public release.";
+  const evaluation = {
+    score,
+    grade,
+    categories,
+    checks,
+    recommendation
+  };
 
-  return { score, checks, recommendation };
+  if (options.deep) {
+    evaluation.deepSignals = buildDeepSignals();
+  }
+
+  return evaluation;
 }
 
-function buildBranchStrategy() {
+function gradeForScore(score) {
+  if (score >= 90) {
+    return "A";
+  }
+
+  if (score >= 75) {
+    return "B";
+  }
+
+  if (score >= 60) {
+    return "C";
+  }
+
+  if (score >= 40) {
+    return "D";
+  }
+
+  return "F";
+}
+
+function buildDeepSignals() {
+  const branches = (git(["branch", "--all", "--format=%(refname:short)"]) ?? "")
+    .split("\n")
+    .map((branch) => branch.trim())
+    .filter(Boolean);
+  const tags = (git(["tag", "--list"]) ?? "")
+    .split("\n")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+  const commitCount = Number.parseInt(git(["rev-list", "--count", "HEAD"]) ?? "0", 10) || 0;
+  const recentCommitSubjects = (git(["log", "-5", "--pretty=%s"]) ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  return {
+    commitCount,
+    branchCount: branches.length,
+    tagCount: tags.length,
+    releaseWorkflowCount: existsSync(join(".github", "workflows", "release.yml")) ? 1 : 0,
+    hasHotfixFlowDocs: existsSync(join("docs", "hotfix-process.md")),
+    hasReleaseProcessDocs: existsSync(join("docs", "release-process.md")),
+    recentCommitSubjects
+  };
+}
+
+function buildBranchStrategy(options = {}) {
   const packageJson = readJsonFile("package.json");
   const hasCi = existsSync(join(".github", "workflows", "ci.yml"));
   const hasReleaseDocs = existsSync(join("docs", "roadmap.md"));
+  const branchNames = (git(["branch", "--all", "--format=%(refname:short)"]) ?? "")
+    .split("\n")
+    .map((branch) => branch.trim())
+    .filter(Boolean);
+  const teamSize = Number.parseInt(options.teamSize ?? "0", 10) || null;
+  const releaseCadence = String(options.release ?? "auto").trim().toLowerCase();
+  const selectedStrategy = selectBranchStrategy({
+    branchNames,
+    hasCi,
+    teamSize,
+    releaseCadence
+  });
   const reasonParts = [
     "AIGate needs fast public contribution flow",
     "npm channel control for latest, next, beta, and canary releases"
@@ -798,42 +1027,119 @@ function buildBranchStrategy() {
     reasonParts.push("release documentation and package metadata exist");
   }
 
+  if (teamSize) {
+    reasonParts.push(`team size signal is ${teamSize}`);
+  }
+
+  if (releaseCadence !== "auto") {
+    reasonParts.push(`release cadence signal is ${releaseCadence}`);
+  }
+
   return {
-    name: "GitHub Flow with release channels",
+    name: selectedStrategy,
     reason: `${reasonParts.join("; ")}.`,
     signals: {
       packageName: packageJson.name ?? null,
       hasCi,
       hasReleaseDocs,
+      teamSize,
+      releaseCadence,
+      branchCount: branchNames.length,
       changedPaths: getChangedPaths().length
     },
-    branches: [
-      { name: "main", use: "protected stable source of truth" },
-      { name: "codex/*", use: "AI-assisted implementation branches" },
-      { name: "feature/*", use: "user-facing feature branches" },
-      { name: "fix/*", use: "bug fix branches" },
-      { name: "docs/*", use: "documentation-only branches" },
-      { name: "chore/*", use: "maintenance and tooling branches" },
-      { name: "release/*", use: "release stabilization" },
-      { name: "hotfix/*", use: "urgent stable fixes" }
-    ],
+    branches: branchRulesForStrategy(selectedStrategy),
     githubProtection: [
       "Require pull request before merging into main.",
       "Require at least one approval.",
       "Require the CI test job before merging.",
       "Require conversation resolution.",
       "Block force pushes and branch deletion."
+    ],
+    generatedOutputs: [
+      ".aigate/generated-branch-strategy.md",
+      ".aigate/branch-strategy-policy.json",
+      "docs/release-process.md",
+      "docs/hotfix-process.md",
+      ".github/pull_request_template.aigate.md",
+      ".github/CODEOWNERS.aigate"
     ]
   };
+}
+
+function selectBranchStrategy({ branchNames, hasCi, teamSize, releaseCadence }) {
+  const hasDevelop = branchNames.some((branch) => branch === "develop" || branch.endsWith("/develop"));
+  const hasReleaseBranches = branchNames.some((branch) => /(^|\/)release\//.test(branch));
+
+  if (hasDevelop || hasReleaseBranches || teamSize >= 12 || ["monthly", "quarterly", "scheduled"].includes(releaseCadence)) {
+    return "Git Flow";
+  }
+
+  if (hasCi && teamSize && teamSize <= 10 && ["daily", "continuous", "on-demand"].includes(releaseCadence)) {
+    return "Trunk-Based Development";
+  }
+
+  if (teamSize && teamSize >= 6 && ["weekly", "biweekly"].includes(releaseCadence)) {
+    return "Hybrid Flow";
+  }
+
+  return "GitHub Flow with release channels";
+}
+
+function branchRulesForStrategy(strategyName) {
+  const commonBranches = [
+    { name: "codex/*", use: "AI-assisted implementation branches" },
+    { name: "feature/*", use: "user-facing feature branches" },
+    { name: "fix/*", use: "bug fix branches" },
+    { name: "docs/*", use: "documentation-only branches" },
+    { name: "chore/*", use: "maintenance and tooling branches" }
+  ];
+
+  if (strategyName === "Git Flow") {
+    return [
+      { name: "main", use: "production releases only" },
+      { name: "develop", use: "next release integration" },
+      ...commonBranches,
+      { name: "release/*", use: "release stabilization from develop" },
+      { name: "hotfix/*", use: "urgent production fixes from main" }
+    ];
+  }
+
+  if (strategyName === "Trunk-Based Development") {
+    return [
+      { name: "main", use: "protected trunk and release source" },
+      { name: "short/*", use: "short-lived changes merged quickly" },
+      ...commonBranches,
+      { name: "release/*", use: "optional release hardening" },
+      { name: "hotfix/*", use: "urgent stable fixes" }
+    ];
+  }
+
+  if (strategyName === "Hybrid Flow") {
+    return [
+      { name: "main", use: "stable production source of truth" },
+      { name: "develop", use: "optional integration branch for larger releases" },
+      ...commonBranches,
+      { name: "release/*", use: "planned release stabilization" },
+      { name: "hotfix/*", use: "urgent stable fixes" }
+    ];
+  }
+
+  return [
+    { name: "main", use: "protected stable source of truth" },
+    ...commonBranches,
+    { name: "release/*", use: "release stabilization" },
+    { name: "hotfix/*", use: "urgent stable fixes" }
+  ];
 }
 
 function buildReport(type) {
   const status = buildGitStatus();
   const evaluation = buildEvaluation();
   const analysis = buildChangeAnalysis();
+  const riskScore = calculateRiskScore(status, evaluation, analysis);
   const reportStatus = analysis.secretFindings.length
     ? "BLOCK"
-    : status.changedFiles.length
+    : riskScore >= 65 || status.changedFiles.length
       ? "WARN"
       : "PASS";
 
@@ -843,15 +1149,67 @@ function buildReport(type) {
     generatedAt: new Date().toISOString(),
     branch: status.branch,
     status: reportStatus,
+    finalVerdict: reportStatus,
+    riskScore,
+    prReadinessScore: Math.max(0, 100 - riskScore),
     changedFiles: status.changedFiles.length,
     changedPaths: analysis.paths,
     secretFindings: analysis.secretFindings,
     projectScore: evaluation.score,
+    projectGrade: evaluation.grade,
     checks: evaluation.checks,
+    branchAnalysis: buildBranchStrategy(),
+    recommendedActions: recommendedActionsForReport(status, evaluation, analysis, type),
     recommendation: analysis.secretFindings.length
       ? "Review possible secret-bearing files before commit or push."
       : status.recommendation
   };
+}
+
+function calculateRiskScore(status, evaluation, analysis) {
+  let score = 0;
+
+  score += Math.min(status.changedFiles.length * 4, 40);
+
+  if (status.riskLevel === "high") {
+    score += 30;
+  }
+
+  if (analysis.secretFindings.length) {
+    score += 50;
+  }
+
+  if (evaluation.score < 80) {
+    score += 20;
+  }
+
+  return Math.min(score, 100);
+}
+
+function recommendedActionsForReport(status, evaluation, analysis, type) {
+  const actions = [];
+
+  if (analysis.secretFindings.length) {
+    actions.push("Remove or rotate suspected secrets before commit or push.");
+  }
+
+  if (status.changedFiles.length > 20) {
+    actions.push("Split large changes into smaller pull requests.");
+  }
+
+  if (evaluation.score < 100) {
+    actions.push("Complete missing repository foundation checks.");
+  }
+
+  if (type === "pr") {
+    actions.push("Include validation commands and release impact in the pull request body.");
+  }
+
+  if (!actions.length) {
+    actions.push("Run tests, keep the change focused, and open a pull request.");
+  }
+
+  return actions;
 }
 
 function renderReport(report, format) {
@@ -875,10 +1233,12 @@ function renderMarkdownReport(report) {
     `# AIGate ${report.type} report`,
     "",
     `- Status: ${report.status}`,
+    `- Risk score: ${report.riskScore}/100`,
+    `- PR readiness score: ${report.prReadinessScore}/100`,
     `- Branch: ${report.branch}`,
     `- Changed files: ${report.changedFiles}`,
     `- Secret findings: ${report.secretFindings.length}`,
-    `- Project score: ${report.projectScore}/100`,
+    `- Project score: ${report.projectScore}/100 (${report.projectGrade})`,
     `- Recommendation: ${report.recommendation}`,
     "",
     "## Changed Paths",
@@ -889,7 +1249,11 @@ function renderMarkdownReport(report) {
     "",
     ...(report.secretFindings.length
       ? report.secretFindings.map((finding) => `- ${finding.label} in ${finding.file}:${finding.line}`)
-      : ["- None"])
+      : ["- None"]),
+    "",
+    "## Recommended Actions",
+    "",
+    ...report.recommendedActions.map((action) => `- ${action}`)
   ].join("\n");
 }
 
@@ -902,11 +1266,17 @@ function renderHtmlReport(report) {
     `<h1>AIGate ${escapeHtml(report.type)} report</h1>`,
     "<ul>",
     `<li>Status: ${escapeHtml(report.status)}</li>`,
+    `<li>Risk score: ${report.riskScore}/100</li>`,
+    `<li>PR readiness score: ${report.prReadinessScore}/100</li>`,
     `<li>Branch: ${escapeHtml(report.branch)}</li>`,
     `<li>Changed files: ${report.changedFiles}</li>`,
     `<li>Secret findings: ${report.secretFindings.length}</li>`,
-    `<li>Project score: ${report.projectScore}/100</li>`,
+    `<li>Project score: ${report.projectScore}/100 (${escapeHtml(report.projectGrade)})</li>`,
     `<li>Recommendation: ${escapeHtml(report.recommendation)}</li>`,
+    "</ul>",
+    "<h2>Recommended Actions</h2>",
+    "<ul>",
+    ...report.recommendedActions.map((action) => `<li>${escapeHtml(action)}</li>`),
     "</ul>",
     "</body>",
     "</html>"
@@ -961,6 +1331,67 @@ function renderSarifReport(report) {
   };
 }
 
+function renderProjectEvaluationReport(evaluation, format) {
+  if (format === "json") {
+    return JSON.stringify(evaluation, null, 2);
+  }
+
+  if (format === "html") {
+    return [
+      "<!doctype html>",
+      "<html>",
+      "<head><meta charset=\"utf-8\"><title>AIGate project evaluation</title></head>",
+      "<body>",
+      "<h1>AIGate project evaluation</h1>",
+      `<p>Score: ${evaluation.score}/100 (${escapeHtml(evaluation.grade)})</p>`,
+      "<h2>Categories</h2>",
+      "<ul>",
+      ...evaluation.categories.map((category) => (
+        `<li>${escapeHtml(category.name)}: ${category.score}/${category.weight}</li>`
+      )),
+      "</ul>",
+      "<h2>Checks</h2>",
+      "<ul>",
+      ...evaluation.checks.map((check) => (
+        `<li>${check.pass ? "PASS" : "TODO"}: ${escapeHtml(check.name)}</li>`
+      )),
+      "</ul>",
+      `<p>Recommendation: ${escapeHtml(evaluation.recommendation)}</p>`,
+      "</body>",
+      "</html>"
+    ].join("\n");
+  }
+
+  return [
+    "# AIGate Project Evaluation",
+    "",
+    `- Score: ${evaluation.score}/100`,
+    `- Grade: ${evaluation.grade}`,
+    `- Recommendation: ${evaluation.recommendation}`,
+    "",
+    "## Categories",
+    "",
+    ...evaluation.categories.map((category) => `- ${category.name}: ${category.score}/${category.weight}`),
+    "",
+    "## Checks",
+    "",
+    ...evaluation.checks.map((check) => `- ${check.pass ? "PASS" : "TODO"}: ${check.name}`),
+    ...(evaluation.deepSignals
+      ? [
+          "",
+          "## Deep Signals",
+          "",
+          `- Commits inspected: ${evaluation.deepSignals.commitCount}`,
+          `- Branches detected: ${evaluation.deepSignals.branchCount}`,
+          `- Tags detected: ${evaluation.deepSignals.tagCount}`,
+          `- Release workflows: ${evaluation.deepSignals.releaseWorkflowCount}`,
+          `- Release process docs: ${evaluation.deepSignals.hasReleaseProcessDocs ? "yes" : "no"}`,
+          `- Hotfix process docs: ${evaluation.deepSignals.hasHotfixFlowDocs ? "yes" : "no"}`
+        ]
+      : [])
+  ].join("\n");
+}
+
 function renderBranchStrategyMarkdown(strategy) {
   return [
     `# ${strategy.name}`,
@@ -973,7 +1404,104 @@ function renderBranchStrategyMarkdown(strategy) {
     "",
     "## GitHub Protection",
     "",
-    ...strategy.githubProtection.map((rule) => `- ${rule}`)
+    ...strategy.githubProtection.map((rule) => `- ${rule}`),
+    "",
+    "## Generated Outputs",
+    "",
+    ...strategy.generatedOutputs.map((file) => `- \`${file}\``)
+  ].join("\n");
+}
+
+function buildBranchStrategyFiles(strategy, outputDir) {
+  return [
+    {
+      path: join(outputDir, ".aigate", "generated-branch-strategy.md"),
+      content: `${renderBranchStrategyMarkdown(strategy)}\n`
+    },
+    {
+      path: join(outputDir, ".aigate", "branch-strategy-policy.json"),
+      content: `${JSON.stringify({
+        version: 1,
+        strategy: strategy.name,
+        generatedAt: new Date().toISOString(),
+        branches: strategy.branches,
+        githubProtection: strategy.githubProtection
+      }, null, 2)}\n`
+    },
+    {
+      path: join(outputDir, "docs", "release-process.md"),
+      content: renderReleaseProcess(strategy)
+    },
+    {
+      path: join(outputDir, "docs", "hotfix-process.md"),
+      content: renderHotfixProcess(strategy)
+    },
+    {
+      path: join(outputDir, ".github", "pull_request_template.aigate.md"),
+      content: renderPullRequestTemplateDraft()
+    },
+    {
+      path: join(outputDir, ".github", "CODEOWNERS.aigate"),
+      content: "* @LeeHueeng\n"
+    }
+  ];
+}
+
+function renderReleaseProcess(strategy) {
+  return [
+    "# Release Process",
+    "",
+    `Recommended strategy: ${strategy.name}`,
+    "",
+    "1. Keep `main` releasable through pull requests.",
+    "2. Run `npm run ci` and `aigate git-ready` before release preparation.",
+    "3. Create `release/vX.Y.Z` only when stabilization needs a separate branch.",
+    "4. Tag stable releases as `vX.Y.Z`.",
+    "5. Publish npm packages through the Release workflow after npm Trusted Publishing is configured.",
+    ""
+  ].join("\n");
+}
+
+function renderHotfixProcess(strategy) {
+  return [
+    "# Hotfix Process",
+    "",
+    `Recommended strategy: ${strategy.name}`,
+    "",
+    "1. Branch from `main` or the latest stable tag with `hotfix/<short-description>`.",
+    "2. Keep the change minimal and focused.",
+    "3. Run `npm run ci`, `aigate git-ready`, and a focused regression check.",
+    "4. Open a pull request into `main` with rollback notes.",
+    "5. Publish a patch release after checks and review pass.",
+    ""
+  ].join("\n");
+}
+
+function renderPullRequestTemplateDraft() {
+  return [
+    "## Summary",
+    "",
+    "-",
+    "",
+    "## Risk",
+    "",
+    "- [ ] Low-risk change",
+    "- [ ] Security-sensitive change",
+    "- [ ] Release or migration change",
+    "",
+    "## Validation",
+    "",
+    "- [ ] `npm run ci`",
+    "- [ ] `aigate git-ready`",
+    "- [ ] `aigate pr-check`",
+    "",
+    "## Release Impact",
+    "",
+    "- [ ] No release impact",
+    "- [ ] Docs update needed",
+    "- [ ] Package behavior changed",
+    "- [ ] New configuration or migration needed",
+    ""
   ].join("\n");
 }
 
@@ -1167,6 +1695,87 @@ function renderSharedAssistantInstructions() {
   ];
 }
 
+function renderDefaultConfig(packageJson) {
+  const projectName = packageJson.name ?? "my-project";
+  return [
+    "version: 1",
+    "",
+    "project:",
+    `  name: ${quoteYamlScalar(projectName)}`,
+    `  package: ${quoteYamlScalar(packageJson.name ?? "")}`,
+    "  defaultBranch: main",
+    "",
+    "distribution:",
+    "  primaryRegistry: npm",
+    `  packageName: ${quoteYamlScalar(packageJson.name ?? "@aigate/cli")}`,
+    "  releaseChannels:",
+    "    stable: latest",
+    "    candidate: next",
+    "    beta: beta",
+    "    experimental: canary",
+    "",
+    "reports:",
+    "  defaultFormat: markdown",
+    "  outputDir: .aigate/reports",
+    "  outputs:",
+    "    - markdown",
+    "    - html",
+    "    - json",
+    "    - sarif",
+    "",
+    "notifications:",
+    "  defaults:",
+    "    BLOCK:",
+    "      - terminal",
+    "      - slack",
+    "    SECRET_DETECTED:",
+    "      - terminal",
+    "      - slack",
+    "",
+    "branchStrategy:",
+    "  default: auto",
+    "  protectedBranches:",
+    "    - main",
+    "  workBranches:",
+    "    - feature/*",
+    "    - fix/*",
+    "    - docs/*",
+    "    - chore/*",
+    "",
+    "qualityGates:",
+    "  beforePush:",
+    "    minimumProjectScore: 80",
+    "    commands:",
+    "      - npm run ci",
+    "      - aigate git-ready",
+    ""
+  ].join("\n");
+}
+
+function writeProjectFiles(files, force) {
+  return files.map((file) => {
+    if (existsSync(file.path) && !force) {
+      return {
+        path: file.path,
+        action: "skipped"
+      };
+    }
+
+    const action = existsSync(file.path) ? "updated" : "created";
+    mkdirSync(dirname(file.path), { recursive: true });
+    writeFileSync(file.path, file.content, "utf8");
+
+    return {
+      path: file.path,
+      action
+    };
+  });
+}
+
+function readPackageVersion() {
+  return readJsonFile(join(PACKAGE_ROOT, "package.json")).version ?? "0.0.0";
+}
+
 function readSettings() {
   const settingsPath = getSettingsPath();
   if (!existsSync(settingsPath)) {
@@ -1274,12 +1883,13 @@ function stripAigatePushOptions(args) {
       arg === "--dry-run" ||
       arg === "--no-verify" ||
       arg.startsWith("--dry-run=") ||
-      arg.startsWith("--no-verify=")
+      arg.startsWith("--no-verify=") ||
+      arg.startsWith("--notify-channel=")
     ) {
       continue;
     }
 
-    if (arg === "--language") {
+    if (arg === "--language" || arg === "--notify-channel") {
       index += 1;
       continue;
     }
@@ -1295,7 +1905,23 @@ function stripAigatePushOptions(args) {
 }
 
 function firstPositionalArg(args) {
-  const optionsWithValues = new Set(["--format", "--type", "--event", "--language", "--output-dir"]);
+  const optionsWithValues = new Set([
+    "--base",
+    "--body",
+    "--channel",
+    "--config",
+    "--event",
+    "--format",
+    "--language",
+    "--notify-channel",
+    "--output",
+    "--output-dir",
+    "--release",
+    "--team-size",
+    "--title",
+    "--type",
+    "--webhook-env"
+  ]);
 
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
@@ -1358,6 +1984,10 @@ function parseOptions(args) {
 
 function toCamelCase(value) {
   return value.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+}
+
+function quoteYamlScalar(value) {
+  return JSON.stringify(String(value));
 }
 
 function git(args) {

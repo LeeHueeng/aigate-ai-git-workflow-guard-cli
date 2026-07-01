@@ -34,12 +34,32 @@ test("shows help", () => {
 
   assert.equal(result.status, 0);
   assert.match(result.stdout, /AI Git Workflow Guard CLI/);
+  assert.match(result.stdout, /init/);
+  assert.match(result.stdout, /pr-check/);
   assert.match(result.stdout, /branch-strategy/);
   assert.match(result.stdout, /setup/);
   assert.match(result.stdout, /settings/);
   assert.match(result.stdout, /integrate/);
   assert.match(result.stdout, /--language/);
   assert.match(result.stdout, /push/);
+});
+
+test("prints package version", () => {
+  const result = run(["--version"]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /^0\.1\.0/m);
+});
+
+test("initializes starter project files", () => {
+  const outputDir = createOutputDir();
+  const result = run(["init", "--output-dir", outputDir, "--format", "json"]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "init");
+  assert.ok(existsSync(join(outputDir, ".aigate.yml")));
+  assert.ok(existsSync(join(outputDir, ".aigate", "reports", ".gitkeep")));
 });
 
 test("prints check output as json", () => {
@@ -78,6 +98,16 @@ test("previews pull request creation in dry-run mode", () => {
   assert.match(result.stdout, /AIGate git-ready: READY/);
   assert.match(result.stdout, /Would run: gh pr create/);
   assert.match(result.stdout, /feat: dry run/);
+});
+
+test("generates pull request readiness report", () => {
+  const result = run(["pr-check", "--format", "json"]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.type, "pr");
+  assert.equal(typeof output.riskScore, "number");
+  assert.equal(typeof output.prReadinessScore, "number");
 });
 
 test("can skip push readiness gate in dry-run mode", () => {
@@ -235,6 +265,16 @@ test("scores repository foundations", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(typeof output.score, "number");
   assert.ok(output.score > 0);
+  assert.equal(typeof output.grade, "string");
+  assert.ok(Array.isArray(output.categories));
+});
+
+test("renders deep project evaluation report", () => {
+  const result = run(["evaluate-project", "--deep", "--report"]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /# AIGate Project Evaluation/);
+  assert.match(result.stdout, /Deep Signals/);
 });
 
 test("recommends branch strategy", () => {
@@ -243,6 +283,33 @@ test("recommends branch strategy", () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /GitHub Flow with release channels/);
   assert.match(result.stdout, /Require pull request/);
+});
+
+test("generates branch strategy policy drafts", () => {
+  const outputDir = createOutputDir();
+  const result = run([
+    "branch-strategy",
+    "--apply",
+    "--team-size",
+    "8",
+    "--release",
+    "weekly",
+    "--output-dir",
+    outputDir,
+    "--format",
+    "json"
+  ]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "branch-strategy");
+  assert.equal(output.strategy.name, "Hybrid Flow");
+  assert.ok(existsSync(join(outputDir, ".aigate", "generated-branch-strategy.md")));
+  assert.ok(existsSync(join(outputDir, ".aigate", "branch-strategy-policy.json")));
+  assert.ok(existsSync(join(outputDir, "docs", "release-process.md")));
+  assert.ok(existsSync(join(outputDir, "docs", "hotfix-process.md")));
+  assert.ok(existsSync(join(outputDir, ".github", "pull_request_template.aigate.md")));
+  assert.ok(existsSync(join(outputDir, ".github", "CODEOWNERS.aigate")));
 });
 
 test("rejects unknown commands", () => {
