@@ -69,7 +69,7 @@ const locales = {
       ["첫 실행", ["doctor", "demo", "install-hook"]],
       ["보호 게이트", ["check", "git-ready", "push", "pr"]],
       ["보고서", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "audit-report"]],
-      ["릴리스", ["release-check", "release-check --npm", "branch-strategy", "notify"]]
+      ["릴리스", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
     commandsTitle: "전체 명령어와 사용 과정",
     commandHeaders: ["명령어", "용도", "언제 쓰는가"],
@@ -97,6 +97,7 @@ const locales = {
       ["aigate evaluate-project", "저장소 기반 점수를 계산합니다.", "오픈소스 공개 준비 확인"],
       ["aigate evaluate-project --deep --report", "Git signal을 포함한 상세 평가 보고서를 만듭니다.", "릴리스/분기 리뷰"],
       ["aigate branch-strategy", "팀 규모와 릴리스 흐름에 맞는 브랜치 전략을 추천합니다.", "브랜치 정책 설계"],
+      ["aigate branch-strategy --compare", "여러 브랜치 전략 제안을 점수, 강점, 위험, 전환 단계로 비교합니다.", "팀에 맞는 브랜치 모델을 선택할 때"],
       ["aigate branch-strategy --apply", "브랜치 정책, 릴리스, hotfix, PR, CODEOWNERS, 정책 팩 초안을 생성합니다.", "정책 파일을 시작할 때"],
       ["aigate integrate all", "Codex와 Gemini 통합 문서를 생성합니다.", "AI assistant가 같은 규칙을 따르게 할 때"],
       ["aigate release-check", "패키지, workflow, tag 상태를 점검합니다.", "릴리스 태그 생성 전"],
@@ -124,6 +125,7 @@ const locales = {
       "aigate github comment --pr <number>",
       "aigate github check --output .aigate/reports/github-check.md",
       "aigate trends record",
+      "aigate branch-strategy --compare",
       "aigate github setup --owner @your-org/team --dry-run",
       "aigate release-check --npm"
     ],
@@ -142,7 +144,7 @@ const locales = {
       "프로젝트 상태 추세 기록",
       "Markdown, HTML, JSON, SARIF 리포트",
       "프로젝트 점수와 deep Git signal 평가",
-      "브랜치 전략 추천과 정책 팩 생성",
+      "브랜치 전략 추천, 제안 비교, 정책 팩 생성",
       "Codex/Gemini 통합 파일 생성",
       "한국어/영어/일본어/중국어 CLI 설정",
       "release-check와 release-check --npm",
@@ -208,7 +210,7 @@ const locales = {
       ["First run", ["doctor", "demo", "install-hook"]],
       ["Guard gates", ["check", "git-ready", "push", "pr"]],
       ["Reports", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "audit-report"]],
-      ["Release", ["release-check", "release-check --npm", "branch-strategy", "notify"]]
+      ["Release", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
     commandsTitle: "Commands And When To Use Them",
     commandHeaders: ["Command", "Purpose", "When to use it"],
@@ -236,6 +238,7 @@ const locales = {
       ["aigate evaluate-project", "Score repository foundations.", "Open source readiness review"],
       ["aigate evaluate-project --deep --report", "Render a detailed report with Git signals.", "Release or quarterly review"],
       ["aigate branch-strategy", "Recommend a branch strategy for team and release cadence.", "Branch policy design"],
+      ["aigate branch-strategy --compare", "Compare branch strategy proposals by score, strengths, risks, and migration steps.", "Choosing the right branch model for a team"],
       ["aigate branch-strategy --apply", "Generate branch policy, release, hotfix, PR, CODEOWNERS, and policy pack drafts.", "Starting policy files"],
       ["aigate integrate all", "Generate Codex and Gemini integration files.", "Keeping AI assistants aligned"],
       ["aigate release-check", "Check package, workflow, and tag readiness.", "Before creating a release tag"],
@@ -263,6 +266,7 @@ const locales = {
       "aigate github comment --pr <number>",
       "aigate github check --output .aigate/reports/github-check.md",
       "aigate trends record",
+      "aigate branch-strategy --compare",
       "aigate github setup --owner @your-org/team --dry-run",
       "aigate release-check --npm"
     ],
@@ -281,7 +285,7 @@ const locales = {
       "Project health trend history",
       "Markdown, HTML, JSON, and SARIF reports",
       "Project scoring and deep Git signal evaluation",
-      "Branch strategy recommendations and policy pack generation",
+      "Branch strategy recommendations, proposal comparison, and policy pack generation",
       "Codex/Gemini integration file generation",
       "Korean/English/Japanese/Chinese CLI settings",
       "release-check and release-check --npm",
@@ -347,7 +351,7 @@ const locales = {
       ["初回実行", ["doctor", "demo", "install-hook"]],
       ["保護ゲート", ["check", "git-ready", "push", "pr"]],
       ["レポート", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "audit-report"]],
-      ["リリース", ["release-check", "release-check --npm", "branch-strategy", "notify"]]
+      ["リリース", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
     commandsTitle: "コマンド一覧と利用タイミング",
     commandHeaders: ["コマンド", "目的", "使う場面"],
@@ -375,6 +379,7 @@ const locales = {
       ["aigate evaluate-project", "リポジトリ基盤をスコア化します。", "公開準備レビュー"],
       ["aigate evaluate-project --deep --report", "Git signal を含む詳細レポートを生成します。", "リリースまたは定期レビュー"],
       ["aigate branch-strategy", "チームとリリース頻度に合うブランチ戦略を推薦します。", "ブランチポリシー設計"],
+      ["aigate branch-strategy --compare", "複数のブランチ戦略提案をスコア、強み、リスク、移行手順で比較します。", "チームに合うブランチモデルを選ぶとき"],
       ["aigate branch-strategy --apply", "ブランチポリシー、release、hotfix、PR、CODEOWNERS、ポリシーパックの草案を生成します。", "ポリシーファイル作成時"],
       ["aigate integrate all", "Codex と Gemini 統合ファイルを生成します。", "AI assistant の規則をそろえるとき"],
       ["aigate release-check", "パッケージ、workflow、tag の準備状態を確認します。", "リリース tag 作成前"],
@@ -402,6 +407,7 @@ const locales = {
       "aigate github comment --pr <number>",
       "aigate github check --output .aigate/reports/github-check.md",
       "aigate trends record",
+      "aigate branch-strategy --compare",
       "aigate github setup --owner @your-org/team --dry-run",
       "aigate release-check --npm"
     ],
@@ -420,7 +426,7 @@ const locales = {
       "プロジェクト状態トレンド履歴",
       "Markdown、HTML、JSON、SARIF レポート",
       "プロジェクトスコアと deep Git signal 評価",
-      "ブランチ戦略推薦とポリシーパック生成",
+      "ブランチ戦略推薦、提案比較、ポリシーパック生成",
       "Codex/Gemini 統合ファイル生成",
       "韓国語/英語/日本語/中国語 CLI 設定",
       "release-check と release-check --npm",
@@ -486,7 +492,7 @@ const locales = {
       ["首次运行", ["doctor", "demo", "install-hook"]],
       ["保护门禁", ["check", "git-ready", "push", "pr"]],
       ["报告", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "audit-report"]],
-      ["发布", ["release-check", "release-check --npm", "branch-strategy", "notify"]]
+      ["发布", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
     commandsTitle: "全部命令与使用时机",
     commandHeaders: ["命令", "用途", "使用场景"],
@@ -514,6 +520,7 @@ const locales = {
       ["aigate evaluate-project", "计算仓库基础分。", "开源发布准备检查"],
       ["aigate evaluate-project --deep --report", "生成包含 Git signal 的详细报告。", "发布或周期复盘"],
       ["aigate branch-strategy", "按团队和发布节奏推荐分支策略。", "设计分支政策"],
+      ["aigate branch-strategy --compare", "按分数、优势、风险和迁移步骤比较多个分支策略提案。", "选择适合团队的分支模型时"],
       ["aigate branch-strategy --apply", "生成分支政策、release、hotfix、PR、CODEOWNERS 和政策包草案。", "创建政策文件时"],
       ["aigate integrate all", "生成 Codex 和 Gemini 集成文件。", "让 AI assistant 保持一致规则"],
       ["aigate release-check", "检查包、workflow 和 tag 准备状态。", "创建发布 tag 前"],
@@ -541,6 +548,7 @@ const locales = {
       "aigate github comment --pr <number>",
       "aigate github check --output .aigate/reports/github-check.md",
       "aigate trends record",
+      "aigate branch-strategy --compare",
       "aigate github setup --owner @your-org/team --dry-run",
       "aigate release-check --npm"
     ],
@@ -559,7 +567,7 @@ const locales = {
       "项目状态趋势历史",
       "Markdown、HTML、JSON、SARIF 报告",
       "项目分数和 deep Git signal 评估",
-      "分支策略推荐和政策包生成",
+      "分支策略推荐、提案比较和政策包生成",
       "Codex/Gemini 集成文件生成",
       "韩语/英语/日语/中文 CLI 设置",
       "release-check 和 release-check --npm",

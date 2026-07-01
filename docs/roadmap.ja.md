@@ -35,7 +35,7 @@
 - [x] `aigate trends` でプロジェクト状態トレンドを追跡
 - [ ] Linear と Jira と連携
 - [ ] standalone binary を publish
-- [ ] 複数の AI-generated branch strategy proposal を比較
+- [x] 複数の AI ブランチ戦略提案を比較
 
 ## V3: Enterprise governance
 

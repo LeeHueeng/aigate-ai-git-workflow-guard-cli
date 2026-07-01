@@ -533,7 +533,7 @@ npx aigate-cli check</code></pre>
       <div><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>audit-report</span></div>
     </article><article class="command-group group-4">
       <h3>发布</h3>
-      <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>notify</span></div>
+      <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>branch-strategy --compare</span><span>notify</span></div>
     </article></div>
     </section>
 
@@ -638,6 +638,10 @@ npx aigate-cli check</code></pre>
     <td>按团队和发布节奏推荐分支策略。</td>
     <td>设计分支政策</td>
   </tr><tr>
+    <td><code>aigate branch-strategy --compare</code></td>
+    <td>按分数、优势、风险和迁移步骤比较多个分支策略提案。</td>
+    <td>选择适合团队的分支模型时</td>
+  </tr><tr>
     <td><code>aigate branch-strategy --apply</code></td>
     <td>生成分支政策、release、hotfix、PR、CODEOWNERS 和政策包草案。</td>
     <td>创建政策文件时</td>
@@ -694,6 +698,7 @@ aigate pr --title &quot;feat: short summary&quot;
 aigate github comment --pr &lt;number&gt;
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate branch-strategy --compare
 aigate github setup --owner @your-org/team --dry-run
 aigate release-check --npm</code></pre>
     </section>
@@ -703,7 +708,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">功能</p>
         <h2>当前已实现功能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">通过 doctor、demo、install-hook 提供首次运行体验</div><div class="feature done">pre-push Git hook 安装</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">GitHub PR comment 和 GitHub Checks summary payload</div><div class="feature done">PR 模板和 CODEOWNERS 引导式设置</div><div class="feature done">可复用的公开 GitHub Action</div><div class="feature done">项目状态趋势历史</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐和政策包生成</div><div class="feature done">Codex/Gemini 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端、Slack BLOCK、Discord、Teams webhook 通知</div></div>
+      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">通过 doctor、demo、install-hook 提供首次运行体验</div><div class="feature done">pre-push Git hook 安装</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">GitHub PR comment 和 GitHub Checks summary payload</div><div class="feature done">PR 模板和 CODEOWNERS 引导式设置</div><div class="feature done">可复用的公开 GitHub Action</div><div class="feature done">项目状态趋势历史</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐、提案比较和政策包生成</div><div class="feature done">Codex/Gemini 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端、Slack BLOCK、Discord、Teams webhook 通知</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">

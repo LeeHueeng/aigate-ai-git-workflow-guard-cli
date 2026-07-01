@@ -33,7 +33,7 @@
 - [x] Track project health trends with `aigate trends`.
 - [ ] Integrate with Linear and Jira.
 - [ ] Publish standalone binaries.
-- [ ] Compare multiple AI-generated branch strategy proposals.
+- [x] Compare multiple AI-generated branch strategy proposals.
 
 ## V3: Enterprise Governance
 

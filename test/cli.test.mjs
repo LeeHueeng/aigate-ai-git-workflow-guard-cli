@@ -857,6 +857,34 @@ test("recommends branch strategy", () => {
   assert.match(result.stdout, /Require pull request/);
 });
 
+test("compares branch strategy proposals", () => {
+  const result = run(["branch-strategy", "--compare", "--team-size", "8", "--release", "weekly", "--format", "json"]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "branch-strategy");
+  assert.equal(output.comparison.command, "branch-strategy compare");
+  assert.equal(output.comparison.recommended, "Hybrid Flow");
+  assert.equal(output.comparison.proposals[0].name, "Hybrid Flow");
+  assert.equal(output.comparison.proposals[0].recommended, true);
+  assert.deepEqual(new Set(output.comparison.proposals.map((proposal) => proposal.name)), new Set([
+    "GitHub Flow with release channels",
+    "Trunk-Based Development",
+    "Hybrid Flow",
+    "Git Flow"
+  ]));
+  assert.ok(output.comparison.proposals[0].score > output.comparison.proposals.at(-1).score);
+  assert.ok(output.comparison.proposals[0].migration.includes("Use feature/* and codex/* branches for focused work."));
+
+  const localized = run(["branch-strategy", "--compare", "--team-size", "14", "--release", "monthly", "--language", "ko"]);
+  assert.equal(localized.status, 0);
+  assert.match(localized.stdout, /# 브랜치 전략 제안 비교/);
+  assert.match(localized.stdout, /권장 전략: Git Flow/);
+  assert.match(localized.stdout, /적합 점수:/);
+  assert.match(localized.stdout, /전환 단계/);
+  assert.doesNotMatch(localized.stdout, /Fit score/);
+});
+
 test("generates branch strategy policy drafts", () => {
   const outputDir = createOutputDir();
   const result = run([

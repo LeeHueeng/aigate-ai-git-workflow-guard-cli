@@ -52,6 +52,7 @@ aigate pr-check
 | 저장소 건강 점수 | `aigate evaluate-project` |
 | 프로젝트 상태 추세 기록 | `aigate trends record` |
 | 브랜치 전략 정책 팩 | `aigate branch-strategy --apply` |
+| 브랜치 전략 제안 비교 | `aigate branch-strategy --compare` |
 | npm 릴리스 준비 확인 | `aigate release-check --npm` |
 | Codex/Gemini 연동 파일 생성 | `aigate integrate all` |
 

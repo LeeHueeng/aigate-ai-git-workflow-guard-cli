@@ -74,6 +74,19 @@ chore: initialize public repository metadata
 - future: `npm run lint`
 - future: `npm run typecheck`
 
+## 提案比较
+
+`aigate branch-strategy --compare` 会比较带发布频道的 GitHub Flow、
+Trunk-Based Development、Hybrid Flow 和 Git Flow。每个提案都会包含适配分数、
+分支规则、适用场景、优势、风险、迁移步骤和政策适配。
+
+当仓库信号足够、需要比较多个分支模型时使用。
+
+```sh
+aigate branch-strategy --compare --team-size 8 --release weekly
+aigate branch-strategy --compare --team-size 14 --release monthly --language zh
+```
+
 ## 生成的政策包
 
 `aigate branch-strategy --apply` 会在 `.aigate/policy-packs/` 下生成可复用的

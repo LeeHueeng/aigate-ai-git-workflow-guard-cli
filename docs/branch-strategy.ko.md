@@ -74,6 +74,19 @@ chore: initialize public repository metadata
 - future: `npm run lint`
 - future: `npm run typecheck`
 
+## 제안 비교
+
+`aigate branch-strategy --compare`는 릴리스 채널을 포함한 GitHub Flow,
+Trunk 기반 개발, Hybrid Flow, Git Flow를 비교합니다. 각 제안에는 적합 점수,
+브랜치 규칙, 적합한 상황, 강점, 위험, 전환 단계, 정책 적용 방식이 포함됩니다.
+
+저장소 신호가 충분해서 여러 브랜치 모델을 비교해야 할 때 사용합니다.
+
+```sh
+aigate branch-strategy --compare --team-size 8 --release weekly
+aigate branch-strategy --compare --team-size 14 --release monthly --language ko
+```
+
 ## 생성되는 정책 팩
 
 `aigate branch-strategy --apply`는 `.aigate/policy-packs/` 아래에 재사용

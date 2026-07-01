@@ -88,6 +88,7 @@ repeatable local gate before `git push` or PR creation.
 | Deep project report | `aigate evaluate-project --deep --report` |
 | Project health trend history | `aigate trends record` |
 | Branch strategy policy packs | `aigate branch-strategy --apply` |
+| Branch strategy proposal comparison | `aigate branch-strategy --compare` |
 | Release readiness check | `aigate release-check --npm` |
 | Slack BLOCK notifications | `aigate git-ready --notify-channel slack` |
 | Discord and Teams webhook payloads | `aigate notify test --channel discord` |

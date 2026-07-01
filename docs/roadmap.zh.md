@@ -35,7 +35,7 @@
 - [x] 通过 `aigate trends` 跟踪项目状态趋势
 - [ ] 集成 Linear 和 Jira
 - [ ] publish standalone binaries
-- [ ] 比较多个 AI-generated branch strategy proposals
+- [x] 比较多个 AI 分支策略提案
 
 ## V3: Enterprise governance
 

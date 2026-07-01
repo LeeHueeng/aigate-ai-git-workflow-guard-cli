@@ -35,7 +35,7 @@
 - [x] `aigate trends`로 프로젝트 상태 추세 추적
 - [ ] Linear와 Jira 연동
 - [ ] standalone binary publish
-- [ ] 여러 AI-generated branch strategy proposal 비교
+- [x] 여러 AI 브랜치 전략 제안 비교
 
 ## V3: Enterprise governance
 
