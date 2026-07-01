@@ -53,4 +53,14 @@ branchStrategy:
     - release/*
     - hotfix/*
   requiredChecks:
-    - npm test
+    - test
+
+qualityGates:
+  beforePush:
+    minimumProjectScore: 80
+    commands:
+      - npm run ci
+      - node src/cli.mjs report --format markdown
+    blockOn:
+      - possible secret-bearing filenames
+      - project foundation score below threshold

@@ -42,6 +42,7 @@ docker run --rm -v "$PWD:/repo" aigate/cli check
 ```sh
 npm install
 npm test
+npm run git:ready
 node src/cli.mjs --help
 node src/cli.mjs branch-strategy
 ```
@@ -51,6 +52,7 @@ node src/cli.mjs branch-strategy
 | Command | Purpose |
 | --- | --- |
 | `aigate check` | Summarize current Git readiness. |
+| `aigate git-ready` | Run the before-push readiness gate. |
 | `aigate report` | Print a local workflow report. |
 | `aigate evaluate-project` | Score project workflow foundations. |
 | `aigate score` | Print only the project score. |
@@ -81,6 +83,20 @@ This repository uses GitHub Flow with release-channel extensions:
 - npm dist-tags map to product channels: `latest`, `next`, `beta`, `canary`.
 
 Read the full strategy in [docs/branch-strategy.md](docs/branch-strategy.md).
+
+## Before Pushing To Git
+
+Use the local AIGate gate before every push:
+
+```sh
+npm run git:ready
+git status --short --branch
+git add <files>
+git commit -m "type: short summary"
+git push -u origin <branch>
+```
+
+Read the full workflow in [docs/git-upload-workflow.md](docs/git-upload-workflow.md).
 
 ## Public Repository Standards
 

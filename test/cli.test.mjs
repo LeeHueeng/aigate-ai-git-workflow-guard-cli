@@ -31,12 +31,31 @@ test("prints check output as json", () => {
   assert.ok(["PASS", "WARN", "BLOCK"].includes(output.status));
 });
 
+test("runs git-ready output as json", () => {
+  const result = run(["git-ready", "--format=json"]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "git-ready");
+  assert.equal(output.status, "READY");
+  assert.equal(typeof output.projectScore, "number");
+  assert.deepEqual(output.blockers, []);
+});
+
 test("renders markdown report by default", () => {
   const result = run(["report"]);
 
   assert.equal(result.status, 0);
   assert.match(result.stdout, /^# AIGate local report/m);
   assert.match(result.stdout, /Project score:/);
+});
+
+test("renders html report safely", () => {
+  const result = run(["report", "--format", "html", "--type", "pr"]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /<!doctype html>/);
+  assert.match(result.stdout, /AIGate pr report/);
 });
 
 test("scores repository foundations", () => {
@@ -54,4 +73,11 @@ test("recommends branch strategy", () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /GitHub Flow with release channels/);
   assert.match(result.stdout, /Require pull request/);
+});
+
+test("rejects unknown commands", () => {
+  const result = run(["unknown-command"]);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /Unknown command: unknown-command/);
 });
