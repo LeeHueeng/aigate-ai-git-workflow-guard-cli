@@ -1,5 +1,9 @@
 # AIGate AI Git Workflow Guard CLI
 
+[![CI](https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli/actions/workflows/scorecard.yml/badge.svg)](https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli/actions/workflows/scorecard.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 AIGate is an AI Git Workflow Guard CLI for safer local changes, cleaner pull
 requests, project health reporting, and repository-specific branch strategy
 design.
@@ -8,8 +12,8 @@ Search keywords: AI Git CLI, Git workflow guard, pull request readiness,
 repository health report, branch strategy designer, developer workflow
 automation.
 
-Status: early public repository bootstrap. The CLI scaffold is available in
-this repo, while package registry distribution is still planned.
+Status: open source MVP. npm distribution and commercial team features are in
+preparation.
 
 ## What AIGate Does
 
@@ -22,7 +26,8 @@ this repo, while package registry distribution is still planned.
 
 ## Planned Install Channels
 
-These channels define the public distribution target:
+These channels define the public distribution target. Until the first npm
+release is published, clone the repository and use `npm link` for local use.
 
 ```sh
 npm install -g @aigate/cli
@@ -135,6 +140,16 @@ Read the full guide in [docs/ai-integrations.md](docs/ai-integrations.md).
 - Run `npm test` before requesting review.
 - Treat generated reports as artifacts, not source files, unless explicitly
   checked in for documentation.
+
+## Open Source And Commercial Roadmap
+
+AIGate is open source first. The CLI core stays useful for individual
+developers and maintainers, while paid team and enterprise offerings can build
+around hosted reports, policy packs, integrations, and governance.
+
+- [Open source readiness](docs/open-source-readiness.md)
+- [Commercialization plan](docs/commercialization.md)
+- [Roadmap](docs/roadmap.md)
 
 ## License
 

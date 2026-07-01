@@ -4,6 +4,22 @@ project:
   name: AIGate
   package: "@aigate/cli"
   defaultBranch: main
+  model: open-source-core
+
+commercialization:
+  strategy: open-core
+  freeCore:
+    - local CLI
+    - guarded Git workflow
+    - local reports
+    - lightweight secret scanning
+    - assistant integration files
+  futurePaid:
+    - hosted dashboards
+    - team report history
+    - managed policy packs
+    - enterprise governance
+    - private support
 
 distribution:
   primaryRegistry: npm
