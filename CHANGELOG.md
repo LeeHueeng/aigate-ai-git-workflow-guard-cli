@@ -12,6 +12,10 @@ All notable changes to AIGate are documented here.
 - Reworked the GitHub landing README around a 60-second quickstart, demo output,
   shipped features, and planned channels.
 - Added demo assets and a basic Node.js usage example.
+- Added Korean, Japanese, and Chinese README files plus GitHub-rendered
+  operations guides in English, Korean, Japanese, and Chinese.
+- Added multilingual documentation versions and a locale coverage check for
+  repository docs.
 - Improved tests for multilingual output and webhook notification payloads.
 
 ## 0.1.0 - 2026-07-01

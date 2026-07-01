@@ -7,6 +7,11 @@ Stop risky AI-generated Git changes before push.
 [![npm version](https://img.shields.io/npm/v/aigate-cli.svg)](https://www.npmjs.com/package/aigate-cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+## Languages
+
+- README: [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [中文](README.zh.md)
+- Operations guide: [English](docs/operations.en.md) | [한국어](docs/operations.ko.md) | [日本語](docs/operations.ja.md) | [中文](docs/operations.zh.md)
+
 AIGate is a zero-config pre-push safety CLI for AI-assisted coding. It checks
 changed files, possible secrets, repository readiness, PR risk, and branch
 strategy before changes reach your remote branch or pull request review.
@@ -167,11 +172,13 @@ distributed:
 - [Branch strategy](docs/branch-strategy.md)
 - [Git upload workflow](docs/git-upload-workflow.md)
 - [Roadmap](docs/roadmap.md)
+- [Multilingual documentation index](docs/README.md)
 - [Changelog](CHANGELOG.md)
-- [한국어 운영 문서](docs/aigate-overview.ko.html)
-- [English operations guide](docs/aigate-overview.en.html)
-- [日本語運用ドキュメント](docs/aigate-overview.ja.html)
-- [中文运维说明](docs/aigate-overview.zh.html)
+- [English operations guide](docs/operations.en.md)
+- [한국어 운영 문서](docs/operations.ko.md)
+- [日本語運用ドキュメント](docs/operations.ja.md)
+- [中文运维说明](docs/operations.zh.md)
+- Local visual HTML guides: [ko](docs/aigate-overview.ko.html), [en](docs/aigate-overview.en.html), [ja](docs/aigate-overview.ja.html), [zh](docs/aigate-overview.zh.html)
 
 ## Contributing
 
