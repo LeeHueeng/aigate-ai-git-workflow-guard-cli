@@ -69,9 +69,9 @@ Route important events such as `BLOCK`, `WARN`, `PR_ONLY`, and
 `SECRET_DETECTED` to terminal, desktop notifications, Slack, Discord, Teams,
 email, GitHub pull request comments, GitHub Checks, Linear, or Jira.
 
-Current CLI support includes terminal notifications plus Slack, Discord, Teams,
-and custom webhook payloads. Email, GitHub pull request comments, GitHub
-Checks, Linear, and Jira remain staged integrations.
+Current CLI support includes terminal notifications, Slack, Discord, Teams,
+custom webhook payloads, GitHub pull request comments, and GitHub Checks
+summary payloads. Email, Linear, and Jira remain staged integrations.
 
 ### Report Generator
 

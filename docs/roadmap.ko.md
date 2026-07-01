@@ -29,8 +29,8 @@
 
 ## V2: Team reports와 GitHub integration
 
-- [ ] GitHub pull request에 AIGate summary comment
-- [ ] GitHub Checks로 status report
+- [x] GitHub pull request에 AIGate summary comment 작성
+- [x] `aigate github check`로 GitHub Checks와 Actions 요약 준비
 - [x] weekly team report 생성
 - [ ] project health trend 추적
 - [ ] Linear와 Jira 연동

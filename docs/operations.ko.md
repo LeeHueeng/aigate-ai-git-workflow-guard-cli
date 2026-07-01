@@ -55,6 +55,8 @@ git commit -m "feat: short summary"
 aigate push -u origin feature/my-change
 aigate pr-check --output .aigate/reports/pr.md
 aigate pr --title "feat: short summary"
+aigate github comment --pr <number>
+aigate github check --output .aigate/reports/github-check.md
 aigate release-check --npm
 ```
 
@@ -67,6 +69,7 @@ aigate release-check --npm
 - Git 변경 파일과 untracked 파일 기반 readiness check
 - secret 패턴 탐지와 SARIF 출력
 - `git-ready`, guarded push, guarded PR 생성 흐름
+- `aigate github` 기반 GitHub PR 댓글과 Checks 요약
 - Markdown, HTML, JSON, SARIF 리포트
 - 프로젝트 점수와 deep Git signal 평가
 - 브랜치 전략 추천과 정책 초안 생성
@@ -80,7 +83,6 @@ aigate release-check --npm
 - 공개 Docker image
 - Homebrew formula
 - standalone binary
-- GitHub PR comment와 GitHub Checks reporter
 - 주간 팀 리포트와 추세 분석
 - Linear/Jira 연동
 - hosted dashboard와 엔터프라이즈 거버넌스 pack

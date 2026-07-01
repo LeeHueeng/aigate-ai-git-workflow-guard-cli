@@ -45,6 +45,8 @@ aigate pr-check
 | pre-push hook installer | `aigate install-hook --pre-push` |
 | 带验证的 push wrapper | `aigate push -u origin <branch>` |
 | PR readiness report | `aigate pr-check` |
+| GitHub PR 摘要评论 | `aigate github comment --pr <number>` |
+| GitHub Checks 摘要 payload | `aigate github check --format json` |
 | Markdown, HTML, JSON, SARIF report | `aigate report --format <format>` |
 | repository health score | `aigate evaluate-project` |
 | branch strategy recommendation | `aigate branch-strategy` |
@@ -63,6 +65,8 @@ git commit -m "feat: focused change"
 aigate push -u origin feature/my-work
 aigate pr-check --output .aigate/reports/pr.md
 aigate pr --title "feat: focused change"
+aigate github comment --pr <number>
+aigate github check --output .aigate/reports/github-check.md
 ```
 
 ## 语言设置
@@ -102,8 +106,6 @@ aigate integrate all
 - 公开 Docker image
 - Homebrew formula
 - standalone binary
-- GitHub PR comments
-- GitHub Checks reporter
 - hosted dashboard
 - Linear/Jira integrations
 

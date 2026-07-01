@@ -61,6 +61,10 @@ install channel、version tag 和 release documentation。
 把 `BLOCK`、`WARN`、`PR_ONLY`、`SECRET_DETECTED` 等重要 event 路由到 terminal、
 Slack、Discord、Teams、email、GitHub PR comment、GitHub Checks、Linear 或 Jira。
 
+当前 CLI 支持 terminal、Slack、Discord、Teams、custom webhook payload、
+GitHub PR comment 和 GitHub Checks summary payload。email、Linear、Jira
+仍是 staged integration。
+
 ### Report generator
 
 以 Markdown、HTML、JSON、SARIF、GitHub-native format 生成 local change report、

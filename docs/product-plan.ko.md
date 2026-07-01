@@ -62,6 +62,10 @@ install channel, version tag, release documentation을 관리합니다.
 Slack, Discord, Teams, email, GitHub PR comment, GitHub Checks, Linear, Jira로
 보낼 수 있게 확장합니다.
 
+현재 CLI는 terminal, Slack, Discord, Teams, custom webhook payload,
+GitHub PR comment, GitHub Checks summary payload를 지원합니다. email,
+Linear, Jira는 staged integration입니다.
+
 ### Report generator
 
 local change report, pull request readiness report, weekly team report,

@@ -29,8 +29,8 @@
 
 ## V2: Team reports and GitHub integration
 
-- [ ] GitHub pull request に AIGate summary を comment
-- [ ] GitHub Checks で status を report
+- [x] GitHub pull request に AIGate summary を comment
+- [x] `aigate github check` で GitHub Checks と Actions summary を準備
 - [x] weekly team report を生成
 - [ ] project health trend を追跡
 - [ ] Linear と Jira と連携
