@@ -120,6 +120,7 @@ test("shows help", () => {
   assert.match(result.stdout, /release-check/);
   assert.match(result.stdout, /audit-report/);
   assert.match(result.stdout, /branch-strategy/);
+  assert.match(result.stdout, /trends <record\|show>/);
   assert.match(result.stdout, /doctor/);
   assert.match(result.stdout, /demo/);
   assert.match(result.stdout, /install-hook/);
@@ -279,6 +280,39 @@ test("writes localized GitHub Checks summary output", () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /書き込みました/);
   assert.match(readFileSync(outputPath, "utf8"), /^# AIGate PR レポート/m);
+});
+
+test("records and shows project health trends", () => {
+  const outputDir = createOutputDir();
+  const historyPath = join(outputDir, "history.json");
+  const first = run(["trends", "record", "--history", historyPath, "--format", "json"]);
+  const second = run(["trends", "record", "--history", historyPath, "--format", "json"]);
+
+  assert.equal(first.status, 0);
+  assert.equal(second.status, 0);
+
+  const output = JSON.parse(second.stdout);
+  assert.equal(output.command, "trends record");
+  assert.equal(output.historyPath, historyPath);
+  assert.equal(output.summary.entries, 2);
+  assert.equal(typeof output.snapshot.projectScore, "number");
+
+  const history = JSON.parse(readFileSync(historyPath, "utf8"));
+  assert.equal(history.entries.length, 2);
+
+  const show = run(["trends", "show", "--history", historyPath, "--language", "ko"]);
+  assert.equal(show.status, 0);
+  assert.match(show.stdout, /^# AIGate 상태 추세/m);
+  assert.match(show.stdout, /기록 수: 2/);
+  assert.match(show.stdout, /프로젝트 점수 변화:/);
+});
+
+test("renders localized empty trend history", () => {
+  const outputDir = createOutputDir();
+  const result = run(["trends", "show", "--history", join(outputDir, "missing.json"), "--language", "zh"]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /还没有趋势历史/);
 });
 
 test("can skip push readiness gate in dry-run mode", () => {

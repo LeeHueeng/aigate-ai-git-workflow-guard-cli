@@ -58,6 +58,7 @@ aigate pr-check --output .aigate/reports/pr.md
 aigate pr --title "feat: short summary"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
+aigate trends record
 aigate release-check --npm
 ```
 
@@ -73,6 +74,7 @@ aigate release-check --npm
 - `aigate github` による GitHub PR コメントと Checks サマリー
 - Markdown, HTML, JSON, SARIF reports
 - project score と deep Git signal evaluation
+- `aigate trends` によるプロジェクト状態トレンド履歴
 - branch strategy recommendation と policy draft generation
 - Codex/Gemini integration file generation
 - 英語、韓国語、日本語、中国語の CLI settings
@@ -84,6 +86,5 @@ aigate release-check --npm
 - 公開 Docker image
 - Homebrew formula
 - standalone binary
-- 週次 team report と trend analytics
 - Linear/Jira integrations
 - hosted dashboard と enterprise governance packs

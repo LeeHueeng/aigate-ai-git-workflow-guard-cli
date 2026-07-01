@@ -68,7 +68,8 @@ GitHub PR comment 和 GitHub Checks summary payload。email、Linear、Jira
 ### Report generator
 
 以 Markdown、HTML、JSON、SARIF、GitHub-native format 生成 local change report、
-pull request readiness report、weekly team report 和 audit/compliance report。
+pull request readiness report、weekly team report、项目状态趋势历史和
+audit/compliance report。
 
 ### Project evaluator
 

@@ -57,6 +57,7 @@ aigate pr-check --output .aigate/reports/pr.md
 aigate pr --title "feat: short summary"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
+aigate trends record
 aigate release-check --npm
 ```
 
@@ -72,6 +73,7 @@ aigate release-check --npm
 - 通过 `aigate github` 发布 GitHub PR 评论并准备 Checks 摘要
 - Markdown, HTML, JSON, SARIF reports
 - project score 和 deep Git signal evaluation
+- 通过 `aigate trends` 记录项目状态趋势历史
 - branch strategy recommendation 和 policy draft generation
 - Codex/Gemini integration file generation
 - 英语、韩语、日语、中文 CLI settings
@@ -83,6 +85,5 @@ aigate release-check --npm
 - 公开 Docker image
 - Homebrew formula
 - standalone binary
-- 每周 team report 和 trend analytics
 - Linear/Jira integrations
 - hosted dashboard 和 enterprise governance packs

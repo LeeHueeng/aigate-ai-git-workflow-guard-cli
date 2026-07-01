@@ -32,7 +32,7 @@
 - [x] 在 GitHub pull request 上 comment AIGate summary
 - [x] 通过 `aigate github check` 准备 GitHub Checks 和 Actions summary
 - [x] 生成 weekly team reports
-- [ ] 跟踪 project health trends
+- [x] 通过 `aigate trends` 跟踪项目状态趋势
 - [ ] 集成 Linear 和 Jira
 - [ ] publish standalone binaries
 - [ ] 比较多个 AI-generated branch strategy proposals

@@ -21,6 +21,8 @@ All notable changes to AIGate are documented here.
 - Split first-run command logic into command, core, and renderer modules.
 - Added GitHub reporting commands for PR comments and Checks/Actions summary
   payloads through `aigate github comment` and `aigate github check`.
+- Added project health trend history through `aigate trends record` and
+  `aigate trends show`.
 - Improved tests for multilingual output and webhook notification payloads.
 
 ## 0.1.0 - 2026-07-01

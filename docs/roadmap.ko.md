@@ -32,7 +32,7 @@
 - [x] GitHub pull request에 AIGate summary comment 작성
 - [x] `aigate github check`로 GitHub Checks와 Actions 요약 준비
 - [x] weekly team report 생성
-- [ ] project health trend 추적
+- [x] `aigate trends`로 프로젝트 상태 추세 추적
 - [ ] Linear와 Jira 연동
 - [ ] standalone binary publish
 - [ ] 여러 AI-generated branch strategy proposal 비교

@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { commandDemo, commandDoctor, commandInstallHook } from "./commands/first-run.mjs";
 import { commandGithub } from "./commands/github-reporting.mjs";
+import { commandTrends } from "./commands/trends.mjs";
 
 const CLI_DIR = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = dirname(CLI_DIR);
@@ -94,6 +95,7 @@ const I18N = {
     "settings.complete": "AIGate setup complete",
     "settings.file": "Settings file: {path}",
     "settings.title": "AIGate settings",
+    "trends.unknownAction": "Unknown trends action: {action}",
     "unknownCommand": "Unknown command: {command}",
     "runHelp": "Run `aigate --help` for available commands.",
     "unsupportedLanguage": "Unsupported language: {language}",
@@ -170,6 +172,7 @@ const I18N = {
     "settings.complete": "AIGate 설정 완료",
     "settings.file": "설정 파일: {path}",
     "settings.title": "AIGate 설정",
+    "trends.unknownAction": "알 수 없는 추세 작업: {action}",
     "unknownCommand": "알 수 없는 명령어: {command}",
     "runHelp": "사용 가능한 명령어는 `aigate --help`로 확인하세요.",
     "unsupportedLanguage": "지원하지 않는 언어: {language}",
@@ -246,6 +249,7 @@ const I18N = {
     "settings.complete": "AIGate 設定完了",
     "settings.file": "設定ファイル: {path}",
     "settings.title": "AIGate 設定",
+    "trends.unknownAction": "不明なトレンドアクション: {action}",
     "unknownCommand": "不明なコマンド: {command}",
     "runHelp": "利用可能なコマンドは `aigate --help` で確認してください。",
     "unsupportedLanguage": "未対応の言語: {language}",
@@ -322,6 +326,7 @@ const I18N = {
     "settings.complete": "AIGate 设置完成",
     "settings.file": "设置文件: {path}",
     "settings.title": "AIGate 设置",
+    "trends.unknownAction": "未知趋势操作: {action}",
     "unknownCommand": "未知命令: {command}",
     "runHelp": "运行 `aigate --help` 查看可用命令。",
     "unsupportedLanguage": "不支持的语言: {language}",
@@ -766,6 +771,7 @@ const HELP_CONTENT = {
       ["report", "Print a workflow report."],
       ["evaluate-project", "Score repository workflow foundations."],
       ["score", "Print only the project score."],
+      ["trends <record|show>", "Track repository health trend history."],
       ["branch-strategy", "Recommend a branch strategy."],
       ["release-check", "Validate package release readiness."],
       ["audit-report", "Generate a policy and governance audit report."],
@@ -780,6 +786,7 @@ const HELP_CONTENT = {
       ["--pr <number>", "GitHub pull request number."],
       ["--name <text>", "GitHub Checks display name."],
       ["--details-url <url>", "GitHub Checks details URL."],
+      ["--history <path>", "Trend history file path."],
       ["--title <text>", "Pull request title."],
       ["--body <text>", "Pull request body."],
       ["--generate", "Write generated branch strategy guidance."],
@@ -824,6 +831,7 @@ const HELP_CONTENT = {
       ["report", "워크플로 리포트를 출력합니다."],
       ["evaluate-project", "저장소 워크플로 기반 점수를 계산합니다."],
       ["score", "프로젝트 점수만 출력합니다."],
+      ["trends <record|show>", "저장소 상태 추세 기록을 관리합니다."],
       ["branch-strategy", "브랜치 전략을 추천합니다."],
       ["release-check", "패키지 릴리스 준비 상태를 검증합니다."],
       ["audit-report", "정책과 거버넌스 감사 리포트를 생성합니다."],
@@ -838,6 +846,7 @@ const HELP_CONTENT = {
       ["--pr <number>", "GitHub PR 번호를 지정합니다."],
       ["--name <text>", "GitHub Checks 표시 이름입니다."],
       ["--details-url <url>", "GitHub Checks 상세 URL입니다."],
+      ["--history <path>", "추세 기록 파일 경로입니다."],
       ["--title <text>", "PR 제목을 지정합니다."],
       ["--body <text>", "PR 본문을 지정합니다."],
       ["--generate", "브랜치 전략 가이드를 생성합니다."],
@@ -882,6 +891,7 @@ const HELP_CONTENT = {
       ["report", "ワークフローレポートを出力します。"],
       ["evaluate-project", "リポジトリのワークフロー基盤を採点します。"],
       ["score", "プロジェクトスコアのみ出力します。"],
+      ["trends <record|show>", "リポジトリ状態トレンド履歴を管理します。"],
       ["branch-strategy", "ブランチ戦略を推薦します。"],
       ["release-check", "パッケージのリリース準備状況を検証します。"],
       ["audit-report", "ポリシーとガバナンスの監査レポートを生成します。"],
@@ -896,6 +906,7 @@ const HELP_CONTENT = {
       ["--pr <number>", "GitHub PR 番号を指定します。"],
       ["--name <text>", "GitHub Checks 表示名です。"],
       ["--details-url <url>", "GitHub Checks 詳細 URL です。"],
+      ["--history <path>", "トレンド履歴ファイルのパスです。"],
       ["--title <text>", "PR タイトルを指定します。"],
       ["--body <text>", "PR 本文を指定します。"],
       ["--generate", "ブランチ戦略ガイドを生成します。"],
@@ -940,6 +951,7 @@ const HELP_CONTENT = {
       ["report", "输出工作流报告。"],
       ["evaluate-project", "评估仓库工作流基础分。"],
       ["score", "仅输出项目分数。"],
+      ["trends <record|show>", "管理仓库状态趋势历史。"],
       ["branch-strategy", "推荐分支策略。"],
       ["release-check", "验证包发布就绪状态。"],
       ["audit-report", "生成政策和治理审计报告。"],
@@ -954,6 +966,7 @@ const HELP_CONTENT = {
       ["--pr <number>", "GitHub PR 编号。"],
       ["--name <text>", "GitHub Checks 显示名称。"],
       ["--details-url <url>", "GitHub Checks 详情 URL。"],
+      ["--history <path>", "趋势历史文件路径。"],
       ["--title <text>", "PR 标题。"],
       ["--body <text>", "PR 正文。"],
       ["--generate", "生成分支策略指南。"],
@@ -1264,6 +1277,7 @@ const commands = {
   report: commandReport,
   "evaluate-project": commandEvaluateProject,
   score: commandScore,
+  trends: (args) => commandTrends(args, commandContext()),
   "branch-strategy": commandBranchStrategy,
   "release-check": commandReleaseCheck,
   "audit-report": commandAuditReport,
@@ -1283,6 +1297,7 @@ function commandContext() {
     readJsonFile,
     renderReport,
     resolveLanguage,
+    statusLabel,
     t,
     unsupportedLanguage
   };
@@ -4466,6 +4481,7 @@ function firstPositionalArg(args) {
     "--config",
     "--event",
     "--format",
+    "--history",
     "--language",
     "--name",
     "--notify-channel",

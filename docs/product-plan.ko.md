@@ -69,8 +69,8 @@ Linear, Jira는 staged integration입니다.
 ### Report generator
 
 local change report, pull request readiness report, weekly team report,
-audit/compliance report를 Markdown, HTML, JSON, SARIF, GitHub-native format으로
-생성합니다.
+프로젝트 상태 추세 기록, audit/compliance report를 Markdown, HTML, JSON, SARIF,
+GitHub-native format으로 생성합니다.
 
 ### Project evaluator
 
