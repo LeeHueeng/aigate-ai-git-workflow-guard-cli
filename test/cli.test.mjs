@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,6 +23,7 @@ function run(args, options = {}) {
     encoding: "utf8",
     env: {
       ...process.env,
+      ...(options.env ?? {}),
       AIGATE_SETTINGS_PATH: options.settingsPath ?? createSettingsPath(),
       AIGATE_SLACK_WEBHOOK_URL: options.slackWebhook ?? ""
     }
@@ -50,7 +51,7 @@ test("prints package version", () => {
   const result = run(["--version"]);
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /^0\.1\.0/m);
+  assert.match(result.stdout, /^0\.1\.1/m);
 });
 
 test("initializes starter project files", () => {
@@ -296,9 +297,29 @@ test("checks release readiness", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.command, "release-check");
   assert.equal(output.packageName, "aigate-cli");
-  assert.equal(output.version, "0.1.0");
-  assert.equal(output.expectedTag, "v0.1.0");
-  assert.ok(["READY", "ACTION_REQUIRED"].includes(output.status));
+  assert.equal(output.version, "0.1.1");
+  assert.equal(output.expectedTag, "v0.1.1");
+  assert.ok(["READY", "ACTION_REQUIRED", "RELEASED"].includes(output.status));
+  assert.deepEqual(output.registry, { checked: false });
+});
+
+test("checks npm publication state when requested", () => {
+  const binDir = mkdtempSync(join(tmpdir(), "aigate-npm-"));
+  const npmPath = join(binDir, "npm");
+  writeFileSync(npmPath, "#!/bin/sh\nprintf '\"0.1.1\"\\n'\n");
+  chmodSync(npmPath, 0o755);
+
+  const result = run(["release-check", "--npm", "--format", "json"], {
+    env: {
+      PATH: `${binDir}:${process.env.PATH}`
+    }
+  });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.registry.checked, true);
+  assert.equal(output.registry.published, true);
+  assert.equal(output.registry.publishedVersion, "0.1.1");
 });
 
 test("renders audit report", () => {

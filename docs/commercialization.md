@@ -57,7 +57,7 @@ Paid offerings can build around team and organization needs:
 
 ## Distribution Strategy
 
-1. Publish `aigate-cli` on npm.
+1. Keep `aigate-cli` current on npm.
 2. Use GitHub Actions and npm Trusted Publishing for provenance.
 3. Add release notes for every tagged version.
 4. Add Homebrew and Docker once the npm package has real users.
