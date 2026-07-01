@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { chmodSync, existsSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -19,7 +19,7 @@ function createOutputDir() {
 
 function run(args, options = {}) {
   return spawnSync(process.execPath, [cliPath, ...args], {
-    cwd: repoRoot,
+    cwd: options.cwd ?? repoRoot,
     encoding: "utf8",
     env: {
       ...process.env,
@@ -28,6 +28,55 @@ function run(args, options = {}) {
       AIGATE_SLACK_WEBHOOK_URL: options.slackWebhook ?? ""
     }
   });
+}
+
+function createGenericReleaseProject() {
+  const projectDir = mkdtempSync(join(tmpdir(), "aigate-release-project-"));
+  mkdirSync(join(projectDir, ".github", "workflows"), { recursive: true });
+  writeFileSync(join(projectDir, "package.json"), `${JSON.stringify({
+    name: "admin-root-monorepo",
+    version: "1.0.0",
+    main: "dist/index.js",
+    repository: {
+      type: "git",
+      url: "git+https://github.com/ExampleOrg/admin-root-monorepo.git"
+    },
+    publishConfig: {
+      access: "public"
+    }
+  }, null, 2)}\n`);
+  writeFileSync(join(projectDir, "package-lock.json"), `${JSON.stringify({
+    name: "admin-root-monorepo",
+    version: "1.0.0",
+    lockfileVersion: 3,
+    packages: {
+      "": {
+        name: "admin-root-monorepo",
+        version: "1.0.0"
+      }
+    }
+  }, null, 2)}\n`);
+  writeFileSync(join(projectDir, "README.md"), "# Admin Root\n\n```sh\nnpm install admin-root-monorepo\n```\n");
+  writeFileSync(join(projectDir, ".github", "workflows", "release.yml"), [
+    "name: Release",
+    "on: workflow_dispatch",
+    "jobs:",
+    "  release:",
+    "    runs-on: ubuntu-latest",
+    "    steps:",
+    "      - uses: actions/setup-node@v4",
+    "        with:",
+    "          package-manager-cache: false",
+    "      - run: npm publish --provenance"
+  ].join("\n"));
+
+  spawnSync("git", ["init"], { cwd: projectDir, encoding: "utf8" });
+  spawnSync("git", ["remote", "add", "origin", "https://github.com/ExampleOrg/admin-root-monorepo.git"], {
+    cwd: projectDir,
+    encoding: "utf8"
+  });
+
+  return projectDir;
 }
 
 test("shows help", () => {
@@ -350,6 +399,21 @@ test("checks npm publication state when requested", () => {
   assert.equal(output.registry.checked, true);
   assert.equal(output.registry.published, true);
   assert.equal(output.registry.publishedVersion, "0.1.2");
+});
+
+test("uses generic npm package and repository release checks", () => {
+  const projectDir = createGenericReleaseProject();
+  const result = run(["release-check", "--format", "json"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.packageName, "admin-root-monorepo");
+  assert.equal(output.repository, "ExampleOrg/admin-root-monorepo");
+  assert.equal(output.expectedTag, "v1.0.0");
+  assert.equal(output.checks.find((check) => check.name === "package has a valid npm package name")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "package declares npm entrypoint or bin")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "README documents npm install command")?.pass, true);
+  assert.ok(output.nextSteps.some((step) => step.includes("--repo ExampleOrg/admin-root-monorepo")));
 });
 
 test("renders audit report", () => {

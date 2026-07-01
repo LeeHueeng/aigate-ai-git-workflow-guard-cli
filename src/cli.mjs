@@ -460,38 +460,41 @@ const RELEASE_CHECK_TRANSLATIONS = {
   ko: {
     "package.json exists": "package.json 존재",
     "package-lock.json version matches package.json": "package-lock.json 버전이 package.json과 일치",
-    "package has a public npm name": "패키지가 공개 npm 이름 규칙을 충족",
+    "package is not marked private": "package.json이 private 패키지가 아님",
+    "package has a valid npm package name": "패키지가 유효한 npm 이름 규칙을 충족",
     "package version is not 0.0.0": "패키지 버전이 0.0.0이 아님",
-    "package exposes aigate bin": "패키지가 aigate bin을 제공",
+    "package declares npm entrypoint or bin": "패키지가 npm 진입점 또는 bin을 선언",
     "publishConfig access is public": "publishConfig access가 public",
     "release workflow exists": "릴리스 workflow 존재",
     "release workflow uses npm provenance": "릴리스 workflow가 npm provenance 사용",
     "release workflow disables package manager cache": "릴리스 workflow가 package manager cache를 비활성화",
-    "README documents install channels": "README가 설치 채널을 문서화"
+    "README documents npm install command": "README가 npm 설치 명령을 문서화"
   },
   ja: {
     "package.json exists": "package.json が存在",
     "package-lock.json version matches package.json": "package-lock.json の version が package.json と一致",
-    "package has a public npm name": "パッケージが公開 npm 名を持つ",
+    "package is not marked private": "package.json が private パッケージではない",
+    "package has a valid npm package name": "パッケージが有効な npm 名を持つ",
     "package version is not 0.0.0": "パッケージ version が 0.0.0 ではない",
-    "package exposes aigate bin": "パッケージが aigate bin を公開",
+    "package declares npm entrypoint or bin": "パッケージが npm entrypoint または bin を宣言",
     "publishConfig access is public": "publishConfig access が public",
     "release workflow exists": "リリース workflow が存在",
     "release workflow uses npm provenance": "リリース workflow が npm provenance を使用",
     "release workflow disables package manager cache": "リリース workflow が package manager cache を無効化",
-    "README documents install channels": "README にインストールチャンネルが記載済み"
+    "README documents npm install command": "README に npm install コマンドが記載済み"
   },
   zh: {
     "package.json exists": "package.json 存在",
     "package-lock.json version matches package.json": "package-lock.json 版本与 package.json 一致",
-    "package has a public npm name": "包具有公开 npm 名称",
+    "package is not marked private": "package.json 未标记为 private 包",
+    "package has a valid npm package name": "包具有有效 npm 名称",
     "package version is not 0.0.0": "包版本不是 0.0.0",
-    "package exposes aigate bin": "包公开 aigate bin",
+    "package declares npm entrypoint or bin": "包声明 npm entrypoint 或 bin",
     "publishConfig access is public": "publishConfig access 为 public",
     "release workflow exists": "发布 workflow 存在",
     "release workflow uses npm provenance": "发布 workflow 使用 npm provenance",
     "release workflow disables package manager cache": "发布 workflow 禁用 package manager cache",
-    "README documents install channels": "README 记录安装渠道"
+    "README documents npm install command": "README 记录 npm install 命令"
   }
 };
 
@@ -1631,6 +1634,8 @@ function buildReleaseCheck(options = {}) {
   const packageJson = readJsonFile("package.json");
   const version = packageJson.version ?? "0.0.0";
   const packageName = packageJson.name ?? "";
+  const repository = detectRepositorySlug(packageJson);
+  const repositoryForCommand = repository ?? "<owner>/<repo>";
   const expectedTag = `v${version}`;
   const tags = (git(["tag", "--list"]) ?? "")
     .split("\n")
@@ -1640,14 +1645,15 @@ function buildReleaseCheck(options = {}) {
   const checks = [
     { name: "package.json exists", pass: existsSync("package.json") },
     { name: "package-lock.json version matches package.json", pass: readJsonFile("package-lock.json").version === version },
-    { name: "package has a public npm name", pass: /^(@[a-z0-9-]+\/)?aigate(?:-[a-z0-9]+)*$/.test(packageName) },
+    { name: "package is not marked private", pass: packageJson.private !== true },
+    { name: "package has a valid npm package name", pass: isValidNpmPackageName(packageName) },
     { name: "package version is not 0.0.0", pass: version !== "0.0.0" },
-    { name: "package exposes aigate bin", pass: Boolean(packageJson.bin?.aigate) },
+    { name: "package declares npm entrypoint or bin", pass: hasNpmEntrypoint(packageJson) },
     { name: "publishConfig access is public", pass: packageJson.publishConfig?.access === "public" },
     { name: "release workflow exists", pass: existsSync(join(".github", "workflows", "release.yml")) },
     { name: "release workflow uses npm provenance", pass: fileIncludes(join(".github", "workflows", "release.yml"), "--provenance") },
     { name: "release workflow disables package manager cache", pass: fileIncludes(join(".github", "workflows", "release.yml"), "package-manager-cache: false") },
-    { name: "README documents install channels", pass: fileIncludes("README.md", `npm install -g ${packageName}`) },
+    { name: "README documents npm install command", pass: readmeDocumentsNpmInstall(packageName) },
     { name: `${expectedTag} tag exists`, pass: hasExpectedTag }
   ];
   const registry = options.checkNpm
@@ -1666,7 +1672,7 @@ function buildReleaseCheck(options = {}) {
       nextSteps.push(`${packageName}@${version} is not on npm yet; create release tag ${expectedTag} to publish with Trusted Publishing.`);
     } else {
       nextSteps.push(`If ${packageName} is not on npm yet, enable npm account 2FA and create it with: npm publish --access public`);
-      nextSteps.push(`Configure trusted publishing after the package exists: npx npm@latest trust github ${packageName} --file release.yml --repo LeeHueeng/aigate-ai-git-workflow-guard-cli --allow-publish --yes`);
+      nextSteps.push(`Configure trusted publishing after the package exists: npx npm@latest trust github ${packageName} --file release.yml --repo ${repositoryForCommand} --allow-publish --yes`);
       nextSteps.push(`Create release tag ${expectedTag} after npm Trusted Publishing is configured.`);
     }
   }
@@ -1696,10 +1702,79 @@ function buildReleaseCheck(options = {}) {
     packageName: packageJson.name ?? null,
     version,
     expectedTag,
+    repository,
     registry,
     checks,
     nextSteps
   };
+}
+
+function isValidNpmPackageName(packageName) {
+  if (!packageName || packageName.length > 214 || packageName !== packageName.toLowerCase()) {
+    return false;
+  }
+
+  if (packageName.startsWith(".") || packageName.startsWith("_") || packageName.includes(" ")) {
+    return false;
+  }
+
+  if (packageName.includes("..") || /[~'!()*]/.test(packageName)) {
+    return false;
+  }
+
+  if (packageName.startsWith("@")) {
+    return /^@[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*$/.test(packageName);
+  }
+
+  return /^[a-z0-9][a-z0-9._-]*$/.test(packageName);
+}
+
+function hasNpmEntrypoint(packageJson) {
+  return Boolean(
+    packageJson.bin ||
+    packageJson.main ||
+    packageJson.module ||
+    packageJson.exports ||
+    Array.isArray(packageJson.files)
+  );
+}
+
+function readmeDocumentsNpmInstall(packageName) {
+  if (!packageName || !existsSync("README.md")) {
+    return false;
+  }
+
+  const readme = readFileSync("README.md", "utf8");
+  const escapedName = escapeRegExp(packageName);
+  return new RegExp(`\\b(?:npm|pnpm|yarn|bun)\\s+(?:install|add|dlx|x|global\\s+add)\\s+(?:-g\\s+)?${escapedName}\\b`).test(readme) ||
+    new RegExp(`\\bnpx\\s+${escapedName}\\b`).test(readme);
+}
+
+function detectRepositorySlug(packageJson) {
+  return parseGitHubRepositorySlug(git(["config", "--get", "remote.origin.url"])) ??
+    parseGitHubRepositorySlug(packageJson.repository?.url ?? packageJson.repository) ??
+    null;
+}
+
+function parseGitHubRepositorySlug(value) {
+  if (!value) {
+    return null;
+  }
+
+  const text = String(value).trim().replace(/\.git$/, "");
+  const patterns = [
+    /github\.com[:/]([^/\s]+)\/([^/\s]+)$/i,
+    /^([^/\s]+)\/([^/\s]+)$/
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      return `${match[1]}/${match[2]}`;
+    }
+  }
+
+  return null;
 }
 
 function lookupNpmPublication(packageName, version) {
@@ -3182,6 +3257,10 @@ function escapeHtml(value) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function print(value) {
