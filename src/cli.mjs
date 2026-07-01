@@ -2559,32 +2559,73 @@ function buildNotificationPayload(payload, channel, language = "en") {
 
 function notificationIssueTitle(payload, language = "en") {
   const label = notificationText(payload, language);
-  return payload.status === "BLOCK" ? `${label} requires action` : label;
+  if (payload.status !== "BLOCK") {
+    return label;
+  }
+
+  return {
+    ko: `${label} 조치 필요`,
+    ja: `${label} 対応が必要`,
+    zh: `${label} 需要处理`
+  }[language] ?? `${label} requires action`;
 }
 
 function notificationIssueDescription(payload, language = "en") {
   const labels = notificationFields(payload, language);
+  const issueLabels = notificationIssueLabels(language);
   const blockers = payload.blockers.length
     ? payload.blockers.map((blocker) => `- ${blocker}`).join("\n")
-    : "- none";
+    : `- ${issueLabels.none}`;
   const warnings = payload.warnings.length
     ? payload.warnings.map((warning) => `- ${warning}`).join("\n")
-    : "- none";
+    : `- ${issueLabels.none}`;
 
   return [
     notificationText(payload, language),
     "",
     ...labels.map((field) => `- ${field.label}: ${field.value}`),
     "",
-    "Blockers:",
+    `${issueLabels.blockers}:`,
     blockers,
     "",
-    "Warnings:",
+    `${issueLabels.warnings}:`,
     warnings,
     "",
-    `Recommendation: ${payload.recommendation}`,
-    `Generated: ${payload.generatedAt}`
+    `${issueLabels.recommendation}: ${payload.recommendation}`,
+    `${issueLabels.generated}: ${payload.generatedAt}`
   ].join("\n");
+}
+
+function notificationIssueLabels(language = "en") {
+  return {
+    ko: {
+      blockers: "차단 사유",
+      warnings: "주의 사항",
+      recommendation: "권장 사항",
+      generated: "생성 시각",
+      none: "없음"
+    },
+    ja: {
+      blockers: "ブロック理由",
+      warnings: "警告",
+      recommendation: "推奨事項",
+      generated: "生成時刻",
+      none: "なし"
+    },
+    zh: {
+      blockers: "阻止原因",
+      warnings: "警告",
+      recommendation: "建议",
+      generated: "生成时间",
+      none: "无"
+    }
+  }[language] ?? {
+    blockers: "Blockers",
+    warnings: "Warnings",
+    recommendation: "Recommendation",
+    generated: "Generated",
+    none: "none"
+  };
 }
 
 function jiraDescriptionDocument(payload, language = "en") {
@@ -3945,7 +3986,7 @@ function renderComplianceReport(report, format, language = "en") {
       `<p>${escapeHtml(labels.releaseStatus)}: ${escapeHtml(statusLabel(report.releaseStatus, language))}</p>`,
       `<h2>${escapeHtml(labels.controls)}</h2>`,
       "<ul>",
-      ...report.controls.map((control) => `<li>${escapeHtml(statusLabel(control.pass ? "PASS" : "TODO", language))}: ${escapeHtml(translateComplianceControl(control.title, language))} - ${escapeHtml(control.evidence)}</li>`),
+      ...report.controls.map((control) => `<li>${escapeHtml(statusLabel(control.pass ? "PASS" : "TODO", language))}: ${escapeHtml(translateComplianceControl(control.title, language))} - ${escapeHtml(translateComplianceEvidence(control, language))}</li>`),
       "</ul>",
       "</body>",
       "</html>"
@@ -3962,11 +4003,13 @@ function renderComplianceReport(report, format, language = "en") {
     "",
     `## ${labels.controls}`,
     "",
-    ...report.controls.map((control) => `- ${statusLabel(control.pass ? "PASS" : "TODO", language)}: ${translateComplianceControl(control.title, language)} - ${control.evidence}`),
+    ...report.controls.map((control) => `- ${statusLabel(control.pass ? "PASS" : "TODO", language)}: ${translateComplianceControl(control.title, language)} - ${translateComplianceEvidence(control, language)}`),
     "",
     `## ${labels.recommendations}`,
     "",
-    ...(report.recommendations.length ? report.recommendations : [`- ${labels.none}`])
+    ...(report.recommendations.length
+      ? report.recommendations.map((recommendation) => `- ${translateComplianceRecommendation(recommendation, language)}`)
+      : [`- ${labels.none}`])
   ].join("\n");
 }
 
@@ -3999,7 +4042,7 @@ function renderDashboard(report, language = "en") {
     "</section>",
     `<h2>${escapeHtml(labels.controls)}</h2>`,
     "<ul>",
-    ...report.controls.map((control) => `<li class="${control.pass ? "pass" : "todo"}">${escapeHtml(statusLabel(control.pass ? "PASS" : "TODO", language))}: ${escapeHtml(translateComplianceControl(control.title, language))} - ${escapeHtml(control.evidence)}</li>`),
+    ...report.controls.map((control) => `<li class="${control.pass ? "pass" : "todo"}">${escapeHtml(statusLabel(control.pass ? "PASS" : "TODO", language))}: ${escapeHtml(translateComplianceControl(control.title, language))} - ${escapeHtml(translateComplianceEvidence(control, language))}</li>`),
     "</ul>",
     "</main>",
     "</body>",
@@ -5337,6 +5380,63 @@ function complianceLabels(language) {
 
 function translateComplianceControl(title, language) {
   return COMPLIANCE_CONTROL_TRANSLATIONS[language]?.[title] ?? title;
+}
+
+function translateComplianceEvidence(control, language) {
+  if (control.id === "release-readiness") {
+    return statusLabel(control.evidence, language);
+  }
+
+  if (control.id === "security-policy") {
+    return {
+      ko: "SECURITY.md, 보안 스캔 문서, Scorecard 워크플로",
+      ja: "SECURITY.md、セキュリティスキャン文書、Scorecard ワークフロー",
+      zh: "SECURITY.md、安全扫描文档、Scorecard 工作流"
+    }[language] ?? control.evidence;
+  }
+
+  if (control.id === "change-control") {
+    return {
+      ko: "PR 템플릿과 CODEOWNERS",
+      ja: "PR テンプレートと CODEOWNERS",
+      zh: "PR 模板和 CODEOWNERS"
+    }[language] ?? control.evidence;
+  }
+
+  if (control.id === "operational-docs") {
+    return {
+      ko: "릴리스와 핫픽스 프로세스 문서",
+      ja: "リリースとホットフィックスのプロセス文書",
+      zh: "发布和热修复流程文档"
+    }[language] ?? control.evidence;
+  }
+
+  if (control.id === "audit-findings") {
+    const count = Number.parseInt(control.evidence, 10);
+    if (!Number.isNaN(count)) {
+      return {
+        ko: `감사 발견 항목 ${count}개`,
+        ja: `監査検出事項 ${count} 件`,
+        zh: `审计发现 ${count} 项`
+      }[language] ?? control.evidence;
+    }
+  }
+
+  return control.evidence;
+}
+
+function translateComplianceRecommendation(recommendation, language) {
+  const controlMatch = recommendation.match(/^Resolve control: (.+)$/);
+  if (controlMatch) {
+    const control = translateComplianceControl(controlMatch[1], language);
+    return {
+      ko: `통제 항목 해결: ${control}`,
+      ja: `統制項目を解決: ${control}`,
+      zh: `解决控制项: ${control}`
+    }[language] ?? recommendation;
+  }
+
+  return recommendation;
 }
 
 function translateAuditRecommendation(recommendation, language) {

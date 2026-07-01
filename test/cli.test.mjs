@@ -643,10 +643,12 @@ test("renders email, Linear, and Jira notification dry-run payloads", () => {
   const email = run(["notify", "send", "--channel", "email", "--dry-run", "--format", "json"]);
   const linear = run(["notify", "send", "--channel", "linear", "--dry-run", "--format", "json"]);
   const jira = run(["notify", "send", "--channel", "jira", "--dry-run", "--format", "json"]);
+  const localizedJira = run(["notify", "send", "--channel", "jira", "--dry-run", "--format", "json", "--language", "ko"]);
 
   assert.equal(email.status, 0);
   assert.equal(linear.status, 0);
   assert.equal(jira.status, 0);
+  assert.equal(localizedJira.status, 0);
 
   const emailPayload = JSON.parse(email.stdout);
   const linearPayload = JSON.parse(linear.stdout);
@@ -665,6 +667,15 @@ test("renders email, Linear, and Jira notification dry-run payloads", () => {
   assert.ok(jiraPayload.requiredEnv.includes("AIGATE_JIRA_BASE_URL"));
   assert.ok(jiraPayload.requiredEnv.includes("AIGATE_JIRA_PROJECT_KEY"));
   assert.equal(jiraPayload.payload.fields.issuetype.name, "Task");
+
+  const localizedJiraPayload = JSON.parse(localizedJira.stdout);
+  const localizedJiraText = JSON.stringify(localizedJiraPayload.payload.fields.description);
+  assert.match(localizedJiraPayload.payload.fields.summary, /AIGate BLOCK/);
+  assert.match(localizedJiraText, /차단 사유/);
+  assert.match(localizedJiraText, /주의 사항/);
+  assert.match(localizedJiraText, /권장 사항/);
+  assert.match(localizedJiraText, /생성 시각/);
+  assert.doesNotMatch(localizedJiraText, /Blockers|Warnings|Recommendation|Generated|- none/);
 });
 
 test("renders markdown report by default", () => {
@@ -887,12 +898,21 @@ test("renders compliance report and dashboard", () => {
   assert.ok(Array.isArray(output.controls));
   assert.ok(output.controls.some((control) => control.id === "operational-docs"));
 
+  const localized = run(["compliance-report", "--format", "markdown", "--language", "ko"]);
+  assert.equal(localized.status, 0);
+  assert.match(localized.stdout, /릴리스 준비 상태 - (준비 완료|조치 필요|배포 완료)/);
+  assert.match(localized.stdout, /릴리스와 핫픽스 프로세스 문서/);
+  assert.match(localized.stdout, /감사 발견 항목 \d+개/);
+  assert.doesNotMatch(localized.stdout, /finding\(s\)|READY|release and hotfix process docs|Resolve control/);
+
   const outputDir = createOutputDir();
   const dashboardPath = join(outputDir, "dashboard.html");
   const dashboard = run(["dashboard", "--output", dashboardPath, "--language", "ko"]);
   assert.equal(dashboard.status, 0);
   assert.ok(existsSync(dashboardPath));
-  assert.match(readFileSync(dashboardPath, "utf8"), /AIGate 상태 대시보드/);
+  const dashboardHtml = readFileSync(dashboardPath, "utf8");
+  assert.match(dashboardHtml, /AIGate 상태 대시보드/);
+  assert.match(dashboardHtml, /감사 발견 항목 \d+개/);
 });
 
 test("recommends branch strategy", () => {
