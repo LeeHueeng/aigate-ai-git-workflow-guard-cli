@@ -78,7 +78,7 @@ aigate release-check --npm
 - Markdown, HTML, JSON, and SARIF reports
 - Project score and deep Git signal evaluation
 - Project health trend history through `aigate trends`
-- Branch strategy recommendation and generated policy drafts
+- Branch strategy recommendation and generated policy packs
 - Codex/Gemini integration file generation
 - English, Korean, Japanese, and Chinese CLI settings
 - Release checks and npm Trusted Publishing workflow

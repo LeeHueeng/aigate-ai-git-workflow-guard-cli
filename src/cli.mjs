@@ -2477,6 +2477,11 @@ function buildBranchStrategy(options = {}) {
     generatedOutputs: [
       ".aigate/generated-branch-strategy.md",
       ".aigate/branch-strategy-policy.json",
+      ".aigate/policy-packs/README.md",
+      ".aigate/policy-packs/branch-protection.json",
+      ".aigate/policy-packs/pr-quality.json",
+      ".aigate/policy-packs/release-channels.json",
+      ".aigate/policy-packs/ai-collaboration.json",
       "docs/release-process.md",
       "docs/hotfix-process.md",
       ".github/pull_request_template.aigate.md",
@@ -3220,6 +3225,7 @@ function renderBranchStrategyMarkdown(strategy, language = "en") {
 }
 
 function buildBranchStrategyFiles(strategy, outputDir, language = "en") {
+  const policyPacks = buildBranchPolicyPacks(strategy);
   return [
     {
       path: join(outputDir, ".aigate", "generated-branch-strategy.md"),
@@ -3232,9 +3238,18 @@ function buildBranchStrategyFiles(strategy, outputDir, language = "en") {
         strategy: strategy.name,
         generatedAt: new Date().toISOString(),
         branches: strategy.branches,
-        githubProtection: strategy.githubProtection
+        githubProtection: strategy.githubProtection,
+        policyPacks: policyPacks.map((pack) => pack.path)
       }, null, 2)}\n`
     },
+    {
+      path: join(outputDir, ".aigate", "policy-packs", "README.md"),
+      content: renderPolicyPackReadme(strategy, policyPacks, language)
+    },
+    ...policyPacks.map((pack) => ({
+      path: join(outputDir, pack.path),
+      content: `${JSON.stringify(pack.content, null, 2)}\n`
+    })),
     {
       path: join(outputDir, "docs", "release-process.md"),
       content: renderReleaseProcess(strategy, language)
@@ -3252,6 +3267,215 @@ function buildBranchStrategyFiles(strategy, outputDir, language = "en") {
       content: "* @LeeHueeng\n"
     }
   ];
+}
+
+function buildBranchPolicyPacks(strategy) {
+  return [
+    {
+      path: ".aigate/policy-packs/branch-protection.json",
+      content: {
+        version: 1,
+        id: "branch-protection",
+        strategy: strategy.name,
+        appliesTo: ["main", "develop", "release/*", "hotfix/*"],
+        requiredChecks: ["test (20)", "test (22)", "aigate git-ready"],
+        rules: [
+          {
+            id: "pull-request-required",
+            severity: "block",
+            description: "Require a pull request before merging protected branches."
+          },
+          {
+            id: "review-required",
+            severity: "block",
+            minimumApprovals: 1,
+            description: "Require at least one approving review from a maintainer or CODEOWNER."
+          },
+          {
+            id: "conversation-resolution-required",
+            severity: "block",
+            description: "Require all review conversations to be resolved before merge."
+          },
+          {
+            id: "force-push-blocked",
+            severity: "block",
+            description: "Block force pushes and protected branch deletion."
+          }
+        ]
+      }
+    },
+    {
+      path: ".aigate/policy-packs/pr-quality.json",
+      content: {
+        version: 1,
+        id: "pr-quality",
+        strategy: strategy.name,
+        requiredSections: ["Summary", "Risk", "Validation", "Release Impact"],
+        validationCommands: ["npm run ci", "aigate git-ready", "aigate pr-check"],
+        riskLabels: ["low-risk", "security-sensitive", "release-impact", "migration"],
+        rules: [
+          {
+            id: "focused-change",
+            severity: "warn",
+            description: "Keep pull requests focused on one behavior or documentation goal."
+          },
+          {
+            id: "validation-evidence",
+            severity: "block",
+            description: "Include validation commands or explain why validation is not applicable."
+          },
+          {
+            id: "release-impact-stated",
+            severity: "warn",
+            description: "State whether the change affects releases, package behavior, or migrations."
+          }
+        ]
+      }
+    },
+    {
+      path: ".aigate/policy-packs/release-channels.json",
+      content: {
+        version: 1,
+        id: "release-channels",
+        strategy: strategy.name,
+        stableBranch: "main",
+        tagPattern: "v*.*.*",
+        npmDistTags: {
+          latest: "stable releases",
+          next: "release candidates",
+          beta: "beta validation",
+          canary: "high-frequency experimental builds"
+        },
+        requiredBeforeTag: ["npm run ci", "aigate release-check --npm", "Release workflow dry_run=true"],
+        rules: [
+          {
+            id: "tag-after-ci",
+            severity: "block",
+            description: "Create release tags only after CI and release-check pass."
+          },
+          {
+            id: "document-release",
+            severity: "warn",
+            description: "Keep CHANGELOG and GitHub Release notes aligned with the published package."
+          }
+        ]
+      }
+    },
+    {
+      path: ".aigate/policy-packs/ai-collaboration.json",
+      content: {
+        version: 1,
+        id: "ai-collaboration",
+        strategy: strategy.name,
+        assistantBranches: ["codex/*", "feature/*", "fix/*", "docs/*", "chore/*"],
+        requiredContext: ["README.md", ".aigate.yml", "docs/branch-strategy.md", "docs/git-upload-workflow.md"],
+        guardCommands: ["aigate git-ready", "npm run ci"],
+        rules: [
+          {
+            id: "no-unreviewed-main-changes",
+            severity: "block",
+            description: "AI-assisted changes must go through a branch and pull request before main."
+          },
+          {
+            id: "preserve-user-work",
+            severity: "block",
+            description: "Do not revert unrelated user changes while preparing an AI-assisted branch."
+          },
+          {
+            id: "document-validation",
+            severity: "warn",
+            description: "Summarize validation commands and release impact in the pull request body."
+          }
+        ]
+      }
+    }
+  ];
+}
+
+function renderPolicyPackReadme(strategy, policyPacks, language = "en") {
+  const files = policyPacks.map((pack) => `- \`${pack.path}\``);
+
+  if (language === "ko") {
+    return [
+      "# AIGate 정책 팩",
+      "",
+      `권장 전략: ${translateStrategyName(strategy.name, language)}`,
+      "",
+      "이 디렉터리는 브랜치 보호, PR 품질, 릴리스 채널, AI 협업 규칙을 팀 정책으로 적용하기 위한 초안입니다.",
+      "",
+      "## 포함 파일",
+      "",
+      ...files,
+      "",
+      "## 사용 방법",
+      "",
+      "1. JSON 파일의 규칙을 팀 정책에 맞게 검토합니다.",
+      "2. GitHub branch protection, PR template, release workflow 설정에 반영합니다.",
+      "3. 변경 후 `npm run ci`와 `aigate git-ready`를 실행합니다.",
+      ""
+    ].join("\n");
+  }
+
+  if (language === "ja") {
+    return [
+      "# AIGate ポリシーパック",
+      "",
+      `推奨戦略: ${translateStrategyName(strategy.name, language)}`,
+      "",
+      "このディレクトリは、ブランチ保護、PR 品質、リリースチャンネル、AI 協業ルールをチームポリシーとして適用するための草案です。",
+      "",
+      "## 含まれるファイル",
+      "",
+      ...files,
+      "",
+      "## 使い方",
+      "",
+      "1. JSON ファイルのルールをチーム方針に合わせて確認します。",
+      "2. GitHub branch protection、PR template、release workflow 設定へ反映します。",
+      "3. 変更後に `npm run ci` と `aigate git-ready` を実行します。",
+      ""
+    ].join("\n");
+  }
+
+  if (language === "zh") {
+    return [
+      "# AIGate 政策包",
+      "",
+      `推荐策略: ${translateStrategyName(strategy.name, language)}`,
+      "",
+      "此目录提供分支保护、PR 质量、发布渠道和 AI 协作规则的团队政策草案。",
+      "",
+      "## 包含文件",
+      "",
+      ...files,
+      "",
+      "## 使用方式",
+      "",
+      "1. 按团队政策审查 JSON 文件中的规则。",
+      "2. 应用到 GitHub branch protection、PR template 和 release workflow 设置。",
+      "3. 变更后运行 `npm run ci` 和 `aigate git-ready`。",
+      ""
+    ].join("\n");
+  }
+
+  return [
+    "# AIGate Policy Packs",
+    "",
+    `Recommended strategy: ${strategy.name}`,
+    "",
+    "This directory contains draft team policies for branch protection, pull request quality, release channels, and AI collaboration.",
+    "",
+    "## Files",
+    "",
+    ...files,
+    "",
+    "## How To Use",
+    "",
+    "1. Review each JSON rule set against your team policy.",
+    "2. Apply matching settings to GitHub branch protection, pull request templates, and release workflows.",
+    "3. Run `npm run ci` and `aigate git-ready` after changes.",
+    ""
+  ].join("\n");
 }
 
 function renderReleaseProcess(strategy, language = "en") {

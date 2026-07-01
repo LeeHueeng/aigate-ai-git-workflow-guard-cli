@@ -51,7 +51,7 @@ aigate pr-check
 | Markdown, HTML, JSON, SARIF 리포트 | `aigate report --format <format>` |
 | 저장소 건강 점수 | `aigate evaluate-project` |
 | 프로젝트 상태 추세 기록 | `aigate trends record` |
-| 브랜치 전략 추천 | `aigate branch-strategy` |
+| 브랜치 전략 정책 팩 | `aigate branch-strategy --apply` |
 | npm 릴리스 준비 확인 | `aigate release-check --npm` |
 | Codex/Gemini 연동 파일 생성 | `aigate integrate all` |
 

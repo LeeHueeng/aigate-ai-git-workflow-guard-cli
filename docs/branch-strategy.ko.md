@@ -74,6 +74,16 @@ chore: initialize public repository metadata
 - future: `npm run lint`
 - future: `npm run typecheck`
 
+## 생성되는 정책 팩
+
+`aigate branch-strategy --apply`는 `.aigate/policy-packs/` 아래에 재사용
+가능한 정책 팩을 생성합니다.
+
+- `branch-protection.json`: 보호 브랜치, 리뷰, 상태 검사, force push 규칙
+- `pr-quality.json`: PR 섹션, 검증 명령, 위험 라벨, 품질 게이트
+- `release-channels.json`: npm dist-tag, 릴리스 태그, 태그 전 검증 규칙
+- `ai-collaboration.json`: AI 지원 브랜치 prefix, 필수 저장소 문맥, 보호 명령
+
 ## Release branch flow
 
 1. 완료된 작업을 `main`에 merge합니다.

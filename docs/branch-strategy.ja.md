@@ -74,6 +74,16 @@ chore: initialize public repository metadata
 - future: `npm run lint`
 - future: `npm run typecheck`
 
+## 生成されるポリシーパック
+
+`aigate branch-strategy --apply` は `.aigate/policy-packs/` に再利用可能な
+ポリシーパックを生成します。
+
+- `branch-protection.json`: 保護ブランチ、レビュー、status check、force push ルール
+- `pr-quality.json`: PR セクション、検証コマンド、リスクラベル、品質ゲート
+- `release-channels.json`: npm dist-tag、リリースタグ、タグ前検証ルール
+- `ai-collaboration.json`: AI 支援ブランチ prefix、必須リポジトリ文脈、保護コマンド
+
 ## Release branch flow
 
 1. 完了した作業を `main` に merge する

@@ -24,7 +24,7 @@
 - [ ] local Docker usage 검증 후 Docker image publish
 - [x] bundled GitHub composite action을 reusable public action으로 승격
 - [x] Discord와 Teams webhook notification payload 추가
-- [ ] generated branch strategy docs를 richer policy pack으로 확장
+- [x] generated branch strategy docs를 richer policy pack으로 확장
 - [x] PR 템플릿과 CODEOWNERS 초안을 안내형 설정으로 승격
 
 ## V2: Team reports와 GitHub integration

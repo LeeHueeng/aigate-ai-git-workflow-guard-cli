@@ -89,6 +89,20 @@ Initial required status checks:
 - future: `npm run lint`
 - future: `npm run typecheck`
 
+## Generated Policy Packs
+
+`aigate branch-strategy --apply` creates reusable policy packs under
+`.aigate/policy-packs/`:
+
+- `branch-protection.json`: protected branch, review, status check, and force
+  push rules.
+- `pr-quality.json`: pull request sections, validation commands, risk labels,
+  and quality gates.
+- `release-channels.json`: npm dist-tag, release tag, and pre-tag validation
+  rules.
+- `ai-collaboration.json`: AI-assisted branch prefixes, required repository
+  context, and guard commands.
+
 ## Release Branch Flow
 
 1. Merge completed work into `main`.

@@ -74,6 +74,16 @@ chore: initialize public repository metadata
 - future: `npm run lint`
 - future: `npm run typecheck`
 
+## 生成的政策包
+
+`aigate branch-strategy --apply` 会在 `.aigate/policy-packs/` 下生成可复用的
+政策包。
+
+- `branch-protection.json`: 保护分支、评审、状态检查和 force push 规则
+- `pr-quality.json`: PR 区块、验证命令、风险标签和质量门禁
+- `release-channels.json`: npm dist-tag、发布标签和打标签前验证规则
+- `ai-collaboration.json`: AI 协作分支 prefix、必需仓库上下文和保护命令
+
 ## Release branch flow
 
 1. 将完成的工作 merge 到 `main`
