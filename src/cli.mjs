@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
@@ -15,6 +15,7 @@ Usage:
 Commands:
   check                    Summarize local Git readiness.
   git-ready                Run the before-push readiness gate.
+  push                     Run AIGate checks, then run git push.
   report                   Print a workflow report.
   evaluate-project         Score repository workflow foundations.
   score                    Print only the project score.
@@ -28,12 +29,15 @@ Options:
   --generate               Write generated branch strategy guidance.
   --github                 Include GitHub protection guidance.
   --event <name>           Notification event name.
+  --dry-run                Preview an AIGate command without changing remotes.
+  --no-verify              Skip the AIGate readiness gate for push.
   --version                Print CLI version.
 `;
 
 const commands = {
   check: commandCheck,
   "git-ready": commandGitReady,
+  push: commandPush,
   report: commandReport,
   "evaluate-project": commandEvaluateProject,
   score: commandScore,
@@ -92,7 +96,53 @@ function commandCheck(args) {
 }
 
 function commandGitReady(args) {
+  return formatGitReadyResult(buildGitReadyResult(), parseOptions(args));
+}
+
+function commandPush(args) {
   const options = parseOptions(args);
+  const pushArgs = args.filter((arg) => arg !== "--dry-run" && arg !== "--no-verify");
+  const lines = [];
+
+  if (!options.noVerify) {
+    const result = buildGitReadyResult();
+    lines.push(formatGitReadyResult(result, { format: "text" }));
+
+    if (result.blockers.length) {
+      process.exitCode = 1;
+      return lines.join("\n");
+    }
+  } else {
+    lines.push("AIGate push: readiness gate skipped with --no-verify");
+  }
+
+  const gitArgs = ["push", ...pushArgs];
+  if (options.dryRun) {
+    lines.push(`Would run: git ${gitArgs.join(" ")}`);
+    return lines.join("\n");
+  }
+
+  const result = spawnSync("git", gitArgs, {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+
+  if (result.stdout.trim()) {
+    lines.push(result.stdout.trim());
+  }
+
+  if (result.stderr.trim()) {
+    lines.push(result.stderr.trim());
+  }
+
+  if (result.status !== 0) {
+    process.exitCode = result.status ?? 1;
+  }
+
+  return lines.join("\n");
+}
+
+function buildGitReadyResult() {
   const status = buildGitStatus();
   const evaluation = buildEvaluation();
   const blockers = [];
@@ -109,7 +159,7 @@ function commandGitReady(args) {
     blockers.push(`Project foundation score is ${evaluation.score}/100; minimum is 80.`);
   }
 
-  const result = {
+  return {
     command: "git-ready",
     status: blockers.length ? "BLOCK" : "READY",
     branch: status.branch,
@@ -120,8 +170,10 @@ function commandGitReady(args) {
       ? "Resolve blockers before committing, pushing, or opening a pull request."
       : "Run npm test, commit focused changes, push the branch, and open a pull request."
   };
+}
 
-  if (blockers.length) {
+function formatGitReadyResult(result, options) {
+  if (result.blockers.length) {
     process.exitCode = 1;
   }
 
@@ -134,8 +186,8 @@ function commandGitReady(args) {
     `Branch: ${result.branch}`,
     `Changed files: ${result.changedFiles}`,
     `Project score: ${result.projectScore}/100`,
-    blockers.length ? "Blockers:" : "Blockers: none",
-    ...blockers.map((blocker) => `- ${blocker}`),
+    result.blockers.length ? "Blockers:" : "Blockers: none",
+    ...result.blockers.map((blocker) => `- ${blocker}`),
     `Recommendation: ${result.recommendation}`
   ].join("\n");
 }

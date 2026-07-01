@@ -19,6 +19,7 @@ test("shows help", () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /AI Git Workflow Guard CLI/);
   assert.match(result.stdout, /branch-strategy/);
+  assert.match(result.stdout, /push/);
 });
 
 test("prints check output as json", () => {
@@ -40,6 +41,22 @@ test("runs git-ready output as json", () => {
   assert.equal(output.status, "READY");
   assert.equal(typeof output.projectScore, "number");
   assert.deepEqual(output.blockers, []);
+});
+
+test("previews guarded push in dry-run mode", () => {
+  const result = run(["push", "--dry-run", "origin", "main"]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /AIGate git-ready: READY/);
+  assert.match(result.stdout, /Would run: git push origin main/);
+});
+
+test("can skip push readiness gate in dry-run mode", () => {
+  const result = run(["push", "--dry-run", "--no-verify"]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /readiness gate skipped/);
+  assert.match(result.stdout, /Would run: git push/);
 });
 
 test("renders markdown report by default", () => {
