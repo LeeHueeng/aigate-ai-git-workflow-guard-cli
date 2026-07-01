@@ -1,8 +1,12 @@
-# AIGate
+# AIGate AI Git Workflow Guard CLI
 
 AIGate is an AI Git Workflow Guard CLI for safer local changes, cleaner pull
 requests, project health reporting, and repository-specific branch strategy
 design.
+
+Search keywords: AI Git CLI, Git workflow guard, pull request readiness,
+repository health report, branch strategy designer, developer workflow
+automation.
 
 Status: early public repository bootstrap. The CLI scaffold is available in
 this repo, while package registry distribution is still planned.
