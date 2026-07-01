@@ -13,7 +13,7 @@
     "url": "https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli/issues"
   },
   "bin": {
-    "aigate": "./src/cli.mjs"
+    "aigate": "src/cli.mjs"
   },
   "files": [
     "src",
