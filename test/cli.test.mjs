@@ -106,6 +106,27 @@ test("shows help", () => {
   assert.match(result.stdout, /push/);
 });
 
+test("renders localized help", () => {
+  const korean = run(["--help", "--language", "ko"]);
+  assert.equal(korean.status, 0);
+  assert.match(korean.stdout, /AI Git 워크플로 보호 CLI/);
+  assert.match(korean.stdout, /명령어:/);
+  assert.match(korean.stdout, /푸시 전 준비 게이트를 실행합니다/);
+  assert.doesNotMatch(korean.stdout, /Commands:/);
+
+  const japanese = run(["help", "--language", "ja"]);
+  assert.equal(japanese.status, 0);
+  assert.match(japanese.stdout, /AI Git ワークフロー保護 CLI/);
+  assert.match(japanese.stdout, /コマンド:/);
+  assert.match(japanese.stdout, /プッシュ前の準備ゲート/);
+
+  const chinese = run(["help", "--language", "zh"]);
+  assert.equal(chinese.status, 0);
+  assert.match(chinese.stdout, /AI Git 工作流守护 CLI/);
+  assert.match(chinese.stdout, /命令:/);
+  assert.match(chinese.stdout, /推送前的就绪关卡/);
+});
+
 test("prints package version", () => {
   const result = run(["--version"]);
 
@@ -178,7 +199,7 @@ test("renders localized pull request readiness report", () => {
   const result = run(["pr-check"], { settingsPath });
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /^# AIGate pr 리포트/m);
+  assert.match(result.stdout, /^# AIGate PR 리포트/m);
   assert.match(result.stdout, /## 변경 경로/);
   assert.match(result.stdout, /## 권장 조치/);
   assert.doesNotMatch(result.stdout, /## Changed Paths/);
@@ -271,6 +292,22 @@ test("generates Codex and Gemini integration files", () => {
   assert.deepEqual(manifest.providers, ["codex", "gemini"]);
 });
 
+test("generates localized integration instructions", () => {
+  const outputDir = createOutputDir();
+  const result = run(["integrate", "codex", "--language", "ko", "--output-dir", outputDir]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /AIGate AI 연동 파일 생성/);
+  assert.match(result.stdout, /다음 단계:/);
+
+  const agents = readFileSync(join(outputDir, "AGENTS.md"), "utf8");
+  assert.match(agents, /# AIGate Codex 지침/);
+  assert.match(agents, /AI Git 워크플로 보호 CLI/);
+  assert.match(agents, /제안, 푸시, 병합 전에/);
+  assert.match(agents, /필수 검사:/);
+  assert.doesNotMatch(agents, /Before Editing/);
+});
+
 test("skips integration files unless force is used", () => {
   const outputDir = createOutputDir();
   run(["integrate", "codex", "--output-dir", outputDir]);
@@ -351,6 +388,27 @@ test("renders weekly and risk report sections", () => {
   assert.match(risk.stdout, /Risk Signals/);
 });
 
+test("renders localized report, audit, and notification output", () => {
+  const weekly = run(["report", "--type", "weekly", "--language", "ja"]);
+  assert.equal(weekly.status, 0);
+  assert.match(weekly.stdout, /# AIGate 週次 レポート/);
+  assert.match(weekly.stdout, /機密情報検出/);
+  assert.match(weekly.stdout, /週次チームシグナル/);
+  assert.doesNotMatch(weekly.stdout, /Weekly Team Signals/);
+
+  const audit = run(["audit-report", "--language", "zh"]);
+  assert.equal(audit.status, 0);
+  assert.match(audit.stdout, /# AIGate 审计报告/);
+  assert.match(audit.stdout, /## 发现项/);
+  assert.match(audit.stdout, /## 建议/);
+  assert.doesNotMatch(audit.stdout, /## Findings/);
+
+  const notify = run(["notify", "setup", "--language", "zh"]);
+  assert.equal(notify.status, 0);
+  assert.match(notify.stdout, /通知设置预览/);
+  assert.match(notify.stdout, /终端/);
+});
+
 test("blocks possible secrets in changed files", () => {
   const secretPath = join(repoRoot, "tmp-aigate-secret-fixture.txt");
   const secretValue = ["abcdefghijklmnop", "qrstuvwxyz123456"].join("");
@@ -426,6 +484,16 @@ test("renders deep project evaluation report", () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /# AIGate Project Evaluation/);
   assert.match(result.stdout, /Deep Signals/);
+});
+
+test("renders localized project evaluation report", () => {
+  const result = run(["evaluate-project", "--deep", "--report", "--language", "ko"]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /# AIGate 프로젝트 평가/);
+  assert.match(result.stdout, /## 상세 신호/);
+  assert.match(result.stdout, /AI 어시스턴트 지침 존재/);
+  assert.doesNotMatch(result.stdout, /Deep Signals/);
 });
 
 test("checks release readiness", () => {
