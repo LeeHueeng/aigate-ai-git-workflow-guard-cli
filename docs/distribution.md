@@ -33,6 +33,29 @@ Use these npm Trusted Publisher settings:
 The release workflow uses GitHub OIDC with `id-token: write`, npm CLI
 `11.5.1+`, and Node.js `24`.
 
+You can also configure the same trusted publisher from the npm CLI after
+logging in with an npm account that has package write access and account-level
+2FA enabled:
+
+```sh
+npx npm@latest trust github @aigate/cli \
+  --file release.yml \
+  --repo LeeHueeng/aigate-ai-git-workflow-guard-cli \
+  --allow-publish \
+  --yes
+```
+
+To preview the configuration without writing to npm:
+
+```sh
+npx npm@latest trust github @aigate/cli \
+  --file release.yml \
+  --repo LeeHueeng/aigate-ai-git-workflow-guard-cli \
+  --allow-publish \
+  --dry-run \
+  --json
+```
+
 ## Docker
 
 Build locally:

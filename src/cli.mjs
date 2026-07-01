@@ -1200,6 +1200,7 @@ function buildReleaseCheck() {
   const nextSteps = [];
 
   if (!hasExpectedTag) {
+    nextSteps.push("Configure trusted publishing: npx npm@latest trust github @aigate/cli --file release.yml --repo LeeHueeng/aigate-ai-git-workflow-guard-cli --allow-publish --yes");
     nextSteps.push(`Create release tag ${expectedTag} after npm Trusted Publishing is configured.`);
   }
 
