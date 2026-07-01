@@ -123,6 +123,7 @@ test("shows help", () => {
   assert.match(result.stdout, /doctor/);
   assert.match(result.stdout, /demo/);
   assert.match(result.stdout, /install-hook/);
+  assert.match(result.stdout, /github <comment\|check>/);
   assert.match(result.stdout, /setup/);
   assert.match(result.stdout, /settings/);
   assert.match(result.stdout, /integrate/);
@@ -228,6 +229,56 @@ test("renders localized pull request readiness report", () => {
   assert.match(result.stdout, /## 변경 경로/);
   assert.match(result.stdout, /## 권장 조치/);
   assert.doesNotMatch(result.stdout, /## Changed Paths/);
+});
+
+test("previews a localized GitHub pull request comment", () => {
+  const result = run(["github", "comment", "--pr", "123", "--dry-run", "--language", "ko"]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /GitHub PR 댓글 준비 완료/);
+  assert.match(result.stdout, /Pull request: #123/);
+  assert.match(result.stdout, /gh pr comment 123/);
+  assert.doesNotMatch(result.stdout, /Usage:/);
+});
+
+test("renders a GitHub Checks payload as json", () => {
+  const result = run(["github", "check", "--format", "json"]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "github check");
+  assert.equal(output.checkRun.name, "AIGate");
+  assert.equal(output.checkRun.status, "completed");
+  assert.ok(["success", "neutral", "failure"].includes(output.checkRun.conclusion));
+  assert.match(output.checkRun.output.summary, /^# AIGate PR report/m);
+});
+
+test("accepts GitHub check options before the subcommand", () => {
+  const result = run([
+    "github",
+    "--name",
+    "AIGate Preview",
+    "--details-url",
+    "https://example.test/aigate",
+    "check",
+    "--format",
+    "json"
+  ]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.checkRun.name, "AIGate Preview");
+  assert.equal(output.checkRun.details_url, "https://example.test/aigate");
+});
+
+test("writes localized GitHub Checks summary output", () => {
+  const outputDir = createOutputDir();
+  const outputPath = join(outputDir, "github-check.md");
+  const result = run(["github", "check", "--output", outputPath, "--language", "ja"]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /書き込みました/);
+  assert.match(readFileSync(outputPath, "utf8"), /^# AIGate PR レポート/m);
 });
 
 test("can skip push readiness gate in dry-run mode", () => {
@@ -510,7 +561,7 @@ test("renders html report safely", () => {
 
   assert.equal(result.status, 0);
   assert.match(result.stdout, /<!doctype html>/);
-  assert.match(result.stdout, /AIGate pr report/);
+  assert.match(result.stdout, /AIGate PR report/);
 });
 
 test("renders weekly and risk report sections", () => {

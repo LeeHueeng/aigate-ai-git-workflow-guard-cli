@@ -29,8 +29,8 @@
 
 ## V2: Team reports and GitHub integration
 
-- [ ] 在 GitHub pull request 上 comment AIGate summary
-- [ ] 通过 GitHub Checks report status
+- [x] 在 GitHub pull request 上 comment AIGate summary
+- [x] 通过 `aigate github check` 准备 GitHub Checks 和 Actions summary
 - [x] 生成 weekly team reports
 - [ ] 跟踪 project health trends
 - [ ] 集成 Linear 和 Jira

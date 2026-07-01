@@ -56,6 +56,8 @@ git commit -m "feat: short summary"
 aigate push -u origin feature/my-change
 aigate pr-check --output .aigate/reports/pr.md
 aigate pr --title "feat: short summary"
+aigate github comment --pr <number>
+aigate github check --output .aigate/reports/github-check.md
 aigate release-check --npm
 ```
 
@@ -68,6 +70,7 @@ aigate release-check --npm
 - Git changed-file と untracked-file の readiness check
 - secret pattern detection と SARIF output
 - `git-ready`、guarded push、guarded PR creation
+- `aigate github` による GitHub PR コメントと Checks サマリー
 - Markdown, HTML, JSON, SARIF reports
 - project score と deep Git signal evaluation
 - branch strategy recommendation と policy draft generation
@@ -81,7 +84,6 @@ aigate release-check --npm
 - 公開 Docker image
 - Homebrew formula
 - standalone binary
-- GitHub PR comments と GitHub Checks reporter
 - 週次 team report と trend analytics
 - Linear/Jira integrations
 - hosted dashboard と enterprise governance packs

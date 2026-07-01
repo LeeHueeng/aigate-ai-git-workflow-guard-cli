@@ -79,6 +79,8 @@ repeatable local gate before `git push` or PR creation.
 | Pre-push hook installer | `aigate install-hook --pre-push` |
 | Guarded push wrapper | `aigate push -u origin <branch>` |
 | Pull request readiness report | `aigate pr-check` |
+| GitHub PR summary comment | `aigate github comment --pr <number>` |
+| GitHub Checks summary payload | `aigate github check --format json` |
 | Markdown, HTML, JSON, SARIF reports | `aigate report --format <format>` |
 | Changed-file secret scan | `aigate report --format sarif` |
 | Repository health score | `aigate evaluate-project` |
@@ -110,6 +112,8 @@ git commit -m "feat: my focused change"
 aigate push -u origin feature/my-work
 aigate pr-check --output .aigate/reports/pr.md
 aigate pr --title "feat: my focused change"
+aigate github comment --pr <number>
+aigate github check --output .aigate/reports/github-check.md
 ```
 
 Send a Slack notification when a blocker appears:
@@ -168,8 +172,6 @@ distributed:
 - Published Docker image
 - Homebrew formula
 - Standalone binaries
-- GitHub PR comments
-- GitHub Checks reporter
 - Hosted dashboard
 - Linear and Jira integrations
 

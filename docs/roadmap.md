@@ -27,8 +27,8 @@
 
 ## V2: Team Reports And GitHub Integration
 
-- [ ] Comment on GitHub pull requests with AIGate summaries.
-- [ ] Report status through GitHub Checks.
+- [x] Comment on GitHub pull requests with AIGate summaries.
+- [x] Prepare GitHub Checks and Actions summaries with `aigate github check`.
 - [x] Generate weekly team reports.
 - [ ] Track project health trends.
 - [ ] Integrate with Linear and Jira.

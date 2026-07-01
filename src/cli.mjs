@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "no
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { commandDemo, commandDoctor, commandInstallHook } from "./commands/first-run.mjs";
+import { commandGithub } from "./commands/github-reporting.mjs";
 
 const CLI_DIR = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = dirname(CLI_DIR);
@@ -42,6 +43,16 @@ const I18N = {
     "check.status": "AIGate check: {status}",
     "common.next": "Next: {next}",
     "common.wrote": "Wrote {path}",
+    "github.checkPrepared": "GitHub check summary prepared",
+    "github.commentPrepared": "GitHub PR comment prepared",
+    "github.commentSent": "Sent AIGate comment to GitHub PR #{pr}",
+    "github.conclusion": "Conclusion: {conclusion}",
+    "github.missingPr": "Could not resolve a GitHub pull request number. Use --pr <number> or run from a branch with an open PR.",
+    "github.prNumber": "Pull request: #{pr}",
+    "github.status": "Status: {status}",
+    "github.stepSummaryWritten": "GitHub Actions step summary updated: {path}",
+    "github.unknownAction": "Unknown GitHub action: {action}",
+    "github.usage": "Usage: aigate github <comment|check> [--pr <number>] [--dry-run] [--format json] [--output <path>]",
     "gitReady.blockers": "Blockers:",
     "gitReady.blockersNone": "Blockers: none",
     "gitReady.branch": "Branch: {branch}",
@@ -108,6 +119,16 @@ const I18N = {
     "check.status": "AIGate 검사: {status}",
     "common.next": "다음 단계: {next}",
     "common.wrote": "{path} 파일을 작성했습니다",
+    "github.checkPrepared": "GitHub 체크 요약 준비 완료",
+    "github.commentPrepared": "GitHub PR 댓글 준비 완료",
+    "github.commentSent": "GitHub PR #{pr}에 AIGate 댓글을 작성했습니다",
+    "github.conclusion": "결론: {conclusion}",
+    "github.missingPr": "GitHub PR 번호를 확인할 수 없습니다. --pr <number>를 지정하거나 열린 PR이 있는 브랜치에서 실행하세요.",
+    "github.prNumber": "Pull request: #{pr}",
+    "github.status": "상태: {status}",
+    "github.stepSummaryWritten": "GitHub Actions step summary를 갱신했습니다: {path}",
+    "github.unknownAction": "알 수 없는 GitHub 작업: {action}",
+    "github.usage": "사용법: aigate github <comment|check> [--pr <number>] [--dry-run] [--format json] [--output <path>]",
     "gitReady.blockers": "차단 사유:",
     "gitReady.blockersNone": "차단 사유: 없음",
     "gitReady.branch": "브랜치: {branch}",
@@ -174,6 +195,16 @@ const I18N = {
     "check.status": "AIGate チェック: {status}",
     "common.next": "次の手順: {next}",
     "common.wrote": "{path} を書き込みました",
+    "github.checkPrepared": "GitHub Checks サマリーを準備しました",
+    "github.commentPrepared": "GitHub PR コメントを準備しました",
+    "github.commentSent": "GitHub PR #{pr} に AIGate コメントを投稿しました",
+    "github.conclusion": "結論: {conclusion}",
+    "github.missingPr": "GitHub PR 番号を解決できません。--pr <number> を指定するか、開いている PR のあるブランチで実行してください。",
+    "github.prNumber": "Pull request: #{pr}",
+    "github.status": "状態: {status}",
+    "github.stepSummaryWritten": "GitHub Actions step summary を更新しました: {path}",
+    "github.unknownAction": "不明な GitHub アクション: {action}",
+    "github.usage": "使い方: aigate github <comment|check> [--pr <number>] [--dry-run] [--format json] [--output <path>]",
     "gitReady.blockers": "ブロッカー:",
     "gitReady.blockersNone": "ブロッカー: なし",
     "gitReady.branch": "ブランチ: {branch}",
@@ -240,6 +271,16 @@ const I18N = {
     "check.status": "AIGate 检查: {status}",
     "common.next": "下一步: {next}",
     "common.wrote": "已写入 {path}",
+    "github.checkPrepared": "GitHub Checks 摘要已准备",
+    "github.commentPrepared": "GitHub PR 评论已准备",
+    "github.commentSent": "已向 GitHub PR #{pr} 发布 AIGate 评论",
+    "github.conclusion": "结论: {conclusion}",
+    "github.missingPr": "无法解析 GitHub PR 编号。请使用 --pr <number>，或在已有开放 PR 的分支上运行。",
+    "github.prNumber": "Pull request: #{pr}",
+    "github.status": "状态: {status}",
+    "github.stepSummaryWritten": "已更新 GitHub Actions step summary: {path}",
+    "github.unknownAction": "未知 GitHub 操作: {action}",
+    "github.usage": "用法: aigate github <comment|check> [--pr <number>] [--dry-run] [--format json] [--output <path>]",
     "gitReady.blockers": "阻塞原因:",
     "gitReady.blockersNone": "阻塞原因: 无",
     "gitReady.branch": "分支: {branch}",
@@ -622,6 +663,12 @@ const REPORT_LABELS = {
 };
 
 const REPORT_TYPE_TRANSLATIONS = {
+  en: {
+    local: "local",
+    pr: "PR",
+    weekly: "weekly",
+    risk: "risk"
+  },
   ko: {
     local: "로컬",
     pr: "PR",
@@ -709,6 +756,7 @@ const HELP_CONTENT = {
       ["push", "Run AIGate checks, then run git push."],
       ["pr", "Run AIGate checks, then create a GitHub pull request."],
       ["pr-check", "Generate a pull request readiness report."],
+      ["github <comment|check>", "Post PR comments or prepare GitHub Checks summaries."],
       ["doctor", "Diagnose first-run environment and repository setup."],
       ["demo", "Show a guided first-run demo without changing files."],
       ["install-hook", "Install AIGate Git hooks."],
@@ -729,6 +777,9 @@ const HELP_CONTENT = {
       ["--type <local|pr|weekly>", "Select report type."],
       ["--output <path>", "Write report output to a file."],
       ["--base <branch>", "Pull request base branch."],
+      ["--pr <number>", "GitHub pull request number."],
+      ["--name <text>", "GitHub Checks display name."],
+      ["--details-url <url>", "GitHub Checks details URL."],
       ["--title <text>", "Pull request title."],
       ["--body <text>", "Pull request body."],
       ["--generate", "Write generated branch strategy guidance."],
@@ -763,6 +814,7 @@ const HELP_CONTENT = {
       ["push", "AIGate 검사 후 git push를 실행합니다."],
       ["pr", "AIGate 검사 후 GitHub PR을 생성합니다."],
       ["pr-check", "PR 준비 상태 리포트를 생성합니다."],
+      ["github <comment|check>", "PR 댓글을 작성하거나 GitHub Checks 요약을 준비합니다."],
       ["doctor", "첫 실행 환경과 저장소 설정을 진단합니다."],
       ["demo", "파일 변경 없이 첫 실행 데모를 보여줍니다."],
       ["install-hook", "AIGate Git hook을 설치합니다."],
@@ -783,6 +835,9 @@ const HELP_CONTENT = {
       ["--type <local|pr|weekly>", "리포트 유형을 선택합니다."],
       ["--output <path>", "리포트 출력을 파일로 저장합니다."],
       ["--base <branch>", "PR 대상 브랜치를 지정합니다."],
+      ["--pr <number>", "GitHub PR 번호를 지정합니다."],
+      ["--name <text>", "GitHub Checks 표시 이름입니다."],
+      ["--details-url <url>", "GitHub Checks 상세 URL입니다."],
       ["--title <text>", "PR 제목을 지정합니다."],
       ["--body <text>", "PR 본문을 지정합니다."],
       ["--generate", "브랜치 전략 가이드를 생성합니다."],
@@ -817,6 +872,7 @@ const HELP_CONTENT = {
       ["push", "AIGate チェック後に git push を実行します。"],
       ["pr", "AIGate チェック後に GitHub PR を作成します。"],
       ["pr-check", "PR 準備レポートを生成します。"],
+      ["github <comment|check>", "PR コメント投稿または GitHub Checks サマリーを準備します。"],
       ["doctor", "初回実行環境とリポジトリ設定を診断します。"],
       ["demo", "ファイルを変更せず初回実行デモを表示します。"],
       ["install-hook", "AIGate Git hook をインストールします。"],
@@ -837,6 +893,9 @@ const HELP_CONTENT = {
       ["--type <local|pr|weekly>", "レポート種別を選択します。"],
       ["--output <path>", "レポート出力をファイルに保存します。"],
       ["--base <branch>", "PR の基準ブランチを指定します。"],
+      ["--pr <number>", "GitHub PR 番号を指定します。"],
+      ["--name <text>", "GitHub Checks 表示名です。"],
+      ["--details-url <url>", "GitHub Checks 詳細 URL です。"],
       ["--title <text>", "PR タイトルを指定します。"],
       ["--body <text>", "PR 本文を指定します。"],
       ["--generate", "ブランチ戦略ガイドを生成します。"],
@@ -871,6 +930,7 @@ const HELP_CONTENT = {
       ["push", "运行 AIGate 检查后执行 git push。"],
       ["pr", "运行 AIGate 检查后创建 GitHub PR。"],
       ["pr-check", "生成 PR 就绪报告。"],
+      ["github <comment|check>", "发布 PR 评论或准备 GitHub Checks 摘要。"],
       ["doctor", "诊断首次运行环境和仓库设置。"],
       ["demo", "不改动文件，显示首次运行演示。"],
       ["install-hook", "安装 AIGate Git hook。"],
@@ -891,6 +951,9 @@ const HELP_CONTENT = {
       ["--type <local|pr|weekly>", "选择报告类型。"],
       ["--output <path>", "将报告输出写入文件。"],
       ["--base <branch>", "PR 基准分支。"],
+      ["--pr <number>", "GitHub PR 编号。"],
+      ["--name <text>", "GitHub Checks 显示名称。"],
+      ["--details-url <url>", "GitHub Checks 详情 URL。"],
       ["--title <text>", "PR 标题。"],
       ["--body <text>", "PR 正文。"],
       ["--generate", "生成分支策略指南。"],
@@ -1191,6 +1254,7 @@ const commands = {
   push: commandPush,
   pr: commandPr,
   "pr-check": commandPrCheck,
+  github: (args) => commandGithub(args, commandContext()),
   doctor: (args) => commandDoctor(args, commandContext()),
   demo: (args) => commandDemo(args, commandContext()),
   "install-hook": (args) => commandInstallHook(args, commandContext()),
@@ -1211,9 +1275,13 @@ function commandContext() {
   return {
     buildEvaluation,
     buildGitReadyResult,
+    buildReport,
+    firstPositionalArg,
     git,
     parseOptions,
+    quoteArgs,
     readJsonFile,
+    renderReport,
     resolveLanguage,
     t,
     unsupportedLanguage
@@ -4141,7 +4209,7 @@ function notificationPlanLines(language) {
       "- MVP: 터미널",
       "- V1: Slack",
       "- V1.5: Discord 및 Teams",
-      "- V2: 이메일, GitHub PR 댓글, GitHub Checks"
+      "- V2: 이메일, Linear/Jira 알림 정책"
     ];
   }
 
@@ -4150,7 +4218,7 @@ function notificationPlanLines(language) {
       "- MVP: ターミナル",
       "- V1: Slack",
       "- V1.5: Discord と Teams",
-      "- V2: メール、GitHub PR コメント、GitHub Checks"
+      "- V2: メール、Linear/Jira 通知ポリシー"
     ];
   }
 
@@ -4159,7 +4227,7 @@ function notificationPlanLines(language) {
       "- MVP: 终端",
       "- V1: Slack",
       "- V1.5: Discord 和 Teams",
-      "- V2: 邮件、GitHub PR 评论、GitHub Checks"
+      "- V2: 邮件、Linear/Jira 通知策略"
     ];
   }
 
@@ -4167,7 +4235,7 @@ function notificationPlanLines(language) {
     "- MVP: terminal",
     "- V1: Slack",
     "- V1.5: Discord and Teams",
-    "- V2: email, GitHub PR comments, GitHub Checks"
+    "- V2: email and Linear/Jira notification policies"
   ];
 }
 
@@ -4399,11 +4467,14 @@ function firstPositionalArg(args) {
     "--event",
     "--format",
     "--language",
+    "--name",
     "--notify-channel",
     "--output",
     "--output-dir",
+    "--pr",
     "--release",
     "--team-size",
+    "--details-url",
     "--title",
     "--type",
     "--webhook-env"
