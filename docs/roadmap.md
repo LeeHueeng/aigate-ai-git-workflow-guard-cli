@@ -2,7 +2,7 @@
 
 ## V1: CLI Distribution And Local Reports
 
-- Publish `@aigate/cli` to npm.
+- Publish `aigate-cli` to npm.
 - Support npm, npx, yarn, pnpm, and bun install paths.
 - Create starter project configuration with `aigate init`.
 - Generate Markdown, HTML, JSON, and SARIF reports.

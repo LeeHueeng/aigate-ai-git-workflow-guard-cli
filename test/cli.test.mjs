@@ -295,7 +295,7 @@ test("checks release readiness", () => {
   assert.equal(result.status, 0);
   const output = JSON.parse(result.stdout);
   assert.equal(output.command, "release-check");
-  assert.equal(output.packageName, "@aigate/cli");
+  assert.equal(output.packageName, "aigate-cli");
   assert.equal(output.version, "0.1.0");
   assert.equal(output.expectedTag, "v0.1.0");
   assert.ok(["READY", "ACTION_REQUIRED"].includes(output.status));
