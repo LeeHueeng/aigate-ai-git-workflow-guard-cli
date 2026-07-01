@@ -16,6 +16,9 @@ All notable changes to AIGate are documented here.
   operations guides in English, Korean, Japanese, and Chinese.
 - Added multilingual documentation versions and a locale coverage check for
   repository docs.
+- Added first-run UX commands: `doctor`, `demo`, and
+  `install-hook --pre-push`.
+- Split first-run command logic into command, core, and renderer modules.
 - Improved tests for multilingual output and webhook notification payloads.
 
 ## 0.1.0 - 2026-07-01

@@ -8,6 +8,8 @@
 
 ```sh
 npx -y aigate-cli check
+npx -y aigate-cli doctor
+npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
 ```
@@ -18,6 +20,7 @@ npx -y aigate-cli evaluate-project
 npm install --save-dev aigate-cli
 npx aigate-cli init
 npx aigate-cli setup --language zh
+npx aigate-cli install-hook --pre-push
 ```
 
 添加 package script:
@@ -35,6 +38,7 @@ npx aigate-cli setup --language zh
 
 ```sh
 npm test
+npx aigate-cli doctor
 npm run aigate:ready
 git add <files>
 git commit -m "feat: focused change"

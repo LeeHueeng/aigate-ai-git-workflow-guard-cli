@@ -9,6 +9,9 @@
 - [x] `aigate init`으로 starter project configuration 생성
 - [x] Markdown, HTML, JSON, SARIF report 생성
 - [x] `aigate pr-check`로 pull request readiness report 생성
+- [x] `aigate doctor`로 첫 실행 설정 진단
+- [x] `aigate demo`로 안내형 CLI 데모 제공
+- [x] `aigate install-hook --pre-push`로 guarded pre-push hook 설치
 - [x] blocking event에 Slack webhook notification 전송
 - [x] optional deep Git signal을 포함한 weighted project evaluation
 - [x] repository와 team signal 기반 branch strategy 추천

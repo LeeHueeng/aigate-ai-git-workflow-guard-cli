@@ -10,6 +10,37 @@ npm test
 node src/cli.mjs --help
 ```
 
+## First Contribution
+
+1. Pick a `good first issue` or a small documentation improvement.
+2. Comment on the issue so maintainers know you are working on it.
+3. Fork the repository or create a branch from `main`.
+4. Run the first-run checks:
+
+```sh
+npm install
+node src/cli.mjs doctor
+node src/cli.mjs demo
+node src/cli.mjs install-hook --pre-push
+```
+
+5. Make a focused change and run validation:
+
+```sh
+npm test
+npm run ci
+```
+
+6. Open a pull request with a short summary and the validation commands you ran.
+
+Good first contribution ideas:
+
+- Add a real-world AIGate usage example.
+- Improve one translated document.
+- Add Windows smoke-test notes.
+- Add GitHub Actions examples.
+- Improve screenshots or demo assets.
+
 ## Branches
 
 Create branches from `main`:

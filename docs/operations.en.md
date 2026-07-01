@@ -37,6 +37,7 @@ flowchart LR
 | Area | Commands |
 | --- | --- |
 | Setup | `init`, `setup`, `settings`, `integrate` |
+| First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `git-ready`, `push`, `pr` |
 | Reports | `pr-check`, `report`, `evaluate-project`, `audit-report` |
 | Release | `release-check`, `release-check --npm`, `branch-strategy`, `notify` |
@@ -47,6 +48,8 @@ flowchart LR
 npm install -g aigate-cli
 aigate setup --language en
 git switch -c feature/my-change
+aigate doctor
+aigate install-hook --pre-push
 aigate git-ready
 git add <files>
 git commit -m "feat: short summary"
@@ -59,6 +62,9 @@ aigate release-check --npm
 ## Implemented Today
 
 - Public npm package `aigate-cli` and `npx` execution
+- First-run diagnostics through `aigate doctor`
+- Guided CLI demo through `aigate demo`
+- Pre-push hook installation through `aigate install-hook --pre-push`
 - Git changed-file and untracked-file readiness checks
 - Secret pattern detection and SARIF output
 - `git-ready`, guarded push, and guarded PR creation

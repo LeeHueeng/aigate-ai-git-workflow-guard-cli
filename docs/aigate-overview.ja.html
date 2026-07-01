@@ -523,12 +523,15 @@ npx aigate-cli check</code></pre>
       <h3>セットアップ</h3>
       <div><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
     </article><article class="command-group group-1">
+      <h3>初回実行</h3>
+      <div><span>doctor</span><span>demo</span><span>install-hook</span></div>
+    </article><article class="command-group group-2">
       <h3>保護ゲート</h3>
       <div><span>check</span><span>git-ready</span><span>push</span><span>pr</span></div>
-    </article><article class="command-group group-2">
+    </article><article class="command-group group-3">
       <h3>レポート</h3>
       <div><span>pr-check</span><span>report</span><span>evaluate-project</span><span>audit-report</span></div>
-    </article><article class="command-group group-3">
+    </article><article class="command-group group-4">
       <h3>リリース</h3>
       <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>notify</span></div>
     </article></div>
@@ -562,6 +565,18 @@ npx aigate-cli check</code></pre>
     <td><code>aigate settings</code></td>
     <td>現在の AIGate 設定を表示します。</td>
     <td>設定確認</td>
+  </tr><tr>
+    <td><code>aigate doctor</code></td>
+    <td>初回実行環境、Git hook、プロジェクト基盤を診断します。</td>
+    <td>初回実行またはリポジトリ確認</td>
+  </tr><tr>
+    <td><code>aigate demo</code></td>
+    <td>ファイルを変更せず AIGate の利用フローを表示します。</td>
+    <td>CLI の試用やチーム説明</td>
+  </tr><tr>
+    <td><code>aigate install-hook --pre-push</code></td>
+    <td>git push 前に git-ready を実行する pre-push hook をインストールします。</td>
+    <td>危険な push をローカルで防ぐとき</td>
   </tr><tr>
     <td><code>aigate check</code></td>
     <td>変更ファイルと secret リスクを要約します。</td>
@@ -648,6 +663,8 @@ npx aigate-cli check</code></pre>
       <pre><code>npm install -g aigate-cli
 aigate setup --language ja
 git switch -c feature/my-change
+aigate doctor
+aigate install-hook --pre-push
 aigate git-ready
 git add &lt;files&gt;
 git commit -m &quot;feat: short summary&quot;
@@ -662,7 +679,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">機能</p>
         <h2>現在実装済みの機能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦とポリシー草案生成</div><div class="feature done">Codex/Gemini 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams webhook 通知</div></div>
+      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">doctor、demo、install-hook による初回実行 UX</div><div class="feature done">pre-push Git hook のインストール</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦とポリシー草案生成</div><div class="feature done">Codex/Gemini 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams webhook 通知</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">

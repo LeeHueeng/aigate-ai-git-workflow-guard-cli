@@ -18,12 +18,16 @@ strategy before changes reach your remote branch or pull request review.
 
 ![AIGate terminal demo](assets/aigate-terminal-demo.svg)
 
+![AIGate demo](assets/demo.gif)
+
 ## 60-Second Quickstart
 
 Run it without installing:
 
 ```sh
 npx -y aigate-cli check
+npx -y aigate-cli doctor
+npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
 ```
@@ -34,6 +38,7 @@ Or install it globally:
 npm install -g aigate-cli
 aigate check
 aigate git-ready
+aigate install-hook --pre-push
 aigate pr-check
 ```
 
@@ -68,7 +73,10 @@ repeatable local gate before `git push` or PR creation.
 | Capability | Command |
 | --- | --- |
 | Local Git readiness check | `aigate check` |
+| First-run diagnostics | `aigate doctor` |
+| Guided CLI demo | `aigate demo` |
 | Pre-push safety gate | `aigate git-ready` |
+| Pre-push hook installer | `aigate install-hook --pre-push` |
 | Guarded push wrapper | `aigate push -u origin <branch>` |
 | Pull request readiness report | `aigate pr-check` |
 | Markdown, HTML, JSON, SARIF reports | `aigate report --format <format>` |
@@ -94,6 +102,8 @@ repeatable local gate before `git push` or PR creation.
 
 ```sh
 git switch -c feature/my-work
+aigate doctor
+aigate install-hook --pre-push
 aigate git-ready
 git add <files>
 git commit -m "feat: my focused change"

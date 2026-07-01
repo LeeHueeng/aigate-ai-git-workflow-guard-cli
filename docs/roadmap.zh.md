@@ -9,6 +9,9 @@
 - [x] 通过 `aigate init` 创建 starter project configuration
 - [x] 生成 Markdown、HTML、JSON、SARIF reports
 - [x] 通过 `aigate pr-check` 生成 pull request readiness report
+- [x] 通过 `aigate doctor` 诊断 first-run setup
+- [x] 通过 `aigate demo` 显示 guided CLI demo
+- [x] 通过 `aigate install-hook --pre-push` 安装 guarded pre-push hook
 - [x] 为 blocking event 发送 Slack webhook notification
 - [x] 支持 optional deep Git signals 的 weighted project evaluation
 - [x] 基于 repository 和 team signal 推荐 branch strategy

@@ -10,12 +10,16 @@ PR 风险和 branch strategy。
 
 ![AIGate terminal demo](assets/aigate-terminal-demo.svg)
 
+![AIGate demo](assets/demo.gif)
+
 ## 60 秒快速开始
 
 无需安装即可运行:
 
 ```sh
 npx -y aigate-cli check
+npx -y aigate-cli doctor
+npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
 ```
@@ -26,6 +30,7 @@ npx -y aigate-cli evaluate-project
 npm install -g aigate-cli
 aigate check
 aigate git-ready
+aigate install-hook --pre-push
 aigate pr-check
 ```
 
@@ -34,7 +39,10 @@ aigate pr-check
 | 功能 | 命令 |
 | --- | --- |
 | 本地 Git readiness check | `aigate check` |
+| 首次运行诊断 | `aigate doctor` |
+| 引导式 CLI demo | `aigate demo` |
 | pre-push safety gate | `aigate git-ready` |
+| pre-push hook installer | `aigate install-hook --pre-push` |
 | 带验证的 push wrapper | `aigate push -u origin <branch>` |
 | PR readiness report | `aigate pr-check` |
 | Markdown, HTML, JSON, SARIF report | `aigate report --format <format>` |
@@ -47,6 +55,8 @@ aigate pr-check
 
 ```sh
 git switch -c feature/my-work
+aigate doctor
+aigate install-hook --pre-push
 aigate git-ready
 git add <files>
 git commit -m "feat: focused change"

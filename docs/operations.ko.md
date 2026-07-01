@@ -36,6 +36,7 @@ flowchart LR
 | 영역 | 명령어 |
 | --- | --- |
 | 설정 | `init`, `setup`, `settings`, `integrate` |
+| 첫 실행 | `doctor`, `demo`, `install-hook --pre-push` |
 | 보호 게이트 | `check`, `git-ready`, `push`, `pr` |
 | 리포트 | `pr-check`, `report`, `evaluate-project`, `audit-report` |
 | 릴리스 | `release-check`, `release-check --npm`, `branch-strategy`, `notify` |
@@ -46,6 +47,8 @@ flowchart LR
 npm install -g aigate-cli
 aigate setup --language ko
 git switch -c feature/my-change
+aigate doctor
+aigate install-hook --pre-push
 aigate git-ready
 git add <files>
 git commit -m "feat: short summary"
@@ -58,6 +61,9 @@ aigate release-check --npm
 ## 현재 구현된 기능
 
 - npm 패키지 `aigate-cli` 공개 배포와 `npx` 실행
+- `aigate doctor` 기반 첫 실행 환경 진단
+- `aigate demo` 기반 안내형 CLI 데모
+- `aigate install-hook --pre-push` 기반 pre-push hook 설치
 - Git 변경 파일과 untracked 파일 기반 readiness check
 - secret 패턴 탐지와 SARIF 출력
 - `git-ready`, guarded push, guarded PR 생성 흐름
