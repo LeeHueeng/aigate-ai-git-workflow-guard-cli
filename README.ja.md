@@ -51,6 +51,8 @@ aigate pr-check
 | GitHub PR テンプレートと CODEOWNERS 設定 | `aigate github setup` |
 | Markdown, HTML, JSON, SARIF report | `aigate report --format <format>` |
 | repository health score | `aigate evaluate-project` |
+| コンプライアンス統制レポート | `aigate compliance-report` |
+| ローカル HTML ヘルスダッシュボード | `aigate dashboard` |
 | プロジェクト状態トレンド履歴 | `aigate trends record` |
 | ブランチ戦略ポリシーパック | `aigate branch-strategy --apply` |
 | ブランチ戦略提案の比較 | `aigate branch-strategy --compare` |
@@ -129,6 +131,10 @@ Codex と Gemini が同じ branch、validation、guarded push workflow に従う
 - [Distribution guide](docs/distribution.ja.md)
 - [Notifications guide](docs/notifications.ja.md)
 - [AI integrations](docs/ai-integrations.ja.md)
+- [JSON output example](docs/examples/json-output.ja.md)
+- [Windows smoke test](docs/examples/windows-smoke-test.ja.md)
+- [Release process](docs/release-process.ja.md)
+- [Hotfix process](docs/hotfix-process.ja.md)
 - [Roadmap](docs/roadmap.ja.md)
 
 ## まだ公開していない計画
@@ -137,7 +143,7 @@ Codex と Gemini が同じ branch、validation、guarded push workflow に従う
 - Homebrew formula
 - standalone binary
 - hosted dashboard
-- Linear/Jira integrations
+- deeper Linear/Jira integrations
 
 ## License
 

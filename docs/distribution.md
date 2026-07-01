@@ -82,13 +82,30 @@ npx npm@latest trust github aigate-cli \
 
 ## Docker
 
-The Docker image is not published yet. Build it locally when validating
-container usage:
+The repository now includes a GHCR publish workflow at
+`.github/workflows/docker.yml`. Until a tagged workflow run publishes the public
+image, build it locally when validating container usage:
 
 ```sh
 docker build -t aigate/cli .
 docker run --rm -v "$PWD:/repo" -w /repo aigate/cli check
 docker run --rm -v "$PWD:/repo" -w /repo aigate/cli audit-report
+```
+
+When publishing is enabled, tagged releases publish to:
+
+```text
+ghcr.io/leehueeng/aigate-cli
+```
+
+## Homebrew
+
+The repository includes a formula draft at
+`packaging/homebrew/aigate-cli.rb`. Publish it to a Homebrew tap only after the
+matching npm release is stable:
+
+```sh
+brew install --formula ./packaging/homebrew/aigate-cli.rb
 ```
 
 ## GitHub Actions
@@ -117,6 +134,6 @@ inputs.
 
 ## Later Channels
 
-- Published Docker image after container usage is validated.
-- Homebrew formula after the npm package has real users.
+- Public Docker image after the GHCR workflow has a tagged successful run.
+- Homebrew tap publication after the npm package has real users.
 - Standalone binaries for environments without Node.js.

@@ -86,8 +86,8 @@ Initial required status checks:
 
 - `test (20)`
 - `test (22)`
-- future: `npm run lint`
-- future: `npm run typecheck`
+- local: `npm run lint`
+- local: `npm run typecheck`
 
 ## Proposal Comparison
 

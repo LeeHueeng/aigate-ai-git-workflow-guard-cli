@@ -8,7 +8,7 @@ branding:
 
 inputs:
   command:
-    description: AIGate command to run. Supported values are git-ready, check, doctor, pr-check, report, audit-report, evaluate-project, github-check, release-check, and release-check-npm.
+    description: AIGate command to run. Supported values are git-ready, check, doctor, pr-check, report, audit-report, evaluate-project, github-check, release-check, release-check-npm, branch-strategy, and branch-strategy-compare.
     required: false
     default: git-ready
   report-format:
@@ -66,6 +66,12 @@ runs:
             ;;
           release-check-npm)
             "${AIGATE[@]}" release-check --npm "${COMMON_ARGS[@]}"
+            ;;
+          branch-strategy)
+            "${AIGATE[@]}" branch-strategy "${COMMON_ARGS[@]}" "${OUTPUT_ARGS[@]}"
+            ;;
+          branch-strategy-compare)
+            "${AIGATE[@]}" branch-strategy --compare --format "$FORMAT" "${COMMON_ARGS[@]}" "${OUTPUT_ARGS[@]}"
             ;;
           report|pr-check|audit-report)
             "${AIGATE[@]}" "$COMMAND" --format "$FORMAT" "${COMMON_ARGS[@]}" "${OUTPUT_ARGS[@]}"

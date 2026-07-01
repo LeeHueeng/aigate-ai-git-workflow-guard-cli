@@ -16,11 +16,15 @@ const requiredGroups = [
   ["github action", ["docs/github-action.md", "docs/github-action.ko.md", "docs/github-action.ja.md", "docs/github-action.zh.md"]],
   ["git upload workflow", ["docs/git-upload-workflow.md", "docs/git-upload-workflow.ko.md", "docs/git-upload-workflow.ja.md", "docs/git-upload-workflow.zh.md"]],
   ["notifications", ["docs/notifications.md", "docs/notifications.ko.md", "docs/notifications.ja.md", "docs/notifications.zh.md"]],
+  ["release process", ["docs/release-process.md", "docs/release-process.ko.md", "docs/release-process.ja.md", "docs/release-process.zh.md"]],
+  ["hotfix process", ["docs/hotfix-process.md", "docs/hotfix-process.ko.md", "docs/hotfix-process.ja.md", "docs/hotfix-process.zh.md"]],
   ["open source readiness", ["docs/open-source-readiness.md", "docs/open-source-readiness.ko.md", "docs/open-source-readiness.ja.md", "docs/open-source-readiness.zh.md"]],
   ["product plan", ["docs/product-plan.md", "docs/product-plan.ko.md", "docs/product-plan.ja.md", "docs/product-plan.zh.md"]],
   ["roadmap", ["docs/roadmap.md", "docs/roadmap.ko.md", "docs/roadmap.ja.md", "docs/roadmap.zh.md"]],
   ["security scanning", ["docs/security-scanning.md", "docs/security-scanning.ko.md", "docs/security-scanning.ja.md", "docs/security-scanning.zh.md"]],
-  ["basic node example", ["docs/examples/basic-node-project.md", "docs/examples/basic-node-project.ko.md", "docs/examples/basic-node-project.ja.md", "docs/examples/basic-node-project.zh.md"]]
+  ["basic node example", ["docs/examples/basic-node-project.md", "docs/examples/basic-node-project.ko.md", "docs/examples/basic-node-project.ja.md", "docs/examples/basic-node-project.zh.md"]],
+  ["json output example", ["docs/examples/json-output.md", "docs/examples/json-output.ko.md", "docs/examples/json-output.ja.md", "docs/examples/json-output.zh.md"]],
+  ["windows smoke test", ["docs/examples/windows-smoke-test.md", "docs/examples/windows-smoke-test.ko.md", "docs/examples/windows-smoke-test.ja.md", "docs/examples/windows-smoke-test.zh.md"]]
 ];
 
 const missing = [];

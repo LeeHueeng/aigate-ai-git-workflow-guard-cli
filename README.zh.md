@@ -50,6 +50,8 @@ aigate pr-check
 | GitHub PR 模板和 CODEOWNERS 设置 | `aigate github setup` |
 | Markdown, HTML, JSON, SARIF report | `aigate report --format <format>` |
 | repository health score | `aigate evaluate-project` |
+| 合规控制报告 | `aigate compliance-report` |
+| 本地 HTML 健康仪表盘 | `aigate dashboard` |
 | 项目状态趋势历史 | `aigate trends record` |
 | 分支策略政策包 | `aigate branch-strategy --apply` |
 | 分支策略提案比较 | `aigate branch-strategy --compare` |
@@ -126,6 +128,10 @@ aigate integrate all
 - [Distribution guide](docs/distribution.zh.md)
 - [Notifications guide](docs/notifications.zh.md)
 - [AI integrations](docs/ai-integrations.zh.md)
+- [JSON output example](docs/examples/json-output.zh.md)
+- [Windows smoke test](docs/examples/windows-smoke-test.zh.md)
+- [Release process](docs/release-process.zh.md)
+- [Hotfix process](docs/hotfix-process.zh.md)
 - [Roadmap](docs/roadmap.zh.md)
 
 ## 尚未发布的计划
@@ -134,7 +140,7 @@ aigate integrate all
 - Homebrew formula
 - standalone binary
 - hosted dashboard
-- Linear/Jira integrations
+- deeper Linear/Jira integrations
 
 ## License
 

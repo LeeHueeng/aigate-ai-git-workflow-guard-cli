@@ -71,8 +71,8 @@ chore: initialize public repository metadata
 
 - `test (20)`
 - `test (22)`
-- future: `npm run lint`
-- future: `npm run typecheck`
+- local: `npm run lint`
+- local: `npm run typecheck`
 
 ## 제안 비교
 

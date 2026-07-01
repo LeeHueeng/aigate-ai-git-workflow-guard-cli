@@ -20,6 +20,8 @@
 
 ## V1.5: Workflow intelligence
 
+- [x] GHCR Docker publish workflow を準備
+- [x] Homebrew formula draft を追加
 - [ ] Homebrew formula を publish
 - [ ] local Docker usage 検証後に Docker image を publish
 - [x] bundled GitHub composite action を reusable public action に昇格
@@ -33,7 +35,8 @@
 - [x] `aigate github check` で GitHub Checks と Actions summary を準備
 - [x] weekly team report を生成
 - [x] `aigate trends` でプロジェクト状態トレンドを追跡
-- [ ] Linear と Jira と連携
+- [x] Linear と Jira へ issue notification を送信
+- [ ] Linear/Jira workflow automation を深化
 - [ ] standalone binary を publish
 - [x] 複数の AI ブランチ戦略提案を比較
 
@@ -41,8 +44,9 @@
 
 - [ ] organization dashboard
 - [x] policy violation audit report を生成
-- [ ] compliance report を生成
+- [x] compliance report を生成
+- [x] `aigate dashboard` で local status dashboard を提供
 - [ ] central notification policy を管理
-- [ ] self-hosted reporting をサポート
+- [x] self-hosted reporting をサポート
 - [ ] enterprise offline installer をサポート
 - [ ] organization-standard branch strategy を適用

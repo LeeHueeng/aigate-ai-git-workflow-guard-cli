@@ -22,8 +22,8 @@ global install 和 `npx` execution，同时兼容 yarn、pnpm 和 bun。
 | yarn | `yarn global add aigate-cli` | MVP |
 | pnpm | `pnpm add -g aigate-cli` | MVP |
 | bun | `bun add -g aigate-cli` | MVP |
-| Homebrew | `brew install aigate` | V1.5 |
-| Docker | `docker run --rm -v "$PWD:/repo" aigate/cli check` | V1.5 |
+| Homebrew | 已在 `packaging/homebrew/` 准备 formula 草案 | prepared |
+| Docker | 已准备 GHCR workflow；public image 等待 tagged release | prepared |
 | GitHub Releases | standalone binary download | V2 |
 
 Release channels:
@@ -61,9 +61,9 @@ install channel、version tag 和 release documentation。
 把 `BLOCK`、`WARN`、`PR_ONLY`、`SECRET_DETECTED` 等重要 event 路由到 terminal、
 Slack、Discord、Teams、email、GitHub PR comment、GitHub Checks、Linear 或 Jira。
 
-当前 CLI 支持 terminal、Slack、Discord、Teams、custom webhook payload、
-GitHub PR comment 和 GitHub Checks summary payload。email、Linear、Jira
-仍是 staged integration。
+当前 CLI 支持 terminal、Slack、Discord、Teams、email webhook payload、
+GitHub PR comment、GitHub Checks summary payload，以及配置 credential 后的
+Linear/Jira issue notification。
 
 ### Report generator
 

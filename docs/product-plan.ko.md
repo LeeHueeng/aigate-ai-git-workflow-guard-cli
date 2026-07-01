@@ -22,8 +22,8 @@ global install, `npx` 실행을 제공하면서 yarn, pnpm, bun과도 함께 사
 | yarn | `yarn global add aigate-cli` | MVP |
 | pnpm | `pnpm add -g aigate-cli` | MVP |
 | bun | `bun add -g aigate-cli` | MVP |
-| Homebrew | `brew install aigate` | V1.5 |
-| Docker | `docker run --rm -v "$PWD:/repo" aigate/cli check` | V1.5 |
+| Homebrew | `packaging/homebrew/`에 formula 초안 준비 | prepared |
+| Docker | GHCR workflow 준비, public image는 tagged release 대기 | prepared |
 | GitHub Releases | standalone binary download | V2 |
 
 Release channel:
@@ -62,9 +62,9 @@ install channel, version tag, release documentation을 관리합니다.
 Slack, Discord, Teams, email, GitHub PR comment, GitHub Checks, Linear, Jira로
 보낼 수 있게 확장합니다.
 
-현재 CLI는 terminal, Slack, Discord, Teams, custom webhook payload,
-GitHub PR comment, GitHub Checks summary payload를 지원합니다. email,
-Linear, Jira는 staged integration입니다.
+현재 CLI는 terminal, Slack, Discord, Teams, email webhook payload,
+GitHub PR comment, GitHub Checks summary payload, credential이 설정된
+Linear/Jira issue notification을 지원합니다.
 
 ### Report generator
 

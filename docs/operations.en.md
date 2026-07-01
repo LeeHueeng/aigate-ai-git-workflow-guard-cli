@@ -39,7 +39,7 @@ flowchart LR
 | Setup | `init`, `setup`, `settings`, `integrate` |
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `git-ready`, `push`, `pr` |
-| Reports | `pr-check`, `report`, `evaluate-project`, `audit-report` |
+| Reports | `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | Release | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
 ## Typical Command Path
@@ -59,6 +59,8 @@ aigate pr --title "feat: short summary"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate compliance-report --output .aigate/reports/compliance.md
+aigate dashboard --output .aigate/reports/dashboard.html
 aigate branch-strategy --compare
 aigate github setup --owner @your-org/team --dry-run
 aigate release-check --npm
@@ -77,18 +79,20 @@ aigate release-check --npm
 - GitHub PR template and CODEOWNERS setup through `aigate github setup`
 - Reusable public GitHub Action through `action.yml`
 - Markdown, HTML, JSON, and SARIF reports
+- Compliance reports and a local HTML health dashboard
 - Project score and deep Git signal evaluation
 - Project health trend history through `aigate trends`
 - Branch strategy recommendation, proposal comparison, and generated policy packs
 - Codex/Gemini integration file generation
 - English, Korean, Japanese, and Chinese CLI settings
 - Release checks and npm Trusted Publishing workflow
-- Terminal, Slack BLOCK, Discord, and Teams webhook notifications
+- Terminal, Slack BLOCK, Discord, Teams, email, Linear, and Jira notifications
+- GHCR Docker publish workflow and Homebrew formula draft
 
 ## Planned Next
 
-- Published Docker image
-- Homebrew formula
+- Public Docker image after a tagged GHCR workflow run
+- Homebrew tap publication
 - Standalone binaries
-- Linear/Jira integrations
-- Hosted dashboard and enterprise governance packs
+- Deeper Linear/Jira workflow integrations
+- Organization dashboard and enterprise governance packs

@@ -20,6 +20,8 @@
 
 ## V1.5: Workflow intelligence
 
+- [x] 准备 GHCR Docker publish workflow
+- [x] 添加 Homebrew formula 草案
 - [ ] publish Homebrew formula
 - [ ] local Docker usage 验证后 publish Docker image
 - [x] 将 bundled GitHub composite action 升级为 reusable public action
@@ -33,7 +35,8 @@
 - [x] 通过 `aigate github check` 准备 GitHub Checks 和 Actions summary
 - [x] 生成 weekly team reports
 - [x] 通过 `aigate trends` 跟踪项目状态趋势
-- [ ] 集成 Linear 和 Jira
+- [x] 向 Linear 和 Jira 发送 issue notification
+- [ ] 深化 Linear/Jira workflow automation
 - [ ] publish standalone binaries
 - [x] 比较多个 AI 分支策略提案
 
@@ -41,8 +44,9 @@
 
 - [ ] organization dashboards
 - [x] 生成 policy violation audit reports
-- [ ] 生成 compliance reports
+- [x] 生成 compliance reports
+- [x] 通过 `aigate dashboard` 提供 local status dashboard
 - [ ] 管理 central notification policies
-- [ ] 支持 self-hosted reporting
+- [x] 支持 self-hosted reporting
 - [ ] 支持 enterprise offline installers
 - [ ] 应用 organization-standard branch strategies

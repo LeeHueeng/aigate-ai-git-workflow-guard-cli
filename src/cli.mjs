@@ -904,6 +904,8 @@ const HELP_CONTENT = {
       ["branch-strategy", "Recommend or compare branch strategies."],
       ["release-check", "Validate package release readiness."],
       ["audit-report", "Generate a policy and governance audit report."],
+      ["compliance-report", "Generate a compliance control report."],
+      ["dashboard", "Write a local HTML health dashboard."],
       ["notify <setup|test|send>", "Preview or send notification workflows."],
       ["help", "Show this help message."]
     ],
@@ -928,8 +930,12 @@ const HELP_CONTENT = {
       ["--team-size <number>", "Team size signal for strategy recommendations."],
       ["--release <cadence>", "Release cadence signal for strategy recommendations."],
       ["--event <name>", "Notification event name."],
-      ["--channel <name>", "Notification channel."],
+      ["--channel <name>", "Notification channel: terminal, slack, discord, teams, email, linear, jira, or custom webhook."],
       ["--notify-channel <name>", "Send BLOCK notification when a gate blocks."],
+      ["--webhook-url <url>", "Webhook URL override for notification sends."],
+      ["--webhook-env <name>", "Environment variable name for webhook notifications."],
+      ["--linear-team-id <id>", "Linear team id for issue creation."],
+      ["--jira-project-key <key>", "Jira project key for issue creation."],
       ["--pre-push", "Install or target the pre-push Git hook."],
       ["--language <en|ko|ja|zh>", "Select output language."],
       ["--output-dir <path>", "Select integration output directory."],
@@ -966,6 +972,8 @@ const HELP_CONTENT = {
       ["branch-strategy", "브랜치 전략을 추천하거나 비교합니다."],
       ["release-check", "패키지 릴리스 준비 상태를 검증합니다."],
       ["audit-report", "정책과 거버넌스 감사 리포트를 생성합니다."],
+      ["compliance-report", "컴플라이언스 통제 리포트를 생성합니다."],
+      ["dashboard", "로컬 HTML 상태 대시보드를 작성합니다."],
       ["notify <setup|test|send>", "알림 흐름을 미리 보거나 전송합니다."],
       ["help", "도움말을 표시합니다."]
     ],
@@ -990,8 +998,12 @@ const HELP_CONTENT = {
       ["--team-size <number>", "전략 추천용 팀 규모 신호입니다."],
       ["--release <cadence>", "전략 추천용 릴리스 주기 신호입니다."],
       ["--event <name>", "알림 이벤트 이름입니다."],
-      ["--channel <name>", "알림 채널입니다."],
+      ["--channel <name>", "알림 채널입니다: terminal, slack, discord, teams, email, linear, jira, custom webhook."],
       ["--notify-channel <name>", "게이트가 차단될 때 BLOCK 알림을 보냅니다."],
+      ["--webhook-url <url>", "알림 전송용 webhook URL을 직접 지정합니다."],
+      ["--webhook-env <name>", "webhook 알림에 사용할 환경 변수 이름입니다."],
+      ["--linear-team-id <id>", "Linear 이슈 생성용 팀 ID입니다."],
+      ["--jira-project-key <key>", "Jira 이슈 생성용 프로젝트 키입니다."],
       ["--pre-push", "pre-push Git hook을 설치하거나 대상으로 지정합니다."],
       ["--language <en|ko|ja|zh>", "출력 언어를 선택합니다."],
       ["--output-dir <path>", "연동 파일 출력 디렉터리를 선택합니다."],
@@ -1028,6 +1040,8 @@ const HELP_CONTENT = {
       ["branch-strategy", "ブランチ戦略を推薦または比較します。"],
       ["release-check", "パッケージのリリース準備状況を検証します。"],
       ["audit-report", "ポリシーとガバナンスの監査レポートを生成します。"],
+      ["compliance-report", "コンプライアンス統制レポートを生成します。"],
+      ["dashboard", "ローカル HTML ヘルスダッシュボードを書き込みます。"],
       ["notify <setup|test|send>", "通知ワークフローをプレビューまたは送信します。"],
       ["help", "このヘルプを表示します。"]
     ],
@@ -1052,8 +1066,12 @@ const HELP_CONTENT = {
       ["--team-size <number>", "戦略推薦用のチームサイズシグナルです。"],
       ["--release <cadence>", "戦略推薦用のリリース頻度シグナルです。"],
       ["--event <name>", "通知イベント名です。"],
-      ["--channel <name>", "通知チャンネルです。"],
+      ["--channel <name>", "通知チャンネルです: terminal, slack, discord, teams, email, linear, jira, custom webhook."],
       ["--notify-channel <name>", "ゲートがブロックしたときに BLOCK 通知を送ります。"],
+      ["--webhook-url <url>", "通知送信用 webhook URL を直接指定します。"],
+      ["--webhook-env <name>", "webhook 通知に使う環境変数名です。"],
+      ["--linear-team-id <id>", "Linear issue 作成用 team ID です。"],
+      ["--jira-project-key <key>", "Jira issue 作成用 project key です。"],
       ["--pre-push", "pre-push Git hook をインストールまたは対象にします。"],
       ["--language <en|ko|ja|zh>", "出力言語を選択します。"],
       ["--output-dir <path>", "連携ファイルの出力ディレクトリを選択します。"],
@@ -1090,6 +1108,8 @@ const HELP_CONTENT = {
       ["branch-strategy", "推荐或比较分支策略。"],
       ["release-check", "验证包发布就绪状态。"],
       ["audit-report", "生成政策和治理审计报告。"],
+      ["compliance-report", "生成合规控制报告。"],
+      ["dashboard", "写入本地 HTML 健康仪表盘。"],
       ["notify <setup|test|send>", "预览或发送通知工作流。"],
       ["help", "显示此帮助。"]
     ],
@@ -1114,8 +1134,12 @@ const HELP_CONTENT = {
       ["--team-size <number>", "用于策略推荐的团队规模信号。"],
       ["--release <cadence>", "用于策略推荐的发布节奏信号。"],
       ["--event <name>", "通知事件名称。"],
-      ["--channel <name>", "通知频道。"],
+      ["--channel <name>", "通知频道: terminal, slack, discord, teams, email, linear, jira, custom webhook。"],
       ["--notify-channel <name>", "关卡阻塞时发送 BLOCK 通知。"],
+      ["--webhook-url <url>", "直接指定通知 webhook URL。"],
+      ["--webhook-env <name>", "webhook 通知使用的环境变量名。"],
+      ["--linear-team-id <id>", "创建 Linear issue 的 team ID。"],
+      ["--jira-project-key <key>", "创建 Jira issue 的 project key。"],
       ["--pre-push", "安装或指定 pre-push Git hook。"],
       ["--language <en|ko|ja|zh>", "选择输出语言。"],
       ["--output-dir <path>", "选择集成输出目录。"],
@@ -1361,6 +1385,84 @@ const AUDIT_LABELS = {
   }
 };
 
+const COMPLIANCE_LABELS = {
+  en: {
+    title: "AIGate Compliance Report",
+    dashboardTitle: "AIGate Health Dashboard",
+    status: "Status",
+    branch: "Branch",
+    projectScore: "Project score",
+    releaseStatus: "Release status",
+    controls: "Controls",
+    recommendations: "Recommendations",
+    generatedAt: "Generated",
+    none: "None"
+  },
+  ko: {
+    title: "AIGate 컴플라이언스 리포트",
+    dashboardTitle: "AIGate 상태 대시보드",
+    status: "상태",
+    branch: "브랜치",
+    projectScore: "프로젝트 점수",
+    releaseStatus: "릴리스 상태",
+    controls: "통제 항목",
+    recommendations: "권장 사항",
+    generatedAt: "생성 시각",
+    none: "없음"
+  },
+  ja: {
+    title: "AIGate コンプライアンスレポート",
+    dashboardTitle: "AIGate ヘルスダッシュボード",
+    status: "状態",
+    branch: "ブランチ",
+    projectScore: "プロジェクトスコア",
+    releaseStatus: "リリース状態",
+    controls: "統制項目",
+    recommendations: "推奨事項",
+    generatedAt: "生成時刻",
+    none: "なし"
+  },
+  zh: {
+    title: "AIGate 合规报告",
+    dashboardTitle: "AIGate 健康仪表盘",
+    status: "状态",
+    branch: "分支",
+    projectScore: "项目分数",
+    releaseStatus: "发布状态",
+    controls: "控制项",
+    recommendations: "建议",
+    generatedAt: "生成时间",
+    none: "无"
+  }
+};
+
+const COMPLIANCE_CONTROL_TRANSLATIONS = {
+  ko: {
+    "Repository foundation": "저장소 기반",
+    "Release readiness": "릴리스 준비 상태",
+    "Security policy and scanning": "보안 정책과 스캔",
+    "Change control": "변경 통제",
+    "Operational documentation": "운영 문서",
+    "Audit findings": "감사 발견 항목"
+  },
+  ja: {
+    "Repository foundation": "リポジトリ基盤",
+    "Release readiness": "リリース準備状態",
+    "Security policy and scanning": "セキュリティポリシーとスキャン",
+    "Change control": "変更統制",
+    "Operational documentation": "運用ドキュメント",
+    "Audit findings": "監査検出事項"
+  },
+  zh: {
+    "Repository foundation": "仓库基础",
+    "Release readiness": "发布就绪状态",
+    "Security policy and scanning": "安全政策和扫描",
+    "Change control": "变更控制",
+    "Operational documentation": "运维文档",
+    "Audit findings": "审计发现"
+  }
+};
+
 const AUDIT_RECOMMENDATION_TRANSLATIONS = {
   ko: {
     "Keep all changes going through pull requests into main.": "모든 변경은 main으로 들어가는 PR을 통해 처리하세요.",
@@ -1418,6 +1520,8 @@ const commands = {
   "branch-strategy": commandBranchStrategy,
   "release-check": commandReleaseCheck,
   "audit-report": commandAuditReport,
+  "compliance-report": commandComplianceReport,
+  dashboard: commandDashboard,
   notify: commandNotify,
   help: commandHelp
 };
@@ -1996,15 +2100,20 @@ function commandBranchStrategy(args) {
 
   if (options.compare) {
     const comparison = buildBranchStrategyComparison(options, strategy);
+    const output = options.format === "json"
+      ? JSON.stringify({
+          command: "branch-strategy",
+          comparison
+        }, null, 2)
+      : renderBranchStrategyComparison(comparison, language);
 
-    if (options.format === "json") {
-      return JSON.stringify({
-        command: "branch-strategy",
-        comparison
-      }, null, 2);
+    if (options.output) {
+      mkdirSync(dirname(options.output), { recursive: true });
+      writeFileSync(options.output, `${output}\n`, "utf8");
+      return t(language, "common.wrote", { path: options.output });
     }
 
-    return renderBranchStrategyComparison(comparison, language);
+    return output;
   }
 
   if (options.generate || options.apply) {
@@ -2025,11 +2134,9 @@ function commandBranchStrategy(args) {
     ].join("\n");
   }
 
-  if (options.format === "json") {
-    return JSON.stringify(strategy, null, 2);
-  }
-
-  const lines = [
+  const output = options.format === "json"
+    ? JSON.stringify(strategy, null, 2)
+    : [
     t(language, "branchStrategy.recommended", { strategy: translateStrategyName(strategy.name, language) }),
     t(language, "branchStrategy.reason", { reason: translateBranchReason(strategy, language) }),
     "",
@@ -2037,15 +2144,23 @@ function commandBranchStrategy(args) {
     ...strategy.branches.map((branch) => `- ${branch.name}: ${translateBranchUse(branch.use, language)}`)
   ];
 
-  if (options.github) {
-    lines.push("", t(language, "branchStrategy.githubProtection"), ...strategy.githubProtection.map((rule) => `- ${translateGithubProtection(rule, language)}`));
+  if (Array.isArray(output) && options.github) {
+    output.push("", t(language, "branchStrategy.githubProtection"), ...strategy.githubProtection.map((rule) => `- ${translateGithubProtection(rule, language)}`));
   }
 
-  if (strategy.generatedOutputs.length) {
-    lines.push("", t(language, "branchStrategy.outputs"), ...strategy.generatedOutputs.map((file) => `- ${file}`));
+  if (Array.isArray(output) && strategy.generatedOutputs.length) {
+    output.push("", t(language, "branchStrategy.outputs"), ...strategy.generatedOutputs.map((file) => `- ${file}`));
   }
 
-  return lines.join("\n");
+  const rendered = Array.isArray(output) ? output.join("\n") : output;
+
+  if (options.output) {
+    mkdirSync(dirname(options.output), { recursive: true });
+    writeFileSync(options.output, `${rendered}\n`, "utf8");
+    return t(language, "common.wrote", { path: options.output });
+  }
+
+  return rendered;
 }
 
 function commandAuditReport(args) {
@@ -2065,6 +2180,38 @@ function commandAuditReport(args) {
   }
 
   return output;
+}
+
+function commandComplianceReport(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+  const format = options.format ?? "markdown";
+  const report = buildComplianceReport();
+  const output = renderComplianceReport(report, format, language);
+
+  if (options.output) {
+    mkdirSync(dirname(options.output), { recursive: true });
+    writeFileSync(options.output, `${output}\n`, "utf8");
+    return t(language, "common.wrote", { path: options.output });
+  }
+
+  return output;
+}
+
+function commandDashboard(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+  const outputPath = options.output ?? join(".aigate", "reports", "dashboard.html");
+  const output = renderDashboard(buildComplianceReport(), language);
+  mkdirSync(dirname(outputPath), { recursive: true });
+  writeFileSync(outputPath, `${output}\n`, "utf8");
+  return t(language, "common.wrote", { path: outputPath });
 }
 
 function commandNotify(args) {
@@ -2132,34 +2279,47 @@ function sendNotification(event, channel, options, language = "en") {
     ].join("\n");
   }
 
-  const webhookEnv = options.webhookEnv ?? defaultWebhookEnv(channel);
-  const webhookUrl = process.env[webhookEnv];
+  const requiredEnv = requiredNotificationEnv(channel, options);
+  const missingEnv = requiredEnv.filter((item) => !item.value);
 
-  if (!webhookUrl) {
+  if (options.dryRun) {
+    const dryRunPayload = {
+      event,
+      channel,
+      requiredEnv: requiredEnv.map((item) => item.name),
+      missingEnv: missingEnv.map((item) => item.name),
+      payload: buildNotificationPayload(payload, channel, language)
+    };
+
+    if (options.format === "json") {
+      return JSON.stringify(dryRunPayload, null, 2);
+    }
+
+    return t(language, "notify.wouldSend", {
+      event,
+      channel,
+      env: dryRunPayload.requiredEnv.join(", ")
+    });
+  }
+
+  if (missingEnv.length > 0) {
     process.exitCode = 1;
     return [
-      t(language, "notify.missingWebhook", { env: webhookEnv }),
-      t(language, "notify.webhookHint", { env: webhookEnv })
+      t(language, "notify.missingWebhook", { env: missingEnv.map((item) => item.name).join(", ") }),
+      t(language, "notify.webhookHint", { env: missingEnv.map((item) => item.name).join(", ") })
     ].join("\n");
   }
 
-  if (options.dryRun) {
-    return t(language, "notify.wouldSend", { event, channel, env: webhookEnv });
+  if (channel === "linear") {
+    return sendLinearIssue(payload, options, language);
   }
 
-  const result = spawnSync("curl", [
-    "-sS",
-    "-X",
-    "POST",
-    "-H",
-    "Content-Type: application/json",
-    "--data",
-    JSON.stringify(buildNotificationPayload(payload, channel, language)),
-    webhookUrl
-  ], {
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"]
-  });
+  if (channel === "jira") {
+    return sendJiraIssue(payload, options, language);
+  }
+
+  const webhookUrl = requiredEnv[0]?.value;
+  const result = postJson(webhookUrl, buildNotificationPayload(payload, channel, language));
 
   if (result.status !== 0) {
     process.exitCode = result.status ?? 1;
@@ -2169,8 +2329,154 @@ function sendNotification(event, channel, options, language = "en") {
   return t(language, "notify.sent", { event, channel });
 }
 
+function requiredNotificationEnv(channel, options = {}) {
+  if (channel === "email") {
+    return [
+      envRequirement(options.webhookEnv ?? "AIGATE_EMAIL_WEBHOOK_URL", options.webhookUrl)
+    ];
+  }
+
+  if (channel === "linear") {
+    return [
+      envRequirement("AIGATE_LINEAR_API_KEY", options.linearApiKey),
+      envRequirement("AIGATE_LINEAR_TEAM_ID", options.linearTeamId ?? options.teamId)
+    ];
+  }
+
+  if (channel === "jira") {
+    return [
+      envRequirement("AIGATE_JIRA_BASE_URL", options.jiraBaseUrl),
+      envRequirement("AIGATE_JIRA_EMAIL", options.jiraEmail),
+      envRequirement("AIGATE_JIRA_API_TOKEN", options.jiraApiToken),
+      envRequirement("AIGATE_JIRA_PROJECT_KEY", options.jiraProjectKey ?? options.projectKey)
+    ];
+  }
+
+  return [
+    envRequirement(options.webhookEnv ?? defaultWebhookEnv(channel), options.webhookUrl)
+  ];
+}
+
+function envRequirement(name, overrideValue) {
+  return {
+    name,
+    value: overrideValue ?? process.env[name]
+  };
+}
+
+function sendLinearIssue(payload, options = {}, language = "en") {
+  const linearCredential = options.linearApiKey ?? process.env.AIGATE_LINEAR_API_KEY;
+  const teamId = options.linearTeamId ?? options.teamId ?? process.env.AIGATE_LINEAR_TEAM_ID;
+  const body = {
+    query: "mutation IssueCreate($input: IssueCreateInput!) { issueCreate(input: $input) { success issue { id identifier url } } }",
+    variables: {
+      input: {
+        teamId,
+        title: notificationIssueTitle(payload, language),
+        description: notificationIssueDescription(payload, language)
+      }
+    }
+  };
+  const result = postJson("https://api.linear.app/graphql", body, [
+    ["Authorization", linearCredential]
+  ]);
+
+  if (result.status !== 0) {
+    process.exitCode = result.status ?? 1;
+    return result.stderr.trim() || t(language, "notify.failed", { channel: "linear" });
+  }
+
+  return t(language, "notify.sent", { event: payload.event, channel: "linear" });
+}
+
+function sendJiraIssue(payload, options = {}, language = "en") {
+  const baseUrl = String(options.jiraBaseUrl ?? process.env.AIGATE_JIRA_BASE_URL).replace(/\/$/, "");
+  const email = options.jiraEmail ?? process.env.AIGATE_JIRA_EMAIL;
+  const apiToken = options.jiraApiToken ?? process.env.AIGATE_JIRA_API_TOKEN;
+  const projectKey = options.jiraProjectKey ?? options.projectKey ?? process.env.AIGATE_JIRA_PROJECT_KEY;
+  const issueType = options.jiraIssueType ?? options.issueType ?? process.env.AIGATE_JIRA_ISSUE_TYPE ?? "Task";
+  const body = {
+    fields: {
+      project: {
+        key: projectKey
+      },
+      summary: notificationIssueTitle(payload, language),
+      description: jiraDescriptionDocument(payload, language),
+      issuetype: {
+        name: issueType
+      }
+    }
+  };
+  const result = postJson(`${baseUrl}/rest/api/3/issue`, body, [
+    ["Authorization", `Basic ${Buffer.from(`${email}:${apiToken}`).toString("base64")}`]
+  ]);
+
+  if (result.status !== 0) {
+    process.exitCode = result.status ?? 1;
+    return result.stderr.trim() || t(language, "notify.failed", { channel: "jira" });
+  }
+
+  return t(language, "notify.sent", { event: payload.event, channel: "jira" });
+}
+
+function postJson(url, body, headers = []) {
+  return spawnSync("curl", [
+    "-sS",
+    "-X",
+    "POST",
+    "-H",
+    "Content-Type: application/json",
+    ...headers.flatMap(([name, value]) => ["-H", `${name}: ${value}`]),
+    "--data",
+    JSON.stringify(body),
+    url
+  ], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+}
+
 function buildNotificationPayload(payload, channel, language = "en") {
   const text = notificationText(payload, language);
+
+  if (channel === "email") {
+    return {
+      to: process.env.AIGATE_EMAIL_TO ?? "",
+      subject: notificationIssueTitle(payload, language),
+      text: notificationIssueDescription(payload, language),
+      aigate: payload
+    };
+  }
+
+  if (channel === "linear") {
+    return {
+      query: "mutation IssueCreate($input: IssueCreateInput!) { issueCreate(input: $input) { success issue { id identifier url } } }",
+      variables: {
+        input: {
+          teamId: process.env.AIGATE_LINEAR_TEAM_ID ?? "<linear-team-id>",
+          title: notificationIssueTitle(payload, language),
+          description: notificationIssueDescription(payload, language)
+        }
+      },
+      aigate: payload
+    };
+  }
+
+  if (channel === "jira") {
+    return {
+      fields: {
+        project: {
+          key: process.env.AIGATE_JIRA_PROJECT_KEY ?? "<jira-project-key>"
+        },
+        summary: notificationIssueTitle(payload, language),
+        description: jiraDescriptionDocument(payload, language),
+        issuetype: {
+          name: process.env.AIGATE_JIRA_ISSUE_TYPE ?? "Task"
+        }
+      },
+      aigate: payload
+    };
+  }
 
   if (channel === "slack") {
     return {
@@ -2248,6 +2554,55 @@ function buildNotificationPayload(payload, channel, language = "en") {
   return {
     text,
     ...payload
+  };
+}
+
+function notificationIssueTitle(payload, language = "en") {
+  const label = notificationText(payload, language);
+  return payload.status === "BLOCK" ? `${label} requires action` : label;
+}
+
+function notificationIssueDescription(payload, language = "en") {
+  const labels = notificationFields(payload, language);
+  const blockers = payload.blockers.length
+    ? payload.blockers.map((blocker) => `- ${blocker}`).join("\n")
+    : "- none";
+  const warnings = payload.warnings.length
+    ? payload.warnings.map((warning) => `- ${warning}`).join("\n")
+    : "- none";
+
+  return [
+    notificationText(payload, language),
+    "",
+    ...labels.map((field) => `- ${field.label}: ${field.value}`),
+    "",
+    "Blockers:",
+    blockers,
+    "",
+    "Warnings:",
+    warnings,
+    "",
+    `Recommendation: ${payload.recommendation}`,
+    `Generated: ${payload.generatedAt}`
+  ].join("\n");
+}
+
+function jiraDescriptionDocument(payload, language = "en") {
+  const description = notificationIssueDescription(payload, language);
+  return {
+    type: "doc",
+    version: 1,
+    content: description.split("\n").map((line) => ({
+      type: "paragraph",
+      content: line
+        ? [
+            {
+              type: "text",
+              text: line
+            }
+          ]
+        : []
+    }))
   };
 }
 
@@ -3164,6 +3519,67 @@ function buildAuditReport() {
   };
 }
 
+function buildComplianceReport() {
+  const evaluation = buildEvaluation({ deep: true });
+  const releaseCheck = buildReleaseCheck();
+  const audit = buildAuditReport();
+  const controls = [
+    {
+      id: "repository-foundation",
+      title: "Repository foundation",
+      pass: evaluation.score >= 80,
+      evidence: `${evaluation.score}/100 (${evaluation.grade})`
+    },
+    {
+      id: "release-readiness",
+      title: "Release readiness",
+      pass: ["READY", "RELEASED"].includes(releaseCheck.status),
+      evidence: releaseCheck.status
+    },
+    {
+      id: "security-policy",
+      title: "Security policy and scanning",
+      pass: evaluation.checks.some((check) => check.name === "Security policy exists" && check.pass) &&
+        evaluation.checks.some((check) => check.name === "Security scanning is documented" && check.pass),
+      evidence: "SECURITY.md, security scanning docs, and Scorecard workflow"
+    },
+    {
+      id: "change-control",
+      title: "Change control",
+      pass: evaluation.checks.some((check) => check.name === "Pull request template exists" && check.pass) &&
+        evaluation.checks.some((check) => check.name === "CODEOWNERS exists" && check.pass),
+      evidence: "pull request template and CODEOWNERS"
+    },
+    {
+      id: "operational-docs",
+      title: "Operational documentation",
+      pass: evaluation.deepSignals?.hasReleaseProcessDocs === true &&
+        evaluation.deepSignals?.hasHotfixFlowDocs === true,
+      evidence: "release and hotfix process docs"
+    },
+    {
+      id: "audit-findings",
+      title: "Audit findings",
+      pass: audit.findings.length === 0,
+      evidence: `${audit.findings.length} finding(s)`
+    }
+  ];
+
+  return {
+    command: "compliance-report",
+    generatedAt: new Date().toISOString(),
+    branch: git(["branch", "--show-current"]) || "unknown",
+    status: controls.every((control) => control.pass) ? "PASS" : "ACTION_REQUIRED",
+    projectScore: evaluation.score,
+    projectGrade: evaluation.grade,
+    releaseStatus: releaseCheck.status,
+    controls,
+    recommendations: controls
+      .filter((control) => !control.pass)
+      .map((control) => `Resolve control: ${control.title}`)
+  };
+}
+
 function buildReport(type) {
   const status = buildGitStatus();
   const evaluation = buildEvaluation();
@@ -3507,6 +3923,87 @@ function renderAuditReport(report, format, language = "en") {
     `## ${labels.recommendations}`,
     "",
     ...report.recommendations.map((recommendation) => `- ${translateAuditRecommendation(recommendation, language)}`)
+  ].join("\n");
+}
+
+function renderComplianceReport(report, format, language = "en") {
+  if (format === "json") {
+    return JSON.stringify(report, null, 2);
+  }
+
+  const labels = complianceLabels(language);
+
+  if (format === "html") {
+    return [
+      "<!doctype html>",
+      "<html>",
+      `<head><meta charset="utf-8"><title>${escapeHtml(labels.title)}</title></head>`,
+      "<body>",
+      `<h1>${escapeHtml(labels.title)}</h1>`,
+      `<p>${escapeHtml(labels.status)}: ${escapeHtml(statusLabel(report.status, language))}</p>`,
+      `<p>${escapeHtml(labels.projectScore)}: ${report.projectScore}/100 (${escapeHtml(report.projectGrade)})</p>`,
+      `<p>${escapeHtml(labels.releaseStatus)}: ${escapeHtml(statusLabel(report.releaseStatus, language))}</p>`,
+      `<h2>${escapeHtml(labels.controls)}</h2>`,
+      "<ul>",
+      ...report.controls.map((control) => `<li>${escapeHtml(statusLabel(control.pass ? "PASS" : "TODO", language))}: ${escapeHtml(translateComplianceControl(control.title, language))} - ${escapeHtml(control.evidence)}</li>`),
+      "</ul>",
+      "</body>",
+      "</html>"
+    ].join("\n");
+  }
+
+  return [
+    `# ${labels.title}`,
+    "",
+    `- ${labels.status}: ${statusLabel(report.status, language)}`,
+    `- ${labels.branch}: ${report.branch}`,
+    `- ${labels.projectScore}: ${report.projectScore}/100 (${report.projectGrade})`,
+    `- ${labels.releaseStatus}: ${statusLabel(report.releaseStatus, language)}`,
+    "",
+    `## ${labels.controls}`,
+    "",
+    ...report.controls.map((control) => `- ${statusLabel(control.pass ? "PASS" : "TODO", language)}: ${translateComplianceControl(control.title, language)} - ${control.evidence}`),
+    "",
+    `## ${labels.recommendations}`,
+    "",
+    ...(report.recommendations.length ? report.recommendations : [`- ${labels.none}`])
+  ].join("\n");
+}
+
+function renderDashboard(report, language = "en") {
+  const labels = complianceLabels(language);
+  return [
+    "<!doctype html>",
+    "<html>",
+    "<head>",
+    '<meta charset="utf-8">',
+    `<title>${escapeHtml(labels.dashboardTitle)}</title>`,
+    "<style>",
+    "body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;margin:0;padding:32px;background:#f6f8fa;color:#24292f}",
+    "main{max-width:960px;margin:0 auto;background:#fff;border:1px solid #d0d7de;border-radius:8px;padding:24px}",
+    ".grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:20px 0}",
+    ".metric{border:1px solid #d0d7de;border-radius:8px;padding:14px;background:#f6f8fa}",
+    ".pass{color:#1a7f37}.todo{color:#cf222e}",
+    "li{margin:8px 0}",
+    "</style>",
+    "</head>",
+    "<body>",
+    "<main>",
+    `<h1>${escapeHtml(labels.dashboardTitle)}</h1>`,
+    `<p>${escapeHtml(labels.generatedAt)}: ${escapeHtml(report.generatedAt)}</p>`,
+    '<section class="grid">',
+    `<div class="metric"><strong>${escapeHtml(labels.status)}</strong><br>${escapeHtml(statusLabel(report.status, language))}</div>`,
+    `<div class="metric"><strong>${escapeHtml(labels.projectScore)}</strong><br>${report.projectScore}/100 (${escapeHtml(report.projectGrade)})</div>`,
+    `<div class="metric"><strong>${escapeHtml(labels.releaseStatus)}</strong><br>${escapeHtml(statusLabel(report.releaseStatus, language))}</div>`,
+    `<div class="metric"><strong>${escapeHtml(labels.branch)}</strong><br>${escapeHtml(report.branch)}</div>`,
+    "</section>",
+    `<h2>${escapeHtml(labels.controls)}</h2>`,
+    "<ul>",
+    ...report.controls.map((control) => `<li class="${control.pass ? "pass" : "todo"}">${escapeHtml(statusLabel(control.pass ? "PASS" : "TODO", language))}: ${escapeHtml(translateComplianceControl(control.title, language))} - ${escapeHtml(control.evidence)}</li>`),
+    "</ul>",
+    "</main>",
+    "</body>",
+    "</html>"
   ].join("\n");
 }
 
@@ -4834,6 +5331,14 @@ function auditLabels(language) {
   return AUDIT_LABELS[language] ?? AUDIT_LABELS.en;
 }
 
+function complianceLabels(language) {
+  return COMPLIANCE_LABELS[language] ?? COMPLIANCE_LABELS.en;
+}
+
+function translateComplianceControl(title, language) {
+  return COMPLIANCE_CONTROL_TRANSLATIONS[language]?.[title] ?? title;
+}
+
 function translateAuditRecommendation(recommendation, language) {
   return AUDIT_RECOMMENDATION_TRANSLATIONS[language]?.[recommendation] ?? recommendation;
 }
@@ -4891,7 +5396,7 @@ function notificationPlanLines(language) {
       "- MVP: 터미널",
       "- V1: Slack",
       "- V1.5: Discord 및 Teams",
-      "- V2: 이메일, Linear/Jira 알림 정책"
+      "- V2: 이메일, Linear, Jira 알림 및 이슈 생성"
     ];
   }
 
@@ -4900,7 +5405,7 @@ function notificationPlanLines(language) {
       "- MVP: ターミナル",
       "- V1: Slack",
       "- V1.5: Discord と Teams",
-      "- V2: メール、Linear/Jira 通知ポリシー"
+      "- V2: メール、Linear、Jira 通知と issue 作成"
     ];
   }
 
@@ -4909,7 +5414,7 @@ function notificationPlanLines(language) {
       "- MVP: 终端",
       "- V1: Slack",
       "- V1.5: Discord 和 Teams",
-      "- V2: 邮件、Linear/Jira 通知策略"
+      "- V2: 邮件、Linear、Jira 通知与 issue 创建"
     ];
   }
 
@@ -4917,7 +5422,7 @@ function notificationPlanLines(language) {
     "- MVP: terminal",
     "- V1: Slack",
     "- V1.5: Discord and Teams",
-    "- V2: email and Linear/Jira notification policies"
+    "- V2: email, Linear, and Jira notification and issue creation"
   ];
 }
 
@@ -5170,12 +5675,39 @@ function stripAigatePushOptions(args) {
       arg === "--no-verify" ||
       arg.startsWith("--dry-run=") ||
       arg.startsWith("--no-verify=") ||
-      arg.startsWith("--notify-channel=")
+      arg.startsWith("--notify-channel=") ||
+      arg.startsWith("--webhook-env=") ||
+      arg.startsWith("--webhook-url=") ||
+      arg.startsWith("--issue-type=") ||
+      arg.startsWith("--jira-api-token=") ||
+      arg.startsWith("--jira-base-url=") ||
+      arg.startsWith("--jira-email=") ||
+      arg.startsWith("--jira-issue-type=") ||
+      arg.startsWith("--linear-team-id=") ||
+      arg.startsWith("--linear-api-key=") ||
+      arg.startsWith("--jira-project-key=") ||
+      arg.startsWith("--project-key=") ||
+      arg.startsWith("--team-id=")
     ) {
       continue;
     }
 
-    if (arg === "--language" || arg === "--notify-channel") {
+    if (
+      arg === "--language" ||
+      arg === "--notify-channel" ||
+      arg === "--webhook-env" ||
+      arg === "--webhook-url" ||
+      arg === "--issue-type" ||
+      arg === "--jira-api-token" ||
+      arg === "--jira-base-url" ||
+      arg === "--jira-email" ||
+      arg === "--jira-issue-type" ||
+      arg === "--linear-team-id" ||
+      arg === "--linear-api-key" ||
+      arg === "--jira-project-key" ||
+      arg === "--project-key" ||
+      arg === "--team-id"
+    ) {
       index += 1;
       continue;
     }
@@ -5199,7 +5731,15 @@ function firstPositionalArg(args) {
     "--event",
     "--format",
     "--history",
+    "--issue-type",
+    "--jira-api-token",
+    "--jira-base-url",
+    "--jira-email",
+    "--jira-issue-type",
+    "--jira-project-key",
     "--language",
+    "--linear-api-key",
+    "--linear-team-id",
     "--name",
     "--notify-channel",
     "--output",
@@ -5211,7 +5751,10 @@ function firstPositionalArg(args) {
     "--details-url",
     "--title",
     "--type",
-    "--webhook-env"
+    "--project-key",
+    "--team-id",
+    "--webhook-env",
+    "--webhook-url"
   ]);
 
   for (let index = 0; index < args.length; index += 1) {

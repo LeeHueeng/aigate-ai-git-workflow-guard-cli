@@ -53,13 +53,29 @@ npx npm@latest trust github aigate-cli \
 
 ## Docker
 
-Docker image는 아직 공개 publish되지 않았습니다. container 사용 검증 시에는
-local build만 사용합니다.
+저장소에는 `.github/workflows/docker.yml` GHCR 배포 workflow가 포함되어
+있습니다. 태그 기반 workflow가 public image를 배포하기 전까지는 local build로
+container 사용을 검증합니다.
 
 ```sh
 docker build -t aigate/cli .
 docker run --rm -v "$PWD:/repo" -w /repo aigate/cli check
 docker run --rm -v "$PWD:/repo" -w /repo aigate/cli audit-report
+```
+
+배포가 활성화되면 태그 릴리스는 다음 이미지로 publish됩니다.
+
+```text
+ghcr.io/leehueeng/aigate-cli
+```
+
+## Homebrew
+
+저장소에는 `packaging/homebrew/aigate-cli.rb` formula 초안이 포함되어
+있습니다. 일치하는 npm 릴리스가 안정화된 뒤 Homebrew tap에 publish합니다.
+
+```sh
+brew install --formula ./packaging/homebrew/aigate-cli.rb
 ```
 
 ## GitHub Actions
@@ -88,6 +104,6 @@ jobs:
 
 ## 이후 채널
 
-- container 사용이 검증된 뒤 공개 Docker image
-- npm package에 실제 사용자가 생긴 뒤 Homebrew formula
+- GHCR workflow의 태그 실행 성공 후 public Docker image
+- npm package에 실제 사용자가 생긴 뒤 Homebrew tap publish
 - Node.js가 없는 환경을 위한 standalone binary

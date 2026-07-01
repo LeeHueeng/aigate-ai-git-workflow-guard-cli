@@ -68,7 +68,7 @@ const locales = {
       ["설정", ["init", "setup", "settings", "integrate"]],
       ["첫 실행", ["doctor", "demo", "install-hook"]],
       ["보호 게이트", ["check", "git-ready", "push", "pr"]],
-      ["보고서", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "audit-report"]],
+      ["보고서", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
       ["릴리스", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
     commandsTitle: "전체 명령어와 사용 과정",
@@ -96,6 +96,8 @@ const locales = {
       ["aigate report --format sarif", "secret finding을 SARIF로 출력합니다.", "보안 도구 연동"],
       ["aigate evaluate-project", "저장소 기반 점수를 계산합니다.", "오픈소스 공개 준비 확인"],
       ["aigate evaluate-project --deep --report", "Git signal을 포함한 상세 평가 보고서를 만듭니다.", "릴리스/분기 리뷰"],
+      ["aigate compliance-report", "컴플라이언스 통제 리포트를 생성합니다.", "감사/운영 준비 공유"],
+      ["aigate dashboard", "로컬 HTML 상태 대시보드를 작성합니다.", "self-hosted reporting 시작"],
       ["aigate branch-strategy", "팀 규모와 릴리스 흐름에 맞는 브랜치 전략을 추천합니다.", "브랜치 정책 설계"],
       ["aigate branch-strategy --compare", "여러 브랜치 전략 제안을 점수, 강점, 위험, 전환 단계로 비교합니다.", "팀에 맞는 브랜치 모델을 선택할 때"],
       ["aigate branch-strategy --apply", "브랜치 정책, 릴리스, hotfix, PR, CODEOWNERS, 정책 팩 초안을 생성합니다.", "정책 파일을 시작할 때"],
@@ -105,7 +107,7 @@ const locales = {
       ["aigate audit-report", "거버넌스와 정책 상태를 요약합니다.", "운영 감사와 공개 준비 리뷰"],
       ["aigate notify send --channel terminal", "로컬 알림 이벤트를 출력합니다.", "게이트 차단 상황 확인"],
       ["aigate git-ready --notify-channel slack", "BLOCK 상황에서 Slack webhook 알림을 전송합니다.", "민감 정보나 고위험 변경이 차단될 때"],
-      ["aigate notify test --channel slack", "Slack, Discord, Teams webhook payload를 테스트합니다.", "팀 채널 연동 점검"]
+      ["aigate notify test --channel slack", "Slack, Discord, Teams, email, Linear, Jira payload를 테스트합니다.", "팀 채널 연동 점검"]
     ],
     branchTitle: "브랜치와 배포 흐름",
     branchText: "main은 보호된 안정 브랜치이며, codex/*와 feature/* 같은 작업 브랜치에서 PR을 만든 뒤 병합합니다. release/*와 hotfix/*는 배포 안정화와 긴급 수정에 예약되어 있습니다.",
@@ -143,6 +145,7 @@ const locales = {
       "재사용 가능한 공개 GitHub Action",
       "프로젝트 상태 추세 기록",
       "Markdown, HTML, JSON, SARIF 리포트",
+      "컴플라이언스 리포트와 로컬 HTML 상태 대시보드",
       "프로젝트 점수와 deep Git signal 평가",
       "브랜치 전략 추천, 제안 비교, 정책 팩 생성",
       "Codex/Gemini 통합 파일 생성",
@@ -150,17 +153,18 @@ const locales = {
       "release-check와 release-check --npm",
       "npm Trusted Publishing 기반 자동 배포",
       "GitHub CI, OpenSSF Scorecard, GitHub Release 운영",
-      "터미널, Slack BLOCK, Discord, Teams webhook 알림"
+      "터미널, Slack BLOCK, Discord, Teams, email, Linear, Jira 알림",
+      "GHCR Docker 배포 workflow와 Homebrew formula 초안"
     ],
     future: [
       "Slack BLOCK 알림을 제품 수준 UX로 고도화",
-      "Docker image 공개 배포",
-      "Homebrew formula 배포",
-      "email 알림 채널과 알림 정책 강화",
-      "Linear/Jira 이슈 추적 연동",
+      "태그 기반 GHCR workflow 실행 후 public Docker image",
+      "Homebrew tap publish",
+      "중앙 알림 정책 강화",
+      "Linear/Jira workflow 연동 심화",
       "standalone binary 배포",
-      "조직 대시보드, 감사/컴플라이언스 리포트",
-      "self-hosted reporting, SSO/SAML, 엔터프라이즈 거버넌스"
+      "조직 대시보드",
+      "SSO/SAML, 엔터프라이즈 거버넌스"
     ],
     footer: "이 문서는 AIGate 공개 릴리스 이후의 운영 상태를 설명합니다."
   },
@@ -209,7 +213,7 @@ const locales = {
       ["Setup", ["init", "setup", "settings", "integrate"]],
       ["First run", ["doctor", "demo", "install-hook"]],
       ["Guard gates", ["check", "git-ready", "push", "pr"]],
-      ["Reports", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "audit-report"]],
+      ["Reports", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
       ["Release", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
     commandsTitle: "Commands And When To Use Them",
@@ -237,6 +241,8 @@ const locales = {
       ["aigate report --format sarif", "Print secret findings as SARIF.", "Security tool integration"],
       ["aigate evaluate-project", "Score repository foundations.", "Open source readiness review"],
       ["aigate evaluate-project --deep --report", "Render a detailed report with Git signals.", "Release or quarterly review"],
+      ["aigate compliance-report", "Generate a compliance control report.", "Audit and operations readiness sharing"],
+      ["aigate dashboard", "Write a local HTML health dashboard.", "Starting self-hosted reporting"],
       ["aigate branch-strategy", "Recommend a branch strategy for team and release cadence.", "Branch policy design"],
       ["aigate branch-strategy --compare", "Compare branch strategy proposals by score, strengths, risks, and migration steps.", "Choosing the right branch model for a team"],
       ["aigate branch-strategy --apply", "Generate branch policy, release, hotfix, PR, CODEOWNERS, and policy pack drafts.", "Starting policy files"],
@@ -246,7 +252,7 @@ const locales = {
       ["aigate audit-report", "Summarize governance and policy posture.", "Operational audit and public readiness"],
       ["aigate notify send --channel terminal", "Print a local notification event.", "Checking gate-block events"],
       ["aigate git-ready --notify-channel slack", "Send a Slack webhook notification when a BLOCK occurs.", "When secrets or risky changes block the gate"],
-      ["aigate notify test --channel slack", "Test Slack, Discord, and Teams webhook payloads.", "Validating team channel integrations"]
+      ["aigate notify test --channel slack", "Test Slack, Discord, Teams, email, Linear, and Jira payloads.", "Validating team channel integrations"]
     ],
     branchTitle: "Branch And Delivery Flow",
     branchText: "main is the protected stable branch. Work happens on codex/*, feature/*, fix/*, docs/*, and chore/* branches, then lands through PRs. release/* and hotfix/* are reserved for release stabilization and urgent fixes.",
@@ -284,6 +290,7 @@ const locales = {
       "Reusable public GitHub Action",
       "Project health trend history",
       "Markdown, HTML, JSON, and SARIF reports",
+      "Compliance reports and a local HTML health dashboard",
       "Project scoring and deep Git signal evaluation",
       "Branch strategy recommendations, proposal comparison, and policy pack generation",
       "Codex/Gemini integration file generation",
@@ -291,17 +298,18 @@ const locales = {
       "release-check and release-check --npm",
       "Automated npm releases through Trusted Publishing",
       "GitHub CI, OpenSSF Scorecard, and GitHub Releases",
-      "Terminal, Slack BLOCK, Discord, and Teams webhook notifications"
+      "Terminal, Slack BLOCK, Discord, Teams, email, Linear, and Jira notifications",
+      "GHCR Docker publish workflow and Homebrew formula draft"
     ],
     future: [
       "Product-grade Slack BLOCK notification UX",
-      "Published Docker image",
-      "Homebrew formula",
-      "Email channel and notification policy hardening",
-      "Linear/Jira issue tracker integrations",
+      "Public Docker image after a tagged GHCR workflow run",
+      "Homebrew tap publication",
+      "Central notification policy hardening",
+      "Deeper Linear/Jira workflow integrations",
       "Standalone binary distribution",
-      "Organization dashboards and audit/compliance reports",
-      "Self-hosted reporting, SSO/SAML, and enterprise governance"
+      "Organization dashboards",
+      "SSO/SAML and enterprise governance"
     ],
     footer: "This document describes the operating state after the public AIGate release."
   },
@@ -350,7 +358,7 @@ const locales = {
       ["セットアップ", ["init", "setup", "settings", "integrate"]],
       ["初回実行", ["doctor", "demo", "install-hook"]],
       ["保護ゲート", ["check", "git-ready", "push", "pr"]],
-      ["レポート", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "audit-report"]],
+      ["レポート", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
       ["リリース", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
     commandsTitle: "コマンド一覧と利用タイミング",
@@ -378,6 +386,8 @@ const locales = {
       ["aigate report --format sarif", "secret finding を SARIF で出力します。", "セキュリティツール連携"],
       ["aigate evaluate-project", "リポジトリ基盤をスコア化します。", "公開準備レビュー"],
       ["aigate evaluate-project --deep --report", "Git signal を含む詳細レポートを生成します。", "リリースまたは定期レビュー"],
+      ["aigate compliance-report", "コンプライアンス統制レポートを生成します。", "監査と運用準備の共有"],
+      ["aigate dashboard", "ローカル HTML ヘルスダッシュボードを書き込みます。", "self-hosted reporting の開始"],
       ["aigate branch-strategy", "チームとリリース頻度に合うブランチ戦略を推薦します。", "ブランチポリシー設計"],
       ["aigate branch-strategy --compare", "複数のブランチ戦略提案をスコア、強み、リスク、移行手順で比較します。", "チームに合うブランチモデルを選ぶとき"],
       ["aigate branch-strategy --apply", "ブランチポリシー、release、hotfix、PR、CODEOWNERS、ポリシーパックの草案を生成します。", "ポリシーファイル作成時"],
@@ -387,7 +397,7 @@ const locales = {
       ["aigate audit-report", "ガバナンスとポリシー状態を要約します。", "運用監査と公開準備レビュー"],
       ["aigate notify send --channel terminal", "ローカル通知イベントを出力します。", "ゲートブロック確認"],
       ["aigate git-ready --notify-channel slack", "BLOCK 時に Slack webhook 通知を送信します。", "secret や高リスク変更でゲートが止まるとき"],
-      ["aigate notify test --channel slack", "Slack、Discord、Teams webhook payload をテストします。", "チームチャンネル連携の確認"]
+      ["aigate notify test --channel slack", "Slack、Discord、Teams、email、Linear、Jira payload をテストします。", "チームチャンネル連携の確認"]
     ],
     branchTitle: "ブランチとデリバリーの流れ",
     branchText: "main は保護された安定ブランチです。作業は codex/*、feature/*、fix/*、docs/*、chore/* で行い、PR 経由で main に入れます。release/* と hotfix/* はリリース安定化と緊急修正用です。",
@@ -425,6 +435,7 @@ const locales = {
       "再利用可能な公開 GitHub Action",
       "プロジェクト状態トレンド履歴",
       "Markdown、HTML、JSON、SARIF レポート",
+      "コンプライアンスレポートとローカル HTML ヘルスダッシュボード",
       "プロジェクトスコアと deep Git signal 評価",
       "ブランチ戦略推薦、提案比較、ポリシーパック生成",
       "Codex/Gemini 統合ファイル生成",
@@ -432,17 +443,18 @@ const locales = {
       "release-check と release-check --npm",
       "Trusted Publishing による npm 自動リリース",
       "GitHub CI、OpenSSF Scorecard、GitHub Release 運用",
-      "ターミナル、Slack BLOCK、Discord、Teams webhook 通知"
+      "ターミナル、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知",
+      "GHCR Docker publish workflow と Homebrew formula draft"
     ],
     future: [
       "製品レベルの Slack BLOCK 通知 UX",
-      "Docker image の公開配布",
-      "Homebrew formula",
-      "email チャンネルと通知ポリシー強化",
-      "Linear/Jira 連携",
+      "タグ付き GHCR workflow 実行後の public Docker image",
+      "Homebrew tap publish",
+      "中央通知ポリシー強化",
+      "Linear/Jira workflow integrations の深化",
       "standalone binary 配布",
-      "組織ダッシュボード、監査/コンプライアンスレポート",
-      "self-hosted reporting、SSO/SAML、エンタープライズガバナンス"
+      "組織ダッシュボード",
+      "SSO/SAML、エンタープライズガバナンス"
     ],
     footer: "この文書は AIGate の公開リリース後の運用状態を説明します。"
   },
@@ -491,7 +503,7 @@ const locales = {
       ["设置", ["init", "setup", "settings", "integrate"]],
       ["首次运行", ["doctor", "demo", "install-hook"]],
       ["保护门禁", ["check", "git-ready", "push", "pr"]],
-      ["报告", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "audit-report"]],
+      ["报告", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
       ["发布", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
     commandsTitle: "全部命令与使用时机",
@@ -519,6 +531,8 @@ const locales = {
       ["aigate report --format sarif", "以 SARIF 输出 secret finding。", "安全工具集成"],
       ["aigate evaluate-project", "计算仓库基础分。", "开源发布准备检查"],
       ["aigate evaluate-project --deep --report", "生成包含 Git signal 的详细报告。", "发布或周期复盘"],
+      ["aigate compliance-report", "生成合规控制报告。", "审计和运维准备共享"],
+      ["aigate dashboard", "写入本地 HTML 健康仪表盘。", "开始 self-hosted reporting"],
       ["aigate branch-strategy", "按团队和发布节奏推荐分支策略。", "设计分支政策"],
       ["aigate branch-strategy --compare", "按分数、优势、风险和迁移步骤比较多个分支策略提案。", "选择适合团队的分支模型时"],
       ["aigate branch-strategy --apply", "生成分支政策、release、hotfix、PR、CODEOWNERS 和政策包草案。", "创建政策文件时"],
@@ -528,7 +542,7 @@ const locales = {
       ["aigate audit-report", "汇总治理和政策状态。", "运维审计和公开准备"],
       ["aigate notify send --channel terminal", "输出本地通知事件。", "检查门禁阻塞事件"],
       ["aigate git-ready --notify-channel slack", "BLOCK 时发送 Slack webhook 通知。", "敏感信息或高风险变更阻塞门禁时"],
-      ["aigate notify test --channel slack", "测试 Slack、Discord、Teams webhook payload。", "验证团队频道集成"]
+      ["aigate notify test --channel slack", "测试 Slack、Discord、Teams、email、Linear、Jira payload。", "验证团队频道集成"]
     ],
     branchTitle: "分支与交付流程",
     branchText: "main 是受保护的稳定分支。工作在 codex/*、feature/*、fix/*、docs/*、chore/* 分支上完成，并通过 PR 合并。release/* 和 hotfix/* 用于发布稳定和紧急修复。",
@@ -566,6 +580,7 @@ const locales = {
       "可复用的公开 GitHub Action",
       "项目状态趋势历史",
       "Markdown、HTML、JSON、SARIF 报告",
+      "合规报告和本地 HTML 健康仪表盘",
       "项目分数和 deep Git signal 评估",
       "分支策略推荐、提案比较和政策包生成",
       "Codex/Gemini 集成文件生成",
@@ -573,17 +588,18 @@ const locales = {
       "release-check 和 release-check --npm",
       "基于 Trusted Publishing 的 npm 自动发布",
       "GitHub CI、OpenSSF Scorecard、GitHub Release 运维",
-      "终端、Slack BLOCK、Discord、Teams webhook 通知"
+      "终端、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知",
+      "GHCR Docker publish workflow 和 Homebrew formula draft"
     ],
     future: [
       "产品级 Slack BLOCK 通知体验",
-      "公开 Docker image",
-      "Homebrew formula",
-      "email 通道和通知政策强化",
-      "Linear/Jira 问题追踪集成",
+      "标签触发 GHCR workflow 后的 public Docker image",
+      "Homebrew tap publish",
+      "中央通知政策强化",
+      "深化 Linear/Jira workflow integrations",
       "standalone binary 发布",
-      "组织仪表盘、审计/合规报告",
-      "self-hosted reporting、SSO/SAML、企业治理"
+      "组织仪表盘",
+      "SSO/SAML、企业治理"
     ],
     footer: "本文档说明 AIGate 公开发布后的运行状态。"
   }
