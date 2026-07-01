@@ -99,14 +99,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
         with:
           command: git-ready
           language: ja
 ```
 
-この action を含む次のリリースタグが作成された後は、タグに固定してください。
-入力一覧は [GitHub Action ドキュメント](docs/github-action.ja.md) にまとめています。
+安定運用では現在のリリースタグを使い、未リリースの最新動作を意図的に確認
+したい場合だけ `@main` を使ってください。入力一覧は
+[GitHub Action ドキュメント](docs/github-action.ja.md) にまとめています。
 
 ## AI エージェント連携
 

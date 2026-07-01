@@ -97,14 +97,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
         with:
           command: git-ready
           language: zh
 ```
 
-包含该 action 的下一个发布标签创建后，请固定到标签。完整输入见
-[GitHub Action 文档](docs/github-action.zh.md)。
+稳定运行请使用当前发布标签；只有在有意验证未发布的最新行为时才使用 `@main`。
+完整输入见 [GitHub Action 文档](docs/github-action.zh.md)。
 
 ## AI Agent 集成
 

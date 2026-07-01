@@ -140,15 +140,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
         with:
           command: git-ready
           language: en
 ```
 
-Pin to a release tag after the next action-bearing release is tagged. Full
-inputs are documented in [GitHub Action](docs/github-action.md). The same action
-metadata is mirrored at `.github/actions/aigate` for local workflow testing.
+Use the current release tag for stable runs, or `@main` only when you
+intentionally want unreleased behavior. Full inputs are documented in
+[GitHub Action](docs/github-action.md). The same action metadata is mirrored at
+`.github/actions/aigate` for local workflow testing.
 
 ## AI Agent Integration
 

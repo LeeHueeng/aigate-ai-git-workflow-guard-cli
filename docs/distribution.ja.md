@@ -65,8 +65,8 @@ docker run --rm -v "$PWD:/repo" -w /repo aigate/cli audit-report
 ## GitHub Actions
 
 この repository はルートに再利用可能な公開 action を含みます。最新の action
-動作は `@main` で利用し、この action を含む次のリリースタグが作成された後は
-タグに固定してください。
+動作は現在のリリースタグに固定し、未リリースの最新動作を意図的に確認
+したい場合だけ `@main` を使ってください。
 
 ```yaml
 jobs:
@@ -74,7 +74,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
         with:
           command: git-ready
           language: ja

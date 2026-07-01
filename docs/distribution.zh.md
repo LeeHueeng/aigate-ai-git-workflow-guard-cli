@@ -63,7 +63,7 @@ docker run --rm -v "$PWD:/repo" -w /repo aigate/cli audit-report
 ## GitHub Actions
 
 此 repository 在根目录提供可复用的公开 action。最新 action 行为可以使用
-`@main`，当包含该 action 的下一个发布标签创建后，请固定到标签。
+请固定到当前发布标签；只有在有意验证未发布的最新行为时才使用 `@main`。
 
 ```yaml
 jobs:
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@main
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
         with:
           command: git-ready
           language: zh
