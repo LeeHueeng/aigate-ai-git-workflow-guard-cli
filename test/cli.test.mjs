@@ -876,12 +876,33 @@ test("generates branch strategy policy drafts", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.command, "branch-strategy");
   assert.equal(output.strategy.name, "Hybrid Flow");
+  assert.ok(output.strategy.generatedOutputs.includes(".aigate/policy-packs/branch-protection.json"));
   assert.ok(existsSync(join(outputDir, ".aigate", "generated-branch-strategy.md")));
   assert.ok(existsSync(join(outputDir, ".aigate", "branch-strategy-policy.json")));
+  assert.ok(existsSync(join(outputDir, ".aigate", "policy-packs", "README.md")));
+  assert.ok(existsSync(join(outputDir, ".aigate", "policy-packs", "branch-protection.json")));
+  assert.ok(existsSync(join(outputDir, ".aigate", "policy-packs", "pr-quality.json")));
+  assert.ok(existsSync(join(outputDir, ".aigate", "policy-packs", "release-channels.json")));
+  assert.ok(existsSync(join(outputDir, ".aigate", "policy-packs", "ai-collaboration.json")));
   assert.ok(existsSync(join(outputDir, "docs", "release-process.md")));
   assert.ok(existsSync(join(outputDir, "docs", "hotfix-process.md")));
   assert.ok(existsSync(join(outputDir, ".github", "pull_request_template.aigate.md")));
   assert.ok(existsSync(join(outputDir, ".github", "CODEOWNERS.aigate")));
+
+  const policy = JSON.parse(readFileSync(join(outputDir, ".aigate", "branch-strategy-policy.json"), "utf8"));
+  assert.deepEqual(policy.policyPacks, [
+    ".aigate/policy-packs/branch-protection.json",
+    ".aigate/policy-packs/pr-quality.json",
+    ".aigate/policy-packs/release-channels.json",
+    ".aigate/policy-packs/ai-collaboration.json"
+  ]);
+
+  const branchProtection = JSON.parse(readFileSync(join(outputDir, ".aigate", "policy-packs", "branch-protection.json"), "utf8"));
+  assert.equal(branchProtection.id, "branch-protection");
+  assert.ok(branchProtection.requiredChecks.includes("aigate git-ready"));
+
+  const aiCollaboration = JSON.parse(readFileSync(join(outputDir, ".aigate", "policy-packs", "ai-collaboration.json"), "utf8"));
+  assert.ok(aiCollaboration.assistantBranches.includes("codex/*"));
 });
 
 test("rejects unknown commands", () => {

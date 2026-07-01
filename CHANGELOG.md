@@ -2,7 +2,12 @@
 
 All notable changes to AIGate are documented here.
 
-## 0.1.2 - Unreleased
+## 0.1.3 - Unreleased
+
+- Expanded generated branch strategy output into reusable policy packs for
+  branch protection, pull request quality, release channels, and AI collaboration.
+
+## 0.1.2 - 2026-07-01
 
 - Expanded CLI localization across help, reports, release checks, audit output,
   notifications, and generated assistant instructions.

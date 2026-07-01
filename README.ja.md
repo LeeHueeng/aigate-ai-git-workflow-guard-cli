@@ -52,7 +52,7 @@ aigate pr-check
 | Markdown, HTML, JSON, SARIF report | `aigate report --format <format>` |
 | repository health score | `aigate evaluate-project` |
 | プロジェクト状態トレンド履歴 | `aigate trends record` |
-| branch strategy recommendation | `aigate branch-strategy` |
+| ブランチ戦略ポリシーパック | `aigate branch-strategy --apply` |
 | npm release readiness check | `aigate release-check --npm` |
 | Codex/Gemini integration files | `aigate integrate all` |
 
