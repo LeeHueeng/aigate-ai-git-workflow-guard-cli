@@ -18,6 +18,8 @@
 
 ## V1.5: Workflow Intelligence
 
+- [x] Prepare GHCR Docker publishing workflow.
+- [x] Add Homebrew formula draft.
 - [ ] Publish Homebrew formula.
 - [ ] Publish Docker image after local Docker usage is validated.
 - [x] Promote the bundled GitHub composite action to a reusable public action.
@@ -31,7 +33,8 @@
 - [x] Prepare GitHub Checks and Actions summaries with `aigate github check`.
 - [x] Generate weekly team reports.
 - [x] Track project health trends with `aigate trends`.
-- [ ] Integrate with Linear and Jira.
+- [x] Send issue notifications to Linear and Jira.
+- [ ] Add deeper Linear and Jira workflow automation.
 - [ ] Publish standalone binaries.
 - [x] Compare multiple AI-generated branch strategy proposals.
 
@@ -39,8 +42,9 @@
 
 - [ ] Provide organization dashboards.
 - [x] Generate policy violation audit reports.
-- [ ] Generate compliance reports.
+- [x] Generate compliance reports.
+- [x] Provide local status dashboard with `aigate dashboard`.
 - [ ] Manage central notification policies.
-- [ ] Support self-hosted reporting.
+- [x] Support self-hosted reporting.
 - [ ] Support enterprise offline installers.
 - [ ] Apply organization-standard branch strategies.

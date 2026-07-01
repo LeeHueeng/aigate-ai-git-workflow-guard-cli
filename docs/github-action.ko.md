@@ -38,7 +38,7 @@ PR 리포트를 만들 때:
 
 | 입력값 | 기본값 | 설명 |
 | --- | --- | --- |
-| `command` | `git-ready` | `git-ready`, `check`, `doctor`, `pr-check`, `report`, `audit-report`, `evaluate-project`, `github-check`, `release-check`, `release-check-npm`을 지원합니다. |
+| `command` | `git-ready` | `git-ready`, `check`, `doctor`, `pr-check`, `report`, `audit-report`, `evaluate-project`, `github-check`, `release-check`, `release-check-npm`, `branch-strategy`, `branch-strategy-compare`를 지원합니다. |
 | `report-format` | `markdown` | 리포트 생성 명령에서 사용합니다. |
 | `output` | 비어 있음 | 리포트 생성 명령의 선택 출력 경로입니다. |
 | `language` | 비어 있음 | 선택값은 `en`, `ko`, `ja`, `zh`입니다. |
@@ -46,3 +46,13 @@ PR 리포트를 만들 때:
 
 동일한 action metadata는 이 저장소 내부 workflow 테스트를 위해
 `.github/actions/aigate`에도 복제되어 있습니다.
+
+브랜치 전략 비교:
+
+```yaml
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
+  with:
+    command: branch-strategy-compare
+    report-format: json
+    output: .aigate/reports/branch-strategy.json
+```

@@ -38,7 +38,7 @@ flowchart LR
 | 설정 | `init`, `setup`, `settings`, `integrate` |
 | 첫 실행 | `doctor`, `demo`, `install-hook --pre-push` |
 | 보호 게이트 | `check`, `git-ready`, `push`, `pr` |
-| 리포트 | `pr-check`, `report`, `evaluate-project`, `audit-report` |
+| 리포트 | `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | 릴리스 | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
 ## 대표 실행 경로
@@ -58,6 +58,8 @@ aigate pr --title "feat: short summary"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate compliance-report --output .aigate/reports/compliance.md
+aigate dashboard --output .aigate/reports/dashboard.html
 aigate branch-strategy --compare
 aigate github setup --owner @your-org/team --dry-run
 aigate release-check --npm
@@ -76,18 +78,20 @@ aigate release-check --npm
 - `aigate github setup` 기반 PR 템플릿과 CODEOWNERS 설정
 - `action.yml` 기반 재사용 가능한 공개 GitHub Action
 - Markdown, HTML, JSON, SARIF 리포트
+- 컴플라이언스 리포트와 로컬 HTML 상태 대시보드
 - 프로젝트 점수와 deep Git signal 평가
 - `aigate trends` 기반 프로젝트 상태 추세 기록
 - 브랜치 전략 추천, 제안 비교, 정책 팩 생성
 - Codex/Gemini 통합 파일 생성
 - 영어, 한국어, 일본어, 중국어 CLI 설정
 - release-check와 npm Trusted Publishing workflow
-- 터미널, Slack BLOCK, Discord, Teams webhook 알림
+- 터미널, Slack BLOCK, Discord, Teams, email, Linear, Jira 알림
+- GHCR Docker 배포 workflow와 Homebrew formula 초안
 
 ## 미래에 구현할 기능
 
-- 공개 Docker image
-- Homebrew formula
+- 태그 기반 GHCR workflow 실행 후 public Docker image
+- Homebrew tap publish
 - standalone binary
-- Linear/Jira 연동
-- hosted dashboard와 엔터프라이즈 거버넌스 pack
+- Linear/Jira workflow 연동 심화
+- organization dashboard와 엔터프라이즈 거버넌스 pack

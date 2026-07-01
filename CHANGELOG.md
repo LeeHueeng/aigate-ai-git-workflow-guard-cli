@@ -4,6 +4,15 @@ All notable changes to AIGate are documented here.
 
 ## 0.1.3 - Unreleased
 
+- Added email, Linear, and Jira notification dry-run payloads and issue
+  creation routes.
+- Added `aigate compliance-report` and `aigate dashboard` for compliance
+  controls and local self-hosted HTML reporting.
+- Added release and hotfix process docs in English, Korean, Japanese, and
+  Chinese.
+- Added JSON output and Windows smoke-test examples.
+- Added lint/typecheck npm scripts to the CI gate.
+- Added GHCR Docker publishing workflow and Homebrew formula draft.
 - Added `aigate branch-strategy --compare` for scored branch strategy proposal
   comparison across GitHub Flow, Trunk-Based Development, Hybrid Flow, and
   Git Flow.

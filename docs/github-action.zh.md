@@ -37,7 +37,7 @@ jobs:
 
 | 输入 | 默认值 | 说明 |
 | --- | --- | --- |
-| `command` | `git-ready` | 支持 `git-ready`, `check`, `doctor`, `pr-check`, `report`, `audit-report`, `evaluate-project`, `github-check`, `release-check`, `release-check-npm`。 |
+| `command` | `git-ready` | 支持 `git-ready`, `check`, `doctor`, `pr-check`, `report`, `audit-report`, `evaluate-project`, `github-check`, `release-check`, `release-check-npm`, `branch-strategy`, `branch-strategy-compare`。 |
 | `report-format` | `markdown` | 用于生成报告的命令。 |
 | `output` | 空 | 生成报告命令的可选输出路径。 |
 | `language` | 空 | 可选 `en`, `ko`, `ja`, `zh`。 |
@@ -45,3 +45,13 @@ jobs:
 
 同一份 action metadata 也复制到 `.github/actions/aigate`，用于本仓库内部的
 workflow 测试。
+
+分支策略比较:
+
+```yaml
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
+  with:
+    command: branch-strategy-compare
+    report-format: json
+    output: .aigate/reports/branch-strategy.json
+```

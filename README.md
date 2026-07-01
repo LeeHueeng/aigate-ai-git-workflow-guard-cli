@@ -86,6 +86,8 @@ repeatable local gate before `git push` or PR creation.
 | Changed-file secret scan | `aigate report --format sarif` |
 | Repository health score | `aigate evaluate-project` |
 | Deep project report | `aigate evaluate-project --deep --report` |
+| Compliance control report | `aigate compliance-report` |
+| Local HTML health dashboard | `aigate dashboard` |
 | Project health trend history | `aigate trends record` |
 | Branch strategy policy packs | `aigate branch-strategy --apply` |
 | Branch strategy proposal comparison | `aigate branch-strategy --compare` |
@@ -192,7 +194,11 @@ distributed:
 - [Notifications guide](docs/notifications.md)
 - [AI integrations](docs/ai-integrations.md)
 - [Basic Node project example](docs/examples/basic-node-project.md)
+- [JSON output examples](docs/examples/json-output.md)
+- [Windows smoke test notes](docs/examples/windows-smoke-test.md)
 - [Branch strategy](docs/branch-strategy.md)
+- [Release process](docs/release-process.md)
+- [Hotfix process](docs/hotfix-process.md)
 - [Git upload workflow](docs/git-upload-workflow.md)
 - [Roadmap](docs/roadmap.md)
 - [Multilingual documentation index](docs/README.md)
@@ -206,8 +212,8 @@ distributed:
 ## Contributing
 
 Small issues are welcome. Good first contributions include docs examples,
-Windows smoke-test notes, GitHub Actions examples, and real-world repository
-case studies.
+GitHub Actions examples, Homebrew/Docker validation notes, and real-world
+repository case studies.
 
 ```sh
 npm install

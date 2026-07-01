@@ -52,12 +52,28 @@ npx npm@latest trust github aigate-cli \
 
 ## Docker
 
-Docker image 尚未公开发布。验证 container usage 时使用 local build。
+仓库已包含 `.github/workflows/docker.yml` GHCR 发布 workflow。在带标签的
+workflow run 发布 public image 前，请使用 local build 验证 container usage。
 
 ```sh
 docker build -t aigate/cli .
 docker run --rm -v "$PWD:/repo" -w /repo aigate/cli check
 docker run --rm -v "$PWD:/repo" -w /repo aigate/cli audit-report
+```
+
+发布启用后，带标签的 release 会 publish 到:
+
+```text
+ghcr.io/leehueeng/aigate-cli
+```
+
+## Homebrew
+
+仓库包含 `packaging/homebrew/aigate-cli.rb` formula 草案。匹配的 npm release
+稳定后，再发布到 Homebrew tap。
+
+```sh
+brew install --formula ./packaging/homebrew/aigate-cli.rb
 ```
 
 ## GitHub Actions
@@ -84,6 +100,6 @@ local workflow test。完整输入见 [GitHub Action](github-action.zh.md)。
 
 ## 后续渠道
 
-- 验证 container usage 后发布 public Docker image
-- npm package 有真实用户后发布 Homebrew formula
+- GHCR workflow 标签运行成功后发布 public Docker image
+- npm package 有真实用户后发布 Homebrew tap
 - 为无 Node.js 环境提供 standalone binary

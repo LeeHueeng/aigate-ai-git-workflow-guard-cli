@@ -170,6 +170,7 @@ test("ships reusable GitHub Action metadata", () => {
   assert.match(rootAction, /uses: actions\/setup-node@v6/);
   assert.match(rootAction, /package-manager-cache: false/);
   assert.match(rootAction, /github-check\)/);
+  assert.match(rootAction, /branch-strategy-compare\)/);
   assert.match(rootAction, /npx -y "\$PACKAGE"/);
   assert.doesNotMatch(rootAction, /node src\/cli\.mjs/);
 });
@@ -638,6 +639,34 @@ test("renders Discord and Teams webhook payloads through notify test", () => {
   assert.match(teamsPayload.summary, /AIGate WARN:/);
 });
 
+test("renders email, Linear, and Jira notification dry-run payloads", () => {
+  const email = run(["notify", "send", "--channel", "email", "--dry-run", "--format", "json"]);
+  const linear = run(["notify", "send", "--channel", "linear", "--dry-run", "--format", "json"]);
+  const jira = run(["notify", "send", "--channel", "jira", "--dry-run", "--format", "json"]);
+
+  assert.equal(email.status, 0);
+  assert.equal(linear.status, 0);
+  assert.equal(jira.status, 0);
+
+  const emailPayload = JSON.parse(email.stdout);
+  const linearPayload = JSON.parse(linear.stdout);
+  const jiraPayload = JSON.parse(jira.stdout);
+
+  assert.equal(emailPayload.channel, "email");
+  assert.ok(emailPayload.requiredEnv.includes("AIGATE_EMAIL_WEBHOOK_URL"));
+  assert.equal(typeof emailPayload.payload.subject, "string");
+
+  assert.equal(linearPayload.channel, "linear");
+  assert.ok(linearPayload.requiredEnv.includes("AIGATE_LINEAR_API_KEY"));
+  assert.ok(linearPayload.requiredEnv.includes("AIGATE_LINEAR_TEAM_ID"));
+  assert.match(linearPayload.payload.query, /IssueCreate/);
+
+  assert.equal(jiraPayload.channel, "jira");
+  assert.ok(jiraPayload.requiredEnv.includes("AIGATE_JIRA_BASE_URL"));
+  assert.ok(jiraPayload.requiredEnv.includes("AIGATE_JIRA_PROJECT_KEY"));
+  assert.equal(jiraPayload.payload.fields.issuetype.name, "Task");
+});
+
 test("renders markdown report by default", () => {
   const result = run(["report"]);
 
@@ -849,6 +878,23 @@ test("renders audit report", () => {
   assert.ok(Array.isArray(output.recommendations));
 });
 
+test("renders compliance report and dashboard", () => {
+  const result = run(["compliance-report", "--format", "json"]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "compliance-report");
+  assert.ok(Array.isArray(output.controls));
+  assert.ok(output.controls.some((control) => control.id === "operational-docs"));
+
+  const outputDir = createOutputDir();
+  const dashboardPath = join(outputDir, "dashboard.html");
+  const dashboard = run(["dashboard", "--output", dashboardPath, "--language", "ko"]);
+  assert.equal(dashboard.status, 0);
+  assert.ok(existsSync(dashboardPath));
+  assert.match(readFileSync(dashboardPath, "utf8"), /AIGate 상태 대시보드/);
+});
+
 test("recommends branch strategy", () => {
   const result = run(["branch-strategy", "--github"]);
 
@@ -883,6 +929,13 @@ test("compares branch strategy proposals", () => {
   assert.match(localized.stdout, /적합 점수:/);
   assert.match(localized.stdout, /전환 단계/);
   assert.doesNotMatch(localized.stdout, /Fit score/);
+
+  const outputDir = createOutputDir();
+  const outputPath = join(outputDir, "branch-strategy.json");
+  const written = run(["branch-strategy", "--compare", "--format", "json", "--output", outputPath]);
+  assert.equal(written.status, 0);
+  assert.ok(existsSync(outputPath));
+  assert.equal(JSON.parse(readFileSync(outputPath, "utf8")).command, "branch-strategy");
 });
 
 test("generates branch strategy policy drafts", () => {

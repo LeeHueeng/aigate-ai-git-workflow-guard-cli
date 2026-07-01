@@ -38,7 +38,7 @@ For a pull request report:
 
 | Input | Default | Notes |
 | --- | --- | --- |
-| `command` | `git-ready` | Supports `git-ready`, `check`, `doctor`, `pr-check`, `report`, `audit-report`, `evaluate-project`, `github-check`, `release-check`, and `release-check-npm`. |
+| `command` | `git-ready` | Supports `git-ready`, `check`, `doctor`, `pr-check`, `report`, `audit-report`, `evaluate-project`, `github-check`, `release-check`, `release-check-npm`, `branch-strategy`, and `branch-strategy-compare`. |
 | `report-format` | `markdown` | Used by report-producing commands. |
 | `output` | empty | Optional output path for report-producing commands. |
 | `language` | empty | Optional `en`, `ko`, `ja`, or `zh`. |
@@ -46,3 +46,13 @@ For a pull request report:
 
 The same action metadata is mirrored at `.github/actions/aigate` for local
 workflow testing inside this repository.
+
+For branch strategy comparison:
+
+```yaml
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
+  with:
+    command: branch-strategy-compare
+    report-format: json
+    output: .aigate/reports/branch-strategy.json
+```

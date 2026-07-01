@@ -530,7 +530,7 @@ npx aigate-cli check</code></pre>
       <div><span>check</span><span>git-ready</span><span>push</span><span>pr</span></div>
     </article><article class="command-group group-3">
       <h3>报告</h3>
-      <div><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>audit-report</span></div>
+      <div><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
     </article><article class="command-group group-4">
       <h3>发布</h3>
       <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>branch-strategy --compare</span><span>notify</span></div>
@@ -634,6 +634,14 @@ npx aigate-cli check</code></pre>
     <td>生成包含 Git signal 的详细报告。</td>
     <td>发布或周期复盘</td>
   </tr><tr>
+    <td><code>aigate compliance-report</code></td>
+    <td>生成合规控制报告。</td>
+    <td>审计和运维准备共享</td>
+  </tr><tr>
+    <td><code>aigate dashboard</code></td>
+    <td>写入本地 HTML 健康仪表盘。</td>
+    <td>开始 self-hosted reporting</td>
+  </tr><tr>
     <td><code>aigate branch-strategy</code></td>
     <td>按团队和发布节奏推荐分支策略。</td>
     <td>设计分支政策</td>
@@ -671,7 +679,7 @@ npx aigate-cli check</code></pre>
     <td>敏感信息或高风险变更阻塞门禁时</td>
   </tr><tr>
     <td><code>aigate notify test --channel slack</code></td>
-    <td>测试 Slack、Discord、Teams webhook payload。</td>
+    <td>测试 Slack、Discord、Teams、email、Linear、Jira payload。</td>
     <td>验证团队频道集成</td>
   </tr></tbody>
     </table>
@@ -708,7 +716,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">功能</p>
         <h2>当前已实现功能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">通过 doctor、demo、install-hook 提供首次运行体验</div><div class="feature done">pre-push Git hook 安装</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">GitHub PR comment 和 GitHub Checks summary payload</div><div class="feature done">PR 模板和 CODEOWNERS 引导式设置</div><div class="feature done">可复用的公开 GitHub Action</div><div class="feature done">项目状态趋势历史</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐、提案比较和政策包生成</div><div class="feature done">Codex/Gemini 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端、Slack BLOCK、Discord、Teams webhook 通知</div></div>
+      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">通过 doctor、demo、install-hook 提供首次运行体验</div><div class="feature done">pre-push Git hook 安装</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">GitHub PR comment 和 GitHub Checks summary payload</div><div class="feature done">PR 模板和 CODEOWNERS 引导式设置</div><div class="feature done">可复用的公开 GitHub Action</div><div class="feature done">项目状态趋势历史</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">合规报告和本地 HTML 健康仪表盘</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐、提案比较和政策包生成</div><div class="feature done">Codex/Gemini 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow 和 Homebrew formula draft</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -716,7 +724,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">功能</p>
         <h2>未来计划功能</h2>
       </div>
-      <div class="feature-grid"><div class="feature planned">产品级 Slack BLOCK 通知体验</div><div class="feature planned">公开 Docker image</div><div class="feature planned">Homebrew formula</div><div class="feature planned">email 通道和通知政策强化</div><div class="feature planned">Linear/Jira 问题追踪集成</div><div class="feature planned">standalone binary 发布</div><div class="feature planned">组织仪表盘、审计/合规报告</div><div class="feature planned">self-hosted reporting、SSO/SAML、企业治理</div></div>
+      <div class="feature-grid"><div class="feature planned">产品级 Slack BLOCK 通知体验</div><div class="feature planned">标签触发 GHCR workflow 后的 public Docker image</div><div class="feature planned">Homebrew tap publish</div><div class="feature planned">中央通知政策强化</div><div class="feature planned">深化 Linear/Jira workflow integrations</div><div class="feature planned">standalone binary 发布</div><div class="feature planned">组织仪表盘</div><div class="feature planned">SSO/SAML、企业治理</div></div>
     </section>
   </main>
 

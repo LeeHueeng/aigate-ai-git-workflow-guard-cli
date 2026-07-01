@@ -27,8 +27,8 @@ Supported and planned channels:
 | pnpm dlx | `pnpm dlx aigate-cli check` | MVP |
 | bun | `bun add -g aigate-cli` | MVP |
 | bunx | `bunx aigate-cli check` | MVP |
-| Homebrew | `brew install aigate` | V1.5 |
-| Docker | `docker run --rm -v "$PWD:/repo" aigate/cli check` | V1.5 |
+| Homebrew | formula draft prepared in `packaging/homebrew/` | prepared |
+| Docker | GHCR workflow prepared; public image pending tagged release | prepared |
 | GitHub Releases | standalone binary download | V2 |
 
 Release channels:
@@ -70,8 +70,9 @@ Route important events such as `BLOCK`, `WARN`, `PR_ONLY`, and
 email, GitHub pull request comments, GitHub Checks, Linear, or Jira.
 
 Current CLI support includes terminal notifications, Slack, Discord, Teams,
-custom webhook payloads, GitHub pull request comments, and GitHub Checks
-summary payloads. Email, Linear, and Jira remain staged integrations.
+email webhook payloads, GitHub pull request comments, GitHub Checks summary
+payloads, and Linear or Jira issue notifications when credentials are
+configured.
 
 ### Report Generator
 

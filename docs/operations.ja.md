@@ -39,7 +39,7 @@ flowchart LR
 | Setup | `init`, `setup`, `settings`, `integrate` |
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `git-ready`, `push`, `pr` |
-| Reports | `pr-check`, `report`, `evaluate-project`, `audit-report` |
+| Reports | `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | Release | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
 ## 代表的な実行手順
@@ -59,6 +59,8 @@ aigate pr --title "feat: short summary"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate compliance-report --output .aigate/reports/compliance.md
+aigate dashboard --output .aigate/reports/dashboard.html
 aigate branch-strategy --compare
 aigate github setup --owner @your-org/team --dry-run
 aigate release-check --npm
@@ -77,18 +79,20 @@ aigate release-check --npm
 - `aigate github setup` による PR テンプレートと CODEOWNERS 設定
 - `action.yml` による再利用可能な公開 GitHub Action
 - Markdown, HTML, JSON, SARIF reports
+- コンプライアンスレポートとローカル HTML ヘルスダッシュボード
 - project score と deep Git signal evaluation
 - `aigate trends` によるプロジェクト状態トレンド履歴
 - ブランチ戦略推薦、提案比較、ポリシーパック生成
 - Codex/Gemini integration file generation
 - 英語、韓国語、日本語、中国語の CLI settings
 - release-check と npm Trusted Publishing workflow
-- Terminal, Slack BLOCK, Discord, Teams webhook notifications
+- Terminal, Slack BLOCK, Discord, Teams, email, Linear, Jira notifications
+- GHCR Docker publish workflow と Homebrew formula draft
 
 ## 今後の予定
 
-- 公開 Docker image
-- Homebrew formula
+- タグ付き GHCR workflow 実行後の public Docker image
+- Homebrew tap publish
 - standalone binary
-- Linear/Jira integrations
-- hosted dashboard と enterprise governance packs
+- Linear/Jira workflow integrations の深化
+- organization dashboard と enterprise governance packs

@@ -38,7 +38,7 @@ flowchart LR
 | Setup | `init`, `setup`, `settings`, `integrate` |
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `git-ready`, `push`, `pr` |
-| Reports | `pr-check`, `report`, `evaluate-project`, `audit-report` |
+| Reports | `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | Release | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
 ## 典型执行路径
@@ -58,6 +58,8 @@ aigate pr --title "feat: short summary"
 aigate github comment --pr <number>
 aigate github check --output .aigate/reports/github-check.md
 aigate trends record
+aigate compliance-report --output .aigate/reports/compliance.md
+aigate dashboard --output .aigate/reports/dashboard.html
 aigate branch-strategy --compare
 aigate github setup --owner @your-org/team --dry-run
 aigate release-check --npm
@@ -76,18 +78,20 @@ aigate release-check --npm
 - 通过 `aigate github setup` 设置 PR 模板和 CODEOWNERS
 - 通过 `action.yml` 提供可复用的公开 GitHub Action
 - Markdown, HTML, JSON, SARIF reports
+- 合规报告和本地 HTML 健康仪表盘
 - project score 和 deep Git signal evaluation
 - 通过 `aigate trends` 记录项目状态趋势历史
 - 分支策略推荐、提案比较和政策包生成
 - Codex/Gemini integration file generation
 - 英语、韩语、日语、中文 CLI settings
 - release-check 和 npm Trusted Publishing workflow
-- Terminal, Slack BLOCK, Discord, Teams webhook notifications
+- Terminal、Slack BLOCK、Discord、Teams、email、Linear、Jira notifications
+- GHCR Docker publish workflow 和 Homebrew formula draft
 
 ## 后续计划
 
-- 公开 Docker image
-- Homebrew formula
+- 标签触发 GHCR workflow 后的 public Docker image
+- Homebrew tap publish
 - standalone binary
-- Linear/Jira integrations
-- hosted dashboard 和 enterprise governance packs
+- 深化 Linear/Jira workflow integrations
+- organization dashboard 和 enterprise governance packs

@@ -38,7 +38,7 @@ PR レポートを生成する場合:
 
 | 入力 | 既定値 | 説明 |
 | --- | --- | --- |
-| `command` | `git-ready` | `git-ready`, `check`, `doctor`, `pr-check`, `report`, `audit-report`, `evaluate-project`, `github-check`, `release-check`, `release-check-npm` をサポートします。 |
+| `command` | `git-ready` | `git-ready`, `check`, `doctor`, `pr-check`, `report`, `audit-report`, `evaluate-project`, `github-check`, `release-check`, `release-check-npm`, `branch-strategy`, `branch-strategy-compare` をサポートします。 |
 | `report-format` | `markdown` | レポート生成コマンドで使います。 |
 | `output` | 空 | レポート生成コマンドの任意の出力先です。 |
 | `language` | 空 | `en`, `ko`, `ja`, `zh` を指定できます。 |
@@ -46,3 +46,13 @@ PR レポートを生成する場合:
 
 同じ action metadata は、このリポジトリ内の workflow テスト用に
 `.github/actions/aigate` にも複製されています。
+
+ブランチ戦略比較:
+
+```yaml
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
+  with:
+    command: branch-strategy-compare
+    report-format: json
+    output: .aigate/reports/branch-strategy.json
+```

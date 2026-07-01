@@ -20,6 +20,8 @@
 
 ## V1.5: Workflow intelligence
 
+- [x] GHCR Docker publish workflow 준비
+- [x] Homebrew formula 초안 추가
 - [ ] Homebrew formula publish
 - [ ] local Docker usage 검증 후 Docker image publish
 - [x] bundled GitHub composite action을 reusable public action으로 승격
@@ -33,7 +35,8 @@
 - [x] `aigate github check`로 GitHub Checks와 Actions 요약 준비
 - [x] weekly team report 생성
 - [x] `aigate trends`로 프로젝트 상태 추세 추적
-- [ ] Linear와 Jira 연동
+- [x] Linear와 Jira issue notification 전송
+- [ ] Linear/Jira workflow automation 심화
 - [ ] standalone binary publish
 - [x] 여러 AI 브랜치 전략 제안 비교
 
@@ -41,8 +44,9 @@
 
 - [ ] organization dashboard
 - [x] policy violation audit report 생성
-- [ ] compliance report 생성
+- [x] compliance report 생성
+- [x] `aigate dashboard`로 local status dashboard 제공
 - [ ] central notification policy 관리
-- [ ] self-hosted reporting 지원
+- [x] self-hosted reporting 지원
 - [ ] enterprise offline installer 지원
 - [ ] organization-standard branch strategy 적용
