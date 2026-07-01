@@ -120,10 +120,14 @@ test("shows help", () => {
   assert.match(result.stdout, /release-check/);
   assert.match(result.stdout, /audit-report/);
   assert.match(result.stdout, /branch-strategy/);
+  assert.match(result.stdout, /doctor/);
+  assert.match(result.stdout, /demo/);
+  assert.match(result.stdout, /install-hook/);
   assert.match(result.stdout, /setup/);
   assert.match(result.stdout, /settings/);
   assert.match(result.stdout, /integrate/);
   assert.match(result.stdout, /--language/);
+  assert.match(result.stdout, /--pre-push/);
   assert.match(result.stdout, /push/);
 });
 
@@ -347,6 +351,60 @@ test("rejects unsupported integration providers", () => {
 
   assert.equal(result.status, 1);
   assert.match(result.stdout, /Unsupported integration provider: unknown-ai/);
+});
+
+test("diagnoses first-run repository setup", () => {
+  const projectDir = createMinimalGitProject();
+  const result = run(["doctor", "--format", "json"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "doctor");
+  assert.equal(output.status, "WARN");
+  assert.ok(output.checks.some((check) => check.id === "node" && check.pass));
+  assert.ok(output.checks.some((check) => check.id === "pre-push-hook" && !check.pass));
+  assert.ok(output.nextSteps.includes("Run aigate install-hook --pre-push."));
+});
+
+test("renders a localized first-run demo", () => {
+  const result = run(["demo", "--language", "ko"]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /AIGate 데모/);
+  assert.match(result.stdout, /npx -y aigate-cli check/);
+  assert.match(result.stdout, /guarded pre-push hook 설치/);
+});
+
+test("installs a guarded pre-push hook", () => {
+  const projectDir = createMinimalGitProject();
+  const result = run(["install-hook", "--pre-push", "--language", "ko"], { cwd: projectDir });
+  const hookPath = join(projectDir, ".git", "hooks", "pre-push");
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /설치 완료/);
+  assert.ok(existsSync(hookPath));
+  assert.match(readFileSync(hookPath, "utf8"), /AIGate pre-push hook/);
+  assert.match(readFileSync(hookPath, "utf8"), /aigate git-ready/);
+
+  const doctor = run(["doctor", "--format", "json"], { cwd: projectDir });
+  const output = JSON.parse(doctor.stdout);
+  assert.ok(output.checks.some((check) => check.id === "pre-push-hook" && check.pass));
+});
+
+test("protects existing pre-push hooks unless forced", () => {
+  const projectDir = createMinimalGitProject();
+  const hookPath = join(projectDir, ".git", "hooks", "pre-push");
+  writeFileSync(hookPath, "#!/bin/sh\nexit 0\n", "utf8");
+  chmodSync(hookPath, 0o755);
+
+  const skipped = run(["install-hook", "--pre-push"], { cwd: projectDir });
+  assert.equal(skipped.status, 1);
+  assert.match(skipped.stdout, /Existing pre-push hook found/);
+  assert.doesNotMatch(readFileSync(hookPath, "utf8"), /AIGate pre-push hook/);
+
+  const forced = run(["install-hook", "--pre-push", "--force"], { cwd: projectDir });
+  assert.equal(forced.status, 0);
+  assert.match(readFileSync(hookPath, "utf8"), /AIGate pre-push hook/);
 });
 
 test("sends terminal notifications", () => {

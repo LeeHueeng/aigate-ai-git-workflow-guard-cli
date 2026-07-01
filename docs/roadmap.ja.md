@@ -9,6 +9,9 @@
 - [x] `aigate init` で starter project configuration を生成
 - [x] Markdown、HTML、JSON、SARIF reports を生成
 - [x] `aigate pr-check` で pull request readiness report を生成
+- [x] `aigate doctor` で first-run setup を診断
+- [x] `aigate demo` で guided CLI demo を表示
+- [x] `aigate install-hook --pre-push` で guarded pre-push hook をインストール
 - [x] blocking event に Slack webhook notification を送信
 - [x] optional deep Git signals 付き weighted project evaluation
 - [x] repository と team signal から branch strategy を推薦

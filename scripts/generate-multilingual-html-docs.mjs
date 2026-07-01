@@ -66,6 +66,7 @@ const locales = {
     commandMapTitle: "명령어 맵",
     commandGroups: [
       ["설정", ["init", "setup", "settings", "integrate"]],
+      ["첫 실행", ["doctor", "demo", "install-hook"]],
       ["보호 게이트", ["check", "git-ready", "push", "pr"]],
       ["보고서", ["pr-check", "report", "evaluate-project", "audit-report"]],
       ["릴리스", ["release-check", "release-check --npm", "branch-strategy", "notify"]]
@@ -78,6 +79,9 @@ const locales = {
       ["aigate init", "AIGate 기본 설정 파일과 리포트 폴더를 만듭니다.", "새 프로젝트에 AIGate를 적용할 때"],
       ["aigate setup --language <en|ko|ja|zh>", "CLI 출력 언어를 저장합니다.", "팀 기본 언어를 맞출 때"],
       ["aigate settings", "현재 AIGate 설정을 확인합니다.", "설정 검증"],
+      ["aigate doctor", "첫 실행 환경, Git hook, 프로젝트 기반 상태를 진단합니다.", "처음 실행하거나 저장소 상태를 점검할 때"],
+      ["aigate demo", "파일을 바꾸지 않고 AIGate 사용 흐름을 보여줍니다.", "처음 체험하거나 팀에 사용법을 설명할 때"],
+      ["aigate install-hook --pre-push", "git push 전에 git-ready가 실행되도록 pre-push hook을 설치합니다.", "push 실수를 로컬에서 막고 싶을 때"],
       ["aigate check", "변경 파일과 secret 위험을 요약합니다.", "커밋 전 가벼운 점검"],
       ["aigate git-ready", "테스트, secret scan, 프로젝트 점수를 포함한 게이트를 실행합니다.", "커밋/푸시 전 필수 점검"],
       ["aigate push -u origin <branch>", "검증 통과 후 git push를 실행합니다.", "브랜치를 원격에 올릴 때"],
@@ -104,6 +108,8 @@ const locales = {
       "npm install -g aigate-cli",
       "aigate setup --language ko",
       "git switch -c feature/my-change",
+      "aigate doctor",
+      "aigate install-hook --pre-push",
       "aigate git-ready",
       "git add <files>",
       "git commit -m \"feat: short summary\"",
@@ -117,6 +123,8 @@ const locales = {
     implemented: [
       "npm 패키지 aigate-cli 공개 배포와 npx 실행",
       "Git 변경사항과 untracked 파일 기반 readiness check",
+      "doctor, demo, install-hook 기반 첫 실행 UX",
+      "pre-push Git hook 설치",
       "secret 패턴 탐지와 SARIF 출력",
       "git-ready, guarded push, guarded PR 생성 흐름",
       "Markdown, HTML, JSON, SARIF 리포트",
@@ -187,6 +195,7 @@ const locales = {
     commandMapTitle: "Command Map",
     commandGroups: [
       ["Setup", ["init", "setup", "settings", "integrate"]],
+      ["First run", ["doctor", "demo", "install-hook"]],
       ["Guard gates", ["check", "git-ready", "push", "pr"]],
       ["Reports", ["pr-check", "report", "evaluate-project", "audit-report"]],
       ["Release", ["release-check", "release-check --npm", "branch-strategy", "notify"]]
@@ -199,6 +208,9 @@ const locales = {
       ["aigate init", "Create starter configuration and report folders.", "When adopting AIGate in a new project"],
       ["aigate setup --language <en|ko|ja|zh>", "Save the CLI output language.", "When aligning team language"],
       ["aigate settings", "Show current AIGate settings.", "Configuration review"],
+      ["aigate doctor", "Diagnose first-run environment, Git hook, and project foundations.", "First run or repository health check"],
+      ["aigate demo", "Show the AIGate workflow without changing files.", "Trying the CLI or explaining it to a team"],
+      ["aigate install-hook --pre-push", "Install a pre-push hook that runs git-ready before git push.", "Preventing risky pushes locally"],
       ["aigate check", "Summarize changed files and secret risk.", "Light pre-commit check"],
       ["aigate git-ready", "Run tests, secret scan, and project score gates.", "Required before commit or push"],
       ["aigate push -u origin <branch>", "Run the gate, then forward to git push.", "When publishing a branch"],
@@ -225,6 +237,8 @@ const locales = {
       "npm install -g aigate-cli",
       "aigate setup --language en",
       "git switch -c feature/my-change",
+      "aigate doctor",
+      "aigate install-hook --pre-push",
       "aigate git-ready",
       "git add <files>",
       "git commit -m \"feat: short summary\"",
@@ -238,6 +252,8 @@ const locales = {
     implemented: [
       "Public npm package aigate-cli and npx execution",
       "Git change and untracked-file readiness checks",
+      "First-run UX through doctor, demo, and install-hook",
+      "Pre-push Git hook installation",
       "Secret pattern detection and SARIF output",
       "git-ready, guarded push, and guarded PR creation",
       "Markdown, HTML, JSON, and SARIF reports",
@@ -308,6 +324,7 @@ const locales = {
     commandMapTitle: "コマンドマップ",
     commandGroups: [
       ["セットアップ", ["init", "setup", "settings", "integrate"]],
+      ["初回実行", ["doctor", "demo", "install-hook"]],
       ["保護ゲート", ["check", "git-ready", "push", "pr"]],
       ["レポート", ["pr-check", "report", "evaluate-project", "audit-report"]],
       ["リリース", ["release-check", "release-check --npm", "branch-strategy", "notify"]]
@@ -320,6 +337,9 @@ const locales = {
       ["aigate init", "基本設定とレポート用フォルダを作成します。", "新しいプロジェクトに導入するとき"],
       ["aigate setup --language <en|ko|ja|zh>", "CLI 出力言語を保存します。", "チームの出力言語をそろえるとき"],
       ["aigate settings", "現在の AIGate 設定を表示します。", "設定確認"],
+      ["aigate doctor", "初回実行環境、Git hook、プロジェクト基盤を診断します。", "初回実行またはリポジトリ確認"],
+      ["aigate demo", "ファイルを変更せず AIGate の利用フローを表示します。", "CLI の試用やチーム説明"],
+      ["aigate install-hook --pre-push", "git push 前に git-ready を実行する pre-push hook をインストールします。", "危険な push をローカルで防ぐとき"],
       ["aigate check", "変更ファイルと secret リスクを要約します。", "軽いコミット前確認"],
       ["aigate git-ready", "テスト、secret scan、プロジェクトスコアを含むゲートを実行します。", "コミットまたは push 前"],
       ["aigate push -u origin <branch>", "ゲート通過後に git push を実行します。", "ブランチをリモートへ送るとき"],
@@ -346,6 +366,8 @@ const locales = {
       "npm install -g aigate-cli",
       "aigate setup --language ja",
       "git switch -c feature/my-change",
+      "aigate doctor",
+      "aigate install-hook --pre-push",
       "aigate git-ready",
       "git add <files>",
       "git commit -m \"feat: short summary\"",
@@ -359,6 +381,8 @@ const locales = {
     implemented: [
       "npm パッケージ aigate-cli の公開と npx 実行",
       "Git 変更と untracked ファイルの readiness check",
+      "doctor、demo、install-hook による初回実行 UX",
+      "pre-push Git hook のインストール",
       "secret パターン検出と SARIF 出力",
       "git-ready、保護付き push、保護付き PR 作成",
       "Markdown、HTML、JSON、SARIF レポート",
@@ -429,6 +453,7 @@ const locales = {
     commandMapTitle: "命令地图",
     commandGroups: [
       ["设置", ["init", "setup", "settings", "integrate"]],
+      ["首次运行", ["doctor", "demo", "install-hook"]],
       ["保护门禁", ["check", "git-ready", "push", "pr"]],
       ["报告", ["pr-check", "report", "evaluate-project", "audit-report"]],
       ["发布", ["release-check", "release-check --npm", "branch-strategy", "notify"]]
@@ -441,6 +466,9 @@ const locales = {
       ["aigate init", "创建基础配置和报告目录。", "在新项目中启用 AIGate"],
       ["aigate setup --language <en|ko|ja|zh>", "保存 CLI 输出语言。", "统一团队输出语言"],
       ["aigate settings", "显示当前 AIGate 设置。", "配置核对"],
+      ["aigate doctor", "诊断首次运行环境、Git hook 和项目基础状态。", "首次运行或检查仓库状态"],
+      ["aigate demo", "不改动文件，展示 AIGate 使用流程。", "试用 CLI 或向团队说明"],
+      ["aigate install-hook --pre-push", "安装 pre-push hook，在 git push 前运行 git-ready。", "在本地阻止有风险的 push"],
       ["aigate check", "汇总变更文件和 secret 风险。", "轻量提交前检查"],
       ["aigate git-ready", "运行测试、secret scan 和项目分数门禁。", "提交或 push 前"],
       ["aigate push -u origin <branch>", "门禁通过后转发到 git push。", "推送分支时"],
@@ -467,6 +495,8 @@ const locales = {
       "npm install -g aigate-cli",
       "aigate setup --language zh",
       "git switch -c feature/my-change",
+      "aigate doctor",
+      "aigate install-hook --pre-push",
       "aigate git-ready",
       "git add <files>",
       "git commit -m \"feat: short summary\"",
@@ -480,6 +510,8 @@ const locales = {
     implemented: [
       "公开 npm 包 aigate-cli 和 npx 运行",
       "基于 Git 变更和 untracked 文件的 readiness check",
+      "通过 doctor、demo、install-hook 提供首次运行体验",
+      "pre-push Git hook 安装",
       "secret 模式检测和 SARIF 输出",
       "git-ready、受保护 push、受保护 PR 创建",
       "Markdown、HTML、JSON、SARIF 报告",

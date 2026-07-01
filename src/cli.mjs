@@ -3,6 +3,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { commandDemo, commandDoctor, commandInstallHook } from "./commands/first-run.mjs";
 
 const CLI_DIR = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = dirname(CLI_DIR);
@@ -708,6 +709,9 @@ const HELP_CONTENT = {
       ["push", "Run AIGate checks, then run git push."],
       ["pr", "Run AIGate checks, then create a GitHub pull request."],
       ["pr-check", "Generate a pull request readiness report."],
+      ["doctor", "Diagnose first-run environment and repository setup."],
+      ["demo", "Show a guided first-run demo without changing files."],
+      ["install-hook", "Install AIGate Git hooks."],
       ["setup", "Configure AIGate project settings."],
       ["settings", "Show current AIGate settings."],
       ["integrate <provider>", "Generate Codex/Gemini assistant integration files."],
@@ -737,6 +741,7 @@ const HELP_CONTENT = {
       ["--event <name>", "Notification event name."],
       ["--channel <name>", "Notification channel."],
       ["--notify-channel <name>", "Send BLOCK notification when a gate blocks."],
+      ["--pre-push", "Install or target the pre-push Git hook."],
       ["--language <en|ko|ja|zh>", "Select output language."],
       ["--output-dir <path>", "Select integration output directory."],
       ["--force", "Overwrite generated integration files."],
@@ -758,6 +763,9 @@ const HELP_CONTENT = {
       ["push", "AIGate 검사 후 git push를 실행합니다."],
       ["pr", "AIGate 검사 후 GitHub PR을 생성합니다."],
       ["pr-check", "PR 준비 상태 리포트를 생성합니다."],
+      ["doctor", "첫 실행 환경과 저장소 설정을 진단합니다."],
+      ["demo", "파일 변경 없이 첫 실행 데모를 보여줍니다."],
+      ["install-hook", "AIGate Git hook을 설치합니다."],
       ["setup", "AIGate 프로젝트 설정을 구성합니다."],
       ["settings", "현재 AIGate 설정을 표시합니다."],
       ["integrate <provider>", "Codex/Gemini 어시스턴트 연동 파일을 생성합니다."],
@@ -787,6 +795,7 @@ const HELP_CONTENT = {
       ["--event <name>", "알림 이벤트 이름입니다."],
       ["--channel <name>", "알림 채널입니다."],
       ["--notify-channel <name>", "게이트가 차단될 때 BLOCK 알림을 보냅니다."],
+      ["--pre-push", "pre-push Git hook을 설치하거나 대상으로 지정합니다."],
       ["--language <en|ko|ja|zh>", "출력 언어를 선택합니다."],
       ["--output-dir <path>", "연동 파일 출력 디렉터리를 선택합니다."],
       ["--force", "생성된 연동 파일을 덮어씁니다."],
@@ -808,6 +817,9 @@ const HELP_CONTENT = {
       ["push", "AIGate チェック後に git push を実行します。"],
       ["pr", "AIGate チェック後に GitHub PR を作成します。"],
       ["pr-check", "PR 準備レポートを生成します。"],
+      ["doctor", "初回実行環境とリポジトリ設定を診断します。"],
+      ["demo", "ファイルを変更せず初回実行デモを表示します。"],
+      ["install-hook", "AIGate Git hook をインストールします。"],
       ["setup", "AIGate プロジェクト設定を構成します。"],
       ["settings", "現在の AIGate 設定を表示します。"],
       ["integrate <provider>", "Codex/Gemini アシスタント連携ファイルを生成します。"],
@@ -837,6 +849,7 @@ const HELP_CONTENT = {
       ["--event <name>", "通知イベント名です。"],
       ["--channel <name>", "通知チャンネルです。"],
       ["--notify-channel <name>", "ゲートがブロックしたときに BLOCK 通知を送ります。"],
+      ["--pre-push", "pre-push Git hook をインストールまたは対象にします。"],
       ["--language <en|ko|ja|zh>", "出力言語を選択します。"],
       ["--output-dir <path>", "連携ファイルの出力ディレクトリを選択します。"],
       ["--force", "生成済み連携ファイルを上書きします。"],
@@ -858,6 +871,9 @@ const HELP_CONTENT = {
       ["push", "运行 AIGate 检查后执行 git push。"],
       ["pr", "运行 AIGate 检查后创建 GitHub PR。"],
       ["pr-check", "生成 PR 就绪报告。"],
+      ["doctor", "诊断首次运行环境和仓库设置。"],
+      ["demo", "不改动文件，显示首次运行演示。"],
+      ["install-hook", "安装 AIGate Git hook。"],
       ["setup", "配置 AIGate 项目设置。"],
       ["settings", "显示当前 AIGate 设置。"],
       ["integrate <provider>", "生成 Codex/Gemini 助手集成文件。"],
@@ -887,6 +903,7 @@ const HELP_CONTENT = {
       ["--event <name>", "通知事件名称。"],
       ["--channel <name>", "通知频道。"],
       ["--notify-channel <name>", "关卡阻塞时发送 BLOCK 通知。"],
+      ["--pre-push", "安装或指定 pre-push Git hook。"],
       ["--language <en|ko|ja|zh>", "选择输出语言。"],
       ["--output-dir <path>", "选择集成输出目录。"],
       ["--force", "覆盖已生成的集成文件。"],
@@ -1174,6 +1191,9 @@ const commands = {
   push: commandPush,
   pr: commandPr,
   "pr-check": commandPrCheck,
+  doctor: (args) => commandDoctor(args, commandContext()),
+  demo: (args) => commandDemo(args, commandContext()),
+  "install-hook": (args) => commandInstallHook(args, commandContext()),
   setup: commandSetup,
   settings: commandSettings,
   integrate: commandIntegrate,
@@ -1186,6 +1206,19 @@ const commands = {
   notify: commandNotify,
   help: commandHelp
 };
+
+function commandContext() {
+  return {
+    buildEvaluation,
+    buildGitReadyResult,
+    git,
+    parseOptions,
+    readJsonFile,
+    resolveLanguage,
+    t,
+    unsupportedLanguage
+  };
+}
 
 function main(argv) {
   const [commandName, ...args] = argv;

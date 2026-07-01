@@ -523,12 +523,15 @@ npx aigate-cli check</code></pre>
       <h3>설정</h3>
       <div><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
     </article><article class="command-group group-1">
+      <h3>첫 실행</h3>
+      <div><span>doctor</span><span>demo</span><span>install-hook</span></div>
+    </article><article class="command-group group-2">
       <h3>보호 게이트</h3>
       <div><span>check</span><span>git-ready</span><span>push</span><span>pr</span></div>
-    </article><article class="command-group group-2">
+    </article><article class="command-group group-3">
       <h3>보고서</h3>
       <div><span>pr-check</span><span>report</span><span>evaluate-project</span><span>audit-report</span></div>
-    </article><article class="command-group group-3">
+    </article><article class="command-group group-4">
       <h3>릴리스</h3>
       <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>notify</span></div>
     </article></div>
@@ -562,6 +565,18 @@ npx aigate-cli check</code></pre>
     <td><code>aigate settings</code></td>
     <td>현재 AIGate 설정을 확인합니다.</td>
     <td>설정 검증</td>
+  </tr><tr>
+    <td><code>aigate doctor</code></td>
+    <td>첫 실행 환경, Git hook, 프로젝트 기반 상태를 진단합니다.</td>
+    <td>처음 실행하거나 저장소 상태를 점검할 때</td>
+  </tr><tr>
+    <td><code>aigate demo</code></td>
+    <td>파일을 바꾸지 않고 AIGate 사용 흐름을 보여줍니다.</td>
+    <td>처음 체험하거나 팀에 사용법을 설명할 때</td>
+  </tr><tr>
+    <td><code>aigate install-hook --pre-push</code></td>
+    <td>git push 전에 git-ready가 실행되도록 pre-push hook을 설치합니다.</td>
+    <td>push 실수를 로컬에서 막고 싶을 때</td>
   </tr><tr>
     <td><code>aigate check</code></td>
     <td>변경 파일과 secret 위험을 요약합니다.</td>
@@ -648,6 +663,8 @@ npx aigate-cli check</code></pre>
       <pre><code>npm install -g aigate-cli
 aigate setup --language ko
 git switch -c feature/my-change
+aigate doctor
+aigate install-hook --pre-push
 aigate git-ready
 git add &lt;files&gt;
 git commit -m &quot;feat: short summary&quot;
@@ -662,7 +679,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">기능</p>
         <h2>현재 구현된 기능</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm 패키지 aigate-cli 공개 배포와 npx 실행</div><div class="feature done">Git 변경사항과 untracked 파일 기반 readiness check</div><div class="feature done">secret 패턴 탐지와 SARIF 출력</div><div class="feature done">git-ready, guarded push, guarded PR 생성 흐름</div><div class="feature done">Markdown, HTML, JSON, SARIF 리포트</div><div class="feature done">프로젝트 점수와 deep Git signal 평가</div><div class="feature done">브랜치 전략 추천과 정책 초안 생성</div><div class="feature done">Codex/Gemini 통합 파일 생성</div><div class="feature done">한국어/영어/일본어/중국어 CLI 설정</div><div class="feature done">release-check와 release-check --npm</div><div class="feature done">npm Trusted Publishing 기반 자동 배포</div><div class="feature done">GitHub CI, OpenSSF Scorecard, GitHub Release 운영</div><div class="feature done">터미널, Slack BLOCK, Discord, Teams webhook 알림</div></div>
+      <div class="feature-grid"><div class="feature done">npm 패키지 aigate-cli 공개 배포와 npx 실행</div><div class="feature done">Git 변경사항과 untracked 파일 기반 readiness check</div><div class="feature done">doctor, demo, install-hook 기반 첫 실행 UX</div><div class="feature done">pre-push Git hook 설치</div><div class="feature done">secret 패턴 탐지와 SARIF 출력</div><div class="feature done">git-ready, guarded push, guarded PR 생성 흐름</div><div class="feature done">Markdown, HTML, JSON, SARIF 리포트</div><div class="feature done">프로젝트 점수와 deep Git signal 평가</div><div class="feature done">브랜치 전략 추천과 정책 초안 생성</div><div class="feature done">Codex/Gemini 통합 파일 생성</div><div class="feature done">한국어/영어/일본어/중국어 CLI 설정</div><div class="feature done">release-check와 release-check --npm</div><div class="feature done">npm Trusted Publishing 기반 자동 배포</div><div class="feature done">GitHub CI, OpenSSF Scorecard, GitHub Release 운영</div><div class="feature done">터미널, Slack BLOCK, Discord, Teams webhook 알림</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">

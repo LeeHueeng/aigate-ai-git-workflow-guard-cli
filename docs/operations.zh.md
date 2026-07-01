@@ -36,6 +36,7 @@ flowchart LR
 | 范围 | 命令 |
 | --- | --- |
 | Setup | `init`, `setup`, `settings`, `integrate` |
+| First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `git-ready`, `push`, `pr` |
 | Reports | `pr-check`, `report`, `evaluate-project`, `audit-report` |
 | Release | `release-check`, `release-check --npm`, `branch-strategy`, `notify` |
@@ -46,6 +47,8 @@ flowchart LR
 npm install -g aigate-cli
 aigate setup --language zh
 git switch -c feature/my-change
+aigate doctor
+aigate install-hook --pre-push
 aigate git-ready
 git add <files>
 git commit -m "feat: short summary"
@@ -58,6 +61,9 @@ aigate release-check --npm
 ## 当前已实现
 
 - npm package `aigate-cli` 公开发布并支持 `npx` 执行
+- 通过 `aigate doctor` 提供首次运行诊断
+- 通过 `aigate demo` 提供引导式 CLI demo
+- 通过 `aigate install-hook --pre-push` 安装 pre-push hook
 - Git changed-file 和 untracked-file readiness checks
 - secret pattern detection 和 SARIF output
 - `git-ready`、guarded push、guarded PR creation

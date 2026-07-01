@@ -8,6 +8,8 @@
 
 ```sh
 npx -y aigate-cli check
+npx -y aigate-cli doctor
+npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
 ```
@@ -18,6 +20,7 @@ npx -y aigate-cli evaluate-project
 npm install --save-dev aigate-cli
 npx aigate-cli init
 npx aigate-cli setup --language ko
+npx aigate-cli install-hook --pre-push
 ```
 
 package script 추가:
@@ -35,6 +38,7 @@ package script 추가:
 
 ```sh
 npm test
+npx aigate-cli doctor
 npm run aigate:ready
 git add <files>
 git commit -m "feat: focused change"

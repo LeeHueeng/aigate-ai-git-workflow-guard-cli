@@ -7,6 +7,9 @@
 - [x] Create starter project configuration with `aigate init`.
 - [x] Generate Markdown, HTML, JSON, and SARIF reports.
 - [x] Generate pull request readiness reports with `aigate pr-check`.
+- [x] Diagnose first-run setup with `aigate doctor`.
+- [x] Show a guided CLI demo with `aigate demo`.
+- [x] Install a guarded pre-push hook with `aigate install-hook --pre-push`.
 - [x] Send Slack webhook notifications for blocking events.
 - [x] Provide weighted project evaluation with optional deep Git signals.
 - [x] Recommend a basic branch strategy from repository and team signals.

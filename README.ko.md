@@ -10,12 +10,16 @@ zero-config pre-push safety CLI입니다.
 
 ![AIGate terminal demo](assets/aigate-terminal-demo.svg)
 
+![AIGate demo](assets/demo.gif)
+
 ## 60초 빠른 시작
 
 설치 없이 바로 실행할 수 있습니다.
 
 ```sh
 npx -y aigate-cli check
+npx -y aigate-cli doctor
+npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
 ```
@@ -26,6 +30,7 @@ npx -y aigate-cli evaluate-project
 npm install -g aigate-cli
 aigate check
 aigate git-ready
+aigate install-hook --pre-push
 aigate pr-check
 ```
 
@@ -34,7 +39,10 @@ aigate pr-check
 | 기능 | 명령어 |
 | --- | --- |
 | 로컬 Git 준비 상태 확인 | `aigate check` |
+| 첫 실행 환경 진단 | `aigate doctor` |
+| 안내형 CLI 데모 | `aigate demo` |
 | pre-push 안전 게이트 | `aigate git-ready` |
+| pre-push hook 설치 | `aigate install-hook --pre-push` |
 | 검증 후 push 실행 | `aigate push -u origin <branch>` |
 | PR 준비 상태 리포트 | `aigate pr-check` |
 | Markdown, HTML, JSON, SARIF 리포트 | `aigate report --format <format>` |
@@ -47,6 +55,8 @@ aigate pr-check
 
 ```sh
 git switch -c feature/my-work
+aigate doctor
+aigate install-hook --pre-push
 aigate git-ready
 git add <files>
 git commit -m "feat: focused change"
