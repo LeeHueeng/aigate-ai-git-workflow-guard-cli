@@ -8,6 +8,8 @@ export function buildDoctorReport(context) {
   const gitRoot = context.git(["rev-parse", "--show-toplevel"]);
   const gitReady = context.buildGitReadyResult();
   const evaluation = context.buildEvaluation();
+  const ciCheck = evaluation.checks.find((check) => check.name === "CI workflow exists");
+  const profile = evaluation.profile ?? {};
   const checks = [
     doctorCheck({
       id: "node",
@@ -35,11 +37,11 @@ export function buildDoctorReport(context) {
     }),
     doctorCheck({
       id: "test-script",
-      label: "npm test script",
-      pass: Boolean(packageJson.scripts?.test),
+      label: "test script",
+      pass: hasTestScript(packageJson),
       severity: "warn",
-      value: packageJson.scripts?.test ?? "missing",
-      next: "Add a package.json test script."
+      value: detectedTestScript(packageJson) ?? "missing",
+      next: "Add a real package.json test script."
     }),
     doctorCheck({
       id: "aigate-config",
@@ -52,10 +54,10 @@ export function buildDoctorReport(context) {
     doctorCheck({
       id: "ci-workflow",
       label: "CI workflow",
-      pass: existsSync(join(".github", "workflows", "ci.yml")),
+      pass: Boolean(ciCheck?.pass),
       severity: "warn",
-      value: existsSync(join(".github", "workflows", "ci.yml")) ? "found" : "missing",
-      next: "Add a CI workflow or run checks before every push."
+      value: ciWorkflowValue(profile),
+      next: "Add a CI workflow for the configured hosting provider or run checks before every push."
     }),
     doctorCheck({
       id: "pre-push-hook",
@@ -95,6 +97,34 @@ export function buildDoctorReport(context) {
     checks,
     nextSteps: checks.filter((check) => !check.pass).map((check) => check.next)
   };
+}
+
+function hasTestScript(packageJson) {
+  return Boolean(detectedTestScript(packageJson));
+}
+
+function detectedTestScript(packageJson) {
+  const scripts = packageJson.scripts ?? {};
+  if (scripts.test) {
+    return "test";
+  }
+
+  return Object.keys(scripts).find((name) => (
+    name.endsWith(":test") || name.includes("test")
+  ));
+}
+
+function ciWorkflowValue(profile) {
+  const provider = profile.ciProvider ?? profile.hosting ?? "unknown";
+  if (provider === "gitlab") {
+    return existsSync(".gitlab-ci.yml") ? "gitlab found" : "gitlab missing";
+  }
+
+  if (provider === "github") {
+    return existsSync(join(".github", "workflows", "ci.yml")) ? "github found" : "github missing";
+  }
+
+  return existsSync(".gitlab-ci.yml") || existsSync(join(".github", "workflows", "ci.yml")) ? "found" : "missing";
 }
 
 export function buildDemoScenario() {

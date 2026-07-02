@@ -119,9 +119,10 @@ aigate aitest --apply --provider claude
 aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
 ```
 
-`aigate test` runs `aigate git-ready` plus the detected npm script. Detection
-prefers `ci`, then `test:ci`, then `test`; use `--script` or `--command` when a
-project has a custom check command.
+`aigate test` runs `aigate git-ready` plus the detected package-manager script.
+Detection prefers `ci`, then test-like scripts, then `test`, and uses the
+detected package manager (`npm`, `pnpm`, `yarn`, or `bun`). Use `--script` or
+`--command` when a project has a custom check command.
 
 `aigate aitest` writes `.aigate/reports/ai-test.md` with the failure summary,
 test output, and a focused repair prompt for Codex, Claude, or Gemini. It does

@@ -69,8 +69,8 @@ chore: initialize public repository metadata
 
 초기 required status checks:
 
-- `test (20)`
-- `test (22)`
+- GitHub 저장소는 `GitHub CI workflow`, GitLab 저장소는 `GitLab CI pipeline`
+- `aigate git-ready`
 - local: `npm run lint`
 - local: `npm run typecheck`
 

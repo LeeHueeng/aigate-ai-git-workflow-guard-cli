@@ -88,7 +88,8 @@ aigate pr --title "feat: short summary"
 
 Do not merge until:
 
-- the `test (20)` and `test (22)` CI jobs pass
+- the configured CI check passes, such as `GitHub CI workflow` or `GitLab CI pipeline`
+- `aigate git-ready` has passed locally or in CI
 - the repository's current review policy is followed
 - review conversations are resolved when review is used
 - the branch has no unrelated changes

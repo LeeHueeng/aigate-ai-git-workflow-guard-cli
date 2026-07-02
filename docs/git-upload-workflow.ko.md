@@ -84,7 +84,8 @@ aigate pr --title "feat: short summary"
 
 다음을 만족하기 전에는 merge하지 않습니다.
 
-- `test (20)`, `test (22)` CI job 통과
+- `GitHub CI workflow` 또는 `GitLab CI pipeline` 같은 설정된 CI 검사 통과
+- `aigate git-ready`가 로컬 또는 CI에서 통과
 - 저장소의 현재 review 정책 준수
 - review를 사용했다면 review conversation 해결
 - branch에 unrelated changes 없음

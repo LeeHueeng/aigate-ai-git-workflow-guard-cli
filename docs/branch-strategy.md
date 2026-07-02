@@ -84,8 +84,8 @@ When the public repository is created, enable these branch protection rules on
 
 Initial required status checks:
 
-- `test (20)`
-- `test (22)`
+- `GitHub CI workflow` for GitHub repositories, or `GitLab CI pipeline` for GitLab repositories
+- `aigate git-ready`
 - local: `npm run lint`
 - local: `npm run typecheck`
 

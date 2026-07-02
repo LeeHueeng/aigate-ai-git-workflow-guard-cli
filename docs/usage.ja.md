@@ -117,9 +117,10 @@ aigate aitest --apply --provider claude
 aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
 ```
 
-`aigate test` は `aigate git-ready` と検出した npm script を実行します。
-検出順は `ci`, `test:ci`, `test` です。独自の検証コマンドを使う場合は
-`--script` または `--command` で指定します。
+`aigate test` は `aigate git-ready` と検出した package-manager script を
+実行します。検出順は `ci`、test 系 script、`test` で、検出した package
+manager (`npm`, `pnpm`, `yarn`, `bun`) を使います。独自の検証コマンドを使う
+場合は `--script` または `--command` で指定します。
 
 `aigate aitest` は失敗サマリー、テスト出力、AI 修正指示を
 `.aigate/reports/ai-test.md` に書き込みます。既定ではコードを変更しません。

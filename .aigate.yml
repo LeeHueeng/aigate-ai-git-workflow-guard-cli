@@ -4,6 +4,10 @@ project:
   name: AIGate
   package: "@aigate/cli"
   defaultBranch: main
+  type: package
+  hosting: github
+  ciProvider: github
+  packageManager: npm
   model: open-source-core
 
 commercialization:
@@ -96,8 +100,8 @@ branchStrategy:
     - release/*
     - hotfix/*
   requiredChecks:
-    - test (20)
-    - test (22)
+    - GitHub CI workflow
+    - aigate git-ready
 
 qualityGates:
   beforePush:

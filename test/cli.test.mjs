@@ -608,6 +608,41 @@ test("generates Codex, Gemini, and Claude integration files", () => {
   assert.deepEqual(manifest.providers, ["codex", "gemini", "claude"]);
 });
 
+test("generates profile-aware GitLab AI integration files", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  const result = run([
+    "integrate",
+    "all",
+    "--hosting",
+    "gitlab",
+    "--ci-provider",
+    "gitlab",
+    "--project-type",
+    "app",
+    "--package-manager",
+    "pnpm",
+    "--force",
+    "--format",
+    "json"
+  ], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const manifest = JSON.parse(readFileSync(join(projectDir, ".aigate", "integrations.json"), "utf8"));
+  assert.equal(manifest.profile.type, "app");
+  assert.equal(manifest.profile.hosting, "gitlab");
+  assert.equal(manifest.profile.ciProvider, "gitlab");
+  assert.equal(manifest.profile.packageManager, "pnpm");
+  assert.ok(manifest.validationCommands.includes("pnpm run ci"));
+  assert.ok(manifest.requiredChecks.includes("GitLab CI pipeline"));
+  assert.equal(manifest.validationCommands.includes("npm run ci"), false);
+  assert.doesNotMatch(JSON.stringify(manifest), /test \(20\)/);
+
+  const agents = readFileSync(join(projectDir, "AGENTS.md"), "utf8");
+  assert.match(agents, /pnpm run ci/);
+  assert.match(agents, /GitLab CI pipeline/);
+  assert.doesNotMatch(agents, /test \(20\)|`npm run ci`/);
+});
+
 test("generates Claude Code integration instructions", () => {
   const outputDir = createOutputDir();
   const result = run(["integrate", "claude", "--language", "ko", "--output-dir", outputDir]);
@@ -671,6 +706,22 @@ test("diagnoses first-run repository setup", () => {
   assert.ok(output.checks.some((check) => check.id === "node" && check.pass));
   assert.ok(output.checks.some((check) => check.id === "pre-push-hook" && !check.pass));
   assert.ok(output.nextSteps.includes("Run aigate install-hook --pre-push."));
+});
+
+test("doctor follows GitLab app profile CI and test detection", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  const result = run(["doctor", "--format", "json"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  const testScript = output.checks.find((check) => check.id === "test-script");
+  const ciWorkflow = output.checks.find((check) => check.id === "ci-workflow");
+
+  assert.equal(testScript.pass, true);
+  assert.equal(testScript.value, "frontend-test");
+  assert.equal(ciWorkflow.pass, true);
+  assert.equal(ciWorkflow.value, "gitlab found");
+  assert.doesNotMatch(JSON.stringify(output), /github missing/);
 });
 
 test("renders a localized first-run demo", () => {
@@ -823,7 +874,22 @@ test("creates GitLab starter files when hosting is GitLab", () => {
   assert.ok(existsSync(join(outputDir, ".gitlab", "merge_request_templates", "default.md")));
   assert.equal(readFileSync(join(outputDir, ".gitlab", "CODEOWNERS"), "utf8"), "* @example/team\n");
   assert.equal(existsSync(join(outputDir, ".github", "CODEOWNERS")), false);
-  assert.match(readFileSync(join(outputDir, ".aigate.yml"), "utf8"), /hosting: gitlab/);
+  const config = readFileSync(join(outputDir, ".aigate.yml"), "utf8");
+  assert.match(config, /hosting: gitlab/);
+  assert.match(config, /type: app/);
+  assert.match(config, /packageManager: pnpm/);
+  assert.match(config, /pnpm run ci/);
+  assert.doesNotMatch(config, /primaryRegistry: npm/);
+  assert.doesNotMatch(config, /releaseChannels:/);
+
+  const readme = readFileSync(join(outputDir, "README.md"), "utf8");
+  assert.match(readme, /pnpm install/);
+  assert.match(readme, /pnpm run ci/);
+  assert.doesNotMatch(readme, /npm test/);
+
+  const mergeRequestTemplate = readFileSync(join(outputDir, ".gitlab", "merge_request_templates", "default.md"), "utf8");
+  assert.match(mergeRequestTemplate, /pnpm run ci/);
+  assert.doesNotMatch(mergeRequestTemplate, /`npm run ci`/);
 });
 
 test("blocks unknown default start steps", () => {
@@ -1376,6 +1442,17 @@ test("honors GitLab profile config over GitHub helper files", () => {
   assert.equal(output.checks.find((check) => check.name === "Issue templates exist")?.pass, false);
 });
 
+test("recommends GitLab flow for private GitLab apps", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  const result = run(["branch-strategy", "--language", "ko"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /merge request 기반 GitLab Flow/);
+  assert.match(result.stdout, /private 앱 워크플로/);
+  assert.doesNotMatch(result.stdout, /AIGate에는 빠른 공개 기여 흐름/);
+  assert.doesNotMatch(result.stdout, /릴리스 채널을 포함한 GitHub Flow/);
+});
+
 test("checks release readiness", () => {
   const result = run(["release-check", "--format", "json"]);
 
@@ -1581,6 +1658,53 @@ test("generates branch strategy policy drafts", () => {
 
   const aiCollaboration = JSON.parse(readFileSync(join(outputDir, ".aigate", "policy-packs", "ai-collaboration.json"), "utf8"));
   assert.ok(aiCollaboration.assistantBranches.includes("codex/*"));
+});
+
+test("generates GitLab app branch policy drafts without npm release channel assumptions", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  const result = run([
+    "branch-strategy",
+    "--apply",
+    "--hosting",
+    "gitlab",
+    "--ci-provider",
+    "gitlab",
+    "--project-type",
+    "app",
+    "--package-manager",
+    "pnpm",
+    "--force",
+    "--format",
+    "json"
+  ], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.strategy.name, "GitLab Flow with merge requests");
+  assert.ok(output.strategy.generatedOutputs.includes(".gitlab/merge_request_templates/aigate.md"));
+  assert.equal(output.strategy.generatedOutputs.includes(".aigate/policy-packs/release-channels.json"), false);
+  assert.equal(existsSync(join(projectDir, ".aigate", "policy-packs", "release-channels.json")), false);
+  assert.ok(existsSync(join(projectDir, ".gitlab", "merge_request_templates", "aigate.md")));
+  assert.equal(existsSync(join(projectDir, ".github", "pull_request_template.aigate.md")), false);
+
+  const policy = JSON.parse(readFileSync(join(projectDir, ".aigate", "branch-strategy-policy.json"), "utf8"));
+  assert.deepEqual(policy.policyPacks, [
+    ".aigate/policy-packs/branch-protection.json",
+    ".aigate/policy-packs/pr-quality.json",
+    ".aigate/policy-packs/ai-collaboration.json"
+  ]);
+
+  const branchProtection = JSON.parse(readFileSync(join(projectDir, ".aigate", "policy-packs", "branch-protection.json"), "utf8"));
+  assert.deepEqual(branchProtection.requiredChecks, ["GitLab CI pipeline", "aigate git-ready"]);
+
+  const prQuality = JSON.parse(readFileSync(join(projectDir, ".aigate", "policy-packs", "pr-quality.json"), "utf8"));
+  assert.ok(prQuality.validationCommands.includes("pnpm run ci"));
+  assert.equal(prQuality.validationCommands.includes("npm run ci"), false);
+  assert.doesNotMatch(JSON.stringify(prQuality), /test \(20\)/);
+
+  const mergeRequestTemplate = readFileSync(join(projectDir, ".gitlab", "merge_request_templates", "aigate.md"), "utf8");
+  assert.match(mergeRequestTemplate, /pnpm run ci/);
+  assert.doesNotMatch(mergeRequestTemplate, /`npm run ci`/);
 });
 
 test("rejects unknown commands", () => {

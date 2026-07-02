@@ -84,7 +84,8 @@ aigate pr --title "feat: short summary"
 
 满足以下条件前不要 merge:
 
-- `test (20)` 和 `test (22)` CI job 通过
+- `GitHub CI workflow` 或 `GitLab CI pipeline` 等已配置 CI check 通过
+- `aigate git-ready` 已在本地或 CI 中通过
 - 遵循仓库当前 review policy
 - 如果使用了 review，则 review conversation 已解决
 - branch 没有 unrelated changes

@@ -116,8 +116,9 @@ aigate aitest --apply --provider claude
 aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
 ```
 
-`aigate test` 会运行 `aigate git-ready` 和检测到的 npm script。检测顺序是
-`ci`, `test:ci`, `test`。如果项目使用自定义检查命令，请用 `--script`
+`aigate test` 会运行 `aigate git-ready` 和检测到的 package-manager script。
+检测顺序是 `ci`、test 类 script、`test`，并使用检测到的 package manager
+(`npm`, `pnpm`, `yarn`, `bun`)。如果项目使用自定义检查命令，请用 `--script`
 或 `--command` 指定。
 
 `aigate aitest` 会把失败摘要、测试输出和 AI 修复提示写入

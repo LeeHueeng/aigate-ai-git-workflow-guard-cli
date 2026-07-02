@@ -90,7 +90,9 @@ Codex は `codex exec`、Claude は `claude --print`、Gemini は `gemini -p`
   `docs/git-upload-workflow.md` を先に読む
 - `main` へ直接 push しない
 - 目的が明確な branch と Conventional Commits を使う
-- `npm run ci` と `aigate git-ready` を実行する
+- project profile から検出した検証コマンドを実行する。例: pnpm app は
+  `pnpm run ci`、npm package は `npm run ci`
+- push または merge 前に `aigate git-ready` を実行する
 - `aigate push -u origin <branch>` を使う
-- `main` に pull request を開く
-- merge 前に `test (20)` と `test (22)` の成功を待つ
+- `main` に pull request または GitLab merge request を開く
+- merge 前に `GitHub CI workflow` や `GitLab CI pipeline` など設定済みの必須チェックを待つ

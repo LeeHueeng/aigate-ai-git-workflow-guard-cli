@@ -88,7 +88,10 @@ Generated instructions tell assistants to:
   `docs/git-upload-workflow.md`
 - avoid direct pushes to `main`
 - use focused branches and Conventional Commits
-- run `npm run ci` and `aigate git-ready`
+- run the validation commands detected for the project profile, such as
+  `pnpm run ci` for a pnpm app or `npm run ci` for an npm package
+- run `aigate git-ready` before push or merge
 - use `aigate push -u origin <branch>`
-- open pull requests into `main`
-- wait for `test (20)` and `test (22)` before merge
+- open pull requests or GitLab merge requests into `main`
+- wait for the configured required checks, such as `GitHub CI workflow` or
+  `GitLab CI pipeline`, before merge

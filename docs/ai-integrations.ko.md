@@ -88,7 +88,9 @@ Claude는 `claude --print`, Gemini는 `gemini -p` 경로를 사용합니다.
   `docs/git-upload-workflow.md`를 먼저 읽기
 - `main`에 직접 push하지 않기
 - 범위가 명확한 브랜치와 Conventional Commits 사용
-- `npm run ci`와 `aigate git-ready` 실행
+- 프로젝트 프로필에서 감지된 검증 명령 실행. 예: pnpm 앱은 `pnpm run ci`,
+  npm 패키지는 `npm run ci`
+- push 또는 merge 전 `aigate git-ready` 실행
 - `aigate push -u origin <branch>` 사용
-- `main` 대상으로 pull request 열기
-- merge 전에 `test (20)`, `test (22)` 통과 대기
+- `main` 대상으로 pull request 또는 GitLab merge request 열기
+- merge 전에 `GitHub CI workflow` 또는 `GitLab CI pipeline` 같은 설정된 필수 검사 통과 대기

@@ -91,7 +91,7 @@ const I18N = {
     "maintenance.targets": "Targets:",
     "maintenance.uninstallTitle": "AIGate uninstall",
     "integrate.complete": "AIGate AI integration files",
-    "integrate.next": "Next: review the generated instruction files and run npm run ci.",
+    "integrate.next": "Next: review the generated instruction files and run the listed validation commands.",
     "integrate.providers": "Providers: {providers}",
     "language.label": "Language: {language}",
     "notify.missingWebhook": "Missing webhook environment variable: {env}",
@@ -187,7 +187,7 @@ const I18N = {
     "maintenance.targets": "대상:",
     "maintenance.uninstallTitle": "AIGate uninstall",
     "integrate.complete": "AIGate AI 연동 파일 생성",
-    "integrate.next": "다음 단계: 생성된 지침 파일을 검토하고 npm run ci를 실행하세요.",
+    "integrate.next": "다음 단계: 생성된 지침 파일을 검토하고 적힌 검증 명령을 실행하세요.",
     "integrate.providers": "대상: {providers}",
     "language.label": "언어: {language}",
     "notify.missingWebhook": "웹훅 환경 변수가 없습니다: {env}",
@@ -283,7 +283,7 @@ const I18N = {
     "maintenance.targets": "対象:",
     "maintenance.uninstallTitle": "AIGate uninstall",
     "integrate.complete": "AIGate AI 連携ファイル",
-    "integrate.next": "次の手順: 生成された指示ファイルを確認し、npm run ci を実行してください。",
+    "integrate.next": "次の手順: 生成された指示ファイルを確認し、記載された検証コマンドを実行してください。",
     "integrate.providers": "対象: {providers}",
     "language.label": "言語: {language}",
     "notify.missingWebhook": "Webhook 環境変数がありません: {env}",
@@ -379,7 +379,7 @@ const I18N = {
     "maintenance.targets": "目标:",
     "maintenance.uninstallTitle": "AIGate uninstall",
     "integrate.complete": "AIGate AI 集成文件",
-    "integrate.next": "下一步: 检查生成的说明文件并运行 npm run ci。",
+    "integrate.next": "下一步: 检查生成的说明文件并运行其中列出的验证命令。",
     "integrate.providers": "目标: {providers}",
     "language.label": "语言: {language}",
     "notify.missingWebhook": "缺少 webhook 环境变量: {env}",
@@ -572,20 +572,32 @@ const BRANCH_USE_TRANSLATIONS = {
 const BRANCH_REASON_TRANSLATIONS = {
   ko: {
     "AIGate needs fast public contribution flow": "AIGate에는 빠른 공개 기여 흐름이 필요합니다",
+    "repository needs a clear contribution flow": "저장소에는 명확한 기여 흐름이 필요합니다",
+    "private app workflow benefits from focused merge requests": "private 앱 워크플로에는 범위가 명확한 merge request가 효과적입니다",
+    "package releases may need channel control for stable and prerelease versions": "패키지 릴리스에는 stable 및 prerelease 버전 채널 제어가 필요할 수 있습니다",
     "npm channel control for latest, next, beta, and canary releases": "latest, next, beta, canary 릴리스를 위한 npm 채널 제어가 필요합니다",
     "CI-backed pull request protection is already present": "CI 기반 PR 보호가 이미 준비되어 있습니다",
+    "CI-backed merge protection is already present": "CI 기반 merge 보호가 이미 준비되어 있습니다",
     "release documentation and package metadata exist": "릴리스 문서와 패키지 메타데이터가 존재합니다"
   },
   ja: {
     "AIGate needs fast public contribution flow": "AIGate には高速な公開コントリビューションフローが必要です",
+    "repository needs a clear contribution flow": "リポジトリには明確な貢献フローが必要です",
+    "private app workflow benefits from focused merge requests": "private app ワークフローには焦点を絞った merge request が有効です",
+    "package releases may need channel control for stable and prerelease versions": "パッケージリリースには stable と prerelease のチャンネル制御が必要になる場合があります",
     "npm channel control for latest, next, beta, and canary releases": "latest、next、beta、canary リリース向けの npm チャンネル制御が必要です",
     "CI-backed pull request protection is already present": "CI による PR 保護がすでにあります",
+    "CI-backed merge protection is already present": "CI による merge 保護がすでにあります",
     "release documentation and package metadata exist": "リリース文書とパッケージメタデータがあります"
   },
   zh: {
     "AIGate needs fast public contribution flow": "AIGate 需要快速的公开贡献流程",
+    "repository needs a clear contribution flow": "仓库需要清晰的贡献流程",
+    "private app workflow benefits from focused merge requests": "private app 工作流适合使用范围聚焦的 merge request",
+    "package releases may need channel control for stable and prerelease versions": "包发布可能需要为 stable 和 prerelease 版本控制频道",
     "npm channel control for latest, next, beta, and canary releases": "需要为 latest、next、beta、canary 发布控制 npm 频道",
     "CI-backed pull request protection is already present": "已经具备基于 CI 的 PR 保护",
+    "CI-backed merge protection is already present": "已经具备基于 CI 的 merge 保护",
     "release documentation and package metadata exist": "已经存在发布文档和包元数据"
   }
 };
@@ -2503,7 +2515,9 @@ function commandIntegrate(args) {
   }
 
   const outputDir = options.outputDir ?? ".";
-  const manifest = buildIntegrationManifest(providers);
+  const packageJson = readJsonFile("package.json");
+  const profile = detectProjectProfile(packageJson, options);
+  const manifest = buildIntegrationManifest(providers, profile, packageJson);
   const files = buildIntegrationFiles(providers, outputDir, manifest, language);
   const results = writeIntegrationFiles(files, Boolean(options.force));
 
@@ -5366,18 +5380,26 @@ function buildBranchStrategy(options = {}) {
     branchNames,
     hasCi,
     teamSize,
-    releaseCadence
+    releaseCadence,
+    profile
   });
-  const reasonParts = [
-    "AIGate needs fast public contribution flow",
-    "npm channel control for latest, next, beta, and canary releases"
-  ];
+  const reasonParts = [];
 
-  if (hasCi) {
-    reasonParts.push("CI-backed pull request protection is already present");
+  if (profile.visibility === "private" && profile.kind === "app") {
+    reasonParts.push("private app workflow benefits from focused merge requests");
+  } else {
+    reasonParts.push("repository needs a clear contribution flow");
   }
 
-  if (hasReleaseDocs || packageJson.name) {
+  if (profile.kind === "package") {
+    reasonParts.push("package releases may need channel control for stable and prerelease versions");
+  }
+
+  if (hasCi) {
+    reasonParts.push("CI-backed merge protection is already present");
+  }
+
+  if (hasReleaseDocs || (profile.kind === "package" && packageJson.name)) {
     reasonParts.push("release documentation and package metadata exist");
   }
 
@@ -5404,7 +5426,7 @@ function buildBranchStrategy(options = {}) {
     },
     branches: branchRulesForStrategy(selectedStrategy),
     githubProtection: [
-      "Require pull request before merging into main.",
+      profile.hosting === "gitlab" ? "Require a merge request before merging into main." : "Require pull request before merging into main.",
       "Do not require mandatory approvals by default; enable reviews per repository policy.",
       "Require the CI test job before merging.",
       "Require conversation resolution.",
@@ -5416,7 +5438,7 @@ function buildBranchStrategy(options = {}) {
       ".aigate/policy-packs/README.md",
       ".aigate/policy-packs/branch-protection.json",
       ".aigate/policy-packs/pr-quality.json",
-      ".aigate/policy-packs/release-channels.json",
+      ...(profile.kind === "package" ? [".aigate/policy-packs/release-channels.json"] : []),
       ".aigate/policy-packs/ai-collaboration.json",
       "docs/release-process.md",
       "docs/hotfix-process.md",
@@ -5428,8 +5450,10 @@ function buildBranchStrategy(options = {}) {
 }
 
 function buildBranchStrategyComparison(options = {}, recommendedStrategy = buildBranchStrategy(options)) {
+  const packageJson = readJsonFile("package.json");
+  const profile = detectProjectProfile(packageJson, options);
   const candidates = [
-    "GitHub Flow with release channels",
+    profile.hosting === "gitlab" ? "GitLab Flow with merge requests" : "GitHub Flow with release channels",
     "Trunk-Based Development",
     "Hybrid Flow",
     "Git Flow"
@@ -5498,7 +5522,7 @@ function clampScore(score) {
   return Math.max(45, Math.min(95, score));
 }
 
-function selectBranchStrategy({ branchNames, hasCi, teamSize, releaseCadence }) {
+function selectBranchStrategy({ branchNames, hasCi, teamSize, releaseCadence, profile = {} }) {
   const hasDevelop = branchNames.some((branch) => branch === "develop" || branch.endsWith("/develop"));
   const hasReleaseBranches = branchNames.some((branch) => /(^|\/)release\//.test(branch));
 
@@ -5514,7 +5538,7 @@ function selectBranchStrategy({ branchNames, hasCi, teamSize, releaseCadence }) 
     return "Hybrid Flow";
   }
 
-  return "GitHub Flow with release channels";
+  return profile.hosting === "gitlab" ? "GitLab Flow with merge requests" : "GitHub Flow with release channels";
 }
 
 function branchRulesForStrategy(strategyName) {
@@ -5556,6 +5580,15 @@ function branchRulesForStrategy(strategyName) {
     ];
   }
 
+  if (strategyName === "GitLab Flow with merge requests") {
+    return [
+      { name: "main", use: "protected stable source of truth" },
+      ...commonBranches,
+      { name: "release/*", use: "optional release stabilization" },
+      { name: "hotfix/*", use: "urgent stable fixes" }
+    ];
+  }
+
   return [
     { name: "main", use: "protected stable source of truth" },
     ...commonBranches,
@@ -5567,6 +5600,7 @@ function branchRulesForStrategy(strategyName) {
 function strategyBestFor(strategyName) {
   return {
     "GitHub Flow with release channels": "small teams, public OSS projects, and on-demand releases",
+    "GitLab Flow with merge requests": "private apps, GitLab-hosted teams, and merge-request based delivery",
     "Trunk-Based Development": "teams with strong CI, small pull requests, and very frequent releases",
     "Hybrid Flow": "growing teams that need fast feature work plus planned stabilization",
     "Git Flow": "larger teams, scheduled releases, and strict production governance"
@@ -5579,6 +5613,11 @@ function strategyStrengths(strategyName) {
       "Simple branch model for public contributors.",
       "Release channels separate npm latest, next, beta, and canary.",
       "Works well for small teams and fast merges."
+    ],
+    "GitLab Flow with merge requests": [
+      "Fits GitLab merge requests, CODEOWNERS, and pipeline protection.",
+      "Avoids npm and GitHub Actions assumptions for private apps.",
+      "Keeps main protected while allowing focused feature branches."
     ],
     "Trunk-Based Development": [
       "Keeps main close to production at all times.",
@@ -5604,6 +5643,10 @@ function strategyRisks(strategyName) {
       "Can become noisy if large teams queue many changes at once.",
       "Needs disciplined release tagging because there is no develop branch."
     ],
+    "GitLab Flow with merge requests": [
+      "Needs a real GitLab CI pipeline or a clear local gate before merge.",
+      "Release and deployment ownership should be documented separately for apps."
+    ],
     "Trunk-Based Development": [
       "Requires strong automated tests and small pull requests.",
       "Can feel too strict for teams that need long stabilization windows."
@@ -5626,6 +5669,11 @@ function strategyMigrationSteps(strategyName) {
       "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.",
       "Publish npm releases from main tags and use dist-tags for channels."
     ],
+    "GitLab Flow with merge requests": [
+      "Protect main and require merge requests before merge.",
+      "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.",
+      "Run GitLab CI or AIGate local gates before merge."
+    ],
     "Trunk-Based Development": [
       "Keep pull requests small enough to merge quickly into main.",
       "Add short/* only for changes that will merge within a day.",
@@ -5647,6 +5695,7 @@ function strategyMigrationSteps(strategyName) {
 function strategyPolicyFit(strategyName) {
   return {
     "GitHub Flow with release channels": "Use main branch protection, required AIGate checks, and tag-driven npm release channels.",
+    "GitLab Flow with merge requests": "Use protected branches, merge request templates, GitLab CI pipelines, and AIGate local gates.",
     "Trunk-Based Development": "Use strict main protection, fast required checks, and short-lived branch age limits.",
     "Hybrid Flow": "Use main protection, optional develop protection, release/* stabilization rules, and AI collaboration policy packs.",
     "Git Flow": "Use protected main/develop/release/*/hotfix/* rules with explicit release and hotfix ownership."
@@ -7358,7 +7407,9 @@ function renderStrategySignals(signals, language = "en") {
 }
 
 function buildBranchStrategyFiles(strategy, outputDir, language = "en", profile = {}) {
-  const policyPacks = buildBranchPolicyPacks(strategy);
+  const policyPacks = buildBranchPolicyPacks(strategy, profile);
+  const packageJson = readJsonFile("package.json");
+  const validationCommands = buildValidationCommands(packageJson, profile);
   const sharedFiles = [
     {
       path: join(outputDir, ".aigate", "generated-branch-strategy.md"),
@@ -7377,7 +7428,7 @@ function buildBranchStrategyFiles(strategy, outputDir, language = "en", profile 
     },
     {
       path: join(outputDir, ".aigate", "policy-packs", "README.md"),
-      content: renderPolicyPackReadme(strategy, policyPacks, language)
+      content: renderPolicyPackReadme(strategy, policyPacks, language, profile, validationCommands)
     },
     ...policyPacks.map((pack) => ({
       path: join(outputDir, pack.path),
@@ -7385,11 +7436,11 @@ function buildBranchStrategyFiles(strategy, outputDir, language = "en", profile 
     })),
     {
       path: join(outputDir, "docs", "release-process.md"),
-      content: renderReleaseProcess(strategy, language)
+      content: renderReleaseProcess(strategy, language, profile, validationCommands)
     },
     {
       path: join(outputDir, "docs", "hotfix-process.md"),
-      content: renderHotfixProcess(strategy, language)
+      content: renderHotfixProcess(strategy, language, validationCommands)
     }
   ];
 
@@ -7398,7 +7449,7 @@ function buildBranchStrategyFiles(strategy, outputDir, language = "en", profile 
       ...sharedFiles,
       {
         path: join(outputDir, ".gitlab", "merge_request_templates", "aigate.md"),
-        content: renderPullRequestTemplateDraft(language)
+        content: renderPullRequestTemplateDraft(language, validationCommands)
       },
       {
         path: join(outputDir, ".gitlab", "CODEOWNERS"),
@@ -7411,7 +7462,7 @@ function buildBranchStrategyFiles(strategy, outputDir, language = "en", profile 
     ...sharedFiles,
     {
       path: join(outputDir, ".github", "pull_request_template.aigate.md"),
-      content: renderPullRequestTemplateDraft(language)
+      content: renderPullRequestTemplateDraft(language, validationCommands)
     },
     {
       path: join(outputDir, ".github", "CODEOWNERS.aigate"),
@@ -7420,8 +7471,11 @@ function buildBranchStrategyFiles(strategy, outputDir, language = "en", profile 
   ];
 }
 
-function buildBranchPolicyPacks(strategy) {
-  return [
+function buildBranchPolicyPacks(strategy, profile = {}) {
+  const packageJson = readJsonFile("package.json");
+  const validationCommands = buildValidationCommands(packageJson, profile);
+  const requiredChecks = requiredChecksForProfile(profile);
+  const packs = [
     {
       path: ".aigate/policy-packs/branch-protection.json",
       content: {
@@ -7429,7 +7483,7 @@ function buildBranchPolicyPacks(strategy) {
         id: "branch-protection",
         strategy: strategy.name,
         appliesTo: ["main", "develop", "release/*", "hotfix/*"],
-        requiredChecks: ["test (20)", "test (22)", "aigate git-ready"],
+        requiredChecks,
         rules: [
           {
             id: "pull-request-required",
@@ -7462,7 +7516,7 @@ function buildBranchPolicyPacks(strategy) {
         id: "pr-quality",
         strategy: strategy.name,
         requiredSections: ["Summary", "Risk", "Validation", "Release Impact"],
-        validationCommands: ["npm run ci", "aigate git-ready", "aigate pr-check"],
+        validationCommands: [...validationCommands, "aigate pr-check"],
         riskLabels: ["low-risk", "security-sensitive", "release-impact", "migration"],
         rules: [
           {
@@ -7484,35 +7538,6 @@ function buildBranchPolicyPacks(strategy) {
       }
     },
     {
-      path: ".aigate/policy-packs/release-channels.json",
-      content: {
-        version: 1,
-        id: "release-channels",
-        strategy: strategy.name,
-        stableBranch: "main",
-        tagPattern: "v*.*.*",
-        npmDistTags: {
-          latest: "stable releases",
-          next: "release candidates",
-          beta: "beta validation",
-          canary: "high-frequency experimental builds"
-        },
-        requiredBeforeTag: ["npm run ci", "aigate release-check --npm", "Release workflow dry_run=true"],
-        rules: [
-          {
-            id: "tag-after-ci",
-            severity: "block",
-            description: "Create release tags only after CI and release-check pass."
-          },
-          {
-            id: "document-release",
-            severity: "warn",
-            description: "Keep CHANGELOG and GitHub Release notes aligned with the published package."
-          }
-        ]
-      }
-    },
-    {
       path: ".aigate/policy-packs/ai-collaboration.json",
       content: {
         version: 1,
@@ -7520,7 +7545,7 @@ function buildBranchPolicyPacks(strategy) {
         strategy: strategy.name,
         assistantBranches: ["codex/*", "feature/*", "fix/*", "docs/*", "chore/*"],
         requiredContext: ["README.md", ".aigate.yml", "docs/branch-strategy.md", "docs/git-upload-workflow.md"],
-        guardCommands: ["aigate git-ready", "npm run ci"],
+        guardCommands: validationCommands,
         rules: [
           {
             id: "no-unreviewed-main-changes",
@@ -7541,10 +7566,50 @@ function buildBranchPolicyPacks(strategy) {
       }
     }
   ];
+
+  if (profile.kind === "package") {
+    packs.splice(2, 0, {
+      path: ".aigate/policy-packs/release-channels.json",
+      content: {
+        version: 1,
+        id: "release-channels",
+        strategy: strategy.name,
+        stableBranch: "main",
+        tagPattern: "v*.*.*",
+        npmDistTags: {
+          latest: "stable releases",
+          next: "release candidates",
+          beta: "beta validation",
+          canary: "high-frequency experimental builds"
+        },
+        requiredBeforeTag: [...validationCommands, "aigate release-check --npm", "Release workflow dry_run=true"],
+        rules: [
+          {
+            id: "tag-after-ci",
+            severity: "block",
+            description: "Create release tags only after CI and release-check pass."
+          },
+          {
+            id: "document-release",
+            severity: "warn",
+            description: "Keep CHANGELOG and release notes aligned with the published package."
+          }
+        ]
+      }
+    });
+  }
+
+  return packs;
 }
 
-function renderPolicyPackReadme(strategy, policyPacks, language = "en") {
+function renderPolicyPackReadme(strategy, policyPacks, language = "en", profile = {}, validationCommands = ["aigate git-ready"]) {
   const files = policyPacks.map((pack) => `- \`${pack.path}\``);
+  const platformLabel = profile.hosting === "gitlab" ? "GitLab" : profile.hosting === "github" ? "GitHub" : "hosting provider";
+  const validationBlock = [
+    "```sh",
+    ...validationCommands,
+    "```"
+  ];
 
   if (language === "ko") {
     return [
@@ -7561,8 +7626,10 @@ function renderPolicyPackReadme(strategy, policyPacks, language = "en") {
       "## 사용 방법",
       "",
       "1. JSON 파일의 규칙을 팀 정책에 맞게 검토합니다.",
-      "2. GitHub branch protection, PR template, release workflow 설정에 반영합니다.",
-      "3. 변경 후 `npm run ci`와 `aigate git-ready`를 실행합니다.",
+      `2. ${platformLabel} branch protection, PR/MR template, CI 설정에 반영합니다.`,
+      "3. 변경 후 아래 검증 명령을 실행합니다.",
+      "",
+      ...validationBlock,
       ""
     ].join("\n");
   }
@@ -7582,8 +7649,10 @@ function renderPolicyPackReadme(strategy, policyPacks, language = "en") {
       "## 使い方",
       "",
       "1. JSON ファイルのルールをチーム方針に合わせて確認します。",
-      "2. GitHub branch protection、PR template、release workflow 設定へ反映します。",
-      "3. 変更後に `npm run ci` と `aigate git-ready` を実行します。",
+      `2. ${platformLabel} branch protection、PR/MR template、CI 設定へ反映します。`,
+      "3. 変更後に次の検証コマンドを実行します。",
+      "",
+      ...validationBlock,
       ""
     ].join("\n");
   }
@@ -7603,8 +7672,10 @@ function renderPolicyPackReadme(strategy, policyPacks, language = "en") {
       "## 使用方式",
       "",
       "1. 按团队政策审查 JSON 文件中的规则。",
-      "2. 应用到 GitHub branch protection、PR template 和 release workflow 设置。",
-      "3. 变更后运行 `npm run ci` 和 `aigate git-ready`。",
+      `2. 应用到 ${platformLabel} branch protection、PR/MR template 和 CI 设置。`,
+      "3. 变更后运行以下验证命令。",
+      "",
+      ...validationBlock,
       ""
     ].join("\n");
   }
@@ -7623,13 +7694,17 @@ function renderPolicyPackReadme(strategy, policyPacks, language = "en") {
     "## How To Use",
     "",
     "1. Review each JSON rule set against your team policy.",
-    "2. Apply matching settings to GitHub branch protection, pull request templates, and release workflows.",
-    "3. Run `npm run ci` and `aigate git-ready` after changes.",
+    `2. Apply matching settings to ${platformLabel} branch protection, PR/MR templates, and CI.`,
+    "3. Run these validation commands after changes.",
+    "",
+    ...validationBlock,
     ""
   ].join("\n");
 }
 
-function renderReleaseProcess(strategy, language = "en") {
+function renderReleaseProcess(strategy, language = "en", profile = {}, validationCommands = ["aigate git-ready"]) {
+  const validation = formatInlineCodeList(validationCommands);
+  const packageRelease = profile.kind === "package";
   if (language === "ko") {
     return [
       "# 릴리스 프로세스",
@@ -7637,10 +7712,12 @@ function renderReleaseProcess(strategy, language = "en") {
       `권장 전략: ${translateStrategyName(strategy.name, language)}`,
       "",
       "1. `main`은 PR을 통해 항상 배포 가능한 상태로 유지합니다.",
-      "2. 릴리스 준비 전에 `npm run ci`와 `aigate git-ready`를 실행합니다.",
+      `2. 릴리스 준비 전에 ${validation}를 실행합니다.`,
       "3. 별도 안정화가 필요할 때만 `release/vX.Y.Z`를 생성합니다.",
       "4. 안정 릴리스는 `vX.Y.Z` 태그로 표시합니다.",
-      "5. npm Trusted Publishing 설정 후 릴리스 워크플로로 npm 패키지를 배포합니다.",
+      packageRelease
+        ? "5. npm Trusted Publishing 설정 후 릴리스 워크플로로 npm 패키지를 배포합니다."
+        : "5. 앱 배포, 운영 공지, 롤백 계획을 팀의 실제 CI/CD에 맞춰 기록합니다.",
       ""
     ].join("\n");
   }
@@ -7652,10 +7729,12 @@ function renderReleaseProcess(strategy, language = "en") {
       `推奨戦略: ${translateStrategyName(strategy.name, language)}`,
       "",
       "1. `main` は PR 経由で常にリリース可能な状態に保ちます。",
-      "2. リリース準備前に `npm run ci` と `aigate git-ready` を実行します。",
+      `2. リリース準備前に ${validation} を実行します。`,
       "3. 個別の安定化が必要な場合のみ `release/vX.Y.Z` を作成します。",
       "4. 安定リリースは `vX.Y.Z` タグで示します。",
-      "5. npm Trusted Publishing 設定後、リリースワークフローで npm パッケージを公開します。",
+      packageRelease
+        ? "5. npm Trusted Publishing 設定後、リリースワークフローで npm パッケージを公開します。"
+        : "5. アプリのデプロイ、運用告知、ロールバック計画を実際の CI/CD に合わせて記録します。",
       ""
     ].join("\n");
   }
@@ -7667,10 +7746,12 @@ function renderReleaseProcess(strategy, language = "en") {
       `推荐策略: ${translateStrategyName(strategy.name, language)}`,
       "",
       "1. 通过 PR 保持 `main` 始终可发布。",
-      "2. 发布准备前运行 `npm run ci` 和 `aigate git-ready`。",
+      `2. 发布准备前运行 ${validation}。`,
       "3. 仅在需要单独稳定时创建 `release/vX.Y.Z`。",
       "4. 稳定发布使用 `vX.Y.Z` 标签。",
-      "5. 配置 npm Trusted Publishing 后，通过发布工作流发布 npm 包。",
+      packageRelease
+        ? "5. 配置 npm Trusted Publishing 后，通过发布工作流发布 npm 包。"
+        : "5. 按团队真实 CI/CD 记录应用部署、运营通知和回滚计划。",
       ""
     ].join("\n");
   }
@@ -7681,15 +7762,18 @@ function renderReleaseProcess(strategy, language = "en") {
     `Recommended strategy: ${strategy.name}`,
     "",
     "1. Keep `main` releasable through pull requests.",
-    "2. Run `npm run ci` and `aigate git-ready` before release preparation.",
+    `2. Run ${validation} before release preparation.`,
     "3. Create `release/vX.Y.Z` only when stabilization needs a separate branch.",
     "4. Tag stable releases as `vX.Y.Z`.",
-    "5. Publish npm packages through the Release workflow after npm Trusted Publishing is configured.",
+    packageRelease
+      ? "5. Publish npm packages through the Release workflow after npm Trusted Publishing is configured."
+      : "5. Record app deployment, operations notes, and rollback steps against the team's real CI/CD.",
     ""
   ].join("\n");
 }
 
-function renderHotfixProcess(strategy, language = "en") {
+function renderHotfixProcess(strategy, language = "en", validationCommands = ["aigate git-ready"]) {
+  const validation = formatInlineCodeList(validationCommands);
   if (language === "ko") {
     return [
       "# Hotfix 프로세스",
@@ -7698,7 +7782,7 @@ function renderHotfixProcess(strategy, language = "en") {
       "",
       "1. `main` 또는 최신 안정 태그에서 `hotfix/<short-description>` 브랜치를 만듭니다.",
       "2. 변경 범위를 최소화하고 집중합니다.",
-      "3. `npm run ci`, `aigate git-ready`, 필요한 회귀 검사를 실행합니다.",
+      `3. ${validation}와 필요한 회귀 검사를 실행합니다.`,
       "4. 롤백 노트를 포함해 `main` 대상 PR을 엽니다.",
       "5. 검사와 리뷰 통과 후 패치 릴리스를 배포합니다.",
       ""
@@ -7713,7 +7797,7 @@ function renderHotfixProcess(strategy, language = "en") {
       "",
       "1. `main` または最新の安定タグから `hotfix/<short-description>` ブランチを作成します。",
       "2. 変更は最小限かつ集中した範囲に保ちます。",
-      "3. `npm run ci`、`aigate git-ready`、必要な回帰確認を実行します。",
+      `3. ${validation} と必要な回帰確認を実行します。`,
       "4. ロールバックメモを含めて `main` 向け PR を作成します。",
       "5. チェックとレビュー通過後にパッチリリースを公開します。",
       ""
@@ -7728,7 +7812,7 @@ function renderHotfixProcess(strategy, language = "en") {
       "",
       "1. 从 `main` 或最新稳定标签创建 `hotfix/<short-description>` 分支。",
       "2. 保持变更最小且聚焦。",
-      "3. 运行 `npm run ci`、`aigate git-ready` 和必要的回归检查。",
+      `3. 运行 ${validation} 和必要的回归检查。`,
       "4. 创建指向 `main` 的 PR，并附上回滚说明。",
       "5. 检查和评审通过后发布补丁版本。",
       ""
@@ -7742,14 +7826,16 @@ function renderHotfixProcess(strategy, language = "en") {
     "",
     "1. Branch from `main` or the latest stable tag with `hotfix/<short-description>`.",
     "2. Keep the change minimal and focused.",
-    "3. Run `npm run ci`, `aigate git-ready`, and a focused regression check.",
+    `3. Run ${validation} and a focused regression check.`,
     "4. Open a pull request into `main` with rollback notes.",
     "5. Publish a patch release after checks and review pass.",
     ""
   ].join("\n");
 }
 
-function renderPullRequestTemplateDraft(language = "en") {
+function renderPullRequestTemplateDraft(language = "en", validationCommands = ["aigate git-ready"]) {
+  const validationChecklist = [...new Set([...validationCommands, "aigate pr-check"])]
+    .map((command) => `- [ ] \`${command}\``);
   if (language === "ko") {
     return [
       "## 요약",
@@ -7764,9 +7850,7 @@ function renderPullRequestTemplateDraft(language = "en") {
       "",
       "## 검증",
       "",
-      "- [ ] `npm run ci`",
-      "- [ ] `aigate git-ready`",
-      "- [ ] `aigate pr-check`",
+      ...validationChecklist,
       "",
       "## 릴리스 영향",
       "",
@@ -7792,9 +7876,7 @@ function renderPullRequestTemplateDraft(language = "en") {
       "",
       "## 検証",
       "",
-      "- [ ] `npm run ci`",
-      "- [ ] `aigate git-ready`",
-      "- [ ] `aigate pr-check`",
+      ...validationChecklist,
       "",
       "## リリース影響",
       "",
@@ -7820,9 +7902,7 @@ function renderPullRequestTemplateDraft(language = "en") {
       "",
       "## 验证",
       "",
-      "- [ ] `npm run ci`",
-      "- [ ] `aigate git-ready`",
-      "- [ ] `aigate pr-check`",
+      ...validationChecklist,
       "",
       "## 发布影响",
       "",
@@ -7847,9 +7927,7 @@ function renderPullRequestTemplateDraft(language = "en") {
     "",
     "## Validation",
     "",
-    "- [ ] `npm run ci`",
-    "- [ ] `aigate git-ready`",
-    "- [ ] `aigate pr-check`",
+    ...validationChecklist,
     "",
     "## Release Impact",
     "",
@@ -7863,15 +7941,21 @@ function renderPullRequestTemplateDraft(language = "en") {
 
 function buildRepositoryStarterFiles(outputDir, language = "en", packageJson = {}, owner = "@maintainers", profile = {}) {
   const projectName = packageJson.name ?? "my-project";
-  const strategy = buildBranchStrategy();
+  const strategy = buildBranchStrategy({
+    projectType: profile.kind,
+    hosting: profile.hosting,
+    ciProvider: profile.ciProvider,
+    packageManager: profile.packageManager
+  });
+  const validationCommands = buildValidationCommands(packageJson, profile);
   const sharedFiles = [
     {
       path: join(outputDir, "README.md"),
-      content: renderStarterReadme(projectName, language)
+      content: renderStarterReadme(projectName, language, profile, validationCommands)
     },
     {
       path: join(outputDir, "CONTRIBUTING.md"),
-      content: renderStarterContributing(language)
+      content: renderStarterContributing(language, validationCommands)
     },
     {
       path: join(outputDir, "SECURITY.md"),
@@ -7912,7 +7996,7 @@ function buildRepositoryStarterFiles(outputDir, language = "en", packageJson = {
       },
       {
         path: join(outputDir, ".gitlab", "merge_request_templates", "default.md"),
-        content: renderPullRequestTemplateDraft(language)
+        content: renderPullRequestTemplateDraft(language, validationCommands)
       },
       {
         path: join(outputDir, ".gitlab", "CODEOWNERS"),
@@ -7941,7 +8025,7 @@ function buildRepositoryStarterFiles(outputDir, language = "en", packageJson = {
     },
     {
       path: join(outputDir, ".github", "pull_request_template.md"),
-      content: renderPullRequestTemplateDraft(language)
+      content: renderPullRequestTemplateDraft(language, validationCommands)
     },
     {
       path: join(outputDir, ".github", "CODEOWNERS"),
@@ -7984,8 +8068,10 @@ function repositoryStarterLabels(language = "en") {
   }[language] ?? repositoryStarterLabels("en");
 }
 
-function renderStarterReadme(projectName, language = "en") {
+function renderStarterReadme(projectName, language = "en", profile = {}, validationCommands = ["aigate git-ready"]) {
   const title = projectNameToTitle(projectName);
+  const packageManager = ["npm", "pnpm", "yarn", "bun"].includes(profile.packageManager) ? profile.packageManager : "npm";
+  const installCommand = `${packageManager} install`;
   if (language === "ko") {
     return [
       `# ${title}`,
@@ -7995,8 +8081,8 @@ function renderStarterReadme(projectName, language = "en") {
       "## 빠른 시작",
       "",
       "```sh",
-      "npm install",
-      "npm test",
+      installCommand,
+      ...validationCommands,
       "```",
       "",
       "## 개발 워크플로",
@@ -8028,8 +8114,8 @@ function renderStarterReadme(projectName, language = "en") {
       "## クイックスタート",
       "",
       "```sh",
-      "npm install",
-      "npm test",
+      installCommand,
+      ...validationCommands,
       "```",
       "",
       "## 開発ワークフロー",
@@ -8061,8 +8147,8 @@ function renderStarterReadme(projectName, language = "en") {
       "## 快速开始",
       "",
       "```sh",
-      "npm install",
-      "npm test",
+      installCommand,
+      ...validationCommands,
       "```",
       "",
       "## 开发工作流",
@@ -8093,8 +8179,8 @@ function renderStarterReadme(projectName, language = "en") {
     "## Quick Start",
     "",
     "```sh",
-    "npm install",
-    "npm test",
+    installCommand,
+    ...validationCommands,
     "```",
     "",
     "## Development Workflow",
@@ -8117,7 +8203,7 @@ function renderStarterReadme(projectName, language = "en") {
   ].join("\n");
 }
 
-function renderStarterContributing(language = "en") {
+function renderStarterContributing(language = "en", validationCommands = ["aigate git-ready"]) {
   if (language === "ko") {
     return [
       "# 기여 가이드",
@@ -8128,8 +8214,7 @@ function renderStarterContributing(language = "en") {
       "",
       "```sh",
       "aigate ai report",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "4. PR에는 요약, 검증, 릴리스 영향을 포함합니다.",
@@ -8147,8 +8232,7 @@ function renderStarterContributing(language = "en") {
       "",
       "```sh",
       "aigate ai report",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "4. PR には概要、検証、リリース影響を含めます。",
@@ -8166,8 +8250,7 @@ function renderStarterContributing(language = "en") {
       "",
       "```sh",
       "aigate ai report",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "4. PR 中包含摘要、验证和发布影响。",
@@ -8184,8 +8267,7 @@ function renderStarterContributing(language = "en") {
     "",
     "```sh",
     "aigate ai report",
-    "aigate test",
-    "aigate git-ready",
+    ...validationCommands,
     "```",
     "",
     "4. Include summary, validation, and release impact in each pull request.",
@@ -8450,24 +8532,69 @@ function resolveIntegrationProviders(providerArg) {
   return null;
 }
 
-function buildIntegrationManifest(providers) {
+function buildIntegrationManifest(providers, profile = {}, packageJson = readJsonFile("package.json")) {
+  const validationCommands = buildValidationCommands(packageJson, profile);
   return {
     version: 1,
     generatedBy: `aigate ${VERSION}`,
+    profile: {
+      type: profile.kind ?? "unknown",
+      hosting: profile.hosting ?? "unknown",
+      ciProvider: profile.ciProvider ?? "unknown",
+      packageManager: profile.packageManager ?? "unknown"
+    },
     providers,
-    requiredCommands: [
-      "npm run ci",
+    requiredCommands: [...new Set([
+      ...validationCommands,
       "aigate test",
-      "aigate git-ready",
       "aigate aitest",
       "aigate push --dry-run origin <branch>"
-    ],
-    branchStrategy: "GitHub Flow with release channels",
-    requiredChecks: [
-      "test (20)",
-      "test (22)"
-    ]
+    ])],
+    validationCommands,
+    branchStrategy: profile.hosting === "gitlab" ? "GitLab merge request flow" : "GitHub Flow with release channels",
+    requiredChecks: requiredChecksForProfile(profile)
   };
+}
+
+function buildValidationCommands(packageJson = readJsonFile("package.json"), profile = detectProjectProfile(packageJson)) {
+  const commands = [];
+  const scripts = packageJson.scripts ?? {};
+  const packageManager = profile.packageManager ?? detectPackageManager(packageJson);
+
+  if (scripts.ci) {
+    commands.push(packageManagerScriptCommand(packageManager, "ci"));
+  } else if (scripts.test) {
+    commands.push(packageManagerScriptCommand(packageManager, "test"));
+  } else {
+    const testScript = Object.keys(scripts).find((name) => name.endsWith(":test") || name.includes("test"));
+    if (testScript) {
+      commands.push(packageManagerScriptCommand(packageManager, testScript));
+    }
+  }
+
+  commands.push("aigate git-ready");
+  return [...new Set(commands)];
+}
+
+function packageManagerScriptCommand(packageManager, script) {
+  const pm = ["npm", "pnpm", "yarn", "bun"].includes(packageManager) ? packageManager : "npm";
+  if (script === "test") {
+    return `${pm} test`;
+  }
+
+  return pm === "yarn" ? `yarn ${script}` : `${pm} run ${script}`;
+}
+
+function requiredChecksForProfile(profile = {}) {
+  if (profile.ciProvider === "gitlab" || profile.hosting === "gitlab") {
+    return ["GitLab CI pipeline", "aigate git-ready"];
+  }
+
+  if (profile.ciProvider === "github" || profile.hosting === "github") {
+    return ["GitHub CI workflow", "aigate git-ready"];
+  }
+
+  return ["CI pipeline", "aigate git-ready"];
 }
 
 function buildIntegrationFiles(providers, outputDir, manifest, language = "en") {
@@ -8478,7 +8605,7 @@ function buildIntegrationFiles(providers, outputDir, manifest, language = "en") 
     },
     {
       path: join(outputDir, ".aigate", "integrations", "README.md"),
-      content: renderIntegrationReadme(providers, language)
+      content: renderIntegrationReadme(providers, manifest, language)
     }
   ];
 
@@ -8486,11 +8613,11 @@ function buildIntegrationFiles(providers, outputDir, manifest, language = "en") 
     files.push(
       {
         path: join(outputDir, "AGENTS.md"),
-        content: renderCodexInstructions(language)
+        content: renderCodexInstructions(language, manifest)
       },
       {
         path: join(outputDir, ".aigate", "integrations", "codex.md"),
-        content: renderProviderInstructions("Codex", language)
+        content: renderProviderInstructions("Codex", language, manifest)
       }
     );
   }
@@ -8499,11 +8626,11 @@ function buildIntegrationFiles(providers, outputDir, manifest, language = "en") 
     files.push(
       {
         path: join(outputDir, "GEMINI.md"),
-        content: renderGeminiInstructions(language)
+        content: renderGeminiInstructions(language, manifest)
       },
       {
         path: join(outputDir, ".aigate", "integrations", "gemini.md"),
-        content: renderProviderInstructions("Gemini", language)
+        content: renderProviderInstructions("Gemini", language, manifest)
       }
     );
   }
@@ -8512,11 +8639,11 @@ function buildIntegrationFiles(providers, outputDir, manifest, language = "en") 
     files.push(
       {
         path: join(outputDir, "CLAUDE.md"),
-        content: renderClaudeInstructions(language)
+        content: renderClaudeInstructions(language, manifest)
       },
       {
         path: join(outputDir, ".aigate", "integrations", "claude.md"),
-        content: renderProviderInstructions("Claude Code", language)
+        content: renderProviderInstructions("Claude Code", language, manifest)
       }
     );
   }
@@ -8544,7 +8671,8 @@ function writeIntegrationFiles(files, force) {
   });
 }
 
-function renderIntegrationReadme(providers, language = "en") {
+function renderIntegrationReadme(providers, manifest, language = "en") {
+  const validationCommands = manifest.validationCommands ?? ["aigate git-ready"];
   if (language === "ko") {
     return [
       "# AIGate AI 연동",
@@ -8558,9 +8686,7 @@ function renderIntegrationReadme(providers, language = "en") {
       "필수 로컬 검사:",
       "",
       "```sh",
-      "npm run ci",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "테스트가 실패하면 `aigate aitest`로 AI 수정 프롬프트를 생성하세요.",
@@ -8582,9 +8708,7 @@ function renderIntegrationReadme(providers, language = "en") {
       "必須ローカルチェック:",
       "",
       "```sh",
-      "npm run ci",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "テストが失敗したら `aigate aitest` で AI 修正プロンプトを生成してください。",
@@ -8606,9 +8730,7 @@ function renderIntegrationReadme(providers, language = "en") {
       "必需本地检查:",
       "",
       "```sh",
-      "npm run ci",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "如果测试失败，请运行 `aigate aitest` 生成 AI 修复提示。",
@@ -8629,9 +8751,7 @@ function renderIntegrationReadme(providers, language = "en") {
     "Required local checks:",
     "",
     "```sh",
-    "npm run ci",
-    "aigate test",
-    "aigate git-ready",
+    ...validationCommands,
     "```",
     "",
     "If tests fail, run `aigate aitest` to generate an AI remediation prompt.",
@@ -8640,43 +8760,43 @@ function renderIntegrationReadme(providers, language = "en") {
   ].join("\n") + "\n";
 }
 
-function renderCodexInstructions(language = "en") {
+function renderCodexInstructions(language = "en", manifest = {}) {
   return [
     language === "ko" ? "# AIGate Codex 지침" : language === "ja" ? "# AIGate Codex 指示" : language === "zh" ? "# AIGate Codex 指令" : "# AIGate Codex Instructions",
     "",
     providerIntro("Codex", language),
     "",
-    ...renderSharedAssistantInstructions(language)
+    ...renderSharedAssistantInstructions(language, manifest)
   ].join("\n") + "\n";
 }
 
-function renderGeminiInstructions(language = "en") {
+function renderGeminiInstructions(language = "en", manifest = {}) {
   return [
     language === "ko" ? "# AIGate Gemini 지침" : language === "ja" ? "# AIGate Gemini 指示" : language === "zh" ? "# AIGate Gemini 指令" : "# AIGate Gemini Instructions",
     "",
     providerIntro("Gemini", language),
     "",
-    ...renderSharedAssistantInstructions(language)
+    ...renderSharedAssistantInstructions(language, manifest)
   ].join("\n") + "\n";
 }
 
-function renderClaudeInstructions(language = "en") {
+function renderClaudeInstructions(language = "en", manifest = {}) {
   return [
     language === "ko" ? "# AIGate Claude Code 지침" : language === "ja" ? "# AIGate Claude Code 指示" : language === "zh" ? "# AIGate Claude Code 指令" : "# AIGate Claude Code Instructions",
     "",
     providerIntro("Claude Code", language),
     "",
-    ...renderSharedAssistantInstructions(language)
+    ...renderSharedAssistantInstructions(language, manifest)
   ].join("\n") + "\n";
 }
 
-function renderProviderInstructions(providerName, language = "en") {
+function renderProviderInstructions(providerName, language = "en", manifest = {}) {
   return [
     language === "ko" ? `# ${providerName} 연동` : language === "ja" ? `# ${providerName} 連携` : language === "zh" ? `# ${providerName} 集成` : `# ${providerName} Integration`,
     "",
     providerGuideIntro(providerName, language),
     "",
-    ...renderSharedAssistantInstructions(language)
+    ...renderSharedAssistantInstructions(language, manifest)
   ].join("\n") + "\n";
 }
 
@@ -8696,7 +8816,13 @@ function providerGuideIntro(providerName, language) {
   }[language] ?? `AIGate generated this ${providerName} integration guide so the assistant can follow the same Git workflow as maintainers.`;
 }
 
-function renderSharedAssistantInstructions(language = "en") {
+function formatInlineCodeList(items) {
+  return items.map((item) => `\`${item}\``).join(", ");
+}
+
+function renderSharedAssistantInstructions(language = "en", manifest = {}) {
+  const validationCommands = manifest.validationCommands ?? ["aigate git-ready"];
+  const requiredChecks = manifest.requiredChecks ?? ["aigate git-ready"];
   if (language === "ko") {
     return [
       "## 저장소 컨텍스트",
@@ -8717,9 +8843,7 @@ function renderSharedAssistantInstructions(language = "en") {
       "제안, 푸시, 병합 전에 다음 명령을 실행합니다:",
       "",
       "```sh",
-      "npm run ci",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "테스트가 실패하면 `aigate aitest`로 AI 수정 프롬프트를 생성하고, 명시적으로 허용된 경우에만 `aigate aitest --apply --provider <provider>`를 실행합니다.",
@@ -8742,7 +8866,7 @@ function renderSharedAssistantInstructions(language = "en") {
       "",
       "- 대상은 `main`입니다.",
       "- 요약, 이유, 검증, 릴리스 영향을 포함합니다.",
-      "- 필수 검사: `test (20)`, `test (22)`.",
+      `- 필수 검사: ${formatInlineCodeList(requiredChecks)}.`,
       "- 저장소의 현재 review 정책을 따르고 대화를 해결한 뒤 병합합니다."
     ];
   }
@@ -8767,9 +8891,7 @@ function renderSharedAssistantInstructions(language = "en") {
       "提案、プッシュ、マージ前に次のコマンドを実行します:",
       "",
       "```sh",
-      "npm run ci",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "テストが失敗した場合は `aigate aitest` で AI 修正プロンプトを生成し、明示的に許可された場合のみ `aigate aitest --apply --provider <provider>` を実行します。",
@@ -8792,7 +8914,7 @@ function renderSharedAssistantInstructions(language = "en") {
       "",
       "- 対象は `main` です。",
       "- 概要、理由、検証、リリース影響を含めます。",
-      "- 必須チェック: `test (20)`, `test (22)`.",
+      `- 必須チェック: ${formatInlineCodeList(requiredChecks)}.`,
       "- リポジトリの現在の review policy に従い、会話を解決してからマージします。"
     ];
   }
@@ -8817,9 +8939,7 @@ function renderSharedAssistantInstructions(language = "en") {
       "在提议、推送或合并前运行以下命令:",
       "",
       "```sh",
-      "npm run ci",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "如果测试失败，请用 `aigate aitest` 生成 AI 修复提示；只有在明确允许时才运行 `aigate aitest --apply --provider <provider>`。",
@@ -8842,7 +8962,7 @@ function renderSharedAssistantInstructions(language = "en") {
       "",
       "- 目标分支是 `main`。",
       "- 包含摘要、原因、验证和发布影响。",
-      "- 必需检查: `test (20)`, `test (22)`。",
+      `- 必需检查: ${formatInlineCodeList(requiredChecks)}。`,
       "- 遵循仓库当前 review policy，并在解决对话后再合并。"
     ];
   }
@@ -8866,9 +8986,7 @@ function renderSharedAssistantInstructions(language = "en") {
     "Run these commands before proposing, pushing, or merging changes:",
     "",
     "```sh",
-    "npm run ci",
-    "aigate test",
-    "aigate git-ready",
+    ...validationCommands,
     "```",
     "",
     "If tests fail, run `aigate aitest` to generate an AI remediation prompt; only run `aigate aitest --apply --provider <provider>` when explicitly allowed.",
@@ -8891,7 +9009,7 @@ function renderSharedAssistantInstructions(language = "en") {
     "",
     "- Target `main`.",
     "- Include summary, why, validation, and release impact.",
-    "- Required checks: `test (20)` and `test (22)`.",
+    `- Required checks: ${formatInlineCodeList(requiredChecks)}.`,
     "- Follow the repository's current review policy and resolve conversations before merge."
   ];
 }
@@ -8899,6 +9017,18 @@ function renderSharedAssistantInstructions(language = "en") {
 function renderDefaultConfig(packageJson, options = {}) {
   const projectName = packageJson.name ?? "my-project";
   const profile = detectProjectProfile(packageJson, options);
+  const distributionLines = profile.kind === "package" ? [
+    "",
+    "distribution:",
+    "  primaryRegistry: npm",
+    `  packageName: ${quoteYamlScalar(packageJson.name ?? "aigate-cli")}`,
+    "  releaseChannels:",
+    "    stable: latest",
+    "    candidate: next",
+    "    beta: beta",
+    "    experimental: canary"
+  ] : [];
+  const validationCommands = buildValidationCommands(packageJson, profile);
   return [
     "version: 1",
     "",
@@ -8910,15 +9040,7 @@ function renderDefaultConfig(packageJson, options = {}) {
     `  hosting: ${profile.hosting}`,
     `  ciProvider: ${profile.ciProvider}`,
     `  packageManager: ${profile.packageManager}`,
-    "",
-    "distribution:",
-    "  primaryRegistry: npm",
-    `  packageName: ${quoteYamlScalar(packageJson.name ?? "aigate-cli")}`,
-    "  releaseChannels:",
-    "    stable: latest",
-    "    candidate: next",
-    "    beta: beta",
-    "    experimental: canary",
+    ...distributionLines,
     "",
     "reports:",
     "  defaultFormat: markdown",
@@ -8952,8 +9074,7 @@ function renderDefaultConfig(packageJson, options = {}) {
     "  beforePush:",
     "    minimumProjectScore: 80",
     "    commands:",
-    "      - npm run ci",
-    "      - aigate git-ready",
+    ...validationCommands.map((command) => `      - ${command}`),
     ""
   ].join("\n");
 }
@@ -9615,18 +9736,21 @@ function translateStrategyName(name, language) {
       "Git Flow": "Git Flow",
       "Trunk-Based Development": "Trunk 기반 개발",
       "Hybrid Flow": "Hybrid Flow",
+      "GitLab Flow with merge requests": "merge request 기반 GitLab Flow",
       "GitHub Flow with release channels": "릴리스 채널을 포함한 GitHub Flow"
     },
     ja: {
       "Git Flow": "Git Flow",
       "Trunk-Based Development": "Trunk-Based Development",
       "Hybrid Flow": "Hybrid Flow",
+      "GitLab Flow with merge requests": "merge request ベースの GitLab Flow",
       "GitHub Flow with release channels": "リリースチャンネル付き GitHub Flow"
     },
     zh: {
       "Git Flow": "Git Flow",
       "Trunk-Based Development": "基于 Trunk 的开发",
       "Hybrid Flow": "混合 Flow",
+      "GitLab Flow with merge requests": "基于 merge request 的 GitLab Flow",
       "GitHub Flow with release channels": "带发布频道的 GitHub Flow"
     }
   }[language]?.[name] ?? name;
