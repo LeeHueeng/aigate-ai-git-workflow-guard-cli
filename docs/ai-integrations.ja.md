@@ -2,7 +2,7 @@
 
 [English](ai-integrations.md) | [한국어](ai-integrations.ko.md) | [日本語](ai-integrations.ja.md) | [中文](ai-integrations.zh.md)
 
-AIGate は、Codex や Gemini などの AI assistant がリポジトリ内で同じ
+AIGate は、Codex、Gemini、Claude Code などの AI assistant がリポジトリ内で同じ
 ルールに従うためのローカル指示ファイルを生成できます。
 
 ## 連携ファイルを生成
@@ -16,6 +16,7 @@ Provider ごとの生成:
 ```sh
 aigate integrate codex
 aigate integrate gemini
+aigate integrate claude
 ```
 
 別ディレクトリにプレビュー:
@@ -36,10 +37,12 @@ aigate integrate all --force
 | --- | --- |
 | `AGENTS.md` | Codex 向けリポジトリ指示 |
 | `GEMINI.md` | Gemini 向けリポジトリ指示 |
+| `CLAUDE.md` | Claude Code 向けリポジトリ指示 |
 | `.aigate/integrations.json` | machine-readable integration manifest |
 | `.aigate/integrations/README.md` | 共通の連携概要 |
 | `.aigate/integrations/codex.md` | Codex 固有の連携メモ |
 | `.aigate/integrations/gemini.md` | Gemini 固有の連携メモ |
+| `.aigate/integrations/claude.md` | Claude Code 固有の連携メモ |
 
 ## Assistant ルール
 

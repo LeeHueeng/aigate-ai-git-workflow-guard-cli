@@ -1,7 +1,7 @@
 # AI Integrations
 
 AIGate can generate repository-local instructions for AI assistants such as
-Codex and Gemini.
+Codex, Gemini, and Claude Code.
 
 ## Generate Integrations
 
@@ -14,6 +14,7 @@ Provider-specific generation:
 ```sh
 aigate integrate codex
 aigate integrate gemini
+aigate integrate claude
 ```
 
 Preview output in another directory:
@@ -34,10 +35,12 @@ aigate integrate all --force
 | --- | --- |
 | `AGENTS.md` | Codex-facing repository instructions. |
 | `GEMINI.md` | Gemini-facing repository instructions. |
+| `CLAUDE.md` | Claude Code-facing repository instructions. |
 | `.aigate/integrations.json` | Machine-readable integration manifest. |
 | `.aigate/integrations/README.md` | Shared integration overview. |
 | `.aigate/integrations/codex.md` | Codex-specific integration notes. |
 | `.aigate/integrations/gemini.md` | Gemini-specific integration notes. |
+| `.aigate/integrations/claude.md` | Claude Code-specific integration notes. |
 
 ## Assistant Rules
 

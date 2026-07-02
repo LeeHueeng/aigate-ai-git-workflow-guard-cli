@@ -35,7 +35,7 @@ const locales = {
     summary: [
       "AIGate는 로컬 변경사항, secret 위험, 프로젝트 기반 점수, PR 준비 상태, 릴리스 준비 상태를 점검하는 CLI입니다.",
       "패키지는 npm의 aigate-cli로 공개되어 있으며, GitHub Actions와 npm Trusted Publishing으로 태그 기반 자동 배포가 가능합니다.",
-      "Codex와 Gemini가 같은 저장소 규칙을 따르도록 통합 파일을 생성하는 기능도 포함되어 있습니다."
+      "Codex, Gemini, Claude Code가 같은 저장소 규칙을 따르도록 통합 파일을 생성하는 기능도 포함되어 있습니다."
     ],
     installTitle: "설치와 빠른 실행",
     installCaption: "설치 없이도 npx로 바로 실행할 수 있습니다.",
@@ -101,7 +101,7 @@ const locales = {
       ["aigate branch-strategy", "팀 규모와 릴리스 흐름에 맞는 브랜치 전략을 추천합니다.", "브랜치 정책 설계"],
       ["aigate branch-strategy --compare", "여러 브랜치 전략 제안을 점수, 강점, 위험, 전환 단계로 비교합니다.", "팀에 맞는 브랜치 모델을 선택할 때"],
       ["aigate branch-strategy --apply", "브랜치 정책, 릴리스, hotfix, PR, CODEOWNERS, 정책 팩 초안을 생성합니다.", "정책 파일을 시작할 때"],
-      ["aigate integrate all", "Codex와 Gemini 통합 문서를 생성합니다.", "AI assistant가 같은 규칙을 따르게 할 때"],
+      ["aigate integrate all", "Codex, Gemini, Claude Code 통합 문서를 생성합니다.", "AI assistant가 같은 규칙을 따르게 할 때"],
       ["aigate release-check", "패키지, workflow, tag 상태를 점검합니다.", "릴리스 태그 생성 전"],
       ["aigate release-check --npm", "npm registry에 해당 버전이 있는지 확인합니다.", "자동 배포 전후"],
       ["aigate audit-report", "거버넌스와 정책 상태를 요약합니다.", "운영 감사와 공개 준비 리뷰"],
@@ -148,7 +148,7 @@ const locales = {
       "컴플라이언스 리포트와 로컬 HTML 상태 대시보드",
       "프로젝트 점수와 deep Git signal 평가",
       "브랜치 전략 추천, 제안 비교, 정책 팩 생성",
-      "Codex/Gemini 통합 파일 생성",
+      "Codex/Gemini/Claude Code 통합 파일 생성",
       "한국어/영어/일본어/중국어 CLI 설정",
       "release-check와 release-check --npm",
       "npm Trusted Publishing 기반 자동 배포",
@@ -180,7 +180,7 @@ const locales = {
     summary: [
       "AIGate is a CLI that checks local changes, secret risk, project foundation score, pull request readiness, and release readiness.",
       "The package is public on npm as aigate-cli and can be released automatically from GitHub tags through npm Trusted Publishing.",
-      "It can also generate Codex and Gemini integration files so AI assistants follow the same repository rules."
+      "It can also generate Codex, Gemini, and Claude Code integration files so AI assistants follow the same repository rules."
     ],
     installTitle: "Install And Quick Start",
     installCaption: "You can run it immediately through npx without installing it globally.",
@@ -246,7 +246,7 @@ const locales = {
       ["aigate branch-strategy", "Recommend a branch strategy for team and release cadence.", "Branch policy design"],
       ["aigate branch-strategy --compare", "Compare branch strategy proposals by score, strengths, risks, and migration steps.", "Choosing the right branch model for a team"],
       ["aigate branch-strategy --apply", "Generate branch policy, release, hotfix, PR, CODEOWNERS, and policy pack drafts.", "Starting policy files"],
-      ["aigate integrate all", "Generate Codex and Gemini integration files.", "Keeping AI assistants aligned"],
+      ["aigate integrate all", "Generate Codex, Gemini, and Claude Code integration files.", "Keeping AI assistants aligned"],
       ["aigate release-check", "Check package, workflow, and tag readiness.", "Before creating a release tag"],
       ["aigate release-check --npm", "Check whether the version exists on npm.", "Before and after automated publishing"],
       ["aigate audit-report", "Summarize governance and policy posture.", "Operational audit and public readiness"],
@@ -293,7 +293,7 @@ const locales = {
       "Compliance reports and a local HTML health dashboard",
       "Project scoring and deep Git signal evaluation",
       "Branch strategy recommendations, proposal comparison, and policy pack generation",
-      "Codex/Gemini integration file generation",
+      "Codex/Gemini/Claude Code integration file generation",
       "Korean/English/Japanese/Chinese CLI settings",
       "release-check and release-check --npm",
       "Automated npm releases through Trusted Publishing",
@@ -325,7 +325,7 @@ const locales = {
     summary: [
       "AIGate は、ローカル変更、secret リスク、プロジェクト基盤スコア、PR 準備状況、リリース準備状況を確認する CLI です。",
       "パッケージは npm で aigate-cli として公開されており、GitHub tag と npm Trusted Publishing による自動リリースが可能です。",
-      "Codex と Gemini が同じリポジトリ規則を守れるように、AI assistant 向け統合ファイルも生成できます。"
+      "Codex、Gemini、Claude Code が同じリポジトリ規則を守れるように、AI assistant 向け統合ファイルも生成できます。"
     ],
     installTitle: "インストールとクイックスタート",
     installCaption: "グローバルインストールなしでも npx ですぐに実行できます。",
@@ -391,7 +391,7 @@ const locales = {
       ["aigate branch-strategy", "チームとリリース頻度に合うブランチ戦略を推薦します。", "ブランチポリシー設計"],
       ["aigate branch-strategy --compare", "複数のブランチ戦略提案をスコア、強み、リスク、移行手順で比較します。", "チームに合うブランチモデルを選ぶとき"],
       ["aigate branch-strategy --apply", "ブランチポリシー、release、hotfix、PR、CODEOWNERS、ポリシーパックの草案を生成します。", "ポリシーファイル作成時"],
-      ["aigate integrate all", "Codex と Gemini 統合ファイルを生成します。", "AI assistant の規則をそろえるとき"],
+      ["aigate integrate all", "Codex、Gemini、Claude Code 統合ファイルを生成します。", "AI assistant の規則をそろえるとき"],
       ["aigate release-check", "パッケージ、workflow、tag の準備状態を確認します。", "リリース tag 作成前"],
       ["aigate release-check --npm", "該当バージョンが npm に存在するか確認します。", "自動公開の前後"],
       ["aigate audit-report", "ガバナンスとポリシー状態を要約します。", "運用監査と公開準備レビュー"],
@@ -438,7 +438,7 @@ const locales = {
       "コンプライアンスレポートとローカル HTML ヘルスダッシュボード",
       "プロジェクトスコアと deep Git signal 評価",
       "ブランチ戦略推薦、提案比較、ポリシーパック生成",
-      "Codex/Gemini 統合ファイル生成",
+      "Codex/Gemini/Claude Code 統合ファイル生成",
       "韓国語/英語/日本語/中国語 CLI 設定",
       "release-check と release-check --npm",
       "Trusted Publishing による npm 自動リリース",
@@ -470,7 +470,7 @@ const locales = {
     summary: [
       "AIGate 是一个 CLI，用于检查本地变更、secret 风险、项目基础分、PR 就绪状态和发布就绪状态。",
       "包已经以 aigate-cli 发布到 npm，并且可以通过 GitHub tag 和 npm Trusted Publishing 自动发布。",
-      "它还可以生成 Codex 和 Gemini 集成文件，让 AI assistant 遵循同一套仓库规则。"
+      "它还可以生成 Codex、Gemini、Claude Code 集成文件，让 AI assistant 遵循同一套仓库规则。"
     ],
     installTitle: "安装与快速开始",
     installCaption: "也可以不全局安装，直接通过 npx 运行。",
@@ -536,7 +536,7 @@ const locales = {
       ["aigate branch-strategy", "按团队和发布节奏推荐分支策略。", "设计分支政策"],
       ["aigate branch-strategy --compare", "按分数、优势、风险和迁移步骤比较多个分支策略提案。", "选择适合团队的分支模型时"],
       ["aigate branch-strategy --apply", "生成分支政策、release、hotfix、PR、CODEOWNERS 和政策包草案。", "创建政策文件时"],
-      ["aigate integrate all", "生成 Codex 和 Gemini 集成文件。", "让 AI assistant 保持一致规则"],
+      ["aigate integrate all", "生成 Codex、Gemini、Claude Code 集成文件。", "让 AI assistant 保持一致规则"],
       ["aigate release-check", "检查包、workflow 和 tag 准备状态。", "创建发布 tag 前"],
       ["aigate release-check --npm", "检查该版本是否存在于 npm。", "自动发布前后"],
       ["aigate audit-report", "汇总治理和政策状态。", "运维审计和公开准备"],
@@ -583,7 +583,7 @@ const locales = {
       "合规报告和本地 HTML 健康仪表盘",
       "项目分数和 deep Git signal 评估",
       "分支策略推荐、提案比较和政策包生成",
-      "Codex/Gemini 集成文件生成",
+      "Codex/Gemini/Claude Code 集成文件生成",
       "韩语/英语/日语/中文 CLI 设置",
       "release-check 和 release-check --npm",
       "基于 Trusted Publishing 的 npm 自动发布",

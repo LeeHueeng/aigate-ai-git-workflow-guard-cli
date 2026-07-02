@@ -290,7 +290,7 @@ footer p + p { margin-top: 6px; }
     <p class="eyebrow">开源 AI Git Workflow Guard CLI</p>
     <h1>AIGate 运维说明</h1>
     <p class="subtitle">这份 HTML 文档说明 AIGate 的运行流程、全部命令、当前已实现能力以及未来规划。</p>
-    <div class="badges"><span>npm 已发布</span><span>Trusted Publishing</span><span>GitHub Release</span><span>CLI v0.1.3</span></div>
+    <div class="badges"><span>npm 已发布</span><span>Trusted Publishing</span><span>GitHub Release</span><span>CLI v0.1.4</span></div>
   </header>
 
   <main>
@@ -300,7 +300,7 @@ footer p + p { margin-top: 6px; }
         <h2>目前已经完成的内容</h2>
       </div>
       <div class="summary-grid">
-        <article class="panel"><p>AIGate 是一个 CLI，用于检查本地变更、secret 风险、项目基础分、PR 就绪状态和发布就绪状态。</p></article><article class="panel"><p>包已经以 aigate-cli 发布到 npm，并且可以通过 GitHub tag 和 npm Trusted Publishing 自动发布。</p></article><article class="panel"><p>它还可以生成 Codex 和 Gemini 集成文件，让 AI assistant 遵循同一套仓库规则。</p></article>
+        <article class="panel"><p>AIGate 是一个 CLI，用于检查本地变更、secret 风险、项目基础分、PR 就绪状态和发布就绪状态。</p></article><article class="panel"><p>包已经以 aigate-cli 发布到 npm，并且可以通过 GitHub tag 和 npm Trusted Publishing 自动发布。</p></article><article class="panel"><p>它还可以生成 Codex、Gemini、Claude Code 集成文件，让 AI assistant 遵循同一套仓库规则。</p></article>
       </div>
       <div class="install-panel">
         <div>
@@ -655,7 +655,7 @@ npx aigate-cli check</code></pre>
     <td>创建政策文件时</td>
   </tr><tr>
     <td><code>aigate integrate all</code></td>
-    <td>生成 Codex 和 Gemini 集成文件。</td>
+    <td>生成 Codex、Gemini、Claude Code 集成文件。</td>
     <td>让 AI assistant 保持一致规则</td>
   </tr><tr>
     <td><code>aigate release-check</code></td>
@@ -716,7 +716,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">功能</p>
         <h2>当前已实现功能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">通过 doctor、demo、install-hook 提供首次运行体验</div><div class="feature done">pre-push Git hook 安装</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">GitHub PR comment 和 GitHub Checks summary payload</div><div class="feature done">PR 模板和 CODEOWNERS 引导式设置</div><div class="feature done">可复用的公开 GitHub Action</div><div class="feature done">项目状态趋势历史</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">合规报告和本地 HTML 健康仪表盘</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐、提案比较和政策包生成</div><div class="feature done">Codex/Gemini 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow 和 Homebrew formula draft</div></div>
+      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">通过 doctor、demo、install-hook 提供首次运行体验</div><div class="feature done">pre-push Git hook 安装</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">GitHub PR comment 和 GitHub Checks summary payload</div><div class="feature done">PR 模板和 CODEOWNERS 引导式设置</div><div class="feature done">可复用的公开 GitHub Action</div><div class="feature done">项目状态趋势历史</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">合规报告和本地 HTML 健康仪表盘</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐、提案比较和政策包生成</div><div class="feature done">Codex/Gemini/Claude Code 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow 和 Homebrew formula draft</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -730,7 +730,7 @@ aigate release-check --npm</code></pre>
 
   <footer>
     <p>本文档说明 AIGate 公开发布后的运行状态。</p>
-    <p>Generated 2026-07-02. Package version 0.1.3.</p>
+    <p>Generated 2026-07-02. Package version 0.1.4.</p>
   </footer>
 </body>
 </html>

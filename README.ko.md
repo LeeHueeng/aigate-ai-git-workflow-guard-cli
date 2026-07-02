@@ -18,7 +18,7 @@ zero-config pre-push safety CLI입니다.
 - `git push` 전에 준비 상태를 설명해주는 명령 하나가 필요하다.
 - 공개 패키지를 운영하며 PR, 릴리스, 저장소 건강도 신호가 필요하다.
 - Markdown, HTML, JSON, SARIF 출력이 로컬과 CI 모두에서 필요하다.
-- Codex와 Gemini가 사람과 같은 브랜치/검증 workflow를 따르게 만들고 싶다.
+- Codex, Gemini, Claude Code가 사람과 같은 브랜치/검증 workflow를 따르게 만들고 싶다.
 
 ## 60초 빠른 시작
 
@@ -64,7 +64,7 @@ aigate pr-check
 | 브랜치 전략 정책 팩 | `aigate branch-strategy --apply` |
 | 브랜치 전략 제안 비교 | `aigate branch-strategy --compare` |
 | npm 릴리스 준비 확인 | `aigate release-check --npm` |
-| Codex/Gemini 연동 파일 생성 | `aigate integrate all` |
+| Codex/Gemini/Claude 연동 파일 생성 | `aigate integrate all` |
 
 ## 다른 도구와의 차이
 
@@ -117,7 +117,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
         with:
           command: git-ready
           language: ko
@@ -132,7 +132,7 @@ Marketplace 등록값:
 - Action name: `AIGate AI Git Workflow Guard CLI`
 - 주요 카테고리: `Code quality`
 - 보조 카테고리: `Security`
-- 릴리스 제목: `AIGate AI Git Workflow Guard CLI v0.1.3`
+- 릴리스 제목: `AIGate AI Git Workflow Guard CLI v0.1.4`
 
 ## AI 에이전트 연동
 
@@ -140,8 +140,9 @@ Marketplace 등록값:
 aigate integrate all
 ```
 
-이 명령은 `AGENTS.md`, `GEMINI.md`, `.aigate/integrations/*`를 생성해서
-Codex와 Gemini가 같은 브랜치, 검증, guarded push 규칙을 따르게 합니다.
+이 명령은 `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`,
+`.aigate/integrations/*`를 생성해서 Codex, Gemini, Claude Code가 같은
+브랜치, 검증, guarded push 규칙을 따르게 합니다.
 
 ## 문서 바로가기
 

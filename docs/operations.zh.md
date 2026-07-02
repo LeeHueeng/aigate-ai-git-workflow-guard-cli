@@ -83,7 +83,7 @@ aigate release-check --npm
 - project score 和 deep Git signal evaluation
 - 通过 `aigate trends` 记录项目状态趋势历史
 - 分支策略推荐、提案比较和政策包生成
-- Codex/Gemini integration file generation
+- Codex/Gemini/Claude Code integration file generation
 - 英语、韩语、日语、中文 CLI settings
 - release-check 和 npm Trusted Publishing workflow
 - Terminal、Slack BLOCK、Discord、Teams、email、Linear、Jira notifications

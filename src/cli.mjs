@@ -11,7 +11,7 @@ const CLI_DIR = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = dirname(CLI_DIR);
 const VERSION = readPackageVersion();
 const SUPPORTED_LANGUAGES = ["en", "ko", "ja", "zh"];
-const SUPPORTED_INTEGRATIONS = ["codex", "gemini"];
+const SUPPORTED_INTEGRATIONS = ["codex", "gemini", "claude"];
 const DEFAULT_SETTINGS = {
   version: 1,
   language: "en"
@@ -896,7 +896,7 @@ const HELP_CONTENT = {
       ["install-hook", "Install AIGate Git hooks."],
       ["setup", "Configure AIGate project settings."],
       ["settings", "Show current AIGate settings."],
-      ["integrate <provider>", "Generate Codex/Gemini assistant integration files."],
+      ["integrate <provider>", "Generate Codex/Gemini/Claude assistant integration files."],
       ["report", "Print a workflow report."],
       ["evaluate-project", "Score repository workflow foundations."],
       ["score", "Print only the project score."],
@@ -964,7 +964,7 @@ const HELP_CONTENT = {
       ["install-hook", "AIGate Git hook을 설치합니다."],
       ["setup", "AIGate 프로젝트 설정을 구성합니다."],
       ["settings", "현재 AIGate 설정을 표시합니다."],
-      ["integrate <provider>", "Codex/Gemini 어시스턴트 연동 파일을 생성합니다."],
+      ["integrate <provider>", "Codex/Gemini/Claude 어시스턴트 연동 파일을 생성합니다."],
       ["report", "워크플로 리포트를 출력합니다."],
       ["evaluate-project", "저장소 워크플로 기반 점수를 계산합니다."],
       ["score", "프로젝트 점수만 출력합니다."],
@@ -1032,7 +1032,7 @@ const HELP_CONTENT = {
       ["install-hook", "AIGate Git hook をインストールします。"],
       ["setup", "AIGate プロジェクト設定を構成します。"],
       ["settings", "現在の AIGate 設定を表示します。"],
-      ["integrate <provider>", "Codex/Gemini アシスタント連携ファイルを生成します。"],
+      ["integrate <provider>", "Codex/Gemini/Claude アシスタント連携ファイルを生成します。"],
       ["report", "ワークフローレポートを出力します。"],
       ["evaluate-project", "リポジトリのワークフロー基盤を採点します。"],
       ["score", "プロジェクトスコアのみ出力します。"],
@@ -1100,7 +1100,7 @@ const HELP_CONTENT = {
       ["install-hook", "安装 AIGate Git hook。"],
       ["setup", "配置 AIGate 项目设置。"],
       ["settings", "显示当前 AIGate 设置。"],
-      ["integrate <provider>", "生成 Codex/Gemini 助手集成文件。"],
+      ["integrate <provider>", "生成 Codex/Gemini/Claude 助手集成文件。"],
       ["report", "输出工作流报告。"],
       ["evaluate-project", "评估仓库工作流基础分。"],
       ["score", "仅输出项目分数。"],
@@ -4757,6 +4757,19 @@ function buildIntegrationFiles(providers, outputDir, manifest, language = "en") 
     );
   }
 
+  if (providers.includes("claude")) {
+    files.push(
+      {
+        path: join(outputDir, "CLAUDE.md"),
+        content: renderClaudeInstructions(language)
+      },
+      {
+        path: join(outputDir, ".aigate", "integrations", "claude.md"),
+        content: renderProviderInstructions("Claude Code", language)
+      }
+    );
+  }
+
   return files;
 }
 
@@ -4884,6 +4897,16 @@ function renderGeminiInstructions(language = "en") {
   ].join("\n") + "\n";
 }
 
+function renderClaudeInstructions(language = "en") {
+  return [
+    language === "ko" ? "# AIGate Claude Code 지침" : language === "ja" ? "# AIGate Claude Code 指示" : language === "zh" ? "# AIGate Claude Code 指令" : "# AIGate Claude Code Instructions",
+    "",
+    providerIntro("Claude Code", language),
+    "",
+    ...renderSharedAssistantInstructions(language)
+  ].join("\n") + "\n";
+}
+
 function renderProviderInstructions(providerName, language = "en") {
   return [
     language === "ko" ? `# ${providerName} 연동` : language === "ja" ? `# ${providerName} 連携` : language === "zh" ? `# ${providerName} 集成` : `# ${providerName} Integration`,
@@ -4954,7 +4977,7 @@ function renderSharedAssistantInstructions(language = "en") {
       "- 대상은 `main`입니다.",
       "- 요약, 이유, 검증, 릴리스 영향을 포함합니다.",
       "- 필수 검사: `test (20)`, `test (22)`.",
-      "- 리뷰 승인과 대화 해결을 기다린 뒤 병합합니다."
+      "- 저장소의 현재 review 정책을 따르고 대화를 해결한 뒤 병합합니다."
     ];
   }
 
@@ -5001,7 +5024,7 @@ function renderSharedAssistantInstructions(language = "en") {
       "- 対象は `main` です。",
       "- 概要、理由、検証、リリース影響を含めます。",
       "- 必須チェック: `test (20)`, `test (22)`.",
-      "- レビュー承認と会話解決を待ってからマージします。"
+      "- リポジトリの現在の review policy に従い、会話を解決してからマージします。"
     ];
   }
 
@@ -5048,7 +5071,7 @@ function renderSharedAssistantInstructions(language = "en") {
       "- 目标分支是 `main`。",
       "- 包含摘要、原因、验证和发布影响。",
       "- 必需检查: `test (20)`, `test (22)`。",
-      "- 等待评审批准和对话解决后再合并。"
+      "- 遵循仓库当前 review policy，并在解决对话后再合并。"
     ];
   }
 

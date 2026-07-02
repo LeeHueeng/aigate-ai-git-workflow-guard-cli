@@ -3,7 +3,7 @@
 [English](usage.md) | [한국어](usage.ko.md) | [日本語](usage.ja.md) | [中文](usage.zh.md)
 
 本指南匹配当前 `aigate-cli` 结构。可用于在现有仓库中运行 AIGate、接入
-GitHub，或把同一套工作流交给 Codex/Gemini。
+GitHub，或把同一套工作流交给 Codex/Gemini/Claude Code。
 
 ## 安装或直接运行
 
@@ -113,7 +113,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
         with:
           command: git-ready
           language: zh
@@ -125,12 +125,13 @@ jobs:
 aigate integrate all
 aigate integrate codex
 aigate integrate gemini
+aigate integrate claude
 aigate integrate all --output-dir . --force
 ```
 
-该命令会创建 `AGENTS.md`、`GEMINI.md` 和 `.aigate/integrations/*`。这些文件
-会告诉 Codex 和 Gemini 使用范围明确的 branch、validation commands 和
-`aigate push`。
+该命令会创建 `AGENTS.md`、`GEMINI.md`、`CLAUDE.md` 和
+`.aigate/integrations/*`。这些文件会告诉 Codex、Gemini、Claude Code 使用
+范围明确的 branch、validation commands 和 `aigate push`。
 
 ## 分支策略和发布
 
@@ -182,7 +183,7 @@ aigate git-ready --notify-channel terminal
 | `aigate install-hook` | 安装 Git hooks。 |
 | `aigate setup` | 创建 config、settings、reports 和 AI guide files。 |
 | `aigate settings` | 查看或修改语言等 AIGate 设置。 |
-| `aigate integrate <provider>` | 生成 Codex/Gemini integration files。 |
+| `aigate integrate <provider>` | 生成 Codex/Gemini/Claude integration files。 |
 | `aigate report` | 输出 Markdown、HTML、JSON、SARIF reports。 |
 | `aigate evaluate-project` | 为 repository foundation 和 Git signals 打分。 |
 | `aigate score` | 输出当前 project score。 |

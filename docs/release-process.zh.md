@@ -11,7 +11,7 @@ AIGate 发布由标签驱动。创建版本标签前，`main` 必须处于可发
 3. 运行 `npm run ci`。
 4. 运行 `aigate release-check --npm`。
 5. 以 `dry_run=true` 运行 Release workflow。
-6. 创建并推送匹配的标签，例如 `v0.1.3`。
+6. 创建并推送匹配的标签，例如 `v0.1.4`。
 7. 使用 `npm view aigate-cli version` 确认 npm 发布。
 8. 创建或更新 GitHub Release notes。
 9. 如果发布 Action，请在 release 页面启用 GitHub Marketplace publish option。

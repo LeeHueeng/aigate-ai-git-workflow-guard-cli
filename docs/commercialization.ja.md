@@ -25,7 +25,7 @@ open source CLI に含めるもの:
 - lightweight secret scanning
 - Markdown, HTML, JSON, SARIF reports
 - branch strategy recommendations
-- Codex and Gemini assistant instructions
+- Codex, Gemini, Claude Code assistant instructions
 - terminal and webhook notification basics
 
 ## Paid product direction
