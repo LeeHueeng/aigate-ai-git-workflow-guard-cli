@@ -63,6 +63,7 @@ aigate pr-check
 | 새 저장소에 도입 | 기본 AIGate 파일을 단계별로 만들고 pre-push 보호를 설치합니다. | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
 | AI가 파일을 많이 변경 | 변경 경로를 확인하고 테스트를 돌린 뒤 실패 내용을 AI 수정 프롬프트로 만듭니다. | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
 | PR 직전 | gate를 통과시키고 AIGate로 push한 뒤 리뷰어가 볼 요약을 만듭니다. | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| private GitLab 모노레포 | 프로필을 고정하고 turbo 실행기 감지 후 workspace 테스트를 대체 실행하며 GitHub/npm 패키지 검사를 앱 점수에서 제외합니다. | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
 | 오픈소스 공개 | 공개 기여 파일을 만들고 저장소 기반을 점검합니다. | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
 | 릴리스 주간 | npm과 tag 준비 상태를 확인하고 CI 후 추세를 기록합니다. | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
 
@@ -78,7 +79,7 @@ aigate pr-check
 | 생성된 로컬 리포트와 상태 삭제 | `aigate clean --force` |
 | AIGate 설정, 로컬 상태, 소유 hook 제거 | `aigate uninstall --force` |
 | 공개 저장소 README, 이슈 템플릿, 기여 파일 생성 | `aigate start --route oss` |
-| 프로젝트 테스트 실행 | `aigate test` |
+| turbo 실행기 감지와 workspace 테스트 대체 실행 | `aigate test` |
 | AI 수정 프롬프트와 선택적 에이전트 실행 | `aigate aitest` |
 | 현재 문제점, 잘된 점, 방향성을 정리한 AI 리포트 | `aigate ai report` |
 | 첫 실행 환경 진단 | `aigate doctor` |
@@ -95,7 +96,7 @@ aigate pr-check
 | 컴플라이언스 통제 리포트 | `aigate compliance-report` |
 | 로컬 HTML 상태 대시보드 | `aigate dashboard` |
 | 프로젝트 상태 추세 기록 | `aigate trends record` |
-| private 앱, GitLab, pnpm 자동 감지와 설정 고정 | `aigate setup --hosting gitlab` |
+| private 앱, GitLab, pnpm 자동 감지와 npm 패키지 검사 제외 | `aigate setup --hosting gitlab` |
 | 브랜치 전략 정책 팩 | `aigate branch-strategy --apply` |
 | 브랜치 전략 제안 비교 | `aigate branch-strategy --compare` |
 | npm 릴리스 준비 확인 | `aigate release-check --npm` |

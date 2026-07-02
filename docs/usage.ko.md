@@ -123,8 +123,10 @@ aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --as
 `package.json` workspaces, 그리고 흔한 `apps/*` 또는 `packages/*` workspace
 패키지를 탐색합니다. 감지된 package manager(`npm`, `pnpm`, `yarn`, `bun`)를
 사용하며 `pnpm turbo run test` 또는 `pnpm -r run test` 같은 명령을 실행할 수
-있습니다. 프로젝트마다 다른 검사 명령을 쓰면 `--script` 또는 `--command`로
-직접 지정합니다.
+있습니다. `turbo` task는 package metadata에 `turbo`가 선언되어 있거나
+`node_modules/.bin`에서 실행기를 찾을 수 있을 때만 선택하고, 없으면
+`pnpm -r run test` 같은 workspace script로 대체 실행합니다. 프로젝트마다 다른
+검사 명령을 쓰면 `--script` 또는 `--command`로 직접 지정합니다.
 
 `aigate aitest`는 실패 요약, 테스트 출력, AI 수정 지시를
 `.aigate/reports/ai-test.md`에 작성합니다. 기본값은 코드를 수정하지 않는
@@ -229,8 +231,10 @@ npm 배포 상태가 준비됐는지 확인합니다.
 AIGate는 저장소 프로필을 자동 감지합니다: app/package, private/public,
 GitHub/GitLab, npm/pnpm/yarn/bun, workspace 테스트 신호. private GitLab pnpm
 앱에서는 GitHub 전용, 공개 OSS 거버넌스, npm 공개 배포 항목을 `할 일`이 아니라
-`해당 없음`으로 표시합니다. 저장소를 npm 배포 패키지로 강제 검사해야 할 때만
-`--project-type package`를 사용하세요.
+package version 릴리스 gate까지 `해당 없음`으로 표시합니다. 그래서 내부 앱에
+package release version이 없어도 `release-check --npm`이 차단하지 않습니다.
+저장소를 npm 배포 패키지로 강제 검사해야 할 때만 `--project-type package`를
+사용하세요.
 
 `aigate doctor`는 생성된 AIGate 파일이 오래된 CLI로 만들어졌는지도 경고합니다.
 예를 들어 현재 CLI가 `0.1.6`인데 `generatedBy: aigate 0.1.1`이 남아 있으면

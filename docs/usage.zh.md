@@ -122,7 +122,9 @@ aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --as
 `package.json` workspaces，以及常见的 `apps/*` 或 `packages/*` workspace
 packages。它会使用检测到的 package manager (`npm`, `pnpm`, `yarn`, `bun`)，
 并可运行 `pnpm turbo run test` 或 `pnpm -r run test` 等命令。如果项目使用
-自定义检查命令，请用 `--script` 或 `--command` 指定。
+自定义检查命令，请用 `--script` 或 `--command` 指定。只有在 package metadata
+中声明了 `turbo`，或能在 `node_modules/.bin` 找到 runner 时，AIGate 才会选择
+`turbo` task；否则会自动回退到 `pnpm -r run test` 等 workspace script。
 
 `aigate aitest` 会把失败摘要、测试输出和 AI 修复提示写入
 `.aigate/reports/ai-test.md`。默认不会修改代码。只有在需要调用 Codex、
@@ -224,8 +226,9 @@ provenance 和 npm 发布状态是否就绪。
 AIGate 会自动检测仓库配置: app/package、private/public、GitHub/GitLab、
 npm/pnpm/yarn/bun，以及 workspace test 信号。对于 private GitLab pnpm app，
 GitHub 专用项、public OSS governance 和 npm 公开发布项会显示为 `不适用`，
-不会算作 `待办`。只有需要把仓库强制视为可发布 npm 包时，才使用
-`--project-type package`。
+package version release gate 也会显示为 `不适用`，不会算作 `待办`。因此内部
+app 即使没有 package release version，`release-check --npm` 也不会阻塞。只有
+需要把仓库强制视为可发布 npm 包时，才使用 `--project-type package`。
 
 `aigate doctor` 也会在生成的 AIGate 文件来自旧 CLI 时发出警告。例如当前 CLI 是
 `0.1.6`，但仍有 `generatedBy: aigate 0.1.1`，请用 `aigate init --force` 和

@@ -123,8 +123,10 @@ aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --as
 `package.json` workspaces、一般的な `apps/*` または `packages/*` workspace
 package を探索します。検出した package manager (`npm`, `pnpm`, `yarn`,
 `bun`) を使い、`pnpm turbo run test` や `pnpm -r run test` のような command
-も実行できます。独自の検証コマンドを使う場合は `--script` または
-`--command` で指定します。
+も実行できます。`turbo` task は package metadata に `turbo` が宣言されているか
+`node_modules/.bin` に runner がある場合だけ選択し、見つからない場合は
+`pnpm -r run test` などの workspace script に切り替えます。独自の検証
+コマンドを使う場合は `--script` または `--command` で指定します。
 
 `aigate aitest` は失敗サマリー、テスト出力、AI 修正指示を
 `.aigate/reports/ai-test.md` に書き込みます。既定ではコードを変更しません。
@@ -230,8 +232,10 @@ npm 公開状態が準備できているか確認します。
 AIGate は repository profile を自動検出します: app/package、private/public、
 GitHub/GitLab、npm/pnpm/yarn/bun、workspace test signal。private GitLab
 pnpm app では、GitHub 専用、public OSS governance、npm 公開項目を `未対応`
-ではなく `対象外` として表示します。npm 公開 package として強制的に検査したい
-場合だけ `--project-type package` を使います。
+ではなく、package version の release gate も含めて `対象外` として表示します。
+そのため内部 app に package release version がなくても `release-check --npm`
+はブロックしません。npm 公開 package として強制的に検査したい場合だけ
+`--project-type package` を使います。
 
 `aigate doctor` は、生成済み AIGate files が古い CLI で作成された場合も警告
 します。たとえば現在の CLI が `0.1.6` で `generatedBy: aigate 0.1.1` が残って

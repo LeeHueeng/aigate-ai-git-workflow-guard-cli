@@ -63,6 +63,7 @@ aigate pr-check
 | 接入新仓库 | 逐步创建 AIGate 基础文件，然后安装 pre-push guard。 | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
 | AI 修改了很多文件 | 检查 changed paths，运行测试，并把失败内容整理成 AI 修复提示。 | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
 | PR 即将提交 | 通过 gate，经 AIGate push，再生成 reviewer 摘要。 | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| private GitLab monorepo | 固定 profile，检测 turbo runner 后自动回退到 workspace tests，并把 GitHub/npm 包检查排除在 app 评分外。 | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
 | 开源发布 | 生成公开贡献文件，并检查仓库基础。 | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
 | 发布周 | 检查 npm 和 tag readiness，运行 CI 后记录趋势。 | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
 
@@ -78,7 +79,7 @@ aigate pr-check
 | 删除生成的本地报告和状态 | `aigate clean --force` |
 | 移除 AIGate 配置、本地状态和自有 hook | `aigate uninstall --force` |
 | 公开仓库 README、issue 模板和贡献文件生成 | `aigate start --route oss` |
-| 项目测试运行器 | `aigate test` |
+| 检测 turbo runner 并回退到 workspace test | `aigate test` |
 | AI 修复提示和可选 agent 执行 | `aigate aitest` |
 | 汇总当前问题、做得好的部分和方向的 AI 报告 | `aigate ai report` |
 | 首次运行诊断 | `aigate doctor` |
@@ -95,7 +96,7 @@ aigate pr-check
 | 合规控制报告 | `aigate compliance-report` |
 | 本地 HTML 健康仪表盘 | `aigate dashboard` |
 | 项目状态趋势历史 | `aigate trends record` |
-| 自动检测并固定 private app、GitLab 和 pnpm 配置 | `aigate setup --hosting gitlab` |
+| 自动检测 private app、GitLab、pnpm，并排除 npm 包检查 | `aigate setup --hosting gitlab` |
 | 分支策略政策包 | `aigate branch-strategy --apply` |
 | 分支策略提案比较 | `aigate branch-strategy --compare` |
 | npm release readiness check | `aigate release-check --npm` |

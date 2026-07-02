@@ -64,6 +64,7 @@ aigate pr-check
 | 新しいリポジトリに導入 | AIGate の基本ファイルを段階的に作成し、pre-push guard をインストールします。 | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
 | AI が多くのファイルを変更 | 変更パスを確認し、テストを実行して、失敗内容を AI 修正プロンプトにします。 | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
 | PR 直前 | gate を通し、AIGate 経由で push し、reviewer 向けの要約を作成します。 | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| private GitLab monorepo | profile を固定し、turbo 実行環境を確認して workspace test に切り替え、GitHub/npm パッケージ検査を app score から外します。 | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
 | オープンソース公開 | 公開貢献ファイルを作成し、リポジトリ基盤を確認します。 | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
 | リリース週 | npm と tag の準備状態を確認し、CI 後にトレンドを記録します。 | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
 
@@ -79,7 +80,7 @@ aigate pr-check
 | 生成済みローカルレポートと状態を削除 | `aigate clean --force` |
 | AIGate 設定、ローカル状態、所有 hook を削除 | `aigate uninstall --force` |
 | 公開リポジトリ README、issue テンプレート、貢献ファイル生成 | `aigate start --route oss` |
-| プロジェクト test 実行 | `aigate test` |
+| turbo 実行環境の確認と workspace test への切り替え | `aigate test` |
 | AI 修正プロンプトと任意の agent 実行 | `aigate aitest` |
 | 現在の問題、良い点、方向性をまとめる AI レポート | `aigate ai report` |
 | 初回実行 diagnostics | `aigate doctor` |
@@ -96,7 +97,7 @@ aigate pr-check
 | コンプライアンス統制レポート | `aigate compliance-report` |
 | ローカル HTML ヘルスダッシュボード | `aigate dashboard` |
 | プロジェクト状態トレンド履歴 | `aigate trends record` |
-| private app、GitLab、pnpm の自動検出と profile 固定 | `aigate setup --hosting gitlab` |
+| private app、GitLab、pnpm の自動検出と npm パッケージ検査の除外 | `aigate setup --hosting gitlab` |
 | ブランチ戦略ポリシーパック | `aigate branch-strategy --apply` |
 | ブランチ戦略提案の比較 | `aigate branch-strategy --compare` |
 | npm release readiness check | `aigate release-check --npm` |

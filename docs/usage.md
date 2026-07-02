@@ -125,8 +125,10 @@ Detection checks root scripts, `turbo.json` tasks, `pnpm-workspace.yaml`,
 `package.json` workspaces, and common `apps/*` or `packages/*` workspace
 packages. It uses the detected package manager (`npm`, `pnpm`, `yarn`, or
 `bun`) and can run commands such as `pnpm turbo run test` or
-`pnpm -r run test`. Use `--script` or `--command` when a project has a custom
-check command.
+`pnpm -r run test`. Turbo tasks are selected only when `turbo` is declared in
+package metadata or available in `node_modules/.bin`; otherwise AIGate falls
+back to workspace scripts such as `pnpm -r run test`. Use `--script` or
+`--command` when a project has a custom check command.
 
 `aigate aitest` writes `.aigate/reports/ai-test.md` with the failure summary,
 test output, and a focused repair prompt for Codex, Claude, or Gemini. It does
@@ -232,8 +234,10 @@ provenance, and npm publication state are ready.
 AIGate auto-detects repository profile signals: app vs package, private vs
 public, GitHub vs GitLab, npm/pnpm/yarn/bun, and workspace test signals. For a
 private GitLab pnpm app, GitHub-only, public OSS governance, and npm-publication
-checks are marked `N/A` instead of `TODO`. Use `--project-type package` only
-when a repository should be treated as a publishable npm package.
+checks, including package-version release gates, are marked `N/A` instead of
+`TODO`. Internal apps without a package release version are therefore not
+blocked by `release-check --npm`. Use `--project-type package` only when a
+repository should be treated as a publishable npm package.
 
 `aigate doctor` also warns when generated AIGate files were created by an older
 CLI version, for example `generatedBy: aigate 0.1.1` while the current CLI is
