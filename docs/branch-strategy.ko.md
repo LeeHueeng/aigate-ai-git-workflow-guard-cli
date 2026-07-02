@@ -59,8 +59,8 @@ chore: initialize public repository metadata
 `main`에는 다음 branch protection을 둡니다.
 
 - merge 전 pull request 필수
-- 최소 1 approval
-- CODEOWNERS가 있으면 matching owner review
+- 기본값으로 필수 approval 요구 안 함
+- 저장소 정책상 필요할 때 maintainer 또는 CODEOWNER review 활성화
 - required status checks 통과
 - conversation resolution 필수
 - force push 차단

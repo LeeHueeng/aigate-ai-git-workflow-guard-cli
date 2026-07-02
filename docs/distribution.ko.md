@@ -18,7 +18,7 @@ npx aigate-cli check
 첫 공개 release는 npm에 올라가 있습니다.
 
 - Package: <https://www.npmjs.com/package/aigate-cli>
-- Latest tagged public release: `v0.1.0`
+- Latest tagged public release: `v0.1.2`
 - Current repository package version: `package.json`, `CHANGELOG.md` 참고
 - Trusted Publishing: GitHub Actions `release.yml`
 

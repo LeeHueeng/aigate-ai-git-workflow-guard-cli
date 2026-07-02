@@ -89,6 +89,6 @@ aigate pr --title "feat: short summary"
 Do not merge until:
 
 - the `test (20)` and `test (22)` CI jobs pass
-- at least one approval exists
-- review conversations are resolved
+- the repository's current review policy is followed
+- review conversations are resolved when review is used
 - the branch has no unrelated changes

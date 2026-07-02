@@ -6,6 +6,7 @@
 
 | 주제 | English | 한국어 | 日本語 | 中文 |
 | --- | --- | --- | --- | --- |
+| 사용 가이드 | [en](usage.md) | [ko](usage.ko.md) | [ja](usage.ja.md) | [zh](usage.zh.md) |
 | 운영 문서 | [en](operations.en.md) | [ko](operations.ko.md) | [ja](operations.ja.md) | [zh](operations.zh.md) |
 | AI 연동 | [en](ai-integrations.md) | [ko](ai-integrations.ko.md) | [ja](ai-integrations.ja.md) | [zh](ai-integrations.zh.md) |
 | 브랜치 전략 | [en](branch-strategy.md) | [ko](branch-strategy.ko.md) | [ja](branch-strategy.ja.md) | [zh](branch-strategy.zh.md) |

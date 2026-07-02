@@ -137,6 +137,7 @@ aigate integrate all
 ## 文档
 
 - [多语言文档索引](docs/README.zh.md)
+- [中文使用指南](docs/usage.zh.md)
 - [中文运维说明](docs/operations.zh.md)
 - [Tool comparison](docs/comparison.zh.md)
 - [English operations guide](docs/operations.en.md)

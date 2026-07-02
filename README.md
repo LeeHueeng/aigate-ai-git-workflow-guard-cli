@@ -201,6 +201,7 @@ distributed:
 
 ## Documentation
 
+- [Usage guide](docs/usage.md)
 - [Distribution guide](docs/distribution.md)
 - [Tool comparison](docs/comparison.md)
 - [Notifications guide](docs/notifications.md)

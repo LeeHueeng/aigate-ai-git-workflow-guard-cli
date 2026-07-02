@@ -49,7 +49,7 @@
 - [x] 确认 `aigate-cli` 的 npm access
 - [x] 为此 GitHub repository 配置 npm Trusted Publisher
 - [x] 运行 `aigate release-check`
-- [x] 发布首个版本 `0.1.0`
-- [x] 创建 GitHub release tag `v0.1.0`
+- [x] 发布 npm package，当前公开版本是 `0.1.2`
+- [x] 创建 GitHub release tag 至 `v0.1.2`
 - [x] publish 后确认 `npm view aigate-cli`
 - [x] 后续 release 关联 changelog entry 和 tagged GitHub Release

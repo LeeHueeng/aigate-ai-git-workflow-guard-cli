@@ -1001,6 +1001,8 @@ test("generates branch strategy policy drafts", () => {
   const branchProtection = JSON.parse(readFileSync(join(outputDir, ".aigate", "policy-packs", "branch-protection.json"), "utf8"));
   assert.equal(branchProtection.id, "branch-protection");
   assert.ok(branchProtection.requiredChecks.includes("aigate git-ready"));
+  const reviewRule = branchProtection.rules.find((rule) => rule.id === "review-policy");
+  assert.equal(reviewRule.minimumApprovals, 0);
 
   const aiCollaboration = JSON.parse(readFileSync(join(outputDir, ".aigate", "policy-packs", "ai-collaboration.json"), "utf8"));
   assert.ok(aiCollaboration.assistantBranches.includes("codex/*"));

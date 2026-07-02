@@ -8,6 +8,7 @@ const rootDir = dirname(dirname(fileURLToPath(import.meta.url)));
 const requiredGroups = [
   ["README", ["README.md", "README.ko.md", "README.ja.md", "README.zh.md"]],
   ["docs index", ["docs/README.md", "docs/README.ko.md", "docs/README.ja.md", "docs/README.zh.md"]],
+  ["usage", ["docs/usage.md", "docs/usage.ko.md", "docs/usage.ja.md", "docs/usage.zh.md"]],
   ["operations", ["docs/operations.en.md", "docs/operations.ko.md", "docs/operations.ja.md", "docs/operations.zh.md"]],
   ["ai integrations", ["docs/ai-integrations.md", "docs/ai-integrations.ko.md", "docs/ai-integrations.ja.md", "docs/ai-integrations.zh.md"]],
   ["branch strategy", ["docs/branch-strategy.md", "docs/branch-strategy.ko.md", "docs/branch-strategy.ja.md", "docs/branch-strategy.zh.md"]],

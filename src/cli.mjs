@@ -631,21 +631,21 @@ const STRATEGY_COMPARISON_TRANSLATIONS = {
 const GITHUB_PROTECTION_TRANSLATIONS = {
   ko: {
     "Require pull request before merging into main.": "main에 병합하기 전에 PR을 필수로 요구합니다.",
-    "Require at least one approval.": "최소 1개의 승인을 요구합니다.",
+    "Do not require mandatory approvals by default; enable reviews per repository policy.": "기본값으로 필수 승인은 요구하지 않고, 저장소 정책에 따라 리뷰를 켭니다.",
     "Require the CI test job before merging.": "병합 전에 CI test 작업 통과를 요구합니다.",
     "Require conversation resolution.": "대화 해결을 요구합니다.",
     "Block force pushes and branch deletion.": "강제 푸시와 브랜치 삭제를 차단합니다."
   },
   ja: {
     "Require pull request before merging into main.": "main へマージする前に PR を必須にします。",
-    "Require at least one approval.": "少なくとも 1 件の承認を必須にします。",
+    "Do not require mandatory approvals by default; enable reviews per repository policy.": "デフォルトでは必須承認を要求せず、リポジトリポリシーに応じて review を有効にします。",
     "Require the CI test job before merging.": "マージ前に CI test ジョブの通過を必須にします。",
     "Require conversation resolution.": "会話の解決を必須にします。",
     "Block force pushes and branch deletion.": "強制プッシュとブランチ削除をブロックします。"
   },
   zh: {
     "Require pull request before merging into main.": "合并到 main 前必须创建 PR。",
-    "Require at least one approval.": "至少需要 1 个审批。",
+    "Do not require mandatory approvals by default; enable reviews per repository policy.": "默认不要求强制审批，可按仓库政策启用 review。",
     "Require the CI test job before merging.": "合并前必须通过 CI test 作业。",
     "Require conversation resolution.": "必须解决所有对话。",
     "Block force pushes and branch deletion.": "阻止强制推送和删除分支。"
@@ -3011,7 +3011,7 @@ function buildBranchStrategy(options = {}) {
     branches: branchRulesForStrategy(selectedStrategy),
     githubProtection: [
       "Require pull request before merging into main.",
-      "Require at least one approval.",
+      "Do not require mandatory approvals by default; enable reviews per repository policy.",
       "Require the CI test job before merging.",
       "Require conversation resolution.",
       "Block force pushes and branch deletion."
@@ -4264,10 +4264,10 @@ function buildBranchPolicyPacks(strategy) {
             description: "Require a pull request before merging protected branches."
           },
           {
-            id: "review-required",
-            severity: "block",
-            minimumApprovals: 1,
-            description: "Require at least one approving review from a maintainer or CODEOWNER."
+            id: "review-policy",
+            severity: "warn",
+            minimumApprovals: 0,
+            description: "Reviews are encouraged, but mandatory approving reviews are not required by default."
           },
           {
             id: "conversation-resolution-required",
@@ -5094,7 +5094,7 @@ function renderSharedAssistantInstructions(language = "en") {
     "- Target `main`.",
     "- Include summary, why, validation, and release impact.",
     "- Required checks: `test (20)` and `test (22)`.",
-    "- Wait for review approval and resolved conversations before merge."
+    "- Follow the repository's current review policy and resolve conversations before merge."
   ];
 }
 
