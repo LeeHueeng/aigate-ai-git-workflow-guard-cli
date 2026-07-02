@@ -96,6 +96,7 @@ aigate pr-check
 | コンプライアンス統制レポート | `aigate compliance-report` |
 | ローカル HTML ヘルスダッシュボード | `aigate dashboard` |
 | プロジェクト状態トレンド履歴 | `aigate trends record` |
+| private app、GitLab、pnpm の自動プロファイル検出 | `aigate evaluate-project` |
 | ブランチ戦略ポリシーパック | `aigate branch-strategy --apply` |
 | ブランチ戦略提案の比較 | `aigate branch-strategy --compare` |
 | npm release readiness check | `aigate release-check --npm` |

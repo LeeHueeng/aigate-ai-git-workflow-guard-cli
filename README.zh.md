@@ -95,6 +95,7 @@ aigate pr-check
 | 合规控制报告 | `aigate compliance-report` |
 | 本地 HTML 健康仪表盘 | `aigate dashboard` |
 | 项目状态趋势历史 | `aigate trends record` |
+| 自动检测 private app、GitLab 和 pnpm 配置 | `aigate evaluate-project` |
 | 分支策略政策包 | `aigate branch-strategy --apply` |
 | 分支策略提案比较 | `aigate branch-strategy --compare` |
 | npm release readiness check | `aigate release-check --npm` |

@@ -106,6 +106,7 @@ const I18N = {
     "release.nextSteps": "Next steps:",
     "release.package": "Package: {packageName}",
     "release.registryNotChecked": "npm registry: not checked (use --npm)",
+    "release.registryNotApplicable": "npm registry: not applicable ({reason})",
     "release.registryNotPublished": "npm registry: {packageName}@{version} not published",
     "release.registryPublished": "npm registry: published {packageName}@{version}",
     "release.registryFailed": "npm registry: lookup failed ({error})",
@@ -198,6 +199,7 @@ const I18N = {
     "release.nextSteps": "다음 단계:",
     "release.package": "패키지: {packageName}",
     "release.registryNotChecked": "npm 레지스트리: 확인 안 함 (--npm 사용)",
+    "release.registryNotApplicable": "npm 레지스트리: 해당 없음 ({reason})",
     "release.registryNotPublished": "npm 레지스트리: {packageName}@{version} 미배포",
     "release.registryPublished": "npm 레지스트리: {packageName}@{version} 배포됨",
     "release.registryFailed": "npm 레지스트리: 조회 실패 ({error})",
@@ -290,6 +292,7 @@ const I18N = {
     "release.nextSteps": "次の手順:",
     "release.package": "パッケージ: {packageName}",
     "release.registryNotChecked": "npm レジストリ: 未確認 (--npm を使用)",
+    "release.registryNotApplicable": "npm レジストリ: 対象外 ({reason})",
     "release.registryNotPublished": "npm レジストリ: {packageName}@{version} は未公開",
     "release.registryPublished": "npm レジストリ: {packageName}@{version} は公開済み",
     "release.registryFailed": "npm レジストリ: 照会失敗 ({error})",
@@ -382,6 +385,7 @@ const I18N = {
     "release.nextSteps": "下一步:",
     "release.package": "包: {packageName}",
     "release.registryNotChecked": "npm 注册表: 未检查 (使用 --npm)",
+    "release.registryNotApplicable": "npm 注册表: 不适用 ({reason})",
     "release.registryNotPublished": "npm 注册表: {packageName}@{version} 尚未发布",
     "release.registryPublished": "npm 注册表: {packageName}@{version} 已发布",
     "release.registryFailed": "npm 注册表: 查询失败 ({error})",
@@ -411,6 +415,7 @@ const STATUS_LABELS = {
   en: {
     ACTION_REQUIRED: "ACTION_REQUIRED",
     BLOCK: "BLOCK",
+    NA: "N/A",
     PASS: "PASS",
     READY: "READY",
     RELEASED: "RELEASED",
@@ -420,6 +425,7 @@ const STATUS_LABELS = {
   ko: {
     ACTION_REQUIRED: "조치 필요",
     BLOCK: "차단",
+    NA: "해당 없음",
     PASS: "통과",
     READY: "준비 완료",
     RELEASED: "배포 완료",
@@ -429,6 +435,7 @@ const STATUS_LABELS = {
   ja: {
     ACTION_REQUIRED: "対応が必要",
     BLOCK: "ブロック",
+    NA: "対象外",
     PASS: "通過",
     READY: "準備完了",
     RELEASED: "公開済み",
@@ -438,6 +445,7 @@ const STATUS_LABELS = {
   zh: {
     ACTION_REQUIRED: "需要处理",
     BLOCK: "阻塞",
+    NA: "不适用",
     PASS: "通过",
     READY: "就绪",
     RELEASED: "已发布",
@@ -1012,6 +1020,7 @@ const HELP_CONTENT = {
       ["--route <name>", "Start route: default, quickstart, oss, ai, hook, release, or full."],
       ["--ask-steps", "Ask whether to run each start step."],
       ["--steps <ids>", "Run only selected start step ids, comma-separated."],
+      ["--project-type <auto|app|package>", "Override auto-detected project type for evaluation and release checks."],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, or all."],
       ["--script <name>", "npm script name for aigate test or aitest."],
       ["--command <shell>", "Custom shell command for aigate test or aitest."],
@@ -1098,6 +1107,7 @@ const HELP_CONTENT = {
       ["--route <name>", "시작 루트입니다: default, quickstart, oss, ai, hook, release, full."],
       ["--ask-steps", "start 단계마다 실행 여부를 묻습니다."],
       ["--steps <ids>", "쉼표로 구분한 start 단계 id만 실행합니다."],
+      ["--project-type <auto|app|package>", "평가와 릴리스 검사에 사용할 프로젝트 유형을 지정합니다."],
       ["--provider <name>", "AI 제공자입니다: auto, codex, claude, gemini, all."],
       ["--script <name>", "aigate test 또는 aitest에서 사용할 npm script 이름입니다."],
       ["--command <shell>", "aigate test 또는 aitest에서 사용할 사용자 지정 shell 명령입니다."],
@@ -1184,6 +1194,7 @@ const HELP_CONTENT = {
       ["--route <name>", "開始ルート: default, quickstart, oss, ai, hook, release, full。"],
       ["--ask-steps", "start の各手順を実行するか確認します。"],
       ["--steps <ids>", "カンマ区切りの start 手順 id だけを実行します。"],
+      ["--project-type <auto|app|package>", "評価とリリースチェックに使うプロジェクト種別を指定します。"],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
       ["--script <name>", "aigate test または aitest で使う npm script 名です。"],
       ["--command <shell>", "aigate test または aitest で使うカスタム shell コマンドです。"],
@@ -1270,6 +1281,7 @@ const HELP_CONTENT = {
       ["--route <name>", "启动路由: default, quickstart, oss, ai, hook, release, full。"],
       ["--ask-steps", "逐步询问是否运行每个 start 步骤。"],
       ["--steps <ids>", "仅运行逗号分隔的 start 步骤 id。"],
+      ["--project-type <auto|app|package>", "指定评估和发布检查使用的项目类型。"],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
       ["--script <name>", "aigate test 或 aitest 使用的 npm script 名称。"],
       ["--command <shell>", "aigate test 或 aitest 使用的自定义 shell 命令。"],
@@ -1629,6 +1641,37 @@ function t(language, key, values = {}) {
 
 function statusLabel(status, language) {
   return STATUS_LABELS[language]?.[status] ?? STATUS_LABELS.en[status] ?? status;
+}
+
+function checkStatus(check) {
+  if (check.applicable === false) {
+    return "NA";
+  }
+
+  return check.pass ? "PASS" : "TODO";
+}
+
+function checkNeedsAction(check) {
+  if (!check) {
+    return false;
+  }
+
+  return check.applicable !== false && !check.pass;
+}
+
+function checkPassed(check) {
+  if (!check) {
+    return false;
+  }
+
+  return check.applicable !== false && check.pass;
+}
+
+function formatCheckLine(check, translateName, language) {
+  const reason = check.status === "NA" && check.reason
+    ? ` (${translateNotApplicableReason(check.reason, language)})`
+    : "";
+  return `- ${statusLabel(check.status ?? checkStatus(check), language)}: ${translateName(check.name, language)}${reason}`;
 }
 
 function languageName(language) {
@@ -3915,7 +3958,10 @@ function commandEvaluateProject(args) {
   if (!language) {
     return unsupportedLanguage(options.language);
   }
-  const evaluation = buildEvaluation({ deep: Boolean(options.deep) });
+  const evaluation = buildEvaluation({
+    deep: Boolean(options.deep),
+    projectType: options.projectType
+  });
 
   if (options.report) {
     const format = options.format ?? "markdown";
@@ -3934,10 +3980,7 @@ function commandEvaluateProject(args) {
     return JSON.stringify(evaluation, null, 2);
   }
 
-  const rows = evaluation.checks.map((check) => {
-    const mark = statusLabel(check.pass ? "PASS" : "TODO", language);
-    return `- ${mark}: ${translateEvaluationCheckName(check.name, language)}`;
-  });
+  const rows = evaluation.checks.map((check) => formatCheckLine(check, translateEvaluationCheckName, language));
   const categoryRows = evaluation.categories.map((category) => (
     `- ${translateEvaluationCategory(category.name, language)}: ${category.score}/${category.weight}`
   ));
@@ -3977,15 +4020,16 @@ function commandReleaseCheck(args) {
   if (!language) {
     return unsupportedLanguage(options.language);
   }
-  const check = buildReleaseCheck({ checkNpm: Boolean(options.npm) });
+  const check = buildReleaseCheck({
+    checkNpm: Boolean(options.npm),
+    projectType: options.projectType
+  });
 
   if (options.format === "json") {
     return JSON.stringify(check, null, 2);
   }
 
-  const rows = check.checks.map((item) => (
-    `- ${statusLabel(item.pass ? "PASS" : "TODO", language)}: ${translateReleaseCheckName(item.name, language)}`
-  ));
+  const rows = check.checks.map((item) => formatCheckLine(item, translateReleaseCheckName, language));
   const registryLine = renderRegistryLine(check.registry, language);
 
   return [
@@ -4758,31 +4802,60 @@ function buildGitStatus() {
 
 function buildEvaluation(options = {}) {
   const packageJson = readJsonFile("package.json");
+  const profile = detectProjectProfile(packageJson, options);
+  const githubOnlyReason = "GitHub-specific check is not required for this repository profile.";
+  const publicOnlyReason = "Public repository governance check is not required for a private app profile.";
+  const packageOnlyReason = "Package release check is not required for an app profile.";
+  const check = (category, name, pass, checkOptions = {}) => makeCheck(category, name, pass, checkOptions);
   const checks = [
-    { category: "git_workflow", name: "AIGate configuration exists", pass: existsSync(".aigate.yml") },
-    { category: "git_workflow", name: "Branch strategy is documented", pass: existsSync(join("docs", "branch-strategy.md")) },
-    { category: "git_workflow", name: "Git upload workflow is documented", pass: existsSync(join("docs", "git-upload-workflow.md")) },
-    { category: "git_workflow", name: "Pull request template exists", pass: existsSync(join(".github", "pull_request_template.md")) },
-    { category: "git_workflow", name: "CODEOWNERS exists", pass: existsSync(join(".github", "CODEOWNERS")) },
-    { category: "pr_quality", name: "Contribution guide exists", pass: existsSync("CONTRIBUTING.md") },
-    { category: "pr_quality", name: "Issue templates exist", pass: existsSync(join(".github", "ISSUE_TEMPLATE")) },
-    { category: "pr_quality", name: "AI assistant instructions exist", pass: existsSync("AGENTS.md") && existsSync("GEMINI.md") },
-    { category: "testing", name: "Test directory exists", pass: existsSync("test") },
-    { category: "testing", name: "npm test script exists", pass: Boolean(packageJson.scripts?.test) },
-    { category: "testing", name: "CI gate script exists", pass: Boolean(packageJson.scripts?.ci || packageJson.scripts?.["git:ready"]) },
-    { category: "ci_cd", name: "CI workflow exists", pass: existsSync(join(".github", "workflows", "ci.yml")) },
-    { category: "ci_cd", name: "Release workflow exists", pass: existsSync(join(".github", "workflows", "release.yml")) },
-    { category: "ci_cd", name: "Dependabot exists", pass: existsSync(join(".github", "dependabot.yml")) },
-    { category: "security", name: "Security policy exists", pass: existsSync("SECURITY.md") },
-    { category: "security", name: "Security scanning is documented", pass: existsSync(join("docs", "security-scanning.md")) },
-    { category: "security", name: "OpenSSF Scorecard workflow exists", pass: existsSync(join(".github", "workflows", "scorecard.yml")) },
-    { category: "documentation", name: "README exists", pass: existsSync("README.md") },
-    { category: "documentation", name: "License exists", pass: existsSync("LICENSE") },
-    { category: "documentation", name: "Changelog exists", pass: existsSync("CHANGELOG.md") },
-    { category: "documentation", name: "Roadmap exists", pass: existsSync(join("docs", "roadmap.md")) },
-    { category: "maintainability", name: "Package metadata exists", pass: existsSync("package.json") },
-    { category: "maintainability", name: "Support policy exists", pass: existsSync("SUPPORT.md") },
-    { category: "maintainability", name: "Governance exists", pass: existsSync("GOVERNANCE.md") }
+    check("git_workflow", "AIGate configuration exists", existsSync(".aigate.yml")),
+    check("git_workflow", "Branch strategy is documented", existsSync(join("docs", "branch-strategy.md"))),
+    check("git_workflow", "Git upload workflow is documented", existsSync(join("docs", "git-upload-workflow.md"))),
+    check("git_workflow", "Pull request template exists", hasPullRequestTemplate(profile)),
+    check("git_workflow", "CODEOWNERS exists", hasCodeowners()),
+    check("pr_quality", "Contribution guide exists", existsSync("CONTRIBUTING.md")),
+    check("pr_quality", "Issue templates exist", hasIssueTemplates(profile)),
+    check("pr_quality", "AI assistant instructions exist", existsSync("AGENTS.md") && (existsSync("GEMINI.md") || existsSync("CLAUDE.md"))),
+    check("testing", "Test directory exists", hasTestDirectory()),
+    check("testing", "npm test script exists", hasTestScript(packageJson)),
+    check("testing", "CI gate script exists", hasCiGateScript(packageJson)),
+    check("ci_cd", "CI workflow exists", hasCiWorkflow(profile)),
+    check("ci_cd", "Release workflow exists", hasReleaseWorkflow(profile), {
+      applicable: profile.kind === "package" || hasReleaseWorkflow(profile),
+      reason: packageOnlyReason
+    }),
+    check("ci_cd", "Dependabot exists", existsSync(join(".github", "dependabot.yml")), {
+      applicable: profile.hosting === "github" || existsSync(join(".github", "dependabot.yml")),
+      reason: githubOnlyReason
+    }),
+    check("security", "Security policy exists", existsSync("SECURITY.md")),
+    check("security", "Security scanning is documented", existsSync(join("docs", "security-scanning.md"))),
+    check("security", "OpenSSF Scorecard workflow exists", existsSync(join(".github", "workflows", "scorecard.yml")), {
+      applicable: (profile.hosting === "github" && profile.visibility !== "private") || existsSync(join(".github", "workflows", "scorecard.yml")),
+      reason: profile.hosting === "github" ? publicOnlyReason : githubOnlyReason
+    }),
+    check("documentation", "README exists", existsSync("README.md")),
+    check("documentation", "License exists", existsSync("LICENSE"), {
+      applicable: profile.visibility !== "private" || existsSync("LICENSE"),
+      reason: publicOnlyReason
+    }),
+    check("documentation", "Changelog exists", existsSync("CHANGELOG.md"), {
+      applicable: profile.kind === "package" || existsSync("CHANGELOG.md"),
+      reason: packageOnlyReason
+    }),
+    check("documentation", "Roadmap exists", existsSync(join("docs", "roadmap.md")), {
+      applicable: profile.visibility !== "private" || existsSync(join("docs", "roadmap.md")),
+      reason: publicOnlyReason
+    }),
+    check("maintainability", "Package metadata exists", existsSync("package.json")),
+    check("maintainability", "Support policy exists", existsSync("SUPPORT.md"), {
+      applicable: profile.visibility !== "private" || existsSync("SUPPORT.md"),
+      reason: publicOnlyReason
+    }),
+    check("maintainability", "Governance exists", existsSync("GOVERNANCE.md"), {
+      applicable: profile.visibility !== "private" || existsSync("GOVERNANCE.md"),
+      reason: publicOnlyReason
+    })
   ];
   const weights = {
     git_workflow: 20,
@@ -4795,13 +4868,16 @@ function buildEvaluation(options = {}) {
   };
   const categories = Object.entries(weights).map(([name, weight]) => {
     const categoryChecks = checks.filter((check) => check.category === name);
-    const passed = categoryChecks.filter((check) => check.pass).length;
+    const applicableChecks = categoryChecks.filter((check) => check.applicable !== false);
+    const passed = applicableChecks.filter((check) => check.pass).length;
+    const total = applicableChecks.length;
     return {
       name,
       weight,
       passed,
-      total: categoryChecks.length,
-      score: Math.round((passed / categoryChecks.length) * weight)
+      total,
+      skipped: categoryChecks.length - total,
+      score: total === 0 ? weight : Math.round((passed / total) * weight)
     };
   });
   const score = categories.reduce((sum, category) => sum + category.score, 0);
@@ -4812,6 +4888,7 @@ function buildEvaluation(options = {}) {
   const evaluation = {
     score,
     grade,
+    profile,
     categories,
     checks,
     recommendation
@@ -4822,6 +4899,184 @@ function buildEvaluation(options = {}) {
   }
 
   return evaluation;
+}
+
+function makeCheck(category, name, pass, options = {}) {
+  const applicable = options.applicable !== false;
+  const check = {
+    category,
+    name,
+    pass: applicable ? Boolean(pass) : false,
+    applicable
+  };
+
+  if (options.reason) {
+    check.reason = options.reason;
+  }
+
+  check.status = checkStatus(check);
+  return check;
+}
+
+function detectProjectProfile(packageJson = readJsonFile("package.json"), options = {}) {
+  const packageManager = normalizePackageManager(options.packageManager) ?? detectPackageManager(packageJson);
+  const repositoryUrl = String(packageJson.repository?.url ?? packageJson.repository ?? git(["remote", "get-url", "origin"]) ?? "");
+  const hosting = normalizeHosting(options.hosting) ?? detectHosting(repositoryUrl);
+  const visibility = packageJson.private === true ? "private" : "public";
+  const explicitType = normalizeProjectType(options.projectType);
+  const npmEntrypoint = hasNpmEntrypoint(packageJson);
+  const appSignals = packageJson.private === true ||
+    existsSync("pnpm-workspace.yaml") ||
+    Boolean(packageJson.workspaces) ||
+    existsSync("apps") ||
+    Boolean(packageJson.scripts?.dev || packageJson.scripts?.start);
+  const kind = explicitType ?? (appSignals && !npmEntrypoint ? "app" : "package");
+  const ciProvider = existsSync(".gitlab-ci.yml")
+    ? "gitlab"
+    : existsSync(join(".github", "workflows"))
+      ? "github"
+      : hosting;
+
+  return {
+    kind,
+    visibility,
+    hosting,
+    ciProvider,
+    packageManager,
+    npmEntrypoint,
+    publishableNpmPackage: kind === "package" && packageJson.private !== true,
+    privatePackage: packageJson.private === true
+  };
+}
+
+function normalizeProjectType(value) {
+  const normalized = String(value ?? "auto").trim().toLowerCase();
+  if (!normalized || normalized === "auto") {
+    return null;
+  }
+
+  return ["app", "package"].includes(normalized) ? normalized : null;
+}
+
+function normalizeHosting(value) {
+  const normalized = String(value ?? "auto").trim().toLowerCase();
+  if (!normalized || normalized === "auto") {
+    return null;
+  }
+
+  return ["github", "gitlab", "other", "unknown"].includes(normalized) ? normalized : null;
+}
+
+function normalizePackageManager(value) {
+  const normalized = String(value ?? "auto").trim().toLowerCase();
+  if (!normalized || normalized === "auto") {
+    return null;
+  }
+
+  return ["npm", "pnpm", "yarn", "bun", "unknown"].includes(normalized) ? normalized : null;
+}
+
+function detectHosting(url) {
+  const value = String(url ?? "").toLowerCase();
+  if (value.includes("github.com")) {
+    return "github";
+  }
+
+  if (value.includes("gitlab")) {
+    return "gitlab";
+  }
+
+  return value ? "other" : "unknown";
+}
+
+function detectPackageManager(packageJson = readJsonFile("package.json")) {
+  const declared = String(packageJson.packageManager ?? "").split("@")[0].trim().toLowerCase();
+  if (["npm", "pnpm", "yarn", "bun"].includes(declared)) {
+    return declared;
+  }
+
+  if (existsSync("pnpm-lock.yaml")) {
+    return "pnpm";
+  }
+
+  if (existsSync("yarn.lock")) {
+    return "yarn";
+  }
+
+  if (existsSync("bun.lockb") || existsSync("bun.lock")) {
+    return "bun";
+  }
+
+  if (existsSync("package-lock.json")) {
+    return "npm";
+  }
+
+  return "unknown";
+}
+
+function pathExistsAny(paths) {
+  return paths.some((path) => existsSync(path));
+}
+
+function hasPullRequestTemplate(profile) {
+  const githubTemplates = [
+    join(".github", "pull_request_template.md"),
+    join(".github", "PULL_REQUEST_TEMPLATE.md"),
+    join(".github", "PULL_REQUEST_TEMPLATE")
+  ];
+  const gitlabTemplates = [
+    join(".gitlab", "merge_request_templates"),
+    join(".gitlab", "merge_request_template.md")
+  ];
+  return pathExistsAny(profile.hosting === "gitlab" ? [...gitlabTemplates, ...githubTemplates] : [...githubTemplates, ...gitlabTemplates]);
+}
+
+function hasIssueTemplates(profile) {
+  const githubTemplates = [join(".github", "ISSUE_TEMPLATE")];
+  const gitlabTemplates = [join(".gitlab", "issue_templates")];
+  return pathExistsAny(profile.hosting === "gitlab" ? [...gitlabTemplates, ...githubTemplates] : [...githubTemplates, ...gitlabTemplates]);
+}
+
+function hasCodeowners() {
+  return pathExistsAny([
+    join(".github", "CODEOWNERS"),
+    join(".gitlab", "CODEOWNERS"),
+    join("docs", "CODEOWNERS"),
+    "CODEOWNERS"
+  ]);
+}
+
+function hasTestDirectory() {
+  return pathExistsAny(["test", "tests", "__tests__", join("src", "__tests__"), "playwright"]);
+}
+
+function hasTestScript(packageJson = readJsonFile("package.json")) {
+  return Object.keys(packageJson.scripts ?? {}).some((name) => (
+    name === "test" || name.endsWith(":test") || name.includes("test")
+  ));
+}
+
+function hasCiGateScript(packageJson = readJsonFile("package.json")) {
+  return Boolean(packageJson.scripts?.ci || packageJson.scripts?.["git:ready"] || packageJson.scripts?.["frontend-test"]);
+}
+
+function hasCiWorkflow(profile) {
+  return profile.ciProvider === "gitlab"
+    ? existsSync(".gitlab-ci.yml") || existsSync(join(".github", "workflows", "ci.yml"))
+    : existsSync(join(".github", "workflows", "ci.yml")) || existsSync(".gitlab-ci.yml");
+}
+
+function hasReleaseWorkflow() {
+  if (existsSync(join(".github", "workflows", "release.yml"))) {
+    return true;
+  }
+
+  if (!existsSync(".gitlab-ci.yml")) {
+    return false;
+  }
+
+  const gitlabCi = readFileSync(".gitlab-ci.yml", "utf8");
+  return /\b(release|publish|deploy)\b/i.test(gitlabCi);
 }
 
 function gradeForScore(score) {
@@ -5172,6 +5427,7 @@ function strategyPolicyFit(strategyName) {
 
 function buildReleaseCheck(options = {}) {
   const packageJson = readJsonFile("package.json");
+  const profile = detectProjectProfile(packageJson, options);
   const version = packageJson.version ?? "0.0.0";
   const packageName = packageJson.name ?? "";
   const repository = detectRepositorySlug(packageJson);
@@ -5182,39 +5438,84 @@ function buildReleaseCheck(options = {}) {
     .map((tag) => tag.trim())
     .filter(Boolean);
   const hasExpectedTag = tags.includes(expectedTag);
+  const npmPackageRelease = profile.kind === "package";
+  const publicNpmRelease = npmPackageRelease && packageJson.private !== true;
+  const npmOnlyReason = "npm package release check is not required for this repository profile.";
+  const npmLockReason = `${profile.packageManager} project does not use package-lock.json.`;
+  const githubOnlyReason = "GitHub Trusted Publishing check is not required for this repository hosting provider.";
+  const packageCheck = (name, pass, checkOptions = {}) => makeCheck("release", name, pass, checkOptions);
   const checks = [
-    { name: "package.json exists", pass: existsSync("package.json") },
-    { name: "package-lock.json version matches package.json", pass: readJsonFile("package-lock.json").version === version },
-    { name: "package is not marked private", pass: packageJson.private !== true },
-    { name: "package has a valid npm package name", pass: isValidNpmPackageName(packageName) },
-    { name: "package version is not 0.0.0", pass: version !== "0.0.0" },
-    { name: "package declares npm entrypoint or bin", pass: hasNpmEntrypoint(packageJson) },
-    { name: "publishConfig access is public", pass: packageJson.publishConfig?.access === "public" },
-    { name: "release workflow exists", pass: existsSync(join(".github", "workflows", "release.yml")) },
-    { name: "release workflow uses npm provenance", pass: fileIncludes(join(".github", "workflows", "release.yml"), "--provenance") },
-    { name: "release workflow disables package manager cache", pass: fileIncludes(join(".github", "workflows", "release.yml"), "package-manager-cache: false") },
-    { name: "README documents npm install command", pass: readmeDocumentsNpmInstall(packageName) },
-    { name: "CHANGELOG documents package version", pass: changelogDocumentsVersion(version) },
-    { name: `${expectedTag} tag exists`, pass: hasExpectedTag }
+    packageCheck("package.json exists", existsSync("package.json")),
+    packageCheck("package-lock.json version matches package.json", readJsonFile("package-lock.json").version === version, {
+      applicable: publicNpmRelease && profile.packageManager === "npm",
+      reason: profile.packageManager === "npm" ? npmOnlyReason : npmLockReason
+    }),
+    packageCheck("package is not marked private", packageJson.private !== true, {
+      applicable: npmPackageRelease,
+      reason: npmOnlyReason
+    }),
+    packageCheck("package has a valid npm package name", isValidNpmPackageName(packageName), {
+      applicable: publicNpmRelease,
+      reason: npmOnlyReason
+    }),
+    packageCheck("package version is not 0.0.0", version !== "0.0.0"),
+    packageCheck("package declares npm entrypoint or bin", hasNpmEntrypoint(packageJson), {
+      applicable: publicNpmRelease,
+      reason: npmOnlyReason
+    }),
+    packageCheck("publishConfig access is public", packageJson.publishConfig?.access === "public", {
+      applicable: publicNpmRelease,
+      reason: npmOnlyReason
+    }),
+    packageCheck("release workflow exists", hasReleaseWorkflow(), {
+      applicable: publicNpmRelease || hasReleaseWorkflow(),
+      reason: npmOnlyReason
+    }),
+    packageCheck("release workflow uses npm provenance", fileIncludes(join(".github", "workflows", "release.yml"), "--provenance"), {
+      applicable: publicNpmRelease && profile.hosting === "github",
+      reason: profile.hosting === "github" ? npmOnlyReason : githubOnlyReason
+    }),
+    packageCheck("release workflow disables package manager cache", fileIncludes(join(".github", "workflows", "release.yml"), "package-manager-cache: false"), {
+      applicable: publicNpmRelease && profile.hosting === "github",
+      reason: profile.hosting === "github" ? npmOnlyReason : githubOnlyReason
+    }),
+    packageCheck("README documents npm install command", readmeDocumentsNpmInstall(packageName), {
+      applicable: publicNpmRelease,
+      reason: npmOnlyReason
+    }),
+    packageCheck("CHANGELOG documents package version", changelogDocumentsVersion(version), {
+      applicable: publicNpmRelease,
+      reason: npmOnlyReason
+    }),
+    packageCheck(`${expectedTag} tag exists`, hasExpectedTag, {
+      applicable: publicNpmRelease,
+      reason: npmOnlyReason
+    })
   ];
-  const registry = options.checkNpm
+  const registry = options.checkNpm && publicNpmRelease
     ? lookupNpmPublication(packageName, version)
-    : { checked: false };
-  const localReady = checks.every((check) => check.pass);
+    : { checked: false, applicable: publicNpmRelease, reason: publicNpmRelease ? undefined : npmOnlyReason };
+  const localReady = checks.every((check) => !checkNeedsAction(check));
   const status = localReady && registry.checked && registry.published
     ? "RELEASED"
     : (localReady ? "READY" : "ACTION_REQUIRED");
   const nextSteps = [];
 
-  if (!hasExpectedTag) {
+  if (!publicNpmRelease) {
+    nextSteps.push("No npm package publication is required for the detected app/private repository profile.");
+  } else if (!hasExpectedTag) {
     if (registry.checked && registry.published) {
       nextSteps.push(`${packageName}@${version} is already on npm; create release tag ${expectedTag} to record the release.`);
     } else if (registry.checked && registry.packageExists) {
       nextSteps.push(`${packageName}@${version} is not on npm yet; create release tag ${expectedTag} to publish with Trusted Publishing.`);
-    } else {
+    } else if (profile.hosting === "github") {
       nextSteps.push(`If ${packageName} is not on npm yet, enable npm account 2FA and create it with: npm publish --access public`);
       nextSteps.push(`Configure trusted publishing after the package exists: npx npm@latest trust github ${packageName} --file release.yml --repo ${repositoryForCommand} --allow-publish --yes`);
       nextSteps.push(`Create release tag ${expectedTag} after npm Trusted Publishing is configured.`);
+    } else {
+      nextSteps.push(`If ${packageName} is not on npm yet, create it with: npm publish --access public`);
+      nextSteps.push("Configure release automation in your CI provider before tagging a release.");
+      nextSteps.push(`Create release tag ${expectedTag} after package publishing is configured.`);
     }
   }
 
@@ -5226,24 +5527,27 @@ function buildReleaseCheck(options = {}) {
     nextSteps.push(`Review npm registry lookup error: ${registry.error}`);
   }
 
-  if (!registry.checked) {
+  if (publicNpmRelease && !registry.checked) {
     nextSteps.push("Run release-check --npm to confirm npm registry publication state.");
   }
 
-  if (!checks.find((check) => check.name === "release workflow uses npm provenance")?.pass) {
+  if (checkNeedsAction(checks.find((check) => check.name === "release workflow uses npm provenance"))) {
     nextSteps.push("Ensure release workflow publishes with npm provenance.");
   }
 
-  if (!checks.find((check) => check.name === "CHANGELOG documents package version")?.pass) {
+  if (checkNeedsAction(checks.find((check) => check.name === "CHANGELOG documents package version"))) {
     nextSteps.push(`Document ${version} in CHANGELOG.md before tagging the release.`);
   }
 
-  nextSteps.push("Run npm run ci before tagging a release.");
-  nextSteps.push("Run npm publish dry-run through the Release workflow_dispatch dry_run input.");
+  if (publicNpmRelease) {
+    nextSteps.push("Run npm run ci before tagging a release.");
+    nextSteps.push("Run npm publish dry-run through the Release workflow_dispatch dry_run input.");
+  }
 
   return {
     command: "release-check",
     status,
+    profile,
     packageName: packageJson.name ?? null,
     version,
     expectedTag,
@@ -5402,6 +5706,12 @@ function lookupNpmPublication(packageName, version) {
 }
 
 function renderRegistryLine(registry, language = "en") {
+  if (registry?.applicable === false) {
+    return t(language, "release.registryNotApplicable", {
+      reason: translateNotApplicableReason(registry.reason, language)
+    });
+  }
+
   if (!registry?.checked) {
     return t(language, "release.registryNotChecked");
   }
@@ -5438,14 +5748,14 @@ function buildAuditReport() {
       message: blocker
     })),
     ...releaseCheck.checks
-      .filter((check) => !check.pass)
+      .filter((check) => checkNeedsAction(check))
       .map((check) => ({
         severity: check.name.includes("tag exists") ? "medium" : "high",
         area: "release",
         message: check.name
       })),
     ...evaluation.checks
-      .filter((check) => !check.pass)
+      .filter((check) => checkNeedsAction(check))
       .map((check) => ({
         severity: "medium",
         area: check.category,
@@ -5492,15 +5802,15 @@ function buildComplianceReport() {
     {
       id: "security-policy",
       title: "Security policy and scanning",
-      pass: evaluation.checks.some((check) => check.name === "Security policy exists" && check.pass) &&
-        evaluation.checks.some((check) => check.name === "Security scanning is documented" && check.pass),
+      pass: evaluation.checks.some((check) => check.name === "Security policy exists" && checkPassed(check)) &&
+        evaluation.checks.some((check) => check.name === "Security scanning is documented" && checkPassed(check)),
       evidence: "SECURITY.md, security scanning docs, and Scorecard workflow"
     },
     {
       id: "change-control",
       title: "Change control",
-      pass: evaluation.checks.some((check) => check.name === "Pull request template exists" && check.pass) &&
-        evaluation.checks.some((check) => check.name === "CODEOWNERS exists" && check.pass),
+      pass: evaluation.checks.some((check) => check.name === "Pull request template exists" && checkPassed(check)) &&
+        evaluation.checks.some((check) => check.name === "CODEOWNERS exists" && checkPassed(check)),
       evidence: "pull request template and CODEOWNERS"
     },
     {
@@ -5535,9 +5845,9 @@ function buildComplianceReport() {
 
 function buildAiProjectReport(options = {}, language = "en") {
   const gitStatus = buildGitStatus();
-  const evaluation = buildEvaluation({ deep: true });
+  const evaluation = buildEvaluation({ deep: true, projectType: options.projectType });
   const analysis = buildChangeAnalysis();
-  const releaseCheck = buildReleaseCheck({ checkNpm: Boolean(options.npm) });
+  const releaseCheck = buildReleaseCheck({ checkNpm: Boolean(options.npm), projectType: options.projectType });
   const branchStrategy = buildBranchStrategy(options);
   const problems = buildAiReportProblems({ gitStatus, evaluation, analysis, releaseCheck }, language);
   const strengths = buildAiReportStrengths({ evaluation, releaseCheck, branchStrategy }, language);
@@ -5595,7 +5905,7 @@ function buildAiReportProblems({ gitStatus, evaluation, analysis, releaseCheck }
     problems.push(aiReportProblem("medium", "git", aiReportText("largeChange", language, { count: analysis.paths.length }), "aigate pr-check"));
   }
 
-  for (const check of evaluation.checks.filter((item) => !item.pass).slice(0, 8)) {
+  for (const check of evaluation.checks.filter((item) => checkNeedsAction(item)).slice(0, 8)) {
     const severity = ["testing", "ci_cd", "security"].includes(check.category) ? "high" : "medium";
     problems.push(aiReportProblem(
       severity,
@@ -5605,7 +5915,7 @@ function buildAiReportProblems({ gitStatus, evaluation, analysis, releaseCheck }
     ));
   }
 
-  for (const check of releaseCheck.checks.filter((item) => !item.pass).slice(0, 5)) {
+  for (const check of releaseCheck.checks.filter((item) => checkNeedsAction(item)).slice(0, 5)) {
     problems.push(aiReportProblem(
       check.name.includes("tag exists") ? "medium" : "high",
       "release",
@@ -5614,7 +5924,7 @@ function buildAiReportProblems({ gitStatus, evaluation, analysis, releaseCheck }
     ));
   }
 
-  if (releaseCheck.registry?.checked && releaseCheck.registry.published === false) {
+  if (releaseCheck.registry?.applicable !== false && releaseCheck.registry?.checked && releaseCheck.registry.published === false) {
     problems.push(aiReportProblem(
       "medium",
       "release",
@@ -5646,7 +5956,7 @@ function buildAiReportStrengths({ evaluation, releaseCheck, branchStrategy }, la
     "Security scanning is documented"
   ];
   const strengths = evaluation.checks
-    .filter((check) => check.pass && highValueChecks.includes(check.name))
+    .filter((check) => checkPassed(check) && highValueChecks.includes(check.name))
     .slice(0, 10)
     .map((check) => ({
       area: check.category,
@@ -5680,7 +5990,7 @@ function buildAiReportStrengths({ evaluation, releaseCheck, branchStrategy }, la
 }
 
 function buildAiReportDirection({ evaluation, releaseCheck, branchStrategy }, language = "en") {
-  const missingChecks = new Set(evaluation.checks.filter((check) => !check.pass).map((check) => check.name));
+  const missingChecks = new Set(evaluation.checks.filter((check) => checkNeedsAction(check)).map((check) => check.name));
   const direction = [];
 
   if (evaluation.score < 80) {
@@ -5712,7 +6022,7 @@ function buildAiReportDirection({ evaluation, releaseCheck, branchStrategy }, la
 }
 
 function buildAiReportCommands({ evaluation, releaseCheck }, language = "en") {
-  const missingChecks = new Set(evaluation.checks.filter((check) => !check.pass).map((check) => check.name));
+  const missingChecks = new Set(evaluation.checks.filter((check) => checkNeedsAction(check)).map((check) => check.name));
   const commands = [];
 
   if (["README exists", "Issue templates exist", "Pull request template exists", "Contribution guide exists", "License exists", "Roadmap exists"].some((name) => missingChecks.has(name))) {
@@ -6448,7 +6758,7 @@ function renderProjectEvaluationReport(evaluation, format, language = "en") {
       `<h2>${escapeHtml(labels.checks)}</h2>`,
       "<ul>",
       ...evaluation.checks.map((check) => (
-        `<li>${escapeHtml(statusLabel(check.pass ? "PASS" : "TODO", language))}: ${escapeHtml(translateEvaluationCheckName(check.name, language))}</li>`
+        `<li>${escapeHtml(statusLabel(check.status ?? checkStatus(check), language))}: ${escapeHtml(translateEvaluationCheckName(check.name, language))}</li>`
       )),
       "</ul>",
       `<p>${escapeHtml(labels.recommendation)}: ${escapeHtml(translateRecommendation(evaluation.recommendation, language))}</p>`,
@@ -6470,7 +6780,7 @@ function renderProjectEvaluationReport(evaluation, format, language = "en") {
     "",
     `## ${labels.checks}`,
     "",
-    ...evaluation.checks.map((check) => `- ${statusLabel(check.pass ? "PASS" : "TODO", language)}: ${translateEvaluationCheckName(check.name, language)}`),
+    ...evaluation.checks.map((check) => formatCheckLine(check, translateEvaluationCheckName, language)),
     ...(evaluation.deepSignals
       ? [
           "",
@@ -8565,6 +8875,55 @@ function translateRecommendation(recommendation, language) {
   return RECOMMENDATION_TRANSLATIONS[language]?.[recommendation] ?? recommendation;
 }
 
+function translateNotApplicableReason(reason, language) {
+  if (!reason || language === "en") {
+    return reason ?? "";
+  }
+
+  const exact = {
+    "GitHub-specific check is not required for this repository profile.": {
+      ko: "이 저장소 프로필에는 GitHub 전용 점검이 필요하지 않습니다.",
+      ja: "このリポジトリプロファイルでは GitHub 専用チェックは不要です。",
+      zh: "此仓库配置不需要 GitHub 专用检查。"
+    },
+    "Public repository governance check is not required for a private app profile.": {
+      ko: "private 앱 프로필에는 공개 저장소 거버넌스 점검이 필요하지 않습니다.",
+      ja: "private app プロファイルでは公開リポジトリ向けガバナンスチェックは不要です。",
+      zh: "private app 配置不需要公开仓库治理检查。"
+    },
+    "Package release check is not required for an app profile.": {
+      ko: "app 프로필에는 패키지 릴리스 점검이 필요하지 않습니다.",
+      ja: "app プロファイルではパッケージリリースチェックは不要です。",
+      zh: "app 配置不需要包发布检查。"
+    },
+    "npm package release check is not required for this repository profile.": {
+      ko: "이 저장소 프로필에는 npm 패키지 배포 점검이 필요하지 않습니다.",
+      ja: "このリポジトリプロファイルでは npm パッケージ公開チェックは不要です。",
+      zh: "此仓库配置不需要 npm 包发布检查。"
+    },
+    "GitHub Trusted Publishing check is not required for this repository hosting provider.": {
+      ko: "이 호스팅 제공자에는 GitHub Trusted Publishing 점검이 필요하지 않습니다.",
+      ja: "このホスティングでは GitHub Trusted Publishing チェックは不要です。",
+      zh: "此托管服务不需要 GitHub Trusted Publishing 检查。"
+    }
+  };
+
+  if (exact[reason]?.[language]) {
+    return exact[reason][language];
+  }
+
+  const lockMatch = reason.match(/^(.+) project does not use package-lock\.json\.$/);
+  if (lockMatch) {
+    return {
+      ko: `${lockMatch[1]} 프로젝트는 package-lock.json을 사용하지 않습니다.`,
+      ja: `${lockMatch[1]} プロジェクトは package-lock.json を使用しません。`,
+      zh: `${lockMatch[1]} 项目不使用 package-lock.json。`
+    }[language] ?? reason;
+  }
+
+  return reason;
+}
+
 function translateWarning(warning, language) {
   if (language === "en") {
     return warning;
@@ -9001,6 +9360,15 @@ function translateReleaseNextStep(step, language) {
     }[language] ?? step;
   }
 
+  match = step.match(/^If (.+) is not on npm yet, create it with: (.+)$/);
+  if (match) {
+    return {
+      ko: `${match[1]}가 아직 npm에 없다면 다음 명령으로 생성하세요: ${match[2]}`,
+      ja: `${match[1]} がまだ npm にない場合は、次のコマンドで作成してください: ${match[2]}`,
+      zh: `如果 ${match[1]} 尚未在 npm 上，请用以下命令创建: ${match[2]}`
+    }[language] ?? step;
+  }
+
   match = step.match(/^Configure trusted publishing after the package exists: (.+)$/);
   if (match) {
     return {
@@ -9048,18 +9416,24 @@ function translateReleaseNextStep(step, language) {
 
   return {
     ko: {
+      "No npm package publication is required for the detected app/private repository profile.": "감지된 app/private 저장소 프로필에는 npm 패키지 배포가 필요하지 않습니다.",
+      "Configure release automation in your CI provider before tagging a release.": "릴리스 태그 생성 전에 사용 중인 CI 제공자에서 릴리스 자동화를 설정하세요.",
       "Run release-check --npm to confirm npm registry publication state.": "npm 레지스트리 배포 상태를 확인하려면 release-check --npm을 실행하세요.",
       "Ensure release workflow publishes with npm provenance.": "릴리스 워크플로가 npm provenance로 배포하는지 확인하세요.",
       "Run npm run ci before tagging a release.": "릴리스 태그 생성 전에 npm run ci를 실행하세요.",
       "Run npm publish dry-run through the Release workflow_dispatch dry_run input.": "릴리스 workflow_dispatch dry_run 입력으로 npm publish dry-run을 실행하세요."
     },
     ja: {
+      "No npm package publication is required for the detected app/private repository profile.": "検出された app/private リポジトリプロファイルでは npm パッケージ公開は不要です。",
+      "Configure release automation in your CI provider before tagging a release.": "リリースタグを作成する前に、利用中の CI でリリース自動化を設定してください。",
       "Run release-check --npm to confirm npm registry publication state.": "npm レジストリの公開状態を確認するには release-check --npm を実行してください。",
       "Ensure release workflow publishes with npm provenance.": "リリースワークフローが npm provenance 付きで公開することを確認してください。",
       "Run npm run ci before tagging a release.": "リリースタグを作成する前に npm run ci を実行してください。",
       "Run npm publish dry-run through the Release workflow_dispatch dry_run input.": "リリース workflow_dispatch の dry_run 入力で npm publish dry-run を実行してください。"
     },
     zh: {
+      "No npm package publication is required for the detected app/private repository profile.": "检测到的 app/private 仓库配置不需要 npm 包发布。",
+      "Configure release automation in your CI provider before tagging a release.": "创建发布标签前，请在当前 CI 服务中配置发布自动化。",
       "Run release-check --npm to confirm npm registry publication state.": "运行 release-check --npm 确认 npm 注册表发布状态。",
       "Ensure release workflow publishes with npm provenance.": "确保发布工作流使用 npm provenance 发布。",
       "Run npm run ci before tagging a release.": "创建发布标签前运行 npm run ci。",
@@ -9154,6 +9528,7 @@ function firstPositionalArg(args) {
     "--route",
     "--steps",
     "--provider",
+    "--project-type",
     "--script",
     "--command",
     "--agent-command",

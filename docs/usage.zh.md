@@ -207,11 +207,18 @@ aigate branch-strategy --compare
 aigate branch-strategy --apply
 aigate release-check
 aigate release-check --npm
+aigate release-check --project-type app
+aigate release-check --project-type package --npm
 ```
 
 `branch-strategy` 会推荐 branch rules，并可生成 policy packs。
 `release-check --npm` 会检查 package metadata、release tag、workflow
 provenance 和 npm 发布状态是否就绪。
+
+AIGate 会自动检测仓库配置: app/package、private/public、GitHub/GitLab、
+npm/pnpm/yarn/bun。对于 private GitLab pnpm app，GitHub 专用项和 npm 公开发布项
+会显示为 `不适用`，不会算作 `待办`。只有需要把仓库强制视为可发布 npm 包时，
+才使用 `--project-type package`。
 
 ## 通知
 

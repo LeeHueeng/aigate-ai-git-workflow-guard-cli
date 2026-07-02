@@ -211,11 +211,19 @@ aigate branch-strategy --compare
 aigate branch-strategy --apply
 aigate release-check
 aigate release-check --npm
+aigate release-check --project-type app
+aigate release-check --project-type package --npm
 ```
 
 `branch-strategy`는 브랜치 규칙을 추천하고 정책 팩을 생성할 수 있습니다.
 `release-check --npm`은 package metadata, release tag, workflow provenance,
 npm 배포 상태가 준비됐는지 확인합니다.
+
+AIGate는 저장소 프로필을 자동 감지합니다: app/package, private/public,
+GitHub/GitLab, npm/pnpm/yarn/bun. private GitLab pnpm 앱에서는 GitHub 전용
+항목과 npm 공개 배포 항목을 `할 일`이 아니라 `해당 없음`으로 표시합니다.
+저장소를 npm 배포 패키지로 강제 검사해야 할 때만 `--project-type package`를
+사용하세요.
 
 ## 알림
 

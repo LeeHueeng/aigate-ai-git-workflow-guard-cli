@@ -89,6 +89,49 @@ function createMinimalGitProject() {
   return projectDir;
 }
 
+function createPrivateGitLabPnpmApp() {
+  const projectDir = mkdtempSync(join(tmpdir(), "aigate-gitlab-app-"));
+  mkdirSync(join(projectDir, ".gitlab", "issue_templates"), { recursive: true });
+  mkdirSync(join(projectDir, ".gitlab", "merge_request_templates"), { recursive: true });
+  mkdirSync(join(projectDir, "docs"), { recursive: true });
+  mkdirSync(join(projectDir, "tests"), { recursive: true });
+  writeFileSync(join(projectDir, "package.json"), `${JSON.stringify({
+    name: "admin-root-monorepo",
+    version: "1.0.0",
+    private: true,
+    packageManager: "pnpm@9.15.0",
+    scripts: {
+      "frontend-test": "pnpm --filter admin test",
+      ci: "pnpm frontend-test"
+    },
+    repository: {
+      type: "git",
+      url: "git@gitlab.example.com:company/admin-root-monorepo.git"
+    }
+  }, null, 2)}\n`);
+  writeFileSync(join(projectDir, "pnpm-lock.yaml"), "lockfileVersion: '9.0'\n");
+  writeFileSync(join(projectDir, ".gitlab-ci.yml"), "test:\n  script:\n    - pnpm frontend-test\n");
+  writeFileSync(join(projectDir, ".gitlab", "issue_templates", "bug.md"), "## Bug\n");
+  writeFileSync(join(projectDir, ".gitlab", "merge_request_templates", "default.md"), "## Summary\n");
+  writeFileSync(join(projectDir, ".aigate.yml"), "version: 1\n");
+  writeFileSync(join(projectDir, "AGENTS.md"), "# Agents\n");
+  writeFileSync(join(projectDir, "GEMINI.md"), "# Gemini\n");
+  writeFileSync(join(projectDir, "CODEOWNERS"), "* @company/admin\n");
+  writeFileSync(join(projectDir, "CONTRIBUTING.md"), "# Contributing\n");
+  writeFileSync(join(projectDir, "README.md"), "# Admin Root Monorepo\n");
+  writeFileSync(join(projectDir, "SECURITY.md"), "# Security\n");
+  writeFileSync(join(projectDir, "docs", "branch-strategy.md"), "# Branch Strategy\n");
+  writeFileSync(join(projectDir, "docs", "git-upload-workflow.md"), "# Git Upload Workflow\n");
+  writeFileSync(join(projectDir, "docs", "security-scanning.md"), "# Security Scanning\n");
+  writeFileSync(join(projectDir, "tests", "smoke.test.js"), "console.log('ok');\n");
+  spawnSync("git", ["init"], { cwd: projectDir, encoding: "utf8" });
+  spawnSync("git", ["remote", "add", "origin", "git@gitlab.example.com:company/admin-root-monorepo.git"], {
+    cwd: projectDir,
+    encoding: "utf8"
+  });
+  return projectDir;
+}
+
 function createFakeCurlBin() {
   const binDir = mkdtempSync(join(tmpdir(), "aigate-curl-"));
   const curlPath = join(binDir, "curl");
@@ -1167,6 +1210,24 @@ test("renders localized project evaluation report", () => {
   assert.doesNotMatch(result.stdout, /Deep Signals/);
 });
 
+test("adapts project evaluation for private GitLab pnpm apps", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  const result = run(["evaluate-project", "--format", "json"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.profile.kind, "app");
+  assert.equal(output.profile.visibility, "private");
+  assert.equal(output.profile.hosting, "gitlab");
+  assert.equal(output.profile.packageManager, "pnpm");
+  assert.ok(output.score >= 90);
+  assert.equal(output.checks.find((check) => check.name === "CI workflow exists")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "Pull request template exists")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "Dependabot exists")?.status, "NA");
+  assert.equal(output.checks.find((check) => check.name === "OpenSSF Scorecard workflow exists")?.status, "NA");
+  assert.equal(output.checks.find((check) => check.name === "License exists")?.status, "NA");
+});
+
 test("checks release readiness", () => {
   const result = run(["release-check", "--format", "json"]);
 
@@ -1177,7 +1238,8 @@ test("checks release readiness", () => {
   assert.equal(output.version, "0.1.6");
   assert.equal(output.expectedTag, "v0.1.6");
   assert.ok(["READY", "ACTION_REQUIRED", "RELEASED"].includes(output.status));
-  assert.deepEqual(output.registry, { checked: false });
+  assert.equal(output.registry.checked, false);
+  assert.equal(output.registry.applicable, true);
 });
 
 test("checks npm publication state when requested", () => {
@@ -1197,6 +1259,35 @@ test("checks npm publication state when requested", () => {
   assert.equal(output.registry.checked, true);
   assert.equal(output.registry.published, true);
   assert.equal(output.registry.publishedVersion, "0.1.6");
+});
+
+test("treats private GitLab pnpm apps as non-npm release targets", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  const result = run(["release-check", "--npm", "--format", "json"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.status, "READY");
+  assert.equal(output.profile.kind, "app");
+  assert.equal(output.profile.hosting, "gitlab");
+  assert.equal(output.profile.packageManager, "pnpm");
+  assert.equal(output.registry.applicable, false);
+  assert.equal(output.checks.find((check) => check.name === "package-lock.json version matches package.json")?.status, "NA");
+  assert.equal(output.checks.find((check) => check.name === "package declares npm entrypoint or bin")?.status, "NA");
+  assert.equal(output.checks.find((check) => check.name === "publishConfig access is public")?.status, "NA");
+  assert.equal(output.checks.find((check) => check.name === "release workflow uses npm provenance")?.status, "NA");
+  assert.ok(output.nextSteps.some((step) => step.includes("No npm package publication is required")));
+});
+
+test("can force package release checks for private repositories", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  const result = run(["release-check", "--project-type", "package", "--format", "json"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.profile.kind, "package");
+  assert.equal(output.status, "ACTION_REQUIRED");
+  assert.equal(output.checks.find((check) => check.name === "package is not marked private")?.status, "TODO");
 });
 
 test("uses generic npm package and repository release checks", () => {

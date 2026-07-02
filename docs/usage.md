@@ -214,11 +214,19 @@ aigate branch-strategy --compare
 aigate branch-strategy --apply
 aigate release-check
 aigate release-check --npm
+aigate release-check --project-type app
+aigate release-check --project-type package --npm
 ```
 
 `branch-strategy` recommends branch rules and can generate policy packs.
 `release-check --npm` checks whether package metadata, release tags, workflow
 provenance, and npm publication state are ready.
+
+AIGate auto-detects repository profile signals: app vs package, private vs
+public, GitHub vs GitLab, and npm/pnpm/yarn/bun. For a private GitLab pnpm app,
+GitHub-only and npm-publication checks are marked `N/A` instead of `TODO`. Use
+`--project-type package` only when a repository should be treated as a
+publishable npm package.
 
 ## Notifications
 

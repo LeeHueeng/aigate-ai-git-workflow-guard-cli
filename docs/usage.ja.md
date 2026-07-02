@@ -211,11 +211,18 @@ aigate branch-strategy --compare
 aigate branch-strategy --apply
 aigate release-check
 aigate release-check --npm
+aigate release-check --project-type app
+aigate release-check --project-type package --npm
 ```
 
 `branch-strategy` は branch rule を推薦し、policy pack を生成できます。
 `release-check --npm` は package metadata、release tag、workflow provenance、
 npm 公開状態が準備できているか確認します。
+
+AIGate は repository profile を自動検出します: app/package、private/public、
+GitHub/GitLab、npm/pnpm/yarn/bun。private GitLab pnpm app では、GitHub 専用
+項目と npm 公開項目を `未対応` ではなく `対象外` として表示します。npm 公開
+package として強制的に検査したい場合だけ `--project-type package` を使います。
 
 ## 通知
 
