@@ -42,6 +42,9 @@ aigate start --route oss --owner @your-org/team
 aigate start --route ai --provider codex
 aigate start --route full --provider all
 aigate init
+aigate reset --dry-run
+aigate clean
+aigate uninstall
 aigate doctor
 aigate demo
 aigate install-hook --pre-push
@@ -59,6 +62,9 @@ aigate install-hook --pre-push
 | `aigate start --route full --provider all` | 在一个 flow 中创建配置、AI 文件、pre-push hook 和 release checks。 |
 | `aigate setup --language zh` | 保存 CLI 输出语言。 |
 | `aigate init` | 创建 `.aigate.yml` 和 reports 目录。 |
+| `aigate reset` | 重新写入 AIGate config、settings 和报告占位文件。可用 `--dry-run` 预览。 |
+| `aigate clean --force` | 删除生成的 AIGate 报告和本地生成状态。没有 `--force` 时只预览目标。 |
+| `aigate uninstall --force` | 移除 `.aigate.yml`、`.aigate/` 和 AIGate 自有 pre-push hook。 |
 | `aigate doctor` | 检查 Node、Git、npm package metadata、GitHub workflow 和 AIGate 配置。 |
 | `aigate demo` | 不修改项目文件，展示主要流程。 |
 | `aigate install-hook --pre-push` | 安装 push 前运行 AIGate 的 pre-push hook。 |
@@ -216,6 +222,9 @@ aigate git-ready --notify-channel terminal
 | 命令 | 使用场景 |
 | --- | --- |
 | `aigate init` | 创建初始 AIGate 配置。 |
+| `aigate reset` | 重置 AIGate 配置和 settings。 |
+| `aigate clean` | 预览生成报告和本地状态删除目标；添加 `--force` 后执行。 |
+| `aigate uninstall` | 预览本地 AIGate 配置、状态和自有 hook 的移除目标；添加 `--force` 后执行。 |
 | `aigate start` | 选择并运行引导式设置路由。 |
 | `aigate start --route default --ask-steps` | 逐个确认推荐的默认设置步骤后运行。 |
 | `aigate start --route default --steps init,repo-files` | 只运行选中的默认设置步骤。 |

@@ -45,6 +45,9 @@ aigate start
 aigate start --route default --ask-steps
 aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
+aigate reset --dry-run
+aigate clean
+aigate uninstall
 aigate check
 aigate test
 aigate ai report
@@ -62,6 +65,9 @@ aigate pr-check
 | ガイド付き設定ルーター | `aigate start` |
 | はい/いいえで選ぶデフォルト設定 | `aigate start --route default --ask-steps` |
 | 必要な手順だけを指定して実行 | `aigate start --route default --steps init,repo-files` |
+| AIGate 設定と settings を初期化 | `aigate reset` |
+| 生成済みローカルレポートと状態を削除 | `aigate clean --force` |
+| AIGate 設定、ローカル状態、所有 hook を削除 | `aigate uninstall --force` |
 | 公開リポジトリ README、issue テンプレート、貢献ファイル生成 | `aigate start --route oss` |
 | プロジェクト test 実行 | `aigate test` |
 | AI 修正プロンプトと任意の agent 実行 | `aigate aitest` |
@@ -101,6 +107,8 @@ aigate ai report
 aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
+aigate reset --dry-run
+aigate clean
 aigate doctor
 aigate install-hook --pre-push
 aigate test

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { dirname, isAbsolute, join } from "node:path";
 import readline from "node:readline";
 import { fileURLToPath } from "node:url";
 import { commandDemo, commandDoctor, commandInstallHook } from "./commands/first-run.mjs";
@@ -15,6 +15,7 @@ const SUPPORTED_LANGUAGES = ["en", "ko", "ja", "zh"];
 const SUPPORTED_INTEGRATIONS = ["codex", "gemini", "claude"];
 const START_ROUTE_IDS = ["default", "quickstart", "oss", "ai", "hook", "release", "full"];
 const AI_TEST_PROVIDERS = ["codex", "claude", "gemini"];
+const AIGATE_HOOK_MARKER = "AIGate pre-push hook";
 const DEFAULT_SETTINGS = {
   version: 1,
   language: "en"
@@ -31,8 +32,14 @@ const SECRET_PATTERNS = [
 const I18N = {
   en: {
     "action.created": "created",
+    "action.deleted": "deleted",
+    "action.missing": "missing",
+    "action.protected": "protected",
     "action.skipped": "skipped",
     "action.updated": "updated",
+    "action.would-create": "would create",
+    "action.would-delete": "would delete",
+    "action.would-update": "would update",
     "branchStrategy.applied": "Applied branch strategy files",
     "branchStrategy.branches": "Branches:",
     "branchStrategy.generated": "Generated branch strategy files",
@@ -68,6 +75,15 @@ const I18N = {
     "gitReady.warnings": "Warnings:",
     "gitReady.warningsNone": "Warnings: none",
     "init.complete": "AIGate init complete",
+    "maintenance.cleanTitle": "AIGate clean",
+    "maintenance.forceHint": "Re-run with --force to delete files.",
+    "maintenance.mode": "Mode: {mode}",
+    "maintenance.next": "Next: {next}",
+    "maintenance.outputDir": "Output directory: {path}",
+    "maintenance.resetTitle": "AIGate reset",
+    "maintenance.status": "{title}: {status}",
+    "maintenance.targets": "Targets:",
+    "maintenance.uninstallTitle": "AIGate uninstall",
     "integrate.complete": "AIGate AI integration files",
     "integrate.next": "Next: review the generated instruction files and run npm run ci.",
     "integrate.providers": "Providers: {providers}",
@@ -108,8 +124,14 @@ const I18N = {
   },
   ko: {
     "action.created": "생성",
+    "action.deleted": "삭제",
+    "action.missing": "없음",
+    "action.protected": "보호됨",
     "action.skipped": "건너뜀",
     "action.updated": "갱신",
+    "action.would-create": "생성 예정",
+    "action.would-delete": "삭제 예정",
+    "action.would-update": "갱신 예정",
     "branchStrategy.applied": "브랜치 전략 파일 적용 완료",
     "branchStrategy.branches": "브랜치:",
     "branchStrategy.generated": "브랜치 전략 파일 생성 완료",
@@ -145,6 +167,15 @@ const I18N = {
     "gitReady.warnings": "주의 사항:",
     "gitReady.warningsNone": "주의 사항: 없음",
     "init.complete": "AIGate 초기화 완료",
+    "maintenance.cleanTitle": "AIGate clean",
+    "maintenance.forceHint": "파일을 삭제하려면 --force로 다시 실행하세요.",
+    "maintenance.mode": "모드: {mode}",
+    "maintenance.next": "다음 단계: {next}",
+    "maintenance.outputDir": "출력 디렉터리: {path}",
+    "maintenance.resetTitle": "AIGate reset",
+    "maintenance.status": "{title}: {status}",
+    "maintenance.targets": "대상:",
+    "maintenance.uninstallTitle": "AIGate uninstall",
     "integrate.complete": "AIGate AI 연동 파일 생성",
     "integrate.next": "다음 단계: 생성된 지침 파일을 검토하고 npm run ci를 실행하세요.",
     "integrate.providers": "대상: {providers}",
@@ -185,8 +216,14 @@ const I18N = {
   },
   ja: {
     "action.created": "作成",
+    "action.deleted": "削除",
+    "action.missing": "なし",
+    "action.protected": "保護",
     "action.skipped": "スキップ",
     "action.updated": "更新",
+    "action.would-create": "作成予定",
+    "action.would-delete": "削除予定",
+    "action.would-update": "更新予定",
     "branchStrategy.applied": "ブランチ戦略ファイルを適用しました",
     "branchStrategy.branches": "ブランチ:",
     "branchStrategy.generated": "ブランチ戦略ファイルを生成しました",
@@ -222,6 +259,15 @@ const I18N = {
     "gitReady.warnings": "警告:",
     "gitReady.warningsNone": "警告: なし",
     "init.complete": "AIGate 初期化完了",
+    "maintenance.cleanTitle": "AIGate clean",
+    "maintenance.forceHint": "ファイルを削除するには --force で再実行してください。",
+    "maintenance.mode": "モード: {mode}",
+    "maintenance.next": "次の手順: {next}",
+    "maintenance.outputDir": "出力ディレクトリ: {path}",
+    "maintenance.resetTitle": "AIGate reset",
+    "maintenance.status": "{title}: {status}",
+    "maintenance.targets": "対象:",
+    "maintenance.uninstallTitle": "AIGate uninstall",
     "integrate.complete": "AIGate AI 連携ファイル",
     "integrate.next": "次の手順: 生成された指示ファイルを確認し、npm run ci を実行してください。",
     "integrate.providers": "対象: {providers}",
@@ -262,8 +308,14 @@ const I18N = {
   },
   zh: {
     "action.created": "已创建",
+    "action.deleted": "已删除",
+    "action.missing": "不存在",
+    "action.protected": "受保护",
     "action.skipped": "已跳过",
     "action.updated": "已更新",
+    "action.would-create": "将创建",
+    "action.would-delete": "将删除",
+    "action.would-update": "将更新",
     "branchStrategy.applied": "已应用分支策略文件",
     "branchStrategy.branches": "分支:",
     "branchStrategy.generated": "已生成分支策略文件",
@@ -299,6 +351,15 @@ const I18N = {
     "gitReady.warnings": "警告:",
     "gitReady.warningsNone": "警告: 无",
     "init.complete": "AIGate 初始化完成",
+    "maintenance.cleanTitle": "AIGate clean",
+    "maintenance.forceHint": "要删除文件，请使用 --force 重新运行。",
+    "maintenance.mode": "模式: {mode}",
+    "maintenance.next": "下一步: {next}",
+    "maintenance.outputDir": "输出目录: {path}",
+    "maintenance.resetTitle": "AIGate reset",
+    "maintenance.status": "{title}: {status}",
+    "maintenance.targets": "目标:",
+    "maintenance.uninstallTitle": "AIGate uninstall",
     "integrate.complete": "AIGate AI 集成文件",
     "integrate.next": "下一步: 检查生成的说明文件并运行 npm run ci。",
     "integrate.providers": "目标: {providers}",
@@ -888,6 +949,10 @@ const HELP_CONTENT = {
     optionsTitle: "Options",
     commands: [
       ["init", "Create starter AIGate project configuration."],
+      ["reset", "Reset AIGate config, settings, and report folders."],
+      ["clean", "Delete generated AIGate reports and local state."],
+      ["uninstall", "Remove AIGate config, state, and owned hooks."],
+      ["delete", "Alias for `aigate clean`."],
       ["check", "Summarize local Git readiness."],
       ["git-ready", "Run the before-push readiness gate."],
       ["push", "Run AIGate checks, then run git push."],
@@ -953,6 +1018,7 @@ const HELP_CONTENT = {
       ["--agent-command <shell>", "Custom AI agent command for aitest or ai report --apply."],
       ["--prompt-output <path>", "Write the AI report handoff prompt to a custom path."],
       ["--pre-push", "Install or target the pre-push Git hook."],
+      ["--include-ai-files", "Also target generated AGENTS/GEMINI/CLAUDE files for uninstall."],
       ["--language <en|ko|ja|zh>", "Select output language."],
       ["--output-dir <path>", "Select integration output directory."],
       ["--force", "Overwrite generated integration files."],
@@ -969,6 +1035,10 @@ const HELP_CONTENT = {
     optionsTitle: "옵션",
     commands: [
       ["init", "AIGate 프로젝트 기본 설정을 생성합니다."],
+      ["reset", "AIGate 설정, settings, 리포트 폴더를 초기화합니다."],
+      ["clean", "생성된 AIGate 리포트와 로컬 상태를 삭제합니다."],
+      ["uninstall", "AIGate 설정, 상태, 소유 hook을 제거합니다."],
+      ["delete", "`aigate clean` 별칭입니다."],
       ["check", "로컬 Git 준비 상태를 요약합니다."],
       ["git-ready", "푸시 전 준비 게이트를 실행합니다."],
       ["push", "AIGate 검사 후 git push를 실행합니다."],
@@ -1034,6 +1104,7 @@ const HELP_CONTENT = {
       ["--agent-command <shell>", "aitest 또는 ai report --apply에서 사용할 사용자 지정 AI 에이전트 명령입니다."],
       ["--prompt-output <path>", "AI report 전달 프롬프트를 지정한 경로에 저장합니다."],
       ["--pre-push", "pre-push Git hook을 설치하거나 대상으로 지정합니다."],
+      ["--include-ai-files", "uninstall에서 생성된 AGENTS/GEMINI/CLAUDE 파일도 대상으로 포함합니다."],
       ["--language <en|ko|ja|zh>", "출력 언어를 선택합니다."],
       ["--output-dir <path>", "연동 파일 출력 디렉터리를 선택합니다."],
       ["--force", "생성된 연동 파일을 덮어씁니다."],
@@ -1050,6 +1121,10 @@ const HELP_CONTENT = {
     optionsTitle: "オプション",
     commands: [
       ["init", "AIGate プロジェクトの初期設定を作成します。"],
+      ["reset", "AIGate 設定、settings、レポートフォルダを初期化します。"],
+      ["clean", "生成済み AIGate レポートとローカル状態を削除します。"],
+      ["uninstall", "AIGate 設定、状態、所有 hook を削除します。"],
+      ["delete", "`aigate clean` のエイリアスです。"],
       ["check", "ローカル Git 準備状態を要約します。"],
       ["git-ready", "プッシュ前の準備ゲートを実行します。"],
       ["push", "AIGate チェック後に git push を実行します。"],
@@ -1115,6 +1190,7 @@ const HELP_CONTENT = {
       ["--agent-command <shell>", "aitest または ai report --apply で使うカスタム AI エージェントコマンドです。"],
       ["--prompt-output <path>", "AI report 引き継ぎプロンプトを指定パスへ保存します。"],
       ["--pre-push", "pre-push Git hook をインストールまたは対象にします。"],
+      ["--include-ai-files", "uninstall で生成済み AGENTS/GEMINI/CLAUDE ファイルも対象にします。"],
       ["--language <en|ko|ja|zh>", "出力言語を選択します。"],
       ["--output-dir <path>", "連携ファイルの出力ディレクトリを選択します。"],
       ["--force", "生成済み連携ファイルを上書きします。"],
@@ -1131,6 +1207,10 @@ const HELP_CONTENT = {
     optionsTitle: "选项",
     commands: [
       ["init", "创建 AIGate 项目初始配置。"],
+      ["reset", "重置 AIGate 配置、settings 和报告目录。"],
+      ["clean", "删除生成的 AIGate 报告和本地状态。"],
+      ["uninstall", "移除 AIGate 配置、状态和自有 hook。"],
+      ["delete", "`aigate clean` 的别名。"],
       ["check", "汇总本地 Git 就绪状态。"],
       ["git-ready", "运行推送前的就绪关卡。"],
       ["push", "运行 AIGate 检查后执行 git push。"],
@@ -1196,6 +1276,7 @@ const HELP_CONTENT = {
       ["--agent-command <shell>", "aitest 或 ai report --apply 使用的自定义 AI agent 命令。"],
       ["--prompt-output <path>", "将 AI report 交接提示写入指定路径。"],
       ["--pre-push", "安装或指定 pre-push Git hook。"],
+      ["--include-ai-files", "uninstall 时也包含生成的 AGENTS/GEMINI/CLAUDE 文件。"],
       ["--language <en|ko|ja|zh>", "选择输出语言。"],
       ["--output-dir <path>", "选择集成输出目录。"],
       ["--force", "覆盖已生成的集成文件。"],
@@ -1556,6 +1637,10 @@ function languageName(language) {
 
 const commands = {
   init: commandInit,
+  reset: commandReset,
+  clean: commandClean,
+  uninstall: commandUninstall,
+  delete: commandClean,
   check: commandCheck,
   "git-ready": commandGitReady,
   push: commandPush,
@@ -1692,6 +1777,104 @@ function commandInit(args) {
   ];
 
   return lines.join("\n");
+}
+
+function commandReset(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const outputDir = options.outputDir ?? ".";
+  const packageJson = readJsonFile("package.json");
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    language
+  };
+  const files = [
+    {
+      path: options.config ?? join(outputDir, ".aigate.yml"),
+      content: renderDefaultConfig(packageJson)
+    },
+    {
+      path: scopedSettingsPath(outputDir),
+      content: `${JSON.stringify(settings, null, 2)}\n`
+    },
+    {
+      path: join(outputDir, ".aigate", "reports", ".gitkeep"),
+      content: ""
+    }
+  ];
+  const targets = options.dryRun
+    ? previewProjectFiles(files)
+    : writeProjectFiles(files, true);
+  const result = {
+    command: "reset",
+    status: options.dryRun ? "DRY_RUN" : "DONE",
+    mode: options.dryRun ? "dry-run" : "apply",
+    outputDir,
+    targets,
+    next: "aigate doctor"
+  };
+
+  if (options.format === "json") {
+    return JSON.stringify(result, null, 2);
+  }
+
+  return renderMaintenanceResult(result, language);
+}
+
+function commandClean(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const outputDir = options.outputDir ?? ".";
+  const previewOnly = Boolean(options.dryRun || !options.force);
+  const targets = applyDeleteTargets(buildCleanTargets(outputDir), previewOnly);
+  const result = {
+    command: "clean",
+    status: previewOnly ? "DRY_RUN" : targets.some((target) => target.action === "protected") ? "WARN" : "DONE",
+    mode: previewOnly ? "dry-run" : "apply",
+    outputDir,
+    targets,
+    next: previewOnly ? "aigate clean --force" : "aigate doctor"
+  };
+
+  if (options.format === "json") {
+    return JSON.stringify(result, null, 2);
+  }
+
+  return renderMaintenanceResult(result, language);
+}
+
+function commandUninstall(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const outputDir = options.outputDir ?? ".";
+  const previewOnly = Boolean(options.dryRun || !options.force);
+  const targets = applyDeleteTargets(buildUninstallTargets(outputDir, options), previewOnly);
+  const result = {
+    command: "uninstall",
+    status: previewOnly ? "DRY_RUN" : targets.some((target) => target.action === "protected") ? "WARN" : "DONE",
+    mode: previewOnly ? "dry-run" : "apply",
+    outputDir,
+    targets,
+    next: previewOnly ? "aigate uninstall --force" : "aigate doctor"
+  };
+
+  if (options.format === "json") {
+    return JSON.stringify(result, null, 2);
+  }
+
+  return renderMaintenanceResult(result, language);
 }
 
 function commandCheck(args) {
@@ -7917,6 +8100,150 @@ function writeProjectFiles(files, force) {
       action
     };
   });
+}
+
+function previewProjectFiles(files) {
+  return files.map((file) => ({
+    path: file.path,
+    action: existsSync(file.path) ? "would-update" : "would-create"
+  }));
+}
+
+function buildCleanTargets(outputDir) {
+  return [
+    deleteTarget(join(outputDir, ".aigate", "reports")),
+    deleteTarget(join(outputDir, ".aigate", "generated-branch-strategy.md")),
+    deleteTarget(join(outputDir, ".aigate", "branch-strategy-policy.json")),
+    deleteTarget(join(outputDir, ".aigate", "branch-strategy-policy-pack.json")),
+    deleteTarget(join(outputDir, ".aigate", "reports", "ai-test.md")),
+    deleteTarget(join(outputDir, ".aigate", "reports", "ai-report.md"))
+  ];
+}
+
+function buildUninstallTargets(outputDir, options = {}) {
+  const targets = [
+    deleteTarget(options.config ?? join(outputDir, ".aigate.yml")),
+    deleteTarget(join(outputDir, ".aigate")),
+    deleteTarget(join(outputDir, ".github", "pull_request_template.aigate.md")),
+    deleteTarget(join(outputDir, ".github", "CODEOWNERS.aigate"))
+  ];
+  const hookPath = resolveAigateHookPath();
+  if (hookPath) {
+    targets.push(deleteTarget(hookPath, { marker: AIGATE_HOOK_MARKER }));
+  }
+
+  if (options.includeAiFiles) {
+    targets.push(
+      deleteTarget(join(outputDir, "AGENTS.md"), { marker: "AIGate" }),
+      deleteTarget(join(outputDir, "GEMINI.md"), { marker: "AIGate" }),
+      deleteTarget(join(outputDir, "CLAUDE.md"), { marker: "AIGate" })
+    );
+  }
+
+  return targets;
+}
+
+function deleteTarget(path, options = {}) {
+  return {
+    path,
+    marker: options.marker
+  };
+}
+
+function applyDeleteTargets(targets, previewOnly) {
+  return targets.map((target) => {
+    if (!existsSync(target.path)) {
+      return {
+        path: target.path,
+        action: "missing"
+      };
+    }
+
+    if (target.marker && !safeFileIncludes(target.path, target.marker)) {
+      return {
+        path: target.path,
+        action: "protected"
+      };
+    }
+
+    if (previewOnly) {
+      return {
+        path: target.path,
+        action: "would-delete"
+      };
+    }
+
+    rmSync(target.path, { recursive: true, force: true });
+    return {
+      path: target.path,
+      action: "deleted"
+    };
+  });
+}
+
+function safeFileIncludes(path, marker) {
+  try {
+    const stat = statSync(path);
+    if (!stat.isFile()) {
+      return false;
+    }
+
+    return readFileSync(path, "utf8").includes(marker);
+  } catch {
+    return false;
+  }
+}
+
+function resolveAigateHookPath() {
+  const gitRoot = git(["rev-parse", "--show-toplevel"]);
+  if (!gitRoot) {
+    return null;
+  }
+
+  const hookPath = git(["rev-parse", "--git-path", "hooks/pre-push"]);
+  if (!hookPath) {
+    return join(gitRoot, ".git", "hooks", "pre-push");
+  }
+
+  return isAbsolute(hookPath) ? hookPath : join(gitRoot, hookPath);
+}
+
+function scopedSettingsPath(outputDir) {
+  const settingsPath = getSettingsPath();
+  if (process.env.AIGATE_SETTINGS_PATH || isAbsolute(settingsPath)) {
+    return settingsPath;
+  }
+
+  return outputDir === "." ? settingsPath : join(outputDir, settingsPath);
+}
+
+function renderMaintenanceResult(result, language) {
+  const title = maintenanceTitle(result.command, language);
+  const lines = [
+    t(language, "maintenance.status", { title, status: automationStatus(result.status, language) }),
+    t(language, "maintenance.mode", { mode: translateAutomationMode(result.mode, language) }),
+    t(language, "maintenance.outputDir", { path: result.outputDir }),
+    "",
+    t(language, "maintenance.targets"),
+    ...result.targets.map((target) => `- ${translateIntegrationAction(target.action, language)}: ${target.path}`),
+    "",
+    t(language, "maintenance.next", { next: result.next })
+  ];
+
+  if (result.mode === "dry-run" && (result.command === "clean" || result.command === "uninstall")) {
+    lines.push(t(language, "maintenance.forceHint"));
+  }
+
+  return lines.join("\n");
+}
+
+function maintenanceTitle(command, language) {
+  const key = command === "reset"
+    ? "maintenance.resetTitle"
+    : command === "uninstall"
+      ? "maintenance.uninstallTitle"
+      : "maintenance.cleanTitle";
+  return t(language, key);
 }
 
 function readPackageVersion() {

@@ -541,7 +541,7 @@ npx aigate-cli check</code></pre>
       </div>
       <div class="command-groups"><article class="command-group group-0">
       <h3>설정</h3>
-      <div><span>start</span><span>start --route default</span><span>start --route oss</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
+      <div><span>start</span><span>start --route default</span><span>start --route oss</span><span>init</span><span>reset</span><span>setup</span><span>settings</span><span>integrate</span></div>
     </article><article class="command-group group-1">
       <h3>첫 실행</h3>
       <div><span>doctor</span><span>demo</span><span>install-hook</span></div>
@@ -549,9 +549,12 @@ npx aigate-cli check</code></pre>
       <h3>보호 게이트</h3>
       <div><span>check</span><span>test</span><span>aitest</span><span>git-ready</span><span>push</span><span>pr</span></div>
     </article><article class="command-group group-3">
+      <h3>유지보수</h3>
+      <div><span>clean</span><span>uninstall</span><span>delete</span></div>
+    </article><article class="command-group group-4">
       <h3>보고서</h3>
       <div><span>ai report</span><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
-    </article><article class="command-group group-4">
+    </article><article class="command-group group-5">
       <h3>릴리스</h3>
       <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>branch-strategy --compare</span><span>notify</span></div>
     </article></div>
@@ -597,6 +600,18 @@ npx aigate-cli check</code></pre>
     <td><code>aigate init</code></td>
     <td>AIGate 기본 설정 파일과 리포트 폴더를 만듭니다.</td>
     <td>새 프로젝트에 AIGate를 적용할 때</td>
+  </tr><tr>
+    <td><code>aigate reset</code></td>
+    <td>AIGate 설정과 settings, 리포트 placeholder를 다시 작성합니다.</td>
+    <td>설정을 처음 상태로 되돌릴 때</td>
+  </tr><tr>
+    <td><code>aigate clean --force</code></td>
+    <td>생성된 AIGate 리포트와 로컬 상태를 삭제합니다.</td>
+    <td>리포트와 generated state를 비울 때</td>
+  </tr><tr>
+    <td><code>aigate uninstall --force</code></td>
+    <td>AIGate 설정, .aigate 디렉터리, AIGate 소유 hook을 제거합니다.</td>
+    <td>프로젝트에서 AIGate를 제거할 때</td>
   </tr><tr>
     <td><code>aigate setup --language &lt;en|ko|ja|zh&gt;</code></td>
     <td>CLI 출력 언어를 저장합니다.</td>
@@ -757,6 +772,8 @@ aigate setup --language ko
 aigate ai report
 aigate start --route default --ask-steps
 aigate start --route oss --dry-run
+aigate reset --dry-run
+aigate clean
 aigate start --route ai --provider all
 git switch -c feature/my-change
 aigate doctor
@@ -782,7 +799,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">기능</p>
         <h2>현재 구현된 기능</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm 패키지 aigate-cli 공개 배포와 npx 실행</div><div class="feature done">Git 변경사항과 untracked 파일 기반 readiness check</div><div class="feature done">aigate start 기반 안내형 시작 루트</div><div class="feature done">aigate start --route default 기반 단계별 기본 설정</div><div class="feature done">aigate start --route oss 기반 오픈소스 시작 파일 생성</div><div class="feature done">aigate test 기반 프로젝트 테스트 자동화</div><div class="feature done">aigate ai report 기반 AI 프로젝트 상태 브리프</div><div class="feature done">aigate aitest 기반 AI 수정 프롬프트와 선택적 에이전트 실행</div><div class="feature done">doctor, demo, install-hook 기반 첫 실행 UX</div><div class="feature done">pre-push Git hook 설치</div><div class="feature done">secret 패턴 탐지와 SARIF 출력</div><div class="feature done">git-ready, guarded push, guarded PR 생성 흐름</div><div class="feature done">GitHub PR comment와 GitHub Checks summary payload</div><div class="feature done">PR 템플릿과 CODEOWNERS 안내형 설정</div><div class="feature done">재사용 가능한 공개 GitHub Action</div><div class="feature done">프로젝트 상태 추세 기록</div><div class="feature done">Markdown, HTML, JSON, SARIF 리포트</div><div class="feature done">컴플라이언스 리포트와 로컬 HTML 상태 대시보드</div><div class="feature done">프로젝트 점수와 deep Git signal 평가</div><div class="feature done">브랜치 전략 추천, 제안 비교, 정책 팩 생성</div><div class="feature done">Codex/Gemini/Claude Code 통합 파일 생성</div><div class="feature done">한국어/영어/일본어/중국어 CLI 설정</div><div class="feature done">release-check와 release-check --npm</div><div class="feature done">npm Trusted Publishing 기반 자동 배포</div><div class="feature done">GitHub CI, OpenSSF Scorecard, GitHub Release 운영</div><div class="feature done">터미널, Slack BLOCK, Discord, Teams, email, Linear, Jira 알림</div><div class="feature done">GHCR Docker 배포 workflow와 Homebrew formula 초안</div></div>
+      <div class="feature-grid"><div class="feature done">npm 패키지 aigate-cli 공개 배포와 npx 실행</div><div class="feature done">Git 변경사항과 untracked 파일 기반 readiness check</div><div class="feature done">aigate start 기반 안내형 시작 루트</div><div class="feature done">aigate start --route default 기반 단계별 기본 설정</div><div class="feature done">aigate reset, clean, uninstall 기반 초기화와 삭제 명령</div><div class="feature done">aigate start --route oss 기반 오픈소스 시작 파일 생성</div><div class="feature done">aigate test 기반 프로젝트 테스트 자동화</div><div class="feature done">aigate ai report 기반 AI 프로젝트 상태 브리프</div><div class="feature done">aigate aitest 기반 AI 수정 프롬프트와 선택적 에이전트 실행</div><div class="feature done">doctor, demo, install-hook 기반 첫 실행 UX</div><div class="feature done">pre-push Git hook 설치</div><div class="feature done">secret 패턴 탐지와 SARIF 출력</div><div class="feature done">git-ready, guarded push, guarded PR 생성 흐름</div><div class="feature done">GitHub PR comment와 GitHub Checks summary payload</div><div class="feature done">PR 템플릿과 CODEOWNERS 안내형 설정</div><div class="feature done">재사용 가능한 공개 GitHub Action</div><div class="feature done">프로젝트 상태 추세 기록</div><div class="feature done">Markdown, HTML, JSON, SARIF 리포트</div><div class="feature done">컴플라이언스 리포트와 로컬 HTML 상태 대시보드</div><div class="feature done">프로젝트 점수와 deep Git signal 평가</div><div class="feature done">브랜치 전략 추천, 제안 비교, 정책 팩 생성</div><div class="feature done">Codex/Gemini/Claude Code 통합 파일 생성</div><div class="feature done">한국어/영어/일본어/중국어 CLI 설정</div><div class="feature done">release-check와 release-check --npm</div><div class="feature done">npm Trusted Publishing 기반 자동 배포</div><div class="feature done">GitHub CI, OpenSSF Scorecard, GitHub Release 운영</div><div class="feature done">터미널, Slack BLOCK, Discord, Teams, email, Linear, Jira 알림</div><div class="feature done">GHCR Docker 배포 workflow와 Homebrew formula 초안</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">

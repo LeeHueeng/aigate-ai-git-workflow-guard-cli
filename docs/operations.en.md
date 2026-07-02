@@ -39,9 +39,10 @@ flowchart LR
 
 | Area | Commands |
 | --- | --- |
-| Setup | `start`, `start --route default`, `start --route oss`, `init`, `setup`, `settings`, `integrate` |
+| Setup | `start`, `start --route default`, `start --route oss`, `init`, `reset`, `setup`, `settings`, `integrate` |
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `test`, `aitest`, `git-ready`, `push`, `pr` |
+| Maintenance | `clean`, `uninstall`, `delete` |
 | Reports | `ai report`, `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | Release | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
@@ -54,6 +55,8 @@ aigate ai report
 aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
+aigate reset --dry-run
+aigate clean
 git switch -c feature/my-change
 aigate doctor
 aigate install-hook --pre-push
@@ -82,6 +85,9 @@ aigate release-check --npm
 - Guided start routes through `aigate start`
 - Stepwise default setup through `aigate start --route default --ask-steps`
 - Selected setup step execution through `aigate start --route default --steps init,repo-files`
+- Config reset through `aigate reset`
+- Safe generated-state cleanup through `aigate clean --force`
+- Local AIGate uninstall through `aigate uninstall --force`
 - Open-source starter files through `aigate start --route oss`
 - Guided CLI demo through `aigate demo`
 - Pre-push hook installation through `aigate install-hook --pre-push`

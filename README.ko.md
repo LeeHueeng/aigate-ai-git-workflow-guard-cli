@@ -44,6 +44,9 @@ aigate start
 aigate start --route default --ask-steps
 aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
+aigate reset --dry-run
+aigate clean
+aigate uninstall
 aigate check
 aigate test
 aigate ai report
@@ -61,6 +64,9 @@ aigate pr-check
 | 안내형 설정 라우터 | `aigate start` |
 | 예/아니오로 고르는 기본 설정 | `aigate start --route default --ask-steps` |
 | 필요한 단계만 지정 실행 | `aigate start --route default --steps init,repo-files` |
+| AIGate 설정과 settings 초기화 | `aigate reset` |
+| 생성된 로컬 리포트와 상태 삭제 | `aigate clean --force` |
+| AIGate 설정, 로컬 상태, 소유 hook 제거 | `aigate uninstall --force` |
 | 공개 저장소 README, 이슈 템플릿, 기여 파일 생성 | `aigate start --route oss` |
 | 프로젝트 테스트 실행 | `aigate test` |
 | AI 수정 프롬프트와 선택적 에이전트 실행 | `aigate aitest` |
@@ -100,6 +106,8 @@ aigate ai report
 aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
+aigate reset --dry-run
+aigate clean
 aigate doctor
 aigate install-hook --pre-push
 aigate test

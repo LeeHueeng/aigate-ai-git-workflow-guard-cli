@@ -541,7 +541,7 @@ npx aigate-cli check</code></pre>
       </div>
       <div class="command-groups"><article class="command-group group-0">
       <h3>设置</h3>
-      <div><span>start</span><span>start --route default</span><span>start --route oss</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
+      <div><span>start</span><span>start --route default</span><span>start --route oss</span><span>init</span><span>reset</span><span>setup</span><span>settings</span><span>integrate</span></div>
     </article><article class="command-group group-1">
       <h3>首次运行</h3>
       <div><span>doctor</span><span>demo</span><span>install-hook</span></div>
@@ -549,9 +549,12 @@ npx aigate-cli check</code></pre>
       <h3>保护门禁</h3>
       <div><span>check</span><span>test</span><span>aitest</span><span>git-ready</span><span>push</span><span>pr</span></div>
     </article><article class="command-group group-3">
+      <h3>维护</h3>
+      <div><span>clean</span><span>uninstall</span><span>delete</span></div>
+    </article><article class="command-group group-4">
       <h3>报告</h3>
       <div><span>ai report</span><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
-    </article><article class="command-group group-4">
+    </article><article class="command-group group-5">
       <h3>发布</h3>
       <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>branch-strategy --compare</span><span>notify</span></div>
     </article></div>
@@ -597,6 +600,18 @@ npx aigate-cli check</code></pre>
     <td><code>aigate init</code></td>
     <td>创建基础配置和报告目录。</td>
     <td>在新项目中启用 AIGate</td>
+  </tr><tr>
+    <td><code>aigate reset</code></td>
+    <td>重新写入 AIGate 配置、settings 和报告占位文件。</td>
+    <td>把本地设置恢复到初始状态</td>
+  </tr><tr>
+    <td><code>aigate clean --force</code></td>
+    <td>删除生成的 AIGate 报告和本地状态。</td>
+    <td>清空报告和 generated state</td>
+  </tr><tr>
+    <td><code>aigate uninstall --force</code></td>
+    <td>移除 AIGate 配置、.aigate 目录和 AIGate 自有 hook。</td>
+    <td>从项目中移除 AIGate</td>
   </tr><tr>
     <td><code>aigate setup --language &lt;en|ko|ja|zh&gt;</code></td>
     <td>保存 CLI 输出语言。</td>
@@ -757,6 +772,8 @@ aigate setup --language zh
 aigate ai report
 aigate start --route default --ask-steps
 aigate start --route oss --dry-run
+aigate reset --dry-run
+aigate clean
 aigate start --route ai --provider all
 git switch -c feature/my-change
 aigate doctor
@@ -782,7 +799,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">功能</p>
         <h2>当前已实现功能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">通过 aigate start 提供引导式启动路由</div><div class="feature done">通过 aigate start --route default 提供逐步默认设置</div><div class="feature done">通过 aigate start --route oss 生成开源起始文件</div><div class="feature done">通过 aigate test 提供项目测试自动化</div><div class="feature done">通过 aigate ai report 提供 AI 项目状态简报</div><div class="feature done">通过 aigate aitest 提供 AI 修复提示和可选 agent 执行</div><div class="feature done">通过 doctor、demo、install-hook 提供首次运行体验</div><div class="feature done">pre-push Git hook 安装</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">GitHub PR comment 和 GitHub Checks summary payload</div><div class="feature done">PR 模板和 CODEOWNERS 引导式设置</div><div class="feature done">可复用的公开 GitHub Action</div><div class="feature done">项目状态趋势历史</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">合规报告和本地 HTML 健康仪表盘</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐、提案比较和政策包生成</div><div class="feature done">Codex/Gemini/Claude Code 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow 和 Homebrew formula draft</div></div>
+      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">通过 aigate start 提供引导式启动路由</div><div class="feature done">通过 aigate start --route default 提供逐步默认设置</div><div class="feature done">通过 aigate reset、clean、uninstall 提供重置和删除命令</div><div class="feature done">通过 aigate start --route oss 生成开源起始文件</div><div class="feature done">通过 aigate test 提供项目测试自动化</div><div class="feature done">通过 aigate ai report 提供 AI 项目状态简报</div><div class="feature done">通过 aigate aitest 提供 AI 修复提示和可选 agent 执行</div><div class="feature done">通过 doctor、demo、install-hook 提供首次运行体验</div><div class="feature done">pre-push Git hook 安装</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">GitHub PR comment 和 GitHub Checks summary payload</div><div class="feature done">PR 模板和 CODEOWNERS 引导式设置</div><div class="feature done">可复用的公开 GitHub Action</div><div class="feature done">项目状态趋势历史</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">合规报告和本地 HTML 健康仪表盘</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐、提案比较和政策包生成</div><div class="feature done">Codex/Gemini/Claude Code 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow 和 Homebrew formula draft</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">

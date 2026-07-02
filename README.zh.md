@@ -44,6 +44,9 @@ aigate start
 aigate start --route default --ask-steps
 aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
+aigate reset --dry-run
+aigate clean
+aigate uninstall
 aigate check
 aigate test
 aigate ai report
@@ -61,6 +64,9 @@ aigate pr-check
 | 引导式设置路由器 | `aigate start` |
 | 用是/否选择默认设置步骤 | `aigate start --route default --ask-steps` |
 | 只运行指定设置步骤 | `aigate start --route default --steps init,repo-files` |
+| 重置 AIGate 配置和 settings | `aigate reset` |
+| 删除生成的本地报告和状态 | `aigate clean --force` |
+| 移除 AIGate 配置、本地状态和自有 hook | `aigate uninstall --force` |
 | 公开仓库 README、issue 模板和贡献文件生成 | `aigate start --route oss` |
 | 项目测试运行器 | `aigate test` |
 | AI 修复提示和可选 agent 执行 | `aigate aitest` |
@@ -100,6 +106,8 @@ aigate ai report
 aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
+aigate reset --dry-run
+aigate clean
 aigate doctor
 aigate install-hook --pre-push
 aigate test

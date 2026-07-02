@@ -52,6 +52,9 @@ aigate start
 aigate start --route default --ask-steps
 aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
+aigate reset --dry-run
+aigate clean
+aigate uninstall
 aigate check
 aigate test
 aigate ai report
@@ -95,6 +98,9 @@ repeatable local gate before `git push` or PR creation.
 | Guided setup router | `aigate start` |
 | Default setup with yes/no step choices | `aigate start --route default --ask-steps` |
 | Deterministic setup step selection | `aigate start --route default --steps init,repo-files` |
+| Reset AIGate config and settings | `aigate reset` |
+| Delete generated local reports and state | `aigate clean --force` |
+| Remove AIGate config, local state, and owned hook | `aigate uninstall --force` |
 | Open source starter README, issue templates, and contribution files | `aigate start --route oss` |
 | Project test runner | `aigate test` |
 | AI remediation prompt and optional agent run | `aigate aitest` |
@@ -142,6 +148,8 @@ aigate ai report
 aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
+aigate reset --dry-run
+aigate clean
 aigate doctor
 aigate install-hook --pre-push
 aigate test

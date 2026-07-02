@@ -39,9 +39,10 @@ flowchart LR
 
 | 領域 | コマンド |
 | --- | --- |
-| Setup | `start`, `start --route default`, `start --route oss`, `init`, `setup`, `settings`, `integrate` |
+| Setup | `start`, `start --route default`, `start --route oss`, `init`, `reset`, `setup`, `settings`, `integrate` |
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `test`, `aitest`, `git-ready`, `push`, `pr` |
+| Maintenance | `clean`, `uninstall`, `delete` |
 | Reports | `ai report`, `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | Release | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
@@ -54,6 +55,8 @@ aigate ai report
 aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
+aigate reset --dry-run
+aigate clean
 git switch -c feature/my-change
 aigate doctor
 aigate install-hook --pre-push
@@ -81,6 +84,9 @@ aigate release-check --npm
 - `aigate start` によるガイド付き開始ルート
 - `aigate start --route default --ask-steps` による段階的なデフォルト設定
 - `aigate start --route default --steps init,repo-files` による選択手順の実行
+- `aigate reset` による設定初期化
+- `aigate clean --force` による生成状態の削除
+- `aigate uninstall --force` によるローカル AIGate 削除
 - `aigate start --route oss` によるオープンソース初期ファイル生成
 - `aigate doctor` による初回実行 diagnostics
 - `aigate demo` によるガイド付き CLI demo

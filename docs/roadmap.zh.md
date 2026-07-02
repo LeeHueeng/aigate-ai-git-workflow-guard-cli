@@ -7,6 +7,8 @@
 - [x] 将 `aigate-cli` publish 到 npm
 - [x] 支持 npm、npx、yarn、pnpm、bun install path
 - [x] 通过 `aigate init` 创建 starter project configuration
+- [x] 通过 `aigate reset` 重置本地 AIGate 设置
+- [x] 通过 `aigate clean` 和 `aigate uninstall` 删除生成的本地 AIGate 状态
 - [x] 生成 Markdown、HTML、JSON、SARIF reports
 - [x] 通过 `aigate pr-check` 生成 pull request readiness report
 - [x] 通过 `aigate doctor` 诊断 first-run setup

@@ -7,6 +7,8 @@
 - [x] `aigate-cli` を npm に publish
 - [x] npm、npx、yarn、pnpm、bun install path をサポート
 - [x] `aigate init` で starter project configuration を生成
+- [x] `aigate reset` でローカル AIGate 設定を初期化
+- [x] `aigate clean` と `aigate uninstall` で生成済みローカル AIGate 状態を削除
 - [x] Markdown、HTML、JSON、SARIF reports を生成
 - [x] `aigate pr-check` で pull request readiness report を生成
 - [x] `aigate doctor` で first-run setup を診断

@@ -7,6 +7,8 @@
 - [x] `aigate-cli`를 npm에 publish
 - [x] npm, npx, yarn, pnpm, bun install path 지원
 - [x] `aigate init`으로 starter project configuration 생성
+- [x] `aigate reset`으로 로컬 AIGate 설정 초기화
+- [x] `aigate clean`과 `aigate uninstall`로 생성된 로컬 AIGate 상태 삭제
 - [x] Markdown, HTML, JSON, SARIF report 생성
 - [x] `aigate pr-check`로 pull request readiness report 생성
 - [x] `aigate doctor`로 첫 실행 설정 진단

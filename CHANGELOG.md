@@ -15,6 +15,8 @@ All notable changes to AIGate are documented here.
 - Added the `aigate start --route default` setup flow with step-by-step
   yes/no prompts through `--ask-steps` and deterministic step selection through
   `--steps init,repo-files`.
+- Added `aigate reset`, `aigate clean`, `aigate uninstall`, and the `delete`
+  alias for safe setup reset and generated-state removal.
 - Updated multilingual README, usage, AI integration, and generated HTML docs
   for the AI report and open-source starter flow.
 

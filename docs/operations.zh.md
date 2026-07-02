@@ -38,9 +38,10 @@ flowchart LR
 
 | 范围 | 命令 |
 | --- | --- |
-| Setup | `start`, `start --route default`, `start --route oss`, `init`, `setup`, `settings`, `integrate` |
+| Setup | `start`, `start --route default`, `start --route oss`, `init`, `reset`, `setup`, `settings`, `integrate` |
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `test`, `aitest`, `git-ready`, `push`, `pr` |
+| Maintenance | `clean`, `uninstall`, `delete` |
 | Reports | `ai report`, `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | Release | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
@@ -53,6 +54,8 @@ aigate ai report
 aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
+aigate reset --dry-run
+aigate clean
 git switch -c feature/my-change
 aigate doctor
 aigate install-hook --pre-push
@@ -80,6 +83,9 @@ aigate release-check --npm
 - 通过 `aigate start` 提供引导式启动路由
 - 通过 `aigate start --route default --ask-steps` 提供逐步默认设置
 - 通过 `aigate start --route default --steps init,repo-files` 运行选中的设置步骤
+- 通过 `aigate reset` 重置配置
+- 通过 `aigate clean --force` 删除生成状态
+- 通过 `aigate uninstall --force` 移除本地 AIGate
 - 通过 `aigate start --route oss` 生成开源起始文件
 - 通过 `aigate doctor` 提供首次运行诊断
 - 通过 `aigate demo` 提供引导式 CLI demo

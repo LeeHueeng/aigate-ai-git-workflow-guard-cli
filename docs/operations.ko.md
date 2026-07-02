@@ -38,9 +38,10 @@ flowchart LR
 
 | 영역 | 명령어 |
 | --- | --- |
-| 설정 | `start`, `start --route default`, `start --route oss`, `init`, `setup`, `settings`, `integrate` |
+| 설정 | `start`, `start --route default`, `start --route oss`, `init`, `reset`, `setup`, `settings`, `integrate` |
 | 첫 실행 | `doctor`, `demo`, `install-hook --pre-push` |
 | 보호 게이트 | `check`, `test`, `aitest`, `git-ready`, `push`, `pr` |
+| 유지보수 | `clean`, `uninstall`, `delete` |
 | 리포트 | `ai report`, `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | 릴리스 | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
@@ -53,6 +54,8 @@ aigate ai report
 aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
+aigate reset --dry-run
+aigate clean
 git switch -c feature/my-change
 aigate doctor
 aigate install-hook --pre-push
@@ -80,6 +83,9 @@ aigate release-check --npm
 - `aigate start` 기반 안내형 시작 루트
 - `aigate start --route default --ask-steps` 기반 단계별 기본 설정
 - `aigate start --route default --steps init,repo-files` 기반 선택 단계 실행
+- `aigate reset` 기반 설정 초기화
+- `aigate clean --force` 기반 생성 상태 삭제
+- `aigate uninstall --force` 기반 로컬 AIGate 제거
 - `aigate start --route oss` 기반 오픈소스 시작 파일 생성
 - `aigate doctor` 기반 첫 실행 환경 진단
 - `aigate demo` 기반 안내형 CLI 데모

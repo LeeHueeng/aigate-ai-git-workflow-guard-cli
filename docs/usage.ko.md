@@ -43,6 +43,9 @@ aigate start --route oss --owner @your-org/team
 aigate start --route ai --provider codex
 aigate start --route full --provider all
 aigate init
+aigate reset --dry-run
+aigate clean
+aigate uninstall
 aigate doctor
 aigate demo
 aigate install-hook --pre-push
@@ -60,6 +63,9 @@ aigate install-hook --pre-push
 | `aigate start --route full --provider all` | 설정, AI 파일, pre-push hook, 릴리스 점검을 한 흐름으로 실행합니다. |
 | `aigate setup --language ko` | CLI 출력 언어를 저장합니다. |
 | `aigate init` | `.aigate.yml`과 리포트 디렉터리를 생성합니다. |
+| `aigate reset` | AIGate config, settings, 리포트 placeholder를 다시 작성합니다. `--dry-run`으로 미리 볼 수 있습니다. |
+| `aigate clean --force` | 생성된 AIGate 리포트와 로컬 생성 상태를 삭제합니다. `--force`가 없으면 대상만 미리 봅니다. |
+| `aigate uninstall --force` | `.aigate.yml`, `.aigate/`, AIGate 소유 pre-push hook을 제거합니다. |
 | `aigate doctor` | Node, Git, npm package metadata, GitHub workflow, AIGate 설정을 점검합니다. |
 | `aigate demo` | 프로젝트 파일을 바꾸지 않고 주요 흐름을 보여줍니다. |
 | `aigate install-hook --pre-push` | push 전에 AIGate가 실행되는 pre-push hook을 설치합니다. |
@@ -219,6 +225,9 @@ aigate git-ready --notify-channel terminal
 | 명령어 | 언제 쓰는가 |
 | --- | --- |
 | `aigate init` | 초기 AIGate 설정을 만듭니다. |
+| `aigate reset` | AIGate 설정과 settings를 초기화합니다. |
+| `aigate clean` | 생성 리포트와 로컬 상태 삭제 대상을 미리 봅니다. 적용하려면 `--force`를 붙입니다. |
+| `aigate uninstall` | 로컬 AIGate 설정, 상태, 소유 hook 제거 대상을 미리 봅니다. 적용하려면 `--force`를 붙입니다. |
 | `aigate start` | 안내형 설정 루트를 선택하고 실행합니다. |
 | `aigate start --route default --ask-steps` | 기본 추천 단계를 하나씩 확인한 뒤 실행합니다. |
 | `aigate start --route default --steps init,repo-files` | 선택한 기본 설정 단계만 실행합니다. |

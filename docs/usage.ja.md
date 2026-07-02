@@ -43,6 +43,9 @@ aigate start --route oss --owner @your-org/team
 aigate start --route ai --provider codex
 aigate start --route full --provider all
 aigate init
+aigate reset --dry-run
+aigate clean
+aigate uninstall
 aigate doctor
 aigate demo
 aigate install-hook --pre-push
@@ -60,6 +63,9 @@ aigate install-hook --pre-push
 | `aigate start --route full --provider all` | 設定、AI ファイル、pre-push hook、release checks を一つの flow で実行します。 |
 | `aigate setup --language ja` | CLI 出力言語を保存します。 |
 | `aigate init` | `.aigate.yml` と reports ディレクトリを作成します。 |
+| `aigate reset` | AIGate config、settings、レポート placeholder を再作成します。`--dry-run` でプレビューできます。 |
+| `aigate clean --force` | 生成済み AIGate レポートとローカル生成状態を削除します。`--force` なしでは対象だけをプレビューします。 |
+| `aigate uninstall --force` | `.aigate.yml`、`.aigate/`、AIGate 所有の pre-push hook を削除します。 |
 | `aigate doctor` | Node、Git、npm package metadata、GitHub workflow、AIGate 設定を確認します。 |
 | `aigate demo` | プロジェクトファイルを変更せずに主な流れを表示します。 |
 | `aigate install-hook --pre-push` | push 前に AIGate を実行する pre-push hook をインストールします。 |
@@ -219,6 +225,9 @@ aigate git-ready --notify-channel terminal
 | コマンド | 使う場面 |
 | --- | --- |
 | `aigate init` | 初期 AIGate 設定を作成します。 |
+| `aigate reset` | AIGate 設定と settings を初期化します。 |
+| `aigate clean` | 生成レポートとローカル状態の削除対象をプレビューします。適用するには `--force` を付けます。 |
+| `aigate uninstall` | ローカル AIGate 設定、状態、所有 hook の削除対象をプレビューします。適用するには `--force` を付けます。 |
 | `aigate start` | ガイド付き設定ルートを選択して実行します。 |
 | `aigate start --route default --ask-steps` | 推奨デフォルト手順を一つずつ確認してから実行します。 |
 | `aigate start --route default --steps init,repo-files` | 選択したデフォルト設定手順だけを実行します。 |

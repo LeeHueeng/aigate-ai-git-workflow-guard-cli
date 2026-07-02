@@ -43,6 +43,9 @@ aigate start --route oss --owner @your-org/team
 aigate start --route ai --provider codex
 aigate start --route full --provider all
 aigate init
+aigate reset --dry-run
+aigate clean
+aigate uninstall
 aigate doctor
 aigate demo
 aigate install-hook --pre-push
@@ -60,6 +63,9 @@ What they do:
 | `aigate start --route full --provider all` | Creates config, AI files, the pre-push hook, and release checks in one flow. |
 | `aigate setup --language en` | Saves the CLI output language. |
 | `aigate init` | Creates `.aigate.yml` and the report directory. |
+| `aigate reset` | Rewrites AIGate config, settings, and report placeholders. Use `--dry-run` to preview. |
+| `aigate clean --force` | Deletes generated AIGate reports and local generated state. Without `--force`, it previews targets. |
+| `aigate uninstall --force` | Removes `.aigate.yml`, `.aigate/`, and an AIGate-owned pre-push hook. |
 | `aigate doctor` | Checks Node, Git, npm package metadata, GitHub workflow files, and AIGate configuration. |
 | `aigate demo` | Shows the main workflow without changing project files. |
 | `aigate install-hook --pre-push` | Installs a pre-push hook that runs AIGate before pushing. |
@@ -222,6 +228,9 @@ channel:
 | Command | Use it for |
 | --- | --- |
 | `aigate init` | Create the initial AIGate config. |
+| `aigate reset` | Reset AIGate config and settings. |
+| `aigate clean` | Preview deletion of generated reports and local state; add `--force` to apply. |
+| `aigate uninstall` | Preview removal of local AIGate config, state, and owned hook; add `--force` to apply. |
 | `aigate start` | Choose and run a guided setup route. |
 | `aigate start --route default --ask-steps` | Confirm each recommended default setup step before running it. |
 | `aigate start --route default --steps init,repo-files` | Run only selected default setup steps. |

@@ -116,6 +116,9 @@ test("shows help", () => {
   assert.equal(result.status, 0);
   assert.match(result.stdout, /AI Git Workflow Guard CLI/);
   assert.match(result.stdout, /init/);
+  assert.match(result.stdout, /reset/);
+  assert.match(result.stdout, /clean/);
+  assert.match(result.stdout, /uninstall/);
   assert.match(result.stdout, /pr-check/);
   assert.match(result.stdout, /release-check/);
   assert.match(result.stdout, /audit-report/);
@@ -194,6 +197,47 @@ test("initializes starter project files", () => {
   assert.equal(output.command, "init");
   assert.ok(existsSync(join(outputDir, ".aigate.yml")));
   assert.ok(existsSync(join(outputDir, ".aigate", "reports", ".gitkeep")));
+});
+
+test("resets AIGate config and settings", () => {
+  const outputDir = createOutputDir();
+  const settingsPath = createSettingsPath();
+  writeFileSync(join(outputDir, ".aigate.yml"), "old: true\n", "utf8");
+
+  const result = run(["reset", "--output-dir", outputDir, "--language", "ko", "--format", "json"], {
+    settingsPath
+  });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "reset");
+  assert.equal(output.status, "DONE");
+  assert.ok(output.targets.some((target) => target.path.endsWith(".aigate.yml") && target.action === "updated"));
+  assert.match(readFileSync(join(outputDir, ".aigate.yml"), "utf8"), /minimumProjectScore: 80/);
+  assert.equal(JSON.parse(readFileSync(settingsPath, "utf8")).language, "ko");
+});
+
+test("cleans generated AIGate state only with force", () => {
+  const outputDir = createOutputDir();
+  const reportsDir = join(outputDir, ".aigate", "reports");
+  mkdirSync(reportsDir, { recursive: true });
+  writeFileSync(join(reportsDir, "pr.md"), "report\n", "utf8");
+  writeFileSync(join(outputDir, ".aigate", "generated-branch-strategy.md"), "strategy\n", "utf8");
+
+  const preview = run(["clean", "--output-dir", outputDir, "--language", "ko"]);
+  assert.equal(preview.status, 0);
+  assert.match(preview.stdout, /미리보기/);
+  assert.match(preview.stdout, /--force/);
+  assert.ok(existsSync(join(reportsDir, "pr.md")));
+
+  const applied = run(["clean", "--output-dir", outputDir, "--force", "--format", "json"]);
+  assert.equal(applied.status, 0);
+  const output = JSON.parse(applied.stdout);
+  assert.equal(output.command, "clean");
+  assert.equal(output.status, "DONE");
+  assert.ok(output.targets.some((target) => target.path.endsWith(".aigate/reports") && target.action === "deleted"));
+  assert.equal(existsSync(reportsDir), false);
+  assert.equal(existsSync(join(outputDir, ".aigate", "generated-branch-strategy.md")), false);
 });
 
 test("prints check output as json", () => {
@@ -594,6 +638,30 @@ test("protects existing pre-push hooks unless forced", () => {
   const forced = run(["install-hook", "--pre-push", "--force"], { cwd: projectDir });
   assert.equal(forced.status, 0);
   assert.match(readFileSync(hookPath, "utf8"), /AIGate pre-push hook/);
+});
+
+test("uninstalls AIGate config and owned pre-push hook with force", () => {
+  const projectDir = createMinimalGitProject();
+  const hookPath = join(projectDir, ".git", "hooks", "pre-push");
+
+  const init = run(["init", "--force"], { cwd: projectDir });
+  assert.equal(init.status, 0);
+  const hook = run(["install-hook", "--pre-push"], { cwd: projectDir });
+  assert.equal(hook.status, 0);
+  assert.ok(existsSync(join(projectDir, ".aigate.yml")));
+  assert.ok(existsSync(join(projectDir, ".aigate")));
+  assert.ok(existsSync(hookPath));
+
+  const result = run(["uninstall", "--force", "--format", "json"], { cwd: projectDir });
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "uninstall");
+  assert.equal(output.status, "DONE");
+  assert.ok(output.targets.some((target) => target.path.endsWith(".aigate.yml") && target.action === "deleted"));
+  assert.ok(output.targets.some((target) => target.path.endsWith("hooks/pre-push") && target.action === "deleted"));
+  assert.equal(existsSync(join(projectDir, ".aigate.yml")), false);
+  assert.equal(existsSync(join(projectDir, ".aigate")), false);
+  assert.equal(existsSync(hookPath), false);
 });
 
 test("previews a guided start route", () => {
