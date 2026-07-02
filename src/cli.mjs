@@ -6100,7 +6100,10 @@ function buildReleaseCheck(options = {}) {
       applicable: publicNpmRelease,
       reason: npmOnlyReason
     }),
-    packageCheck("package version is not 0.0.0", version !== "0.0.0"),
+    packageCheck("package version is not 0.0.0", version !== "0.0.0", {
+      applicable: npmPackageRelease,
+      reason: npmOnlyReason
+    }),
     packageCheck("package declares npm entrypoint or bin", hasNpmEntrypoint(packageJson), {
       applicable: publicNpmRelease,
       reason: npmOnlyReason

@@ -1734,6 +1734,23 @@ test("treats private GitLab pnpm apps as non-npm release targets", () => {
   assert.ok(output.nextSteps.some((step) => step.includes("No npm package publication is required")));
 });
 
+test("does not require package versions for private app release checks", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  const packageJsonPath = join(projectDir, "package.json");
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+  delete packageJson.version;
+  writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`);
+  const result = run(["release-check", "--npm", "--format", "json"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  const versionCheck = output.checks.find((check) => check.name === "package version is not 0.0.0");
+
+  assert.equal(output.status, "READY");
+  assert.equal(output.profile.kind, "app");
+  assert.equal(versionCheck.status, "NA");
+});
+
 test("can force package release checks for private repositories", () => {
   const projectDir = createPrivateGitLabPnpmApp();
   const result = run(["release-check", "--project-type", "package", "--format", "json"], { cwd: projectDir });
