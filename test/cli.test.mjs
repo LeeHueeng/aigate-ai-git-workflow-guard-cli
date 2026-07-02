@@ -1181,6 +1181,57 @@ test("blocks Playwright auth state files as sensitive findings", () => {
   assert.equal(readyOutput.status, "BLOCK");
 });
 
+test("treats tracked Playwright auth state removals as remediation", () => {
+  const projectDir = createMinimalGitProject();
+  const authDir = join(projectDir, "apps", "admin", "playwright", ".auth");
+  const authPath = join(authDir, "admin.json");
+  mkdirSync(authDir, { recursive: true });
+  writeFileSync(authPath, JSON.stringify({
+    cookies: [
+      {
+        name: "next-auth.admin-session-token",
+        value: "already-committed-session-token",
+        domain: "admin.example.test"
+      }
+    ]
+  }, null, 2));
+  spawnSync("git", ["add", "."], { cwd: projectDir, encoding: "utf8" });
+  spawnSync("git", [
+    "-c",
+    "user.name=AIGate Test",
+    "-c",
+    "user.email=aigate@example.test",
+    "commit",
+    "-m",
+    "initial"
+  ], { cwd: projectDir, encoding: "utf8" });
+  writeFileSync(join(projectDir, ".gitignore"), "**/playwright/.auth/\n", "utf8");
+  spawnSync("git", ["rm", "--cached", "apps/admin/playwright/.auth/admin.json"], {
+    cwd: projectDir,
+    encoding: "utf8"
+  });
+
+  const check = run(["check", "--format", "json"], { cwd: projectDir });
+  assert.equal(check.status, 0);
+  const checkOutput = JSON.parse(check.stdout);
+  assert.equal(checkOutput.status, "WARN");
+  assert.equal(checkOutput.secretFindings.length, 0);
+  assert.equal(checkOutput.sensitiveRemovals.length, 1);
+  assert.equal(checkOutput.sensitiveRemovals[0].ruleId, "sensitive-auth-state");
+
+  const ready = run(["git-ready", "--format", "json"], { cwd: projectDir });
+  assert.equal(ready.status, 0);
+  const readyOutput = JSON.parse(ready.stdout);
+  assert.equal(readyOutput.status, "READY");
+  assert.equal(readyOutput.secretFindings.length, 0);
+  assert.equal(readyOutput.sensitiveRemovals.length, 1);
+
+  const aiReport = run(["ai", "report", "--language", "ko"], { cwd: projectDir });
+  assert.equal(aiReport.status, 0);
+  assert.match(aiReport.stdout, /민감 파일 제거: 1/);
+  assert.doesNotMatch(aiReport.stdout, /민감 정보 탐지: 1/);
+});
+
 test("scores repository foundations", () => {
   const result = run(["evaluate-project", "--format=json"]);
 

@@ -257,7 +257,7 @@ aigate git-ready --notify-channel terminal
 | `aigate start --route default --ask-steps` | 推奨デフォルト手順を一つずつ確認してから実行します。 |
 | `aigate start --route default --steps init,repo-files` | 選択したデフォルト設定手順だけを実行します。 |
 | `aigate start --route oss` | 公開リポジトリ用 README、issue テンプレート、PR テンプレート、CODEOWNERS、貢献文書を作成します。 |
-| `aigate check` | local Git 変更と secret findings を確認します。 |
+| `aigate check` | local Git 変更、実際の secret findings、機密ファイル削除状態を確認します。 |
 | `aigate test` | Git 準備状態と検出した project test command を実行します。 |
 | `aigate ai report` | 現在の問題、良い点、方向性、AI 引き継ぎガイドをまとめます。 |
 | `aigate aitest` | AI 修正プロンプトを書き、必要なら Codex、Claude、Gemini を実行します。 |

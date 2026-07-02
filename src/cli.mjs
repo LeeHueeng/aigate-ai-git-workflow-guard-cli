@@ -51,6 +51,7 @@ const I18N = {
     "check.changedFiles": "Changed files: {count}",
     "check.recommendation": "Recommendation: {recommendation}",
     "check.secretFindings": "Secret findings: {count}",
+    "check.sensitiveRemovals": "Sensitive removals: {count}",
     "check.status": "AIGate check: {status}",
     "common.next": "Next: {next}",
     "common.wrote": "Wrote {path}",
@@ -71,6 +72,7 @@ const I18N = {
     "gitReady.projectScore": "Project score: {score}/100",
     "gitReady.recommendation": "Recommendation: {recommendation}",
     "gitReady.secretFindings": "Secret findings: {count}",
+    "gitReady.sensitiveRemovals": "Sensitive removals: {count}",
     "gitReady.status": "AIGate git-ready: {status}",
     "gitReady.warnings": "Warnings:",
     "gitReady.warningsNone": "Warnings: none",
@@ -144,6 +146,7 @@ const I18N = {
     "check.changedFiles": "변경 파일: {count}",
     "check.recommendation": "권장 사항: {recommendation}",
     "check.secretFindings": "민감 정보 탐지: {count}",
+    "check.sensitiveRemovals": "민감 파일 제거: {count}",
     "check.status": "AIGate 검사: {status}",
     "common.next": "다음 단계: {next}",
     "common.wrote": "{path} 파일을 작성했습니다",
@@ -164,6 +167,7 @@ const I18N = {
     "gitReady.projectScore": "프로젝트 점수: {score}/100",
     "gitReady.recommendation": "권장 사항: {recommendation}",
     "gitReady.secretFindings": "민감 정보 탐지: {count}",
+    "gitReady.sensitiveRemovals": "민감 파일 제거: {count}",
     "gitReady.status": "AIGate 준비 검사: {status}",
     "gitReady.warnings": "주의 사항:",
     "gitReady.warningsNone": "주의 사항: 없음",
@@ -237,6 +241,7 @@ const I18N = {
     "check.changedFiles": "変更ファイル: {count}",
     "check.recommendation": "推奨事項: {recommendation}",
     "check.secretFindings": "機密情報検出: {count}",
+    "check.sensitiveRemovals": "機密ファイル削除: {count}",
     "check.status": "AIGate チェック: {status}",
     "common.next": "次の手順: {next}",
     "common.wrote": "{path} を書き込みました",
@@ -257,6 +262,7 @@ const I18N = {
     "gitReady.projectScore": "プロジェクトスコア: {score}/100",
     "gitReady.recommendation": "推奨事項: {recommendation}",
     "gitReady.secretFindings": "機密情報検出: {count}",
+    "gitReady.sensitiveRemovals": "機密ファイル削除: {count}",
     "gitReady.status": "AIGate 準備チェック: {status}",
     "gitReady.warnings": "警告:",
     "gitReady.warningsNone": "警告: なし",
@@ -330,6 +336,7 @@ const I18N = {
     "check.changedFiles": "变更文件: {count}",
     "check.recommendation": "建议: {recommendation}",
     "check.secretFindings": "敏感信息发现: {count}",
+    "check.sensitiveRemovals": "敏感文件移除: {count}",
     "check.status": "AIGate 检查: {status}",
     "common.next": "下一步: {next}",
     "common.wrote": "已写入 {path}",
@@ -350,6 +357,7 @@ const I18N = {
     "gitReady.projectScore": "项目分数: {score}/100",
     "gitReady.recommendation": "建议: {recommendation}",
     "gitReady.secretFindings": "敏感信息发现: {count}",
+    "gitReady.sensitiveRemovals": "敏感文件移除: {count}",
     "gitReady.status": "AIGate 就绪检查: {status}",
     "gitReady.warnings": "警告:",
     "gitReady.warningsNone": "警告: 无",
@@ -459,6 +467,7 @@ const RECOMMENDATION_TRANSLATIONS = {
     "No local changes detected.": "로컬 변경사항이 없습니다.",
     "Run AIGate inside a Git repository.": "AIGate를 Git 저장소 안에서 실행하세요.",
     "Review possible secret-bearing files before commit or push.": "커밋 또는 푸시 전에 민감 정보 포함 가능성이 있는 파일을 검토하세요.",
+    "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "민감 파일 제거를 커밋하고, 이미 이력에 노출된 자격 증명은 회전하세요.",
     "Open a focused branch and pull request after tests pass.": "테스트 통과 후 범위가 명확한 브랜치와 PR을 여세요.",
     "Resolve blockers before committing, pushing, or opening a pull request.": "커밋, 푸시, PR 생성 전에 차단 사유를 해결하세요.",
     "Run npm test, commit focused changes, push the branch, and open a pull request.": "npm test를 실행하고, 범위가 명확한 변경을 커밋한 뒤 브랜치를 푸시하고 PR을 여세요.",
@@ -469,6 +478,7 @@ const RECOMMENDATION_TRANSLATIONS = {
     "No local changes detected.": "ローカル変更はありません。",
     "Run AIGate inside a Git repository.": "AIGate は Git リポジトリ内で実行してください。",
     "Review possible secret-bearing files before commit or push.": "コミットまたはプッシュ前に機密情報を含む可能性があるファイルを確認してください。",
+    "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "機密ファイル削除をコミットし、すでに履歴に露出した認証情報はローテーションしてください。",
     "Open a focused branch and pull request after tests pass.": "テスト通過後、範囲を絞ったブランチと PR を作成してください。",
     "Resolve blockers before committing, pushing, or opening a pull request.": "コミット、プッシュ、PR 作成の前にブロッカーを解消してください。",
     "Run npm test, commit focused changes, push the branch, and open a pull request.": "npm test を実行し、範囲を絞ってコミットし、ブランチをプッシュして PR を作成してください。",
@@ -479,6 +489,7 @@ const RECOMMENDATION_TRANSLATIONS = {
     "No local changes detected.": "未检测到本地变更。",
     "Run AIGate inside a Git repository.": "请在 Git 仓库内运行 AIGate。",
     "Review possible secret-bearing files before commit or push.": "提交或推送前，请检查可能包含敏感信息的文件。",
+    "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "提交敏感文件移除；如果凭据已进入历史记录，请轮换它们。",
     "Open a focused branch and pull request after tests pass.": "测试通过后，创建范围清晰的分支和 PR。",
     "Resolve blockers before committing, pushing, or opening a pull request.": "提交、推送或创建 PR 前，请先解决阻塞原因。",
     "Run npm test, commit focused changes, push the branch, and open a pull request.": "运行 npm test，提交聚焦的变更，推送分支并创建 PR。",
@@ -780,6 +791,8 @@ const REPORT_LABELS = {
     riskScore: "Risk score",
     secretFindings: "Secret Findings",
     secretFindingsCount: "Secret findings",
+    sensitiveRemovals: "Sensitive Removals",
+    sensitiveRemovalsCount: "Sensitive removals",
     status: "Status",
     changedFiles: "Changed files",
     branch: "Branch",
@@ -804,6 +817,8 @@ const REPORT_LABELS = {
     riskScore: "위험 점수",
     secretFindings: "민감 정보 탐지",
     secretFindingsCount: "민감 정보 탐지",
+    sensitiveRemovals: "민감 파일 제거",
+    sensitiveRemovalsCount: "민감 파일 제거",
     status: "상태",
     changedFiles: "변경 파일",
     branch: "브랜치",
@@ -828,6 +843,8 @@ const REPORT_LABELS = {
     riskScore: "リスクスコア",
     secretFindings: "機密情報検出",
     secretFindingsCount: "機密情報検出",
+    sensitiveRemovals: "機密ファイル削除",
+    sensitiveRemovalsCount: "機密ファイル削除",
     status: "状態",
     changedFiles: "変更ファイル",
     branch: "ブランチ",
@@ -852,6 +869,8 @@ const REPORT_LABELS = {
     riskScore: "风险分数",
     secretFindings: "敏感信息发现",
     secretFindingsCount: "敏感信息发现",
+    sensitiveRemovals: "敏感文件移除",
+    sensitiveRemovalsCount: "敏感文件移除",
     status: "状态",
     changedFiles: "变更文件",
     branch: "分支",
@@ -898,6 +917,7 @@ const REPORT_TYPE_TRANSLATIONS = {
 const REPORT_ACTION_TRANSLATIONS = {
   ko: {
     "Remove or rotate suspected secrets before commit or push.": "커밋 또는 푸시 전에 의심되는 민감 정보를 제거하거나 교체하세요.",
+    "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "민감 파일 제거를 커밋하고, 이미 이력에 노출된 자격 증명은 회전하세요.",
     "Split large changes into smaller pull requests.": "큰 변경은 더 작은 PR로 나누세요.",
     "Complete missing repository foundation checks.": "부족한 저장소 기반 점검 항목을 보완하세요.",
     "Include validation commands and release impact in the pull request body.": "PR 본문에 검증 명령과 릴리스 영향을 포함하세요.",
@@ -906,6 +926,7 @@ const REPORT_ACTION_TRANSLATIONS = {
   },
   ja: {
     "Remove or rotate suspected secrets before commit or push.": "コミットまたはプッシュ前に疑わしい機密情報を削除またはローテーションしてください。",
+    "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "機密ファイル削除をコミットし、すでに履歴に露出した認証情報はローテーションしてください。",
     "Split large changes into smaller pull requests.": "大きな変更は小さな PR に分割してください。",
     "Complete missing repository foundation checks.": "不足しているリポジトリ基盤チェックを整備してください。",
     "Include validation commands and release impact in the pull request body.": "PR 本文に検証コマンドとリリース影響を含めてください。",
@@ -914,6 +935,7 @@ const REPORT_ACTION_TRANSLATIONS = {
   },
   zh: {
     "Remove or rotate suspected secrets before commit or push.": "提交或推送前，请移除或轮换疑似敏感信息。",
+    "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "提交敏感文件移除；如果凭据已进入历史记录，请轮换它们。",
     "Split large changes into smaller pull requests.": "将大型变更拆分为更小的 PR。",
     "Complete missing repository foundation checks.": "补齐缺失的仓库基础检查项。",
     "Include validation commands and release impact in the pull request body.": "在 PR 正文中包含验证命令和发布影响。",
@@ -1935,10 +1957,13 @@ function commandCheck(args) {
     changedFiles: analysis.paths.length,
     changedPaths: analysis.paths,
     secretFindings: analysis.secretFindings,
+    sensitiveRemovals: analysis.sensitiveRemovals,
     tracked: status.insideGitRepository,
     recommendation: analysis.secretFindings.length
       ? "Review possible secret-bearing files before commit or push."
-      : status.recommendation
+      : analysis.sensitiveRemovals.length
+        ? "Commit sensitive file removals and rotate exposed credentials if they were already in history."
+        : status.recommendation
   };
 
   if (options.format === "json") {
@@ -1950,6 +1975,7 @@ function commandCheck(args) {
     t(language, "check.branch", { branch: result.branch }),
     t(language, "check.changedFiles", { count: result.changedFiles }),
     t(language, "check.secretFindings", { count: result.secretFindings.length }),
+    t(language, "check.sensitiveRemovals", { count: result.sensitiveRemovals.length }),
     t(language, "check.recommendation", { recommendation: translateRecommendation(result.recommendation, language) })
   ].join("\n");
 }
@@ -3889,6 +3915,10 @@ function buildGitReadyResult() {
     blockers.push(`${analysis.secretFindings.length} possible secret finding(s) detected in changed files.`);
   }
 
+  if (analysis.sensitiveRemovals.length) {
+    warnings.push(`${analysis.sensitiveRemovals.length} sensitive file removal(s) detected; commit the removal and rotate credentials if they were already exposed.`);
+  }
+
   if (evaluation.score < 80) {
     warnings.push(`Project foundation score is ${evaluation.score}/100; recommended minimum is 80.`);
   }
@@ -3901,6 +3931,7 @@ function buildGitReadyResult() {
     changedPaths: analysis.paths,
     projectScore: evaluation.score,
     secretFindings: analysis.secretFindings,
+    sensitiveRemovals: analysis.sensitiveRemovals,
     blockers,
     warnings,
     recommendation: blockers.length
@@ -3923,6 +3954,7 @@ function formatGitReadyResult(result, options, language = "en") {
     t(language, "gitReady.branch", { branch: result.branch }),
     t(language, "gitReady.changedFiles", { count: result.changedFiles }),
     t(language, "gitReady.secretFindings", { count: result.secretFindings.length }),
+    t(language, "gitReady.sensitiveRemovals", { count: result.sensitiveRemovals.length }),
     t(language, "gitReady.projectScore", { score: result.projectScore }),
     result.blockers.length ? t(language, "gitReady.blockers") : t(language, "gitReady.blockersNone"),
     ...result.blockers.map((blocker) => `- ${translateBlocker(blocker, language)}`),
@@ -4656,37 +4688,81 @@ function defaultWebhookEnv(channel) {
 }
 
 function buildChangeAnalysis() {
-  const paths = getChangedPaths();
+  const entries = getChangedEntries();
+  const paths = entries.map((entry) => entry.path);
   return {
+    entries,
     paths,
-    secretFindings: scanSecrets(paths)
+    secretFindings: scanSecrets(entries),
+    sensitiveRemovals: sensitiveRemovalFindings(entries)
   };
 }
 
 function getChangedPaths() {
-  const outputs = [
-    git(["diff", "--name-only", "HEAD"]),
-    git(["diff", "--name-only", "--cached"]),
-    git(["ls-files", "--others", "--exclude-standard"])
-  ];
-
-  return [...new Set(outputs
-    .flatMap((output) => (output ?? "").split("\n"))
-    .map((path) => path.trim())
-    .filter(Boolean)
-    .filter((path) => !path.startsWith(".git/")))];
+  return getChangedEntries().map((entry) => entry.path);
 }
 
-function scanSecrets(paths) {
+function getChangedEntries() {
+  const outputs = [
+    git(["diff", "--name-status", "HEAD"]),
+    git(["diff", "--name-status", "--cached"])
+  ];
+  const entries = new Map();
+
+  for (const entry of outputs
+    .flatMap((output) => (output ?? "").split("\n"))
+    .map(parseNameStatusEntry)
+    .filter(Boolean)
+    .filter((entry) => !entry.path.startsWith(".git/"))) {
+    addChangeEntry(entries, entry.path, entry.status);
+  }
+
+  for (const path of (git(["ls-files", "--others", "--exclude-standard"]) ?? "")
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .filter((item) => !item.startsWith(".git/"))) {
+    addChangeEntry(entries, path, "??");
+  }
+
+  return [...entries.entries()].map(([path, statuses]) => ({
+    path,
+    statuses,
+    action: statuses.every((status) => status.startsWith("D")) ? "deleted" : "active"
+  }));
+}
+
+function parseNameStatusEntry(line) {
+  const parts = line.trim().split(/\t+/).filter(Boolean);
+  if (parts.length < 2) {
+    return null;
+  }
+
+  const status = parts[0];
+  const path = status.startsWith("R") || status.startsWith("C")
+    ? parts[2] ?? parts[1]
+    : parts[1];
+
+  return path ? { status, path } : null;
+}
+
+function addChangeEntry(entries, path, status) {
+  const statuses = entries.get(path) ?? [];
+  statuses.push(status);
+  entries.set(path, statuses);
+}
+
+function scanSecrets(entries) {
   const findings = [];
 
-  for (const filePath of paths) {
+  for (const entry of normalizeChangeEntries(entries)) {
+    const filePath = entry.path;
     const pathFinding = sensitivePathFinding(filePath);
-    if (pathFinding) {
+    if (pathFinding && entry.action !== "deleted") {
       findings.push(pathFinding);
     }
 
-    if (!existsSync(filePath) || !isScannableFile(filePath)) {
+    if (entry.action === "deleted" || !existsSync(filePath) || !isScannableFile(filePath)) {
       continue;
     }
 
@@ -4714,6 +4790,23 @@ function scanSecrets(paths) {
   }
 
   return findings;
+}
+
+function sensitiveRemovalFindings(entries) {
+  return normalizeChangeEntries(entries)
+    .filter((entry) => entry.action === "deleted")
+    .map((entry) => sensitivePathFinding(entry.path))
+    .filter(Boolean)
+    .map((finding) => ({
+      ...finding,
+      disposition: "removed"
+    }));
+}
+
+function normalizeChangeEntries(entries) {
+  return entries.map((entry) => (
+    typeof entry === "string" ? { path: entry, statuses: ["?"], action: "active" } : entry
+  ));
 }
 
 function sensitivePathFinding(filePath) {
@@ -4777,10 +4870,9 @@ function buildGitStatus() {
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
-  const changedPaths = insideGitRepository ? getChangedPaths() : [];
-  const highRisk = [...changedFiles, ...changedPaths].some((line) => (
-    /(\.env|secret|token|private[_-]?key)/i.test(line) || isSensitiveAuthStatePath(line)
-  ));
+  const changedEntries = insideGitRepository ? getChangedEntries() : [];
+  const changedPaths = changedEntries.map((entry) => entry.path);
+  const highRisk = changedEntries.some((entry) => entry.action !== "deleted" && isHighRiskPath(entry.path));
 
   let recommendation = "No local changes detected.";
   if (!insideGitRepository) {
@@ -4795,9 +4887,14 @@ function buildGitStatus() {
     insideGitRepository,
     branch,
     changedFiles,
+    changedEntries,
     riskLevel: highRisk ? "high" : changedFiles.length ? "medium" : "low",
     recommendation
   };
+}
+
+function isHighRiskPath(filePath) {
+  return /(\.env|secret|token|private[_-]?key)/i.test(filePath) || isSensitiveAuthStatePath(filePath);
 }
 
 function buildEvaluation(options = {}) {
@@ -5865,6 +5962,7 @@ function buildAiProjectReport(options = {}, language = "en") {
     branch: gitStatus.branch,
     changedFiles: analysis.paths.length,
     secretFindings: analysis.secretFindings.length,
+    sensitiveRemovals: analysis.sensitiveRemovals.length,
     projectScore: evaluation.score,
     projectGrade: evaluation.grade,
     releaseStatus: releaseCheck.status,
@@ -5894,6 +5992,15 @@ function buildAiReportProblems({ gitStatus, evaluation, analysis, releaseCheck }
       "security",
       aiReportText("secretFindings", language, { count: analysis.secretFindings.length }),
       "aigate report --format sarif"
+    ));
+  }
+
+  if (analysis.sensitiveRemovals.length) {
+    problems.push(aiReportProblem(
+      "medium",
+      "security",
+      aiReportText("sensitiveRemovals", language, { count: analysis.sensitiveRemovals.length }),
+      "git status"
     ));
   }
 
@@ -6119,6 +6226,7 @@ function renderAiProjectReport(report, language = "en") {
     `- ${labels.branch}: ${report.branch}`,
     `- ${labels.changedFiles}: ${report.changedFiles}`,
     `- ${labels.secretFindings}: ${report.secretFindings}`,
+    `- ${labels.sensitiveRemovals}: ${report.sensitiveRemovals ?? 0}`,
     `- ${labels.projectScore}: ${report.projectScore}/100 (${report.projectGrade})`,
     `- ${labels.releaseStatus}: ${automationStatus(report.releaseStatus, language)}`,
     `- ${labels.recommendedStrategy}: ${translateStrategyName(report.recommendedStrategy, language)}`,
@@ -6246,6 +6354,7 @@ function aiReportLabels(language = "en") {
       recommendedStrategy: "Recommended strategy",
       releaseStatus: "Release status",
       secretFindings: "Secret findings",
+      sensitiveRemovals: "Sensitive removals",
       status: "Status",
       strengths: "What Is Working",
       stderr: "Agent stderr",
@@ -6283,6 +6392,7 @@ function aiReportLabels(language = "en") {
       recommendedStrategy: "권장 전략",
       releaseStatus: "릴리스 상태",
       secretFindings: "민감 정보 탐지",
+      sensitiveRemovals: "민감 파일 제거",
       status: "상태",
       strengths: "잘된 점",
       stderr: "에이전트 stderr",
@@ -6320,6 +6430,7 @@ function aiReportLabels(language = "en") {
       recommendedStrategy: "推奨戦略",
       releaseStatus: "リリース状態",
       secretFindings: "機密情報検出",
+      sensitiveRemovals: "機密ファイル削除",
       status: "状態",
       strengths: "良い点",
       stderr: "エージェント stderr",
@@ -6357,6 +6468,7 @@ function aiReportLabels(language = "en") {
       recommendedStrategy: "推荐策略",
       releaseStatus: "发布状态",
       secretFindings: "敏感信息发现",
+      sensitiveRemovals: "敏感文件移除",
       status: "状态",
       strengths: "做得好的部分",
       stderr: "Agent stderr",
@@ -6409,6 +6521,7 @@ function aiReportText(key, language = "en", values = {}) {
       releaseCheck: `Release check needs attention: ${values.check}.`,
       releaseReady: "Release metadata and workflow checks are ready.",
       secretFindings: `${values.count} possible secret finding(s) were detected.`,
+      sensitiveRemovals: `${values.count} sensitive file removal(s) were detected; commit the removal and rotate credentials if they were already exposed.`,
       strategyReady: `Branch strategy recommendation is available: ${values.strategy}.`
     },
     ko: {
@@ -6438,6 +6551,7 @@ function aiReportText(key, language = "en", values = {}) {
       releaseCheck: `릴리스 검사 조치 필요: ${values.check}.`,
       releaseReady: "릴리스 메타데이터와 워크플로 검사가 준비되어 있습니다.",
       secretFindings: `민감 정보 의심 항목 ${values.count}개가 감지됐습니다.`,
+      sensitiveRemovals: `민감 파일 제거 ${values.count}개가 감지됐습니다. 제거를 커밋하고 이미 노출된 자격 증명은 회전하세요.`,
       strategyReady: `브랜치 전략 추천이 준비되어 있습니다: ${values.strategy}.`
     },
     ja: {
@@ -6467,6 +6581,7 @@ function aiReportText(key, language = "en", values = {}) {
       releaseCheck: `リリースチェックで対応が必要: ${values.check}.`,
       releaseReady: "リリースメタデータと workflow チェックは準備済みです。",
       secretFindings: `機密情報の疑いがある項目を ${values.count} 件検出しました。`,
+      sensitiveRemovals: `機密ファイル削除を ${values.count} 件検出しました。削除をコミットし、すでに露出した認証情報はローテーションしてください。`,
       strategyReady: `ブランチ戦略推薦があります: ${values.strategy}.`
     },
     zh: {
@@ -6496,6 +6611,7 @@ function aiReportText(key, language = "en", values = {}) {
       releaseCheck: `发布检查需要处理: ${values.check}.`,
       releaseReady: "发布元数据和 workflow 检查已就绪。",
       secretFindings: `检测到 ${values.count} 个疑似敏感信息项。`,
+      sensitiveRemovals: `检测到 ${values.count} 个敏感文件移除。请提交移除，并轮换已经暴露的凭据。`,
       strategyReady: `分支策略建议已可用: ${values.strategy}.`
     }
   };
@@ -6526,6 +6642,7 @@ function buildReport(type) {
     changedFiles: analysis.paths.length,
     changedPaths: analysis.paths,
     secretFindings: analysis.secretFindings,
+    sensitiveRemovals: analysis.sensitiveRemovals,
     projectScore: evaluation.score,
     projectGrade: evaluation.grade,
     checks: evaluation.checks,
@@ -6533,7 +6650,9 @@ function buildReport(type) {
     recommendedActions: recommendedActionsForReport(status, evaluation, analysis, type),
     recommendation: analysis.secretFindings.length
       ? "Review possible secret-bearing files before commit or push."
-      : status.recommendation
+      : analysis.sensitiveRemovals.length
+        ? "Commit sensitive file removals and rotate exposed credentials if they were already in history."
+        : status.recommendation
   };
 }
 
@@ -6562,6 +6681,8 @@ function recommendedActionsForReport(status, evaluation, analysis, type) {
 
   if (analysis.secretFindings.length) {
     actions.push("Remove or rotate suspected secrets before commit or push.");
+  } else if (analysis.sensitiveRemovals.length) {
+    actions.push("Commit sensitive file removals and rotate exposed credentials if they were already in history.");
   }
 
   if (status.changedFiles.length > 20) {
@@ -6615,6 +6736,7 @@ function renderMarkdownReport(report, language = "en") {
     `- ${labels.branch}: ${report.branch}`,
     `- ${labels.changedFiles}: ${report.changedFiles}`,
     `- ${labels.secretFindingsCount}: ${report.secretFindings.length}`,
+    `- ${labels.sensitiveRemovalsCount}: ${report.sensitiveRemovals?.length ?? 0}`,
     `- ${labels.projectScore}: ${report.projectScore}/100 (${report.projectGrade})`,
     `- ${labels.recommendation}: ${translateRecommendation(report.recommendation, language)}`,
     "",
@@ -6626,6 +6748,12 @@ function renderMarkdownReport(report, language = "en") {
     "",
     ...(report.secretFindings.length
       ? report.secretFindings.map((finding) => formatFindingLine(finding, language))
+      : [`- ${labels.none}`]),
+    "",
+    `## ${labels.sensitiveRemovals}`,
+    "",
+    ...(report.sensitiveRemovals?.length
+      ? report.sensitiveRemovals.map((finding) => formatFindingLine(finding, language))
       : [`- ${labels.none}`]),
     "",
     `## ${labels.recommendedActions}`,
@@ -6651,6 +6779,7 @@ function renderMarkdownReport(report, language = "en") {
       "",
       `- ${labels.highRiskFileSignal}: ${report.riskScore >= 65 ? labels.yes : labels.no}`,
       `- ${labels.secretFindingsCount}: ${report.secretFindings.length}`,
+      `- ${labels.sensitiveRemovalsCount}: ${report.sensitiveRemovals?.length ?? 0}`,
       `- ${labels.suggestedVerdict}: ${statusLabel(report.finalVerdict, language)}`
     );
   }
@@ -6674,6 +6803,7 @@ function renderHtmlReport(report, language = "en") {
     `<li>${escapeHtml(labels.branch)}: ${escapeHtml(report.branch)}</li>`,
     `<li>${escapeHtml(labels.changedFiles)}: ${report.changedFiles}</li>`,
     `<li>${escapeHtml(labels.secretFindingsCount)}: ${report.secretFindings.length}</li>`,
+    `<li>${escapeHtml(labels.sensitiveRemovalsCount)}: ${report.sensitiveRemovals?.length ?? 0}</li>`,
     `<li>${escapeHtml(labels.projectScore)}: ${report.projectScore}/100 (${escapeHtml(report.projectGrade)})</li>`,
     `<li>${escapeHtml(labels.recommendation)}: ${escapeHtml(translateRecommendation(report.recommendation, language))}</li>`,
     "</ul>",
@@ -8935,6 +9065,15 @@ function translateWarning(warning, language) {
       ko: `프로젝트 기반 점수는 ${scoreMatch[1]}/100이며 권장 기준은 80입니다.`,
       ja: `プロジェクト基盤スコアは ${scoreMatch[1]}/100 で、推奨基準は 80 です。`,
       zh: `项目基础分为 ${scoreMatch[1]}/100，建议最低为 80。`
+    }[language] ?? warning;
+  }
+
+  const removalMatch = warning.match(/^(\d+) sensitive file removal\(s\) detected; commit the removal and rotate credentials if they were already exposed\.$/);
+  if (removalMatch) {
+    return {
+      ko: `민감 파일 제거 ${removalMatch[1]}개가 감지됐습니다. 제거를 커밋하고 이미 노출된 자격 증명은 회전하세요.`,
+      ja: `機密ファイル削除を ${removalMatch[1]} 件検出しました。削除をコミットし、すでに露出した認証情報はローテーションしてください。`,
+      zh: `检测到 ${removalMatch[1]} 个敏感文件移除。请提交移除，并轮换已经暴露的凭据。`
     }[language] ?? warning;
   }
 

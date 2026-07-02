@@ -262,7 +262,7 @@ channel:
 | `aigate start --route default --ask-steps` | Confirm each recommended default setup step before running it. |
 | `aigate start --route default --steps init,repo-files` | Run only selected default setup steps. |
 | `aigate start --route oss` | Create open-source starter README, issue templates, PR template, CODEOWNERS, and contribution docs. |
-| `aigate check` | Inspect local Git changes and secret findings. |
+| `aigate check` | Inspect local Git changes, active secret findings, and sensitive file removals. |
 | `aigate test` | Run Git readiness plus the detected project test command. |
 | `aigate ai report` | Summarize current problems, strengths, direction, and AI handoff guidance. |
 | `aigate aitest` | Write an AI remediation prompt, optionally invoking Codex, Claude, or Gemini. |

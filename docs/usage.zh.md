@@ -253,7 +253,7 @@ aigate git-ready --notify-channel terminal
 | `aigate start --route default --ask-steps` | 逐个确认推荐的默认设置步骤后运行。 |
 | `aigate start --route default --steps init,repo-files` | 只运行选中的默认设置步骤。 |
 | `aigate start --route oss` | 创建公开仓库 README、issue 模板、PR 模板、CODEOWNERS 和贡献文档。 |
-| `aigate check` | 检查 local Git changes 和 secret findings。 |
+| `aigate check` | 检查 local Git changes、实际 secret findings 和敏感文件移除状态。 |
 | `aigate test` | 运行 Git 就绪检查和检测到的项目测试命令。 |
 | `aigate ai report` | 汇总当前问题、做得好的部分、方向和 AI 交接指引。 |
 | `aigate aitest` | 写入 AI 修复提示，并可选择运行 Codex、Claude、Gemini。 |
