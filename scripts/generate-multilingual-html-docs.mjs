@@ -42,8 +42,10 @@ const locales = {
     flowTitle: "전체 운영 프로세스",
     flowIntro: "AIGate는 개발자가 커밋하기 전부터 PR, CI, 릴리스, npm 배포까지 같은 기준으로 검증하도록 설계되었습니다.",
     processSteps: [
+      ["시작 루트", "aigate start로 설정 경로 선택"],
       ["변경 감지", "Git diff와 untracked 파일 확인"],
-      ["로컬 게이트", "git-ready가 테스트, secret, 점수를 확인"],
+      ["테스트 자동화", "aigate test가 Git gate와 npm script 실행"],
+      ["AI 조치", "aitest가 수정 프롬프트와 선택 실행 제공"],
       ["커밋", "Conventional Commit으로 범위 고정"],
       ["Guarded push", "aigate push가 push 전 검증"],
       ["PR 생성", "aigate pr과 pr-check로 설명 생성"],
@@ -65,9 +67,9 @@ const locales = {
     ],
     commandMapTitle: "명령어 맵",
     commandGroups: [
-      ["설정", ["init", "setup", "settings", "integrate"]],
+      ["설정", ["start", "init", "setup", "settings", "integrate"]],
       ["첫 실행", ["doctor", "demo", "install-hook"]],
-      ["보호 게이트", ["check", "git-ready", "push", "pr"]],
+      ["보호 게이트", ["check", "test", "aitest", "git-ready", "push", "pr"]],
       ["보고서", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
       ["릴리스", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
@@ -76,6 +78,8 @@ const locales = {
     commands: [
       ["npm install -g aigate-cli", "CLI를 전역 설치합니다.", "처음 사용하는 개발자 환경"],
       ["npx aigate-cli check", "설치 없이 현재 저장소 상태를 확인합니다.", "빠른 체험 또는 CI 전 점검"],
+      ["aigate start", "화살표 메뉴 또는 route 옵션으로 프로젝트 설정 흐름을 실행합니다.", "처음 프로젝트에 AIGate를 적용할 때"],
+      ["aigate start --route ai --provider all", "AIGate 설정과 Codex/Gemini/Claude 지침 파일을 생성합니다.", "AI assistant 규칙을 한 번에 심을 때"],
       ["aigate init", "AIGate 기본 설정 파일과 리포트 폴더를 만듭니다.", "새 프로젝트에 AIGate를 적용할 때"],
       ["aigate setup --language <en|ko|ja|zh>", "CLI 출력 언어를 저장합니다.", "팀 기본 언어를 맞출 때"],
       ["aigate settings", "현재 AIGate 설정을 확인합니다.", "설정 검증"],
@@ -83,6 +87,9 @@ const locales = {
       ["aigate demo", "파일을 바꾸지 않고 AIGate 사용 흐름을 보여줍니다.", "처음 체험하거나 팀에 사용법을 설명할 때"],
       ["aigate install-hook --pre-push", "git push 전에 git-ready가 실행되도록 pre-push hook을 설치합니다.", "push 실수를 로컬에서 막고 싶을 때"],
       ["aigate check", "변경 파일과 secret 위험을 요약합니다.", "커밋 전 가벼운 점검"],
+      ["aigate test", "Git readiness와 감지된 npm test/ci script를 실행합니다.", "커밋 전 실제 테스트까지 확인할 때"],
+      ["aigate aitest", "테스트 실패를 AI가 고칠 수 있도록 프롬프트 파일을 생성합니다.", "실패 원인을 AI 에이전트에 넘길 때"],
+      ["aigate aitest --apply --provider codex", "Codex CLI를 호출해 수정 작업을 실행합니다.", "명시적으로 AI 자동 조치를 허용할 때"],
       ["aigate git-ready", "테스트, secret scan, 프로젝트 점수를 포함한 게이트를 실행합니다.", "커밋/푸시 전 필수 점검"],
       ["aigate push -u origin <branch>", "검증 통과 후 git push를 실행합니다.", "브랜치를 원격에 올릴 때"],
       ["aigate pr-check", "PR 준비 상태 리포트를 생성합니다.", "PR 설명 작성 전"],
@@ -115,9 +122,12 @@ const locales = {
     commandPath: [
       "npm install -g aigate-cli",
       "aigate setup --language ko",
+      "aigate start --route ai --provider all",
       "git switch -c feature/my-change",
       "aigate doctor",
       "aigate install-hook --pre-push",
+      "aigate test",
+      "aigate aitest",
       "aigate git-ready",
       "git add <files>",
       "git commit -m \"feat: short summary\"",
@@ -136,6 +146,9 @@ const locales = {
     implemented: [
       "npm 패키지 aigate-cli 공개 배포와 npx 실행",
       "Git 변경사항과 untracked 파일 기반 readiness check",
+      "aigate start 기반 안내형 시작 루트",
+      "aigate test 기반 프로젝트 테스트 자동화",
+      "aigate aitest 기반 AI 수정 프롬프트와 선택적 에이전트 실행",
       "doctor, demo, install-hook 기반 첫 실행 UX",
       "pre-push Git hook 설치",
       "secret 패턴 탐지와 SARIF 출력",
@@ -187,8 +200,10 @@ const locales = {
     flowTitle: "End-To-End Operating Process",
     flowIntro: "AIGate keeps the same quality gate from local development through PR review, CI, release, and npm publishing.",
     processSteps: [
+      ["Start route", "Choose setup path with aigate start"],
       ["Detect changes", "Read Git diff and untracked files"],
-      ["Local gate", "git-ready checks tests, secrets, score"],
+      ["Test automation", "aigate test runs Git gate and npm scripts"],
+      ["AI remediation", "aitest writes a repair prompt and can run an agent"],
       ["Commit", "Keep scope with Conventional Commits"],
       ["Guarded push", "aigate push validates before push"],
       ["Open PR", "aigate pr and pr-check prepare context"],
@@ -210,9 +225,9 @@ const locales = {
     ],
     commandMapTitle: "Command Map",
     commandGroups: [
-      ["Setup", ["init", "setup", "settings", "integrate"]],
+      ["Setup", ["start", "init", "setup", "settings", "integrate"]],
       ["First run", ["doctor", "demo", "install-hook"]],
-      ["Guard gates", ["check", "git-ready", "push", "pr"]],
+      ["Guard gates", ["check", "test", "aitest", "git-ready", "push", "pr"]],
       ["Reports", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
       ["Release", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
@@ -221,6 +236,8 @@ const locales = {
     commands: [
       ["npm install -g aigate-cli", "Install the CLI globally.", "First-time developer setup"],
       ["npx aigate-cli check", "Check the repository without installing.", "Quick trial or pre-CI check"],
+      ["aigate start", "Run a guided project setup route with arrow keys or --route.", "When adopting AIGate in a project"],
+      ["aigate start --route ai --provider all", "Create AIGate config plus Codex/Gemini/Claude instruction files.", "When aligning AI assistants at once"],
       ["aigate init", "Create starter configuration and report folders.", "When adopting AIGate in a new project"],
       ["aigate setup --language <en|ko|ja|zh>", "Save the CLI output language.", "When aligning team language"],
       ["aigate settings", "Show current AIGate settings.", "Configuration review"],
@@ -228,6 +245,9 @@ const locales = {
       ["aigate demo", "Show the AIGate workflow without changing files.", "Trying the CLI or explaining it to a team"],
       ["aigate install-hook --pre-push", "Install a pre-push hook that runs git-ready before git push.", "Preventing risky pushes locally"],
       ["aigate check", "Summarize changed files and secret risk.", "Light pre-commit check"],
+      ["aigate test", "Run Git readiness and the detected npm test/ci script.", "Before committing with real test coverage"],
+      ["aigate aitest", "Write a focused AI remediation prompt from failing tests.", "When handing a failure to an AI agent"],
+      ["aigate aitest --apply --provider codex", "Invoke Codex CLI to work on the failure.", "When you explicitly allow AI remediation"],
       ["aigate git-ready", "Run tests, secret scan, and project score gates.", "Required before commit or push"],
       ["aigate push -u origin <branch>", "Run the gate, then forward to git push.", "When publishing a branch"],
       ["aigate pr-check", "Generate a PR readiness report.", "Before writing the PR description"],
@@ -260,9 +280,12 @@ const locales = {
     commandPath: [
       "npm install -g aigate-cli",
       "aigate setup --language en",
+      "aigate start --route ai --provider all",
       "git switch -c feature/my-change",
       "aigate doctor",
       "aigate install-hook --pre-push",
+      "aigate test",
+      "aigate aitest",
       "aigate git-ready",
       "git add <files>",
       "git commit -m \"feat: short summary\"",
@@ -281,6 +304,9 @@ const locales = {
     implemented: [
       "Public npm package aigate-cli and npx execution",
       "Git change and untracked-file readiness checks",
+      "Guided start routes through aigate start",
+      "Project test automation through aigate test",
+      "AI remediation prompt and optional agent execution through aigate aitest",
       "First-run UX through doctor, demo, and install-hook",
       "Pre-push Git hook installation",
       "Secret pattern detection and SARIF output",
@@ -332,8 +358,10 @@ const locales = {
     flowTitle: "全体運用プロセス",
     flowIntro: "AIGate はローカル開発から PR、CI、リリース、npm 公開まで同じ品質ゲートでつなぎます。",
     processSteps: [
+      ["開始ルート", "aigate start で設定経路を選択"],
       ["変更検出", "Git diff と untracked ファイルを確認"],
-      ["ローカルゲート", "git-ready がテスト、secret、スコアを確認"],
+      ["テスト自動化", "aigate test が Git gate と npm script を実行"],
+      ["AI 修正", "aitest が修正プロンプトと任意の agent 実行を提供"],
       ["コミット", "Conventional Commit で範囲を固定"],
       ["保護付き push", "aigate push が push 前に検証"],
       ["PR 作成", "aigate pr と pr-check で文脈を準備"],
@@ -355,9 +383,9 @@ const locales = {
     ],
     commandMapTitle: "コマンドマップ",
     commandGroups: [
-      ["セットアップ", ["init", "setup", "settings", "integrate"]],
+      ["セットアップ", ["start", "init", "setup", "settings", "integrate"]],
       ["初回実行", ["doctor", "demo", "install-hook"]],
-      ["保護ゲート", ["check", "git-ready", "push", "pr"]],
+      ["保護ゲート", ["check", "test", "aitest", "git-ready", "push", "pr"]],
       ["レポート", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
       ["リリース", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
@@ -366,6 +394,8 @@ const locales = {
     commands: [
       ["npm install -g aigate-cli", "CLI をグローバルにインストールします。", "初回セットアップ"],
       ["npx aigate-cli check", "インストールせずに現在のリポジトリを確認します。", "試用または CI 前確認"],
+      ["aigate start", "矢印キーまたは --route でガイド付き設定ルートを実行します。", "プロジェクトに AIGate を導入するとき"],
+      ["aigate start --route ai --provider all", "AIGate 設定と Codex/Gemini/Claude 指示ファイルを作成します。", "AI assistant の規則をまとめて入れるとき"],
       ["aigate init", "基本設定とレポート用フォルダを作成します。", "新しいプロジェクトに導入するとき"],
       ["aigate setup --language <en|ko|ja|zh>", "CLI 出力言語を保存します。", "チームの出力言語をそろえるとき"],
       ["aigate settings", "現在の AIGate 設定を表示します。", "設定確認"],
@@ -373,6 +403,9 @@ const locales = {
       ["aigate demo", "ファイルを変更せず AIGate の利用フローを表示します。", "CLI の試用やチーム説明"],
       ["aigate install-hook --pre-push", "git push 前に git-ready を実行する pre-push hook をインストールします。", "危険な push をローカルで防ぐとき"],
       ["aigate check", "変更ファイルと secret リスクを要約します。", "軽いコミット前確認"],
+      ["aigate test", "Git readiness と検出した npm test/ci script を実行します。", "実際のテストまで確認してから commit するとき"],
+      ["aigate aitest", "失敗したテストから AI 修正プロンプトを作成します。", "失敗を AI agent に渡すとき"],
+      ["aigate aitest --apply --provider codex", "Codex CLI を呼び出して修正作業を実行します。", "AI 修正を明示的に許可するとき"],
       ["aigate git-ready", "テスト、secret scan、プロジェクトスコアを含むゲートを実行します。", "コミットまたは push 前"],
       ["aigate push -u origin <branch>", "ゲート通過後に git push を実行します。", "ブランチをリモートへ送るとき"],
       ["aigate pr-check", "PR 準備レポートを生成します。", "PR 説明を書く前"],
@@ -405,9 +438,12 @@ const locales = {
     commandPath: [
       "npm install -g aigate-cli",
       "aigate setup --language ja",
+      "aigate start --route ai --provider all",
       "git switch -c feature/my-change",
       "aigate doctor",
       "aigate install-hook --pre-push",
+      "aigate test",
+      "aigate aitest",
       "aigate git-ready",
       "git add <files>",
       "git commit -m \"feat: short summary\"",
@@ -426,6 +462,9 @@ const locales = {
     implemented: [
       "npm パッケージ aigate-cli の公開と npx 実行",
       "Git 変更と untracked ファイルの readiness check",
+      "aigate start によるガイド付き開始ルート",
+      "aigate test によるプロジェクトテスト自動化",
+      "aigate aitest による AI 修正プロンプトと任意の agent 実行",
       "doctor、demo、install-hook による初回実行 UX",
       "pre-push Git hook のインストール",
       "secret パターン検出と SARIF 出力",
@@ -477,8 +516,10 @@ const locales = {
     flowTitle: "整体运行流程",
     flowIntro: "AIGate 将本地开发、PR、CI、发布和 npm 分发串成同一套质量门禁。",
     processSteps: [
+      ["启动路由", "用 aigate start 选择设置路径"],
       ["检测变更", "读取 Git diff 和 untracked 文件"],
-      ["本地门禁", "git-ready 检查测试、secret、分数"],
+      ["测试自动化", "aigate test 运行 Git gate 和 npm script"],
+      ["AI 修复", "aitest 写入修复提示并可运行 agent"],
       ["提交", "用 Conventional Commit 固定范围"],
       ["受保护 push", "aigate push 在 push 前验证"],
       ["创建 PR", "aigate pr 和 pr-check 准备上下文"],
@@ -500,9 +541,9 @@ const locales = {
     ],
     commandMapTitle: "命令地图",
     commandGroups: [
-      ["设置", ["init", "setup", "settings", "integrate"]],
+      ["设置", ["start", "init", "setup", "settings", "integrate"]],
       ["首次运行", ["doctor", "demo", "install-hook"]],
-      ["保护门禁", ["check", "git-ready", "push", "pr"]],
+      ["保护门禁", ["check", "test", "aitest", "git-ready", "push", "pr"]],
       ["报告", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
       ["发布", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
@@ -511,6 +552,8 @@ const locales = {
     commands: [
       ["npm install -g aigate-cli", "全局安装 CLI。", "首次开发环境设置"],
       ["npx aigate-cli check", "无需安装即可检查仓库。", "快速体验或 CI 前检查"],
+      ["aigate start", "用方向键或 --route 运行引导式项目设置路由。", "在项目中启用 AIGate 时"],
+      ["aigate start --route ai --provider all", "创建 AIGate 配置和 Codex/Gemini/Claude 指令文件。", "一次性对齐 AI assistant 规则时"],
       ["aigate init", "创建基础配置和报告目录。", "在新项目中启用 AIGate"],
       ["aigate setup --language <en|ko|ja|zh>", "保存 CLI 输出语言。", "统一团队输出语言"],
       ["aigate settings", "显示当前 AIGate 设置。", "配置核对"],
@@ -518,6 +561,9 @@ const locales = {
       ["aigate demo", "不改动文件，展示 AIGate 使用流程。", "试用 CLI 或向团队说明"],
       ["aigate install-hook --pre-push", "安装 pre-push hook，在 git push 前运行 git-ready。", "在本地阻止有风险的 push"],
       ["aigate check", "汇总变更文件和 secret 风险。", "轻量提交前检查"],
+      ["aigate test", "运行 Git readiness 和检测到的 npm test/ci script。", "提交前确认真实测试结果"],
+      ["aigate aitest", "根据失败测试写入 AI 修复提示。", "把失败交给 AI agent 处理时"],
+      ["aigate aitest --apply --provider codex", "调用 Codex CLI 执行修复工作。", "明确允许 AI 自动修复时"],
       ["aigate git-ready", "运行测试、secret scan 和项目分数门禁。", "提交或 push 前"],
       ["aigate push -u origin <branch>", "门禁通过后转发到 git push。", "推送分支时"],
       ["aigate pr-check", "生成 PR 就绪报告。", "编写 PR 描述前"],
@@ -550,9 +596,12 @@ const locales = {
     commandPath: [
       "npm install -g aigate-cli",
       "aigate setup --language zh",
+      "aigate start --route ai --provider all",
       "git switch -c feature/my-change",
       "aigate doctor",
       "aigate install-hook --pre-push",
+      "aigate test",
+      "aigate aitest",
       "aigate git-ready",
       "git add <files>",
       "git commit -m \"feat: short summary\"",
@@ -571,6 +620,9 @@ const locales = {
     implemented: [
       "公开 npm 包 aigate-cli 和 npx 运行",
       "基于 Git 变更和 untracked 文件的 readiness check",
+      "通过 aigate start 提供引导式启动路由",
+      "通过 aigate test 提供项目测试自动化",
+      "通过 aigate aitest 提供 AI 修复提示和可选 agent 执行",
       "通过 doctor、demo、install-hook 提供首次运行体验",
       "pre-push Git hook 安装",
       "secret 模式检测和 SARIF 输出",
@@ -726,15 +778,25 @@ function renderLanguageLinks(current) {
 }
 
 function renderProcessChart(t) {
-  const positions = [
-    [28, 50], [252, 50], [476, 50], [700, 50], [924, 50],
-    [924, 250], [700, 250], [476, 250], [252, 250], [28, 250]
-  ];
+  const boxWidth = 190;
+  const boxHeight = 118;
+  const columns = 5;
+  const gapX = 34;
+  const gapY = 82;
+  const startX = 28;
+  const startY = 50;
+  const rows = Math.ceil(t.processSteps.length / columns);
+  const positions = t.processSteps.map((_, index) => {
+    const row = Math.floor(index / columns);
+    const rowIndex = index % columns;
+    const col = row % 2 === 0 ? rowIndex : columns - rowIndex - 1;
+    return [startX + col * (boxWidth + gapX), startY + row * (boxHeight + gapY)];
+  });
   const boxes = t.processSteps.map(([title, body], index) => renderBox({
     x: positions[index][0],
     y: positions[index][1],
-    w: 190,
-    h: 118,
+    w: boxWidth,
+    h: boxHeight,
     title,
     body,
     index: index + 1,
@@ -742,18 +804,23 @@ function renderProcessChart(t) {
   })).join("");
   const arrows = positions.slice(0, -1).map((from, index) => {
     const to = positions[index + 1];
-    const x1 = from[0] + 190;
-    const y1 = from[1] + 59;
-    const x2 = index === 4 ? to[0] + 95 : to[0];
-    const y2 = index === 4 ? to[1] : to[1] + 59;
-    if (index === 4) {
-      return `<path class="arrow" d="M ${x1 - 95} ${y1 + 60} V ${y2 - 12}" marker-end="url(#arrow-process)"/>`;
+    const sameRow = from[1] === to[1];
+    if (sameRow && to[0] > from[0]) {
+      return `<path class="arrow" d="M ${from[0] + boxWidth + 10} ${from[1] + boxHeight / 2} H ${to[0] - 10}" marker-end="url(#arrow-process)"/>`;
     }
-    return `<path class="arrow" d="M ${x1 + 10} ${y1} H ${x2 - 10}" marker-end="url(#arrow-process)"/>`;
+    if (sameRow) {
+      return `<path class="arrow" d="M ${from[0] - 10} ${from[1] + boxHeight / 2} H ${to[0] + boxWidth + 10}" marker-end="url(#arrow-process)"/>`;
+    }
+
+    const fromX = from[0] + boxWidth / 2;
+    const toX = to[0] + boxWidth / 2;
+    const midY = from[1] + boxHeight + gapY / 2;
+    return `<path class="arrow" d="M ${fromX} ${from[1] + boxHeight + 10} V ${midY} H ${toX} V ${to[1] - 10}" marker-end="url(#arrow-process)"/>`;
   }).join("");
+  const height = startY * 2 + rows * boxHeight + (rows - 1) * gapY;
 
   return `<div class="chart-wrap">
-    <svg class="chart" viewBox="0 0 1142 410" role="img" aria-label="${escapeHtml(t.flowTitle)}">
+    <svg class="chart" viewBox="0 0 1142 ${height}" role="img" aria-label="${escapeHtml(t.flowTitle)}">
       ${svgDefs("process")}
       ${arrows}
       ${boxes}

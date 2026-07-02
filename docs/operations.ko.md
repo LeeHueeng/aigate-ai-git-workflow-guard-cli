@@ -10,15 +10,17 @@
 
 ```mermaid
 flowchart LR
-  A["Git 변경 감지"] --> B["로컬 게이트 실행"]
-  B --> C["범위가 명확한 커밋"]
-  C --> D["검증 후 push"]
-  D --> E["PR 생성"]
-  E --> F["CI 확인"]
-  F --> G["main 병합"]
-  G --> H["릴리스 점검"]
-  H --> I["태그 배포"]
-  I --> J["npm 공개"]
+  A["aigate start 실행"] --> B["Git 변경 감지"]
+  B --> C["aigate test 실행"]
+  C --> D["실패 시 aitest 실행"]
+  D --> E["범위가 명확한 커밋"]
+  E --> F["검증 후 push"]
+  F --> G["PR 생성"]
+  G --> H["CI 확인"]
+  H --> I["main 병합"]
+  I --> J["릴리스 점검"]
+  J --> K["태그 배포"]
+  K --> L["npm 공개"]
 ```
 
 ## 릴리스 프로세스
@@ -36,9 +38,9 @@ flowchart LR
 
 | 영역 | 명령어 |
 | --- | --- |
-| 설정 | `init`, `setup`, `settings`, `integrate` |
+| 설정 | `start`, `init`, `setup`, `settings`, `integrate` |
 | 첫 실행 | `doctor`, `demo`, `install-hook --pre-push` |
-| 보호 게이트 | `check`, `git-ready`, `push`, `pr` |
+| 보호 게이트 | `check`, `test`, `aitest`, `git-ready`, `push`, `pr` |
 | 리포트 | `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | 릴리스 | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
@@ -47,9 +49,12 @@ flowchart LR
 ```sh
 npm install -g aigate-cli
 aigate setup --language ko
+aigate start --route ai --provider all
 git switch -c feature/my-change
 aigate doctor
 aigate install-hook --pre-push
+aigate test
+aigate aitest
 aigate git-ready
 git add <files>
 git commit -m "feat: short summary"
@@ -69,10 +74,13 @@ aigate release-check --npm
 ## 현재 구현된 기능
 
 - npm 패키지 `aigate-cli` 공개 배포와 `npx` 실행
+- `aigate start` 기반 안내형 시작 루트
 - `aigate doctor` 기반 첫 실행 환경 진단
 - `aigate demo` 기반 안내형 CLI 데모
 - `aigate install-hook --pre-push` 기반 pre-push hook 설치
 - Git 변경 파일과 untracked 파일 기반 readiness check
+- `aigate test` 기반 프로젝트 테스트 자동화
+- `aigate aitest` 기반 AI 수정 프롬프트와 선택적 에이전트 실행
 - secret 패턴 탐지와 SARIF 출력
 - `git-ready`, guarded push, guarded PR 생성 흐름
 - `aigate github` 기반 GitHub PR 댓글과 Checks 요약

@@ -290,7 +290,7 @@ footer p + p { margin-top: 6px; }
     <p class="eyebrow">开源 AI Git Workflow Guard CLI</p>
     <h1>AIGate 运维说明</h1>
     <p class="subtitle">这份 HTML 文档说明 AIGate 的运行流程、全部命令、当前已实现能力以及未来规划。</p>
-    <div class="badges"><span>npm 已发布</span><span>Trusted Publishing</span><span>GitHub Release</span><span>CLI v0.1.4</span></div>
+    <div class="badges"><span>npm 已发布</span><span>Trusted Publishing</span><span>GitHub Release</span><span>CLI v0.1.5</span></div>
   </header>
 
   <main>
@@ -323,21 +323,21 @@ npx aigate-cli check</code></pre>
         <p>AIGate 将本地开发、PR、CI、发布和 npm 分发串成同一套质量门禁。</p>
       </div>
       <div class="chart-wrap">
-    <svg class="chart" viewBox="0 0 1142 410" role="img" aria-label="整体运行流程">
+    <svg class="chart" viewBox="0 0 1142 618" role="img" aria-label="整体运行流程">
       <defs>
     <marker id="arrow-process" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#2f5f8f"/>
     </marker>
   </defs>
-      <path class="arrow" d="M 228 109 H 242" marker-end="url(#arrow-process)"/><path class="arrow" d="M 452 109 H 466" marker-end="url(#arrow-process)"/><path class="arrow" d="M 676 109 H 690" marker-end="url(#arrow-process)"/><path class="arrow" d="M 900 109 H 914" marker-end="url(#arrow-process)"/><path class="arrow" d="M 1019 169 V 238" marker-end="url(#arrow-process)"/><path class="arrow" d="M 1124 309 H 690" marker-end="url(#arrow-process)"/><path class="arrow" d="M 900 309 H 466" marker-end="url(#arrow-process)"/><path class="arrow" d="M 676 309 H 242" marker-end="url(#arrow-process)"/><path class="arrow" d="M 452 309 H 18" marker-end="url(#arrow-process)"/>
+      <path class="arrow" d="M 228 109 H 242" marker-end="url(#arrow-process)"/><path class="arrow" d="M 452 109 H 466" marker-end="url(#arrow-process)"/><path class="arrow" d="M 676 109 H 690" marker-end="url(#arrow-process)"/><path class="arrow" d="M 900 109 H 914" marker-end="url(#arrow-process)"/><path class="arrow" d="M 1019 178 V 209 H 1019 V 240" marker-end="url(#arrow-process)"/><path class="arrow" d="M 914 309 H 900" marker-end="url(#arrow-process)"/><path class="arrow" d="M 690 309 H 676" marker-end="url(#arrow-process)"/><path class="arrow" d="M 466 309 H 452" marker-end="url(#arrow-process)"/><path class="arrow" d="M 242 309 H 228" marker-end="url(#arrow-process)"/><path class="arrow" d="M 123 378 V 409 H 123 V 440" marker-end="url(#arrow-process)"/><path class="arrow" d="M 228 509 H 242" marker-end="url(#arrow-process)"/>
       <g class="svg-box blue">
     <rect x="28" y="50" width="190" height="118" rx="8"/>
     <circle cx="52" cy="74" r="13"/>
     <text x="52" y="79" text-anchor="middle">1</text>
     <foreignObject x="72" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>检测变更</strong>
-        <span>读取 Git diff 和 untracked 文件</span>
+        <strong>启动路由</strong>
+        <span>用 aigate start 选择设置路径</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -346,8 +346,8 @@ npx aigate-cli check</code></pre>
     <text x="276" y="79" text-anchor="middle">2</text>
     <foreignObject x="296" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>本地门禁</strong>
-        <span>git-ready 检查测试、secret、分数</span>
+        <strong>检测变更</strong>
+        <span>读取 Git diff 和 untracked 文件</span>
       </div>
     </foreignObject>
   </g><g class="svg-box blue">
@@ -356,8 +356,8 @@ npx aigate-cli check</code></pre>
     <text x="500" y="79" text-anchor="middle">3</text>
     <foreignObject x="520" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>提交</strong>
-        <span>用 Conventional Commit 固定范围</span>
+        <strong>测试自动化</strong>
+        <span>aigate test 运行 Git gate 和 npm script</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -366,8 +366,8 @@ npx aigate-cli check</code></pre>
     <text x="724" y="79" text-anchor="middle">4</text>
     <foreignObject x="744" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>受保护 push</strong>
-        <span>aigate push 在 push 前验证</span>
+        <strong>AI 修复</strong>
+        <span>aitest 写入修复提示并可运行 agent</span>
       </div>
     </foreignObject>
   </g><g class="svg-box blue">
@@ -376,8 +376,8 @@ npx aigate-cli check</code></pre>
     <text x="948" y="79" text-anchor="middle">5</text>
     <foreignObject x="968" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>创建 PR</strong>
-        <span>aigate pr 和 pr-check 准备上下文</span>
+        <strong>提交</strong>
+        <span>用 Conventional Commit 固定范围</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -386,8 +386,8 @@ npx aigate-cli check</code></pre>
     <text x="948" y="279" text-anchor="middle">6</text>
     <foreignObject x="968" y="264" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>CI 检查</strong>
-        <span>Node 20/22 测试和 Scorecard</span>
+        <strong>受保护 push</strong>
+        <span>aigate push 在 push 前验证</span>
       </div>
     </foreignObject>
   </g><g class="svg-box blue">
@@ -396,8 +396,8 @@ npx aigate-cli check</code></pre>
     <text x="724" y="279" text-anchor="middle">7</text>
     <foreignObject x="744" y="264" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>合并</strong>
-        <span>main 始终保持可发布</span>
+        <strong>创建 PR</strong>
+        <span>aigate pr 和 pr-check 准备上下文</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -406,8 +406,8 @@ npx aigate-cli check</code></pre>
     <text x="500" y="279" text-anchor="middle">8</text>
     <foreignObject x="520" y="264" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>发布检查</strong>
-        <span>release-check --npm 检查 tag/npm 状态</span>
+        <strong>CI 检查</strong>
+        <span>Node 20/22 测试和 Scorecard</span>
       </div>
     </foreignObject>
   </g><g class="svg-box blue">
@@ -416,8 +416,8 @@ npx aigate-cli check</code></pre>
     <text x="276" y="279" text-anchor="middle">9</text>
     <foreignObject x="296" y="264" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>推送标签</strong>
-        <span>vX.Y.Z tag 触发 GitHub Actions</span>
+        <strong>合并</strong>
+        <span>main 始终保持可发布</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -425,6 +425,26 @@ npx aigate-cli check</code></pre>
     <circle cx="52" cy="274" r="13"/>
     <text x="52" y="279" text-anchor="middle">10</text>
     <foreignObject x="72" y="264" width="134" height="94">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
+        <strong>发布检查</strong>
+        <span>release-check --npm 检查 tag/npm 状态</span>
+      </div>
+    </foreignObject>
+  </g><g class="svg-box blue">
+    <rect x="28" y="450" width="190" height="118" rx="8"/>
+    <circle cx="52" cy="474" r="13"/>
+    <text x="52" y="479" text-anchor="middle">11</text>
+    <foreignObject x="72" y="464" width="134" height="94">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
+        <strong>推送标签</strong>
+        <span>vX.Y.Z tag 触发 GitHub Actions</span>
+      </div>
+    </foreignObject>
+  </g><g class="svg-box green">
+    <rect x="252" y="450" width="190" height="118" rx="8"/>
+    <circle cx="276" cy="474" r="13"/>
+    <text x="276" y="479" text-anchor="middle">12</text>
+    <foreignObject x="296" y="464" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
         <strong>npm 发布</strong>
         <span>带 provenance 的 Trusted Publishing</span>
@@ -521,13 +541,13 @@ npx aigate-cli check</code></pre>
       </div>
       <div class="command-groups"><article class="command-group group-0">
       <h3>设置</h3>
-      <div><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
+      <div><span>start</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
     </article><article class="command-group group-1">
       <h3>首次运行</h3>
       <div><span>doctor</span><span>demo</span><span>install-hook</span></div>
     </article><article class="command-group group-2">
       <h3>保护门禁</h3>
-      <div><span>check</span><span>git-ready</span><span>push</span><span>pr</span></div>
+      <div><span>check</span><span>test</span><span>aitest</span><span>git-ready</span><span>push</span><span>pr</span></div>
     </article><article class="command-group group-3">
       <h3>报告</h3>
       <div><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
@@ -553,6 +573,14 @@ npx aigate-cli check</code></pre>
     <td><code>npx aigate-cli check</code></td>
     <td>无需安装即可检查仓库。</td>
     <td>快速体验或 CI 前检查</td>
+  </tr><tr>
+    <td><code>aigate start</code></td>
+    <td>用方向键或 --route 运行引导式项目设置路由。</td>
+    <td>在项目中启用 AIGate 时</td>
+  </tr><tr>
+    <td><code>aigate start --route ai --provider all</code></td>
+    <td>创建 AIGate 配置和 Codex/Gemini/Claude 指令文件。</td>
+    <td>一次性对齐 AI assistant 规则时</td>
   </tr><tr>
     <td><code>aigate init</code></td>
     <td>创建基础配置和报告目录。</td>
@@ -581,6 +609,18 @@ npx aigate-cli check</code></pre>
     <td><code>aigate check</code></td>
     <td>汇总变更文件和 secret 风险。</td>
     <td>轻量提交前检查</td>
+  </tr><tr>
+    <td><code>aigate test</code></td>
+    <td>运行 Git readiness 和检测到的 npm test/ci script。</td>
+    <td>提交前确认真实测试结果</td>
+  </tr><tr>
+    <td><code>aigate aitest</code></td>
+    <td>根据失败测试写入 AI 修复提示。</td>
+    <td>把失败交给 AI agent 处理时</td>
+  </tr><tr>
+    <td><code>aigate aitest --apply --provider codex</code></td>
+    <td>调用 Codex CLI 执行修复工作。</td>
+    <td>明确允许 AI 自动修复时</td>
   </tr><tr>
     <td><code>aigate git-ready</code></td>
     <td>运行测试、secret scan 和项目分数门禁。</td>
@@ -694,9 +734,12 @@ npx aigate-cli check</code></pre>
       </div>
       <pre><code>npm install -g aigate-cli
 aigate setup --language zh
+aigate start --route ai --provider all
 git switch -c feature/my-change
 aigate doctor
 aigate install-hook --pre-push
+aigate test
+aigate aitest
 aigate git-ready
 git add &lt;files&gt;
 git commit -m &quot;feat: short summary&quot;
@@ -716,7 +759,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">功能</p>
         <h2>当前已实现功能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">通过 doctor、demo、install-hook 提供首次运行体验</div><div class="feature done">pre-push Git hook 安装</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">GitHub PR comment 和 GitHub Checks summary payload</div><div class="feature done">PR 模板和 CODEOWNERS 引导式设置</div><div class="feature done">可复用的公开 GitHub Action</div><div class="feature done">项目状态趋势历史</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">合规报告和本地 HTML 健康仪表盘</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐、提案比较和政策包生成</div><div class="feature done">Codex/Gemini/Claude Code 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow 和 Homebrew formula draft</div></div>
+      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">通过 aigate start 提供引导式启动路由</div><div class="feature done">通过 aigate test 提供项目测试自动化</div><div class="feature done">通过 aigate aitest 提供 AI 修复提示和可选 agent 执行</div><div class="feature done">通过 doctor、demo、install-hook 提供首次运行体验</div><div class="feature done">pre-push Git hook 安装</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">GitHub PR comment 和 GitHub Checks summary payload</div><div class="feature done">PR 模板和 CODEOWNERS 引导式设置</div><div class="feature done">可复用的公开 GitHub Action</div><div class="feature done">项目状态趋势历史</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">合规报告和本地 HTML 健康仪表盘</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐、提案比较和政策包生成</div><div class="feature done">Codex/Gemini/Claude Code 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow 和 Homebrew formula draft</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -730,7 +773,7 @@ aigate release-check --npm</code></pre>
 
   <footer>
     <p>本文档说明 AIGate 公开发布后的运行状态。</p>
-    <p>Generated 2026-07-02. Package version 0.1.4.</p>
+    <p>Generated 2026-07-02. Package version 0.1.5.</p>
   </footer>
 </body>
 </html>

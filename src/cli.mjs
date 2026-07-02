@@ -2,6 +2,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import readline from "node:readline";
 import { fileURLToPath } from "node:url";
 import { commandDemo, commandDoctor, commandInstallHook } from "./commands/first-run.mjs";
 import { commandGithub } from "./commands/github-reporting.mjs";
@@ -12,6 +13,8 @@ const PACKAGE_ROOT = dirname(CLI_DIR);
 const VERSION = readPackageVersion();
 const SUPPORTED_LANGUAGES = ["en", "ko", "ja", "zh"];
 const SUPPORTED_INTEGRATIONS = ["codex", "gemini", "claude"];
+const START_ROUTE_IDS = ["quickstart", "ai", "hook", "release", "full"];
+const AI_TEST_PROVIDERS = ["codex", "claude", "gemini"];
 const DEFAULT_SETTINGS = {
   version: 1,
   language: "en"
@@ -891,9 +894,12 @@ const HELP_CONTENT = {
       ["pr", "Run AIGate checks, then create a GitHub pull request."],
       ["pr-check", "Generate a pull request readiness report."],
       ["github <comment|check|setup>", "Post PR comments, prepare Checks summaries, or set up GitHub files."],
+      ["start", "Open a guided project setup router."],
       ["doctor", "Diagnose first-run environment and repository setup."],
       ["demo", "Show a guided first-run demo without changing files."],
       ["install-hook", "Install AIGate Git hooks."],
+      ["test", "Run Git readiness and the detected project test command."],
+      ["aitest", "Create an AI remediation prompt, and optionally run an AI agent."],
       ["setup", "Configure AIGate project settings."],
       ["settings", "Show current AIGate settings."],
       ["integrate <provider>", "Generate Codex/Gemini/Claude assistant integration files."],
@@ -922,7 +928,7 @@ const HELP_CONTENT = {
       ["--title <text>", "Pull request title."],
       ["--body <text>", "Pull request body."],
       ["--generate", "Write generated branch strategy guidance."],
-      ["--apply", "Apply branch strategy policy files locally."],
+      ["--apply", "Apply generated files or run the AI remediation step."],
       ["--compare", "Compare branch strategy proposals."],
       ["--github", "Include GitHub protection guidance."],
       ["--deep", "Include deeper project history signals."],
@@ -936,6 +942,11 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "Environment variable name for webhook notifications."],
       ["--linear-team-id <id>", "Linear team id for issue creation."],
       ["--jira-project-key <key>", "Jira project key for issue creation."],
+      ["--route <name>", "Start route: quickstart, ai, hook, release, or full."],
+      ["--provider <name>", "AI provider: auto, codex, claude, gemini, or all."],
+      ["--script <name>", "npm script name for aigate test or aitest."],
+      ["--command <shell>", "Custom shell command for aigate test or aitest."],
+      ["--agent-command <shell>", "Custom AI agent command for aitest --apply."],
       ["--pre-push", "Install or target the pre-push Git hook."],
       ["--language <en|ko|ja|zh>", "Select output language."],
       ["--output-dir <path>", "Select integration output directory."],
@@ -959,9 +970,12 @@ const HELP_CONTENT = {
       ["pr", "AIGate 검사 후 GitHub PR을 생성합니다."],
       ["pr-check", "PR 준비 상태 리포트를 생성합니다."],
       ["github <comment|check|setup>", "PR 댓글, Checks 요약, GitHub 파일 설정을 처리합니다."],
+      ["start", "프로젝트 설정 라우터를 안내형으로 엽니다."],
       ["doctor", "첫 실행 환경과 저장소 설정을 진단합니다."],
       ["demo", "파일 변경 없이 첫 실행 데모를 보여줍니다."],
       ["install-hook", "AIGate Git hook을 설치합니다."],
+      ["test", "Git 준비 상태와 감지된 프로젝트 테스트 명령을 실행합니다."],
+      ["aitest", "AI 수정 프롬프트를 만들고, 선택하면 AI 에이전트를 실행합니다."],
       ["setup", "AIGate 프로젝트 설정을 구성합니다."],
       ["settings", "현재 AIGate 설정을 표시합니다."],
       ["integrate <provider>", "Codex/Gemini/Claude 어시스턴트 연동 파일을 생성합니다."],
@@ -990,7 +1004,7 @@ const HELP_CONTENT = {
       ["--title <text>", "PR 제목을 지정합니다."],
       ["--body <text>", "PR 본문을 지정합니다."],
       ["--generate", "브랜치 전략 가이드를 생성합니다."],
-      ["--apply", "브랜치 전략 정책 파일을 로컬에 적용합니다."],
+      ["--apply", "생성 파일을 적용하거나 AI 수정 단계를 실행합니다."],
       ["--compare", "브랜치 전략 제안을 비교합니다."],
       ["--github", "GitHub 보호 규칙 가이드를 포함합니다."],
       ["--deep", "더 깊은 프로젝트 히스토리 신호를 포함합니다."],
@@ -1004,6 +1018,11 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "webhook 알림에 사용할 환경 변수 이름입니다."],
       ["--linear-team-id <id>", "Linear 이슈 생성용 팀 ID입니다."],
       ["--jira-project-key <key>", "Jira 이슈 생성용 프로젝트 키입니다."],
+      ["--route <name>", "시작 루트입니다: quickstart, ai, hook, release, full."],
+      ["--provider <name>", "AI 제공자입니다: auto, codex, claude, gemini, all."],
+      ["--script <name>", "aigate test 또는 aitest에서 사용할 npm script 이름입니다."],
+      ["--command <shell>", "aigate test 또는 aitest에서 사용할 사용자 지정 shell 명령입니다."],
+      ["--agent-command <shell>", "aitest --apply에서 사용할 사용자 지정 AI 에이전트 명령입니다."],
       ["--pre-push", "pre-push Git hook을 설치하거나 대상으로 지정합니다."],
       ["--language <en|ko|ja|zh>", "출력 언어를 선택합니다."],
       ["--output-dir <path>", "연동 파일 출력 디렉터리를 선택합니다."],
@@ -1027,9 +1046,12 @@ const HELP_CONTENT = {
       ["pr", "AIGate チェック後に GitHub PR を作成します。"],
       ["pr-check", "PR 準備レポートを生成します。"],
       ["github <comment|check|setup>", "PR コメント、Checks サマリー、GitHub ファイル設定を処理します。"],
+      ["start", "プロジェクト設定ルーターをガイド付きで開きます。"],
       ["doctor", "初回実行環境とリポジトリ設定を診断します。"],
       ["demo", "ファイルを変更せず初回実行デモを表示します。"],
       ["install-hook", "AIGate Git hook をインストールします。"],
+      ["test", "Git 準備状態と検出したプロジェクト test コマンドを実行します。"],
+      ["aitest", "AI 修正プロンプトを作成し、必要なら AI エージェントを実行します。"],
       ["setup", "AIGate プロジェクト設定を構成します。"],
       ["settings", "現在の AIGate 設定を表示します。"],
       ["integrate <provider>", "Codex/Gemini/Claude アシスタント連携ファイルを生成します。"],
@@ -1058,7 +1080,7 @@ const HELP_CONTENT = {
       ["--title <text>", "PR タイトルを指定します。"],
       ["--body <text>", "PR 本文を指定します。"],
       ["--generate", "ブランチ戦略ガイドを生成します。"],
-      ["--apply", "ブランチ戦略ポリシーファイルをローカルに適用します。"],
+      ["--apply", "生成ファイルを適用するか AI 修正ステップを実行します。"],
       ["--compare", "ブランチ戦略提案を比較します。"],
       ["--github", "GitHub 保護ルールガイドを含めます。"],
       ["--deep", "より深いプロジェクト履歴シグナルを含めます。"],
@@ -1072,6 +1094,11 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "webhook 通知に使う環境変数名です。"],
       ["--linear-team-id <id>", "Linear issue 作成用 team ID です。"],
       ["--jira-project-key <key>", "Jira issue 作成用 project key です。"],
+      ["--route <name>", "開始ルート: quickstart, ai, hook, release, full。"],
+      ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
+      ["--script <name>", "aigate test または aitest で使う npm script 名です。"],
+      ["--command <shell>", "aigate test または aitest で使うカスタム shell コマンドです。"],
+      ["--agent-command <shell>", "aitest --apply で使うカスタム AI エージェントコマンドです。"],
       ["--pre-push", "pre-push Git hook をインストールまたは対象にします。"],
       ["--language <en|ko|ja|zh>", "出力言語を選択します。"],
       ["--output-dir <path>", "連携ファイルの出力ディレクトリを選択します。"],
@@ -1095,9 +1122,12 @@ const HELP_CONTENT = {
       ["pr", "运行 AIGate 检查后创建 GitHub PR。"],
       ["pr-check", "生成 PR 就绪报告。"],
       ["github <comment|check|setup>", "发布 PR 评论、准备 Checks 摘要或设置 GitHub 文件。"],
+      ["start", "打开引导式项目设置路由器。"],
       ["doctor", "诊断首次运行环境和仓库设置。"],
       ["demo", "不改动文件，显示首次运行演示。"],
       ["install-hook", "安装 AIGate Git hook。"],
+      ["test", "运行 Git 就绪检查和检测到的项目测试命令。"],
+      ["aitest", "创建 AI 修复提示，并可选择运行 AI agent。"],
       ["setup", "配置 AIGate 项目设置。"],
       ["settings", "显示当前 AIGate 设置。"],
       ["integrate <provider>", "生成 Codex/Gemini/Claude 助手集成文件。"],
@@ -1126,7 +1156,7 @@ const HELP_CONTENT = {
       ["--title <text>", "PR 标题。"],
       ["--body <text>", "PR 正文。"],
       ["--generate", "生成分支策略指南。"],
-      ["--apply", "在本地应用分支策略政策文件。"],
+      ["--apply", "应用生成文件或运行 AI 修复步骤。"],
       ["--compare", "比较分支策略提案。"],
       ["--github", "包含 GitHub 保护规则指南。"],
       ["--deep", "包含更深入的项目历史信号。"],
@@ -1140,6 +1170,11 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "webhook 通知使用的环境变量名。"],
       ["--linear-team-id <id>", "创建 Linear issue 的 team ID。"],
       ["--jira-project-key <key>", "创建 Jira issue 的 project key。"],
+      ["--route <name>", "启动路由: quickstart, ai, hook, release, full。"],
+      ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
+      ["--script <name>", "aigate test 或 aitest 使用的 npm script 名称。"],
+      ["--command <shell>", "aigate test 或 aitest 使用的自定义 shell 命令。"],
+      ["--agent-command <shell>", "aitest --apply 使用的自定义 AI agent 命令。"],
       ["--pre-push", "安装或指定 pre-push Git hook。"],
       ["--language <en|ko|ja|zh>", "选择输出语言。"],
       ["--output-dir <path>", "选择集成输出目录。"],
@@ -1507,9 +1542,12 @@ const commands = {
   pr: commandPr,
   "pr-check": commandPrCheck,
   github: (args) => commandGithub(args, commandContext()),
+  start: commandStart,
   doctor: (args) => commandDoctor(args, commandContext()),
   demo: (args) => commandDemo(args, commandContext()),
   "install-hook": (args) => commandInstallHook(args, commandContext()),
+  test: commandTest,
+  aitest: commandAiTest,
   setup: commandSetup,
   settings: commandSettings,
   integrate: commandIntegrate,
@@ -1545,7 +1583,7 @@ function commandContext() {
   };
 }
 
-function main(argv) {
+async function main(argv) {
   const [commandName, ...args] = argv;
 
   if (!commandName || commandName === "--help" || commandName === "-h") {
@@ -1565,7 +1603,7 @@ function main(argv) {
     return;
   }
 
-  const output = command(args);
+  const output = await command(args);
   if (output) {
     print(output);
   }
@@ -1818,6 +1856,137 @@ function commandPrCheck(args) {
   return output;
 }
 
+async function commandStart(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const routeArg = firstPositionalArg(args) ?? options.route;
+  let route = normalizeStartRoute(routeArg);
+
+  if (!route && routeArg) {
+    process.exitCode = 1;
+    return renderStartError("unknown-route", language, { route: routeArg });
+  }
+
+  if (!route) {
+    route = await promptStartRoute(language) ?? "quickstart";
+  }
+
+  const provider = normalizeStartProvider(options.provider ?? "all");
+  if (!provider) {
+    process.exitCode = 1;
+    return renderStartError("unknown-provider", language, { provider: options.provider });
+  }
+
+  const result = executeStartRoute(route, {
+    dryRun: Boolean(options.dryRun),
+    force: Boolean(options.force),
+    provider
+  }, language);
+
+  if (result.status === "BLOCK") {
+    process.exitCode = 1;
+  }
+
+  if (options.format === "json") {
+    return JSON.stringify(result, null, 2);
+  }
+
+  return renderStartResult(result, language);
+}
+
+function commandTest(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const result = buildAigateTestResult(options);
+
+  if (options.output) {
+    const output = options.format === "json"
+      ? JSON.stringify(result, null, 2)
+      : renderTestReport(result, language);
+    mkdirSync(dirname(options.output), { recursive: true });
+    writeFileSync(options.output, `${output}\n`, "utf8");
+    result.output = options.output;
+  }
+
+  if (result.status === "BLOCK" || result.status === "FAIL") {
+    process.exitCode = 1;
+  }
+
+  if (options.format === "json") {
+    return JSON.stringify(result, null, 2);
+  }
+
+  return renderTestReport(result, language);
+}
+
+function commandAiTest(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const provider = resolveAiTestProvider(options.provider ?? "auto");
+  if (!provider) {
+    process.exitCode = 1;
+    return renderAiTestError("unknown-provider", language, { provider: options.provider });
+  }
+
+  const testResult = buildAigateTestResult(options);
+  const promptPath = options.output ?? join(".aigate", "reports", "ai-test.md");
+  const prompt = renderAiTestPrompt(testResult, provider, language);
+  mkdirSync(dirname(promptPath), { recursive: true });
+  writeFileSync(promptPath, `${prompt}\n`, "utf8");
+
+  const result = {
+    command: "aitest",
+    status: testResult.status === "PASS" ? "PASS" : "ACTION_REQUIRED",
+    provider: provider.name,
+    providerInstalled: provider.installed,
+    promptPath,
+    applied: false,
+    agent: null,
+    test: testResult,
+    next: buildAiTestNextSteps(testResult, provider, promptPath, Boolean(options.apply), language)
+  };
+
+  if (options.apply) {
+    const agentCommand = resolveAgentCommand(provider, options, prompt);
+    if (!agentCommand) {
+      result.status = "BLOCK";
+      result.agent = {
+        status: "SKIPPED",
+        command: null,
+        exitCode: 1,
+        stdout: "",
+        stderr: translateAiTestText("agentNotFound", language, { provider: provider.name })
+      };
+    } else {
+      result.agent = runAgentCommand(agentCommand, prompt);
+      result.applied = result.agent.exitCode === 0;
+      result.status = result.applied ? "AI_APPLIED" : "BLOCK";
+    }
+  }
+
+  if (result.status === "BLOCK" || result.status === "ACTION_REQUIRED") {
+    process.exitCode = 1;
+  }
+
+  if (options.format === "json") {
+    return JSON.stringify(result, null, 2);
+  }
+
+  return renderAiTestResult(result, language);
+}
+
 function commandSetup(args) {
   const options = parseOptions(args);
   const currentSettings = readSettings();
@@ -1913,6 +2082,1022 @@ function commandIntegrate(args) {
     ...results.map((result) => `- ${translateIntegrationAction(result.action, language)}: ${result.path}`),
     t(language, "integrate.next")
   ].join("\n");
+}
+
+function normalizeStartRoute(route) {
+  if (!route) {
+    return null;
+  }
+
+  const normalized = String(route).trim().toLowerCase();
+  return START_ROUTE_IDS.includes(normalized) ? normalized : null;
+}
+
+function normalizeStartProvider(provider) {
+  if (!provider) {
+    return "all";
+  }
+
+  const normalized = String(provider).trim().toLowerCase();
+  if (normalized === "auto") {
+    return "all";
+  }
+
+  return resolveIntegrationProviders(normalized) ? normalized : null;
+}
+
+async function promptStartRoute(language) {
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    return null;
+  }
+
+  const routes = startRouteDefinitions(language);
+  const labels = automationLabels(language);
+  let selected = 0;
+
+  return new Promise((resolve) => {
+    let renderedLines = [];
+
+    const draw = () => {
+      const lines = [
+        labels.startPrompt,
+        labels.startPromptHint,
+        "",
+        ...routes.map((route, index) => (
+          `${index === selected ? ">" : " "} ${route.title} - ${route.description}`
+        ))
+      ];
+
+      if (renderedLines.length) {
+        process.stdout.write(`\x1b[${renderedLines.length}F`);
+      }
+
+      for (const line of lines) {
+        process.stdout.write(`\x1b[2K${line}\n`);
+      }
+
+      renderedLines = lines;
+    };
+
+    const finish = (value) => {
+      process.stdin.off("keypress", onKeypress);
+      if (typeof process.stdin.setRawMode === "function") {
+        process.stdin.setRawMode(false);
+      }
+      process.stdin.pause();
+      resolve(value);
+    };
+
+    const onKeypress = (_chunk, key = {}) => {
+      if (key.ctrl && key.name === "c") {
+        process.stdout.write("\n");
+        finish(null);
+        return;
+      }
+
+      if (key.name === "up") {
+        selected = (selected + routes.length - 1) % routes.length;
+        draw();
+        return;
+      }
+
+      if (key.name === "down") {
+        selected = (selected + 1) % routes.length;
+        draw();
+        return;
+      }
+
+      if (key.name === "return" || key.name === "enter") {
+        process.stdout.write("\n");
+        finish(routes[selected].id);
+      }
+    };
+
+    readline.emitKeypressEvents(process.stdin);
+    if (typeof process.stdin.setRawMode === "function") {
+      process.stdin.setRawMode(true);
+    }
+    process.stdin.resume();
+    process.stdin.on("keypress", onKeypress);
+    draw();
+  });
+}
+
+function executeStartRoute(routeId, options, language) {
+  const route = startRouteDefinitions(language).find((item) => item.id === routeId);
+  const stepCalls = buildStartStepCalls(routeId, options.provider, language, options.force);
+  const steps = [];
+
+  for (const step of stepCalls) {
+    if (options.dryRun) {
+      steps.push({
+        id: step.id,
+        title: step.title,
+        command: step.command,
+        status: "PENDING",
+        exitCode: null,
+        output: ""
+      });
+      continue;
+    }
+
+    steps.push(runStartStep(step));
+  }
+
+  const status = options.dryRun
+    ? "DRY_RUN"
+    : steps.some((step) => step.exitCode && step.exitCode !== 0)
+      ? "BLOCK"
+      : "READY";
+
+  return {
+    command: "start",
+    status,
+    mode: options.dryRun ? "dry-run" : "apply",
+    route: routeId,
+    title: route?.title ?? routeId,
+    provider: options.provider,
+    steps,
+    next: route?.next ?? []
+  };
+}
+
+function buildStartStepCalls(routeId, provider, language, force) {
+  const baseArgs = ["--language", language];
+  const forceArgs = force ? ["--force"] : [];
+  const integrationProvider = provider ?? "all";
+  const steps = {
+    init: {
+      id: "init",
+      title: automationLabels(language).startStepInit,
+      command: `aigate init${force ? " --force" : ""}`,
+      run: () => commandInit([...baseArgs, ...forceArgs])
+    },
+    integrate: {
+      id: "integrate",
+      title: automationLabels(language).startStepIntegrate,
+      command: `aigate integrate ${integrationProvider}${force ? " --force" : ""}`,
+      run: () => commandIntegrate([integrationProvider, ...baseArgs, ...forceArgs])
+    },
+    hook: {
+      id: "hook",
+      title: automationLabels(language).startStepHook,
+      command: `aigate install-hook --pre-push${force ? " --force" : ""}`,
+      run: () => commandInstallHook(["--pre-push", ...baseArgs, ...forceArgs], commandContext())
+    },
+    doctor: {
+      id: "doctor",
+      title: automationLabels(language).startStepDoctor,
+      command: "aigate doctor",
+      run: () => commandDoctor(baseArgs, commandContext())
+    },
+    demo: {
+      id: "demo",
+      title: automationLabels(language).startStepDemo,
+      command: "aigate demo",
+      run: () => commandDemo(baseArgs, commandContext())
+    },
+    release: {
+      id: "release-check",
+      title: automationLabels(language).startStepRelease,
+      command: "aigate release-check",
+      run: () => commandReleaseCheck(baseArgs)
+    },
+    branch: {
+      id: "branch-strategy",
+      title: automationLabels(language).startStepBranch,
+      command: "aigate branch-strategy --github",
+      run: () => commandBranchStrategy(["--github", ...baseArgs])
+    }
+  };
+
+  return {
+    quickstart: [steps.init, steps.doctor, steps.demo],
+    ai: [steps.init, steps.integrate, steps.doctor],
+    hook: [steps.init, steps.hook, steps.doctor],
+    release: [steps.release, steps.branch],
+    full: [steps.init, steps.integrate, steps.hook, steps.doctor, steps.release]
+  }[routeId] ?? [steps.init, steps.doctor];
+}
+
+function runStartStep(step) {
+  const previousExitCode = process.exitCode;
+  process.exitCode = 0;
+
+  try {
+    const output = step.run();
+    const exitCode = Number(process.exitCode ?? 0);
+    process.exitCode = previousExitCode;
+    return {
+      id: step.id,
+      title: step.title,
+      command: step.command,
+      status: exitCode === 0 ? "PASS" : "BLOCK",
+      exitCode,
+      output: String(output ?? "")
+    };
+  } catch (error) {
+    process.exitCode = previousExitCode;
+    return {
+      id: step.id,
+      title: step.title,
+      command: step.command,
+      status: "BLOCK",
+      exitCode: 1,
+      output: error?.message ?? String(error)
+    };
+  }
+}
+
+function renderStartResult(result, language) {
+  const labels = automationLabels(language);
+  return [
+    `${labels.startTitle}: ${automationStatus(result.status, language)}`,
+    `${labels.route}: ${result.title}`,
+    `${labels.mode}: ${translateAutomationMode(result.mode, language)}`,
+    `${labels.provider}: ${result.provider}`,
+    "",
+    `${labels.steps}:`,
+    ...result.steps.flatMap((step) => [
+      `- ${automationStatus(step.status, language)}: ${step.command}`,
+      `  ${labels.summary}: ${summarizeStepOutput(step.output, language)}`
+    ]),
+    "",
+    `${labels.next}:`,
+    ...result.next.map((step) => `- ${step}`)
+  ].join("\n");
+}
+
+function renderStartError(kind, language, values = {}) {
+  const labels = automationLabels(language);
+  if (kind === "unknown-provider") {
+    return `${labels.error}: ${labels.unknownProvider} ${values.provider}\n${labels.supportedProviders}: all, codex, gemini, claude`;
+  }
+
+  return `${labels.error}: ${labels.unknownRoute} ${values.route}\n${labels.supportedRoutes}: ${START_ROUTE_IDS.join(", ")}`;
+}
+
+function summarizeStepOutput(output, language) {
+  const text = String(output ?? "").trim();
+  if (!text) {
+    return automationLabels(language).none;
+  }
+
+  return text.split(/\r?\n/).find((line) => line.trim())?.trim() ?? automationLabels(language).none;
+}
+
+function startRouteDefinitions(language) {
+  const labels = automationLabels(language);
+  return [
+    {
+      id: "quickstart",
+      title: labels.routeQuickstart,
+      description: labels.routeQuickstartDescription,
+      next: [
+        "aigate test",
+        "aigate aitest"
+      ]
+    },
+    {
+      id: "ai",
+      title: labels.routeAi,
+      description: labels.routeAiDescription,
+      next: [
+        "aigate integrate all --force",
+        "aigate aitest --provider codex"
+      ]
+    },
+    {
+      id: "hook",
+      title: labels.routeHook,
+      description: labels.routeHookDescription,
+      next: [
+        "git push",
+        "aigate git-ready"
+      ]
+    },
+    {
+      id: "release",
+      title: labels.routeRelease,
+      description: labels.routeReleaseDescription,
+      next: [
+        "aigate release-check --npm",
+        "aigate branch-strategy --github --generate"
+      ]
+    },
+    {
+      id: "full",
+      title: labels.routeFull,
+      description: labels.routeFullDescription,
+      next: [
+        "aigate test",
+        "aigate aitest --apply --provider codex",
+        "aigate push -u origin <branch>"
+      ]
+    }
+  ];
+}
+
+function buildAigateTestResult(options) {
+  const startedAt = Date.now();
+  const gitReady = buildGitReadyResult();
+  const testCommand = resolveProjectTestCommand(options);
+  const testRun = testCommand ? runProjectCommand(testCommand, options) : null;
+  const status = gitReady.status === "BLOCK"
+    ? "BLOCK"
+    : !testCommand
+      ? "WARN"
+      : testRun.exitCode === 0
+        ? "PASS"
+        : "FAIL";
+
+  return {
+    command: "test",
+    status,
+    branch: gitReady.branch,
+    durationMs: Date.now() - startedAt,
+    gitReady,
+    testCommand,
+    testRun,
+    next: buildTestNextSteps(status, testCommand)
+  };
+}
+
+function resolveProjectTestCommand(options) {
+  if (options.command) {
+    return {
+      source: "custom-command",
+      display: String(options.command),
+      executable: String(options.command),
+      args: [],
+      shell: true
+    };
+  }
+
+  const packageJson = readJsonFile("package.json");
+  const scripts = packageJson.scripts ?? {};
+  const script = options.script
+    ?? (scripts.ci ? "ci" : scripts["test:ci"] ? "test:ci" : scripts.test ? "test" : null);
+
+  if (!script) {
+    return null;
+  }
+
+  return {
+    source: "npm-script",
+    script,
+    display: script === "test" ? "npm test" : `npm run ${script}`,
+    executable: "npm",
+    args: script === "test" ? ["test"] : ["run", script],
+    shell: false
+  };
+}
+
+function runProjectCommand(command, options) {
+  const startedAt = Date.now();
+  const result = spawnSync(command.executable, command.args, {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    env: process.env,
+    input: "",
+    maxBuffer: 4 * 1024 * 1024,
+    shell: Boolean(command.shell),
+    timeout: Number(options.timeout ?? 120_000)
+  });
+  const exitCode = result.status ?? (result.error ? 1 : 0);
+
+  return {
+    command: command.display,
+    exitCode,
+    durationMs: Date.now() - startedAt,
+    stdout: truncateOutput(result.stdout ?? ""),
+    stderr: truncateOutput(result.stderr ?? result.error?.message ?? "")
+  };
+}
+
+function buildTestNextSteps(status, testCommand) {
+  if (status === "PASS") {
+    return [
+      "aigate git-ready",
+      "aigate push -u origin <branch>"
+    ];
+  }
+
+  if (status === "WARN") {
+    return [
+      "Add a package.json test, test:ci, or ci script.",
+      "Run aigate test --command \"npm test\" when the command exists."
+    ];
+  }
+
+  if (status === "BLOCK") {
+    return [
+      "Resolve AIGate git-ready blockers first.",
+      "Run aigate aitest after blockers are fixed."
+    ];
+  }
+
+  return [
+    `Fix the failing command: ${testCommand?.display ?? "project test"}.`,
+    "Run aigate aitest to generate an AI remediation prompt."
+  ];
+}
+
+function renderTestReport(result, language) {
+  const labels = automationLabels(language);
+  const lines = [
+    `${labels.testTitle}: ${automationStatus(result.status, language)}`,
+    `${labels.branch}: ${result.branch}`,
+    `${labels.gitGate}: ${automationStatus(result.gitReady.status, language)}`,
+    `${labels.projectCommand}: ${result.testCommand?.display ?? labels.notDetected}`
+  ];
+
+  if (result.testRun) {
+    lines.push(
+      `${labels.exitCode}: ${result.testRun.exitCode}`,
+      `${labels.duration}: ${result.testRun.durationMs}ms`
+    );
+  }
+
+  if (result.output) {
+    lines.push(`${labels.report}: ${result.output}`);
+  }
+
+  lines.push("", `${labels.next}:`, ...translateAutomationSteps(result.next, language).map((step) => `- ${step}`));
+
+  if (result.testRun && result.testRun.exitCode !== 0) {
+    lines.push("", `${labels.output}:`);
+    if (result.testRun.stdout.trim()) {
+      lines.push(`${labels.stdout}:`, result.testRun.stdout.trim());
+    }
+    if (result.testRun.stderr.trim()) {
+      lines.push(`${labels.stderr}:`, result.testRun.stderr.trim());
+    }
+  }
+
+  return lines.join("\n");
+}
+
+function resolveAiTestProvider(providerArg) {
+  const requested = String(providerArg ?? "auto").trim().toLowerCase();
+  if (requested === "auto") {
+    const installed = AI_TEST_PROVIDERS.find((provider) => commandExists(provider));
+    const name = installed ?? "codex";
+    return {
+      name,
+      installed: Boolean(installed),
+      auto: true
+    };
+  }
+
+  if (!AI_TEST_PROVIDERS.includes(requested)) {
+    return null;
+  }
+
+  return {
+    name: requested,
+    installed: commandExists(requested),
+    auto: false
+  };
+}
+
+function resolveAgentCommand(provider, options, prompt) {
+  if (options.agentCommand) {
+    return {
+      display: String(options.agentCommand),
+      executable: String(options.agentCommand),
+      args: [],
+      input: prompt,
+      shell: true
+    };
+  }
+
+  if (!provider.installed) {
+    return null;
+  }
+
+  if (provider.name === "codex") {
+    return {
+      display: "codex exec --sandbox workspace-write --ask-for-approval never -",
+      executable: "codex",
+      args: ["exec", "--cd", process.cwd(), "--sandbox", "workspace-write", "--ask-for-approval", "never", "-"],
+      input: prompt,
+      shell: false
+    };
+  }
+
+  if (provider.name === "claude") {
+    return {
+      display: "claude --print",
+      executable: "claude",
+      args: ["--print"],
+      input: prompt,
+      shell: false
+    };
+  }
+
+  return {
+    display: "gemini -p <prompt>",
+    executable: "gemini",
+    args: ["-p", prompt],
+    input: "",
+    shell: false
+  };
+}
+
+function runAgentCommand(command, prompt) {
+  const startedAt = Date.now();
+  const result = spawnSync(command.executable, command.args, {
+    cwd: process.cwd(),
+    encoding: "utf8",
+    env: process.env,
+    input: command.input ?? prompt,
+    maxBuffer: 4 * 1024 * 1024,
+    shell: Boolean(command.shell),
+    timeout: 10 * 60 * 1000
+  });
+  const exitCode = result.status ?? (result.error ? 1 : 0);
+
+  return {
+    status: exitCode === 0 ? "DONE" : "FAILED",
+    command: command.display,
+    exitCode,
+    durationMs: Date.now() - startedAt,
+    stdout: truncateOutput(result.stdout ?? ""),
+    stderr: truncateOutput(result.stderr ?? result.error?.message ?? "")
+  };
+}
+
+function renderAiTestPrompt(testResult, provider, language) {
+  const labels = automationLabels(language);
+  const testRun = testResult.testRun;
+  return [
+    "# AIGate AI Test Remediation",
+    "",
+    `- Status: ${testResult.status}`,
+    `- Branch: ${testResult.branch}`,
+    `- Provider: ${provider.name}`,
+    `- Git gate: ${testResult.gitReady.status}`,
+    `- Project command: ${testResult.testCommand?.display ?? "not detected"}`,
+    testRun ? `- Exit code: ${testRun.exitCode}` : null,
+    "",
+    "## Task",
+    "",
+    "Fix this repository so the AIGate test flow passes.",
+    "Keep the change focused, preserve user changes, and do not rewrite unrelated files.",
+    "After editing, run the failing command again and then run `aigate git-ready`.",
+    "",
+    "## AIGate Next Steps",
+    "",
+    ...translateAutomationSteps(testResult.next, language).map((step) => `- ${step}`),
+    "",
+    "## Git-Ready Summary",
+    "",
+    `- Status: ${testResult.gitReady.status}`,
+    `- Changed files: ${testResult.gitReady.changedFiles}`,
+    `- Secret findings: ${testResult.gitReady.secretFindings.length}`,
+    `- Project score: ${testResult.gitReady.projectScore}/100`,
+    "",
+    testRun ? "## Test Stdout" : null,
+    testRun ? "" : null,
+    testRun ? "```text" : null,
+    testRun ? testRun.stdout.trim() || labels.none : null,
+    testRun ? "```" : null,
+    testRun ? "" : null,
+    testRun ? "## Test Stderr" : null,
+    testRun ? "" : null,
+    testRun ? "```text" : null,
+    testRun ? testRun.stderr.trim() || labels.none : null,
+    testRun ? "```" : null
+  ].filter((line) => line !== null).join("\n");
+}
+
+function buildAiTestNextSteps(testResult, provider, promptPath, apply, language) {
+  const labels = automationLabels(language);
+  if (testResult.status === "PASS") {
+    return translateAutomationSteps([
+      "Tests already pass.",
+      "Run aigate push -u origin <branch> when ready."
+    ], language);
+  }
+
+  if (apply) {
+    return translateAutomationSteps([
+      "Review the AI agent output.",
+      "Run aigate test again after the agent finishes."
+    ], language);
+  }
+
+  const agentHint = provider.installed
+    ? `aigate aitest --apply --provider ${provider.name}`
+    : `${provider.name} CLI not detected; install it or pass --agent-command.`;
+
+  return [
+    translateAutomationStep("AI remediation prompt was written.", language),
+    `${labels.prompt}: ${promptPath}`,
+    agentHint
+  ];
+}
+
+function renderAiTestResult(result, language) {
+  const labels = automationLabels(language);
+  const lines = [
+    `${labels.aiTestTitle}: ${automationStatus(result.status, language)}`,
+    `${labels.provider}: ${result.provider}${result.providerInstalled ? "" : ` (${labels.notDetected})`}`,
+    `${labels.prompt}: ${result.promptPath}`,
+    `${labels.testTitle}: ${automationStatus(result.test.status, language)}`,
+    `${labels.projectCommand}: ${result.test.testCommand?.display ?? labels.notDetected}`
+  ];
+
+  if (result.agent) {
+    lines.push(
+      `${labels.agent}: ${automationStatus(result.agent.status, language)}`,
+      `${labels.command}: ${result.agent.command ?? labels.notDetected}`,
+      `${labels.exitCode}: ${result.agent.exitCode}`
+    );
+    if (result.agent.stderr.trim()) {
+      lines.push(`${labels.stderr}:`, result.agent.stderr.trim());
+    }
+  }
+
+  lines.push("", `${labels.next}:`, ...result.next.map((step) => `- ${step}`));
+  return lines.join("\n");
+}
+
+function renderAiTestError(kind, language, values = {}) {
+  const labels = automationLabels(language);
+  if (kind === "unknown-provider") {
+    return `${labels.error}: ${labels.unknownProvider} ${values.provider}\n${labels.supportedProviders}: auto, codex, claude, gemini`;
+  }
+
+  return `${labels.error}: ${kind}`;
+}
+
+function commandExists(command) {
+  return spawnSync("sh", ["-lc", `command -v ${command}`], {
+    encoding: "utf8",
+    stdio: ["ignore", "ignore", "ignore"],
+    timeout: 5_000
+  }).status === 0;
+}
+
+function truncateOutput(value, maxLength = 12_000) {
+  const text = String(value ?? "");
+  if (text.length <= maxLength) {
+    return text;
+  }
+
+  return `${text.slice(0, maxLength)}\n...[truncated ${text.length - maxLength} chars]`;
+}
+
+function automationLabels(language) {
+  return {
+    en: {
+      agent: "Agent",
+      aiTestTitle: "AIGate aitest",
+      branch: "Branch",
+      command: "Command",
+      duration: "Duration",
+      error: "Error",
+      exitCode: "Exit code",
+      gitGate: "Git gate",
+      mode: "Mode",
+      next: "Next",
+      none: "none",
+      notDetected: "not detected",
+      output: "Output",
+      projectCommand: "Project command",
+      prompt: "Prompt",
+      provider: "Provider",
+      report: "Report",
+      route: "Route",
+      routeAi: "AI agent setup",
+      routeAiDescription: "Create Codex, Gemini, and Claude instruction files.",
+      routeFull: "Full project guard",
+      routeFullDescription: "Set config, AI files, pre-push guard, and release checks.",
+      routeHook: "Pre-push guard",
+      routeHookDescription: "Install the guarded git push path.",
+      routeQuickstart: "Quick setup",
+      routeQuickstartDescription: "Create config, run doctor, and show the demo.",
+      routeRelease: "Release readiness",
+      routeReleaseDescription: "Check package metadata and branch policy.",
+      startPrompt: "Choose an AIGate start route",
+      startPromptHint: "Use arrow keys and press Enter.",
+      startStepBranch: "Recommend branch strategy",
+      startStepDemo: "Show guided demo",
+      startStepDoctor: "Run doctor",
+      startStepHook: "Install pre-push hook",
+      startStepInit: "Create AIGate config",
+      startStepIntegrate: "Create AI integration files",
+      startStepRelease: "Check release readiness",
+      startTitle: "AIGate start",
+      steps: "Steps",
+      stderr: "stderr",
+      stdout: "stdout",
+      summary: "Summary",
+      supportedProviders: "Supported providers",
+      supportedRoutes: "Supported routes",
+      testTitle: "AIGate test",
+      unknownProvider: "Unknown AI provider:",
+      unknownRoute: "Unknown start route:"
+    },
+    ko: {
+      agent: "에이전트",
+      aiTestTitle: "AIGate aitest",
+      branch: "브랜치",
+      command: "명령",
+      duration: "소요 시간",
+      error: "오류",
+      exitCode: "종료 코드",
+      gitGate: "Git 게이트",
+      mode: "모드",
+      next: "다음 단계",
+      none: "없음",
+      notDetected: "감지되지 않음",
+      output: "출력",
+      projectCommand: "프로젝트 명령",
+      prompt: "프롬프트",
+      provider: "제공자",
+      report: "리포트",
+      route: "루트",
+      routeAi: "AI 에이전트 설정",
+      routeAiDescription: "Codex, Gemini, Claude 지침 파일을 생성합니다.",
+      routeFull: "전체 프로젝트 보호",
+      routeFullDescription: "설정, AI 파일, pre-push 보호, 릴리스 검사를 구성합니다.",
+      routeHook: "pre-push 보호",
+      routeHookDescription: "보호된 git push 경로를 설치합니다.",
+      routeQuickstart: "빠른 설정",
+      routeQuickstartDescription: "설정을 만들고 doctor와 demo를 실행합니다.",
+      routeRelease: "릴리스 준비",
+      routeReleaseDescription: "패키지 메타데이터와 브랜치 정책을 점검합니다.",
+      startPrompt: "AIGate 시작 루트를 선택하세요",
+      startPromptHint: "화살표 키로 이동하고 Enter를 누르세요.",
+      startStepBranch: "브랜치 전략 추천",
+      startStepDemo: "안내형 데모 표시",
+      startStepDoctor: "doctor 실행",
+      startStepHook: "pre-push hook 설치",
+      startStepInit: "AIGate 설정 생성",
+      startStepIntegrate: "AI 연동 파일 생성",
+      startStepRelease: "릴리스 준비 검사",
+      startTitle: "AIGate start",
+      steps: "단계",
+      stderr: "stderr",
+      stdout: "stdout",
+      summary: "요약",
+      supportedProviders: "지원 제공자",
+      supportedRoutes: "지원 루트",
+      testTitle: "AIGate test",
+      unknownProvider: "알 수 없는 AI 제공자:",
+      unknownRoute: "알 수 없는 시작 루트:"
+    },
+    ja: {
+      agent: "エージェント",
+      aiTestTitle: "AIGate aitest",
+      branch: "ブランチ",
+      command: "コマンド",
+      duration: "所要時間",
+      error: "エラー",
+      exitCode: "終了コード",
+      gitGate: "Git ゲート",
+      mode: "モード",
+      next: "次の手順",
+      none: "なし",
+      notDetected: "未検出",
+      output: "出力",
+      projectCommand: "プロジェクトコマンド",
+      prompt: "プロンプト",
+      provider: "Provider",
+      report: "レポート",
+      route: "ルート",
+      routeAi: "AI エージェント設定",
+      routeAiDescription: "Codex、Gemini、Claude の指示ファイルを作成します。",
+      routeFull: "フルプロジェクトガード",
+      routeFullDescription: "設定、AI ファイル、pre-push ガード、リリースチェックを構成します。",
+      routeHook: "pre-push ガード",
+      routeHookDescription: "保護された git push 経路をインストールします。",
+      routeQuickstart: "クイック設定",
+      routeQuickstartDescription: "設定を作成し、doctor と demo を実行します。",
+      routeRelease: "リリース準備",
+      routeReleaseDescription: "パッケージメタデータとブランチポリシーを確認します。",
+      startPrompt: "AIGate 開始ルートを選択してください",
+      startPromptHint: "矢印キーで移動し Enter を押してください。",
+      startStepBranch: "ブランチ戦略を推薦",
+      startStepDemo: "ガイド付きデモを表示",
+      startStepDoctor: "doctor を実行",
+      startStepHook: "pre-push hook をインストール",
+      startStepInit: "AIGate 設定を作成",
+      startStepIntegrate: "AI 連携ファイルを作成",
+      startStepRelease: "リリース準備を確認",
+      startTitle: "AIGate start",
+      steps: "手順",
+      stderr: "stderr",
+      stdout: "stdout",
+      summary: "要約",
+      supportedProviders: "対応 provider",
+      supportedRoutes: "対応ルート",
+      testTitle: "AIGate test",
+      unknownProvider: "不明な AI provider:",
+      unknownRoute: "不明な開始ルート:"
+    },
+    zh: {
+      agent: "Agent",
+      aiTestTitle: "AIGate aitest",
+      branch: "分支",
+      command: "命令",
+      duration: "耗时",
+      error: "错误",
+      exitCode: "退出码",
+      gitGate: "Git 关卡",
+      mode: "模式",
+      next: "下一步",
+      none: "无",
+      notDetected: "未检测到",
+      output: "输出",
+      projectCommand: "项目命令",
+      prompt: "提示",
+      provider: "Provider",
+      report: "报告",
+      route: "路由",
+      routeAi: "AI agent 设置",
+      routeAiDescription: "创建 Codex、Gemini 和 Claude 指令文件。",
+      routeFull: "完整项目守护",
+      routeFullDescription: "配置设置、AI 文件、pre-push 守护和发布检查。",
+      routeHook: "pre-push 守护",
+      routeHookDescription: "安装受保护的 git push 路径。",
+      routeQuickstart: "快速设置",
+      routeQuickstartDescription: "创建配置，运行 doctor 并显示 demo。",
+      routeRelease: "发布就绪",
+      routeReleaseDescription: "检查包元数据和分支策略。",
+      startPrompt: "选择 AIGate 启动路由",
+      startPromptHint: "使用方向键移动并按 Enter。",
+      startStepBranch: "推荐分支策略",
+      startStepDemo: "显示引导 demo",
+      startStepDoctor: "运行 doctor",
+      startStepHook: "安装 pre-push hook",
+      startStepInit: "创建 AIGate 配置",
+      startStepIntegrate: "创建 AI 集成文件",
+      startStepRelease: "检查发布就绪状态",
+      startTitle: "AIGate start",
+      steps: "步骤",
+      stderr: "stderr",
+      stdout: "stdout",
+      summary: "摘要",
+      supportedProviders: "支持的 provider",
+      supportedRoutes: "支持的路由",
+      testTitle: "AIGate test",
+      unknownProvider: "未知 AI provider:",
+      unknownRoute: "未知启动路由:"
+    }
+  }[language] ?? automationLabels("en");
+}
+
+function automationStatus(status, language) {
+  const statuses = {
+    en: {
+      ACTION_REQUIRED: "ACTION_REQUIRED",
+      AI_APPLIED: "AI_APPLIED",
+      BLOCK: "BLOCK",
+      DONE: "DONE",
+      DRY_RUN: "DRY RUN",
+      FAIL: "FAIL",
+      FAILED: "FAILED",
+      PASS: "PASS",
+      PENDING: "PENDING",
+      READY: "READY",
+      SKIPPED: "SKIPPED",
+      WARN: "WARN"
+    },
+    ko: {
+      ACTION_REQUIRED: "조치 필요",
+      AI_APPLIED: "AI 적용 완료",
+      BLOCK: "차단",
+      DONE: "완료",
+      DRY_RUN: "미리보기",
+      FAIL: "실패",
+      FAILED: "실패",
+      PASS: "통과",
+      PENDING: "대기",
+      READY: "준비 완료",
+      SKIPPED: "건너뜀",
+      WARN: "주의"
+    },
+    ja: {
+      ACTION_REQUIRED: "対応が必要",
+      AI_APPLIED: "AI 適用済み",
+      BLOCK: "ブロック",
+      DONE: "完了",
+      DRY_RUN: "ドライラン",
+      FAIL: "失敗",
+      FAILED: "失敗",
+      PASS: "通過",
+      PENDING: "待機",
+      READY: "準備完了",
+      SKIPPED: "スキップ",
+      WARN: "注意"
+    },
+    zh: {
+      ACTION_REQUIRED: "需要处理",
+      AI_APPLIED: "AI 已应用",
+      BLOCK: "阻塞",
+      DONE: "完成",
+      DRY_RUN: "预演",
+      FAIL: "失败",
+      FAILED: "失败",
+      PASS: "通过",
+      PENDING: "待处理",
+      READY: "就绪",
+      SKIPPED: "已跳过",
+      WARN: "警告"
+    }
+  };
+  return statuses[language]?.[status] ?? statuses.en[status] ?? statusLabel(status, language);
+}
+
+function translateAutomationMode(mode, language) {
+  const values = {
+    en: { apply: "apply", "dry-run": "dry run" },
+    ko: { apply: "적용", "dry-run": "미리보기" },
+    ja: { apply: "適用", "dry-run": "ドライラン" },
+    zh: { apply: "应用", "dry-run": "预演" }
+  };
+  return values[language]?.[mode] ?? values.en[mode] ?? mode;
+}
+
+function translateAutomationSteps(steps, language) {
+  return steps.map((step) => translateAutomationStep(step, language));
+}
+
+function translateAutomationStep(step, language) {
+  return {
+    ko: {
+      "AI remediation prompt was written.": "AI 수정 프롬프트를 작성했습니다.",
+      "Add a package.json test, test:ci, or ci script.": "package.json에 test, test:ci 또는 ci script를 추가하세요.",
+      "Resolve AIGate git-ready blockers first.": "먼저 AIGate git-ready 차단 사유를 해결하세요.",
+      "Review the AI agent output.": "AI 에이전트 출력을 검토하세요.",
+      "Run aigate aitest after blockers are fixed.": "차단 사유를 해결한 뒤 aigate aitest를 실행하세요.",
+      "Run aigate aitest to generate an AI remediation prompt.": "AI 수정 프롬프트를 만들려면 aigate aitest를 실행하세요.",
+      "Run aigate git-ready": "aigate git-ready를 실행하세요.",
+      "Run aigate push -u origin <branch> when ready.": "준비되면 aigate push -u origin <branch>를 실행하세요.",
+      "Run aigate test --command \"npm test\" when the command exists.": "명령이 준비되면 aigate test --command \"npm test\"를 실행하세요.",
+      "Run aigate test again after the agent finishes.": "에이전트가 끝나면 aigate test를 다시 실행하세요.",
+      "Tests already pass.": "테스트가 이미 통과했습니다.",
+      "aigate git-ready": "aigate git-ready",
+      "aigate push -u origin <branch>": "aigate push -u origin <branch>"
+    },
+    ja: {
+      "AI remediation prompt was written.": "AI 修正プロンプトを書き込みました。",
+      "Add a package.json test, test:ci, or ci script.": "package.json に test、test:ci、または ci script を追加してください。",
+      "Resolve AIGate git-ready blockers first.": "先に AIGate git-ready の blocker を解消してください。",
+      "Review the AI agent output.": "AI エージェントの出力を確認してください。",
+      "Run aigate aitest after blockers are fixed.": "blocker 解消後に aigate aitest を実行してください。",
+      "Run aigate aitest to generate an AI remediation prompt.": "AI 修正プロンプトを生成するには aigate aitest を実行してください。",
+      "Run aigate git-ready": "aigate git-ready を実行してください。",
+      "Run aigate push -u origin <branch> when ready.": "準備できたら aigate push -u origin <branch> を実行してください。",
+      "Run aigate test --command \"npm test\" when the command exists.": "コマンドが用意できたら aigate test --command \"npm test\" を実行してください。",
+      "Run aigate test again after the agent finishes.": "エージェント完了後に aigate test を再実行してください。",
+      "Tests already pass.": "テストはすでに通過しています。",
+      "aigate git-ready": "aigate git-ready",
+      "aigate push -u origin <branch>": "aigate push -u origin <branch>"
+    },
+    zh: {
+      "AI remediation prompt was written.": "已写入 AI 修复提示。",
+      "Add a package.json test, test:ci, or ci script.": "在 package.json 中添加 test、test:ci 或 ci script。",
+      "Resolve AIGate git-ready blockers first.": "先解决 AIGate git-ready blockers。",
+      "Review the AI agent output.": "检查 AI agent 输出。",
+      "Run aigate aitest after blockers are fixed.": "blockers 修复后运行 aigate aitest。",
+      "Run aigate aitest to generate an AI remediation prompt.": "运行 aigate aitest 生成 AI 修复提示。",
+      "Run aigate git-ready": "运行 aigate git-ready。",
+      "Run aigate push -u origin <branch> when ready.": "准备好后运行 aigate push -u origin <branch>。",
+      "Run aigate test --command \"npm test\" when the command exists.": "命令可用后运行 aigate test --command \"npm test\"。",
+      "Run aigate test again after the agent finishes.": "agent 完成后再次运行 aigate test。",
+      "Tests already pass.": "测试已经通过。",
+      "aigate git-ready": "aigate git-ready",
+      "aigate push -u origin <branch>": "aigate push -u origin <branch>"
+    }
+  }[language]?.[step] ?? step;
+}
+
+function translateAiTestText(key, language, values = {}) {
+  const text = {
+    en: {
+      agentNotFound: "{provider} CLI was not detected. Install it or pass --agent-command."
+    },
+    ko: {
+      agentNotFound: "{provider} CLI가 감지되지 않았습니다. 설치하거나 --agent-command를 지정하세요."
+    },
+    ja: {
+      agentNotFound: "{provider} CLI が見つかりません。インストールするか --agent-command を指定してください。"
+    },
+    zh: {
+      agentNotFound: "未检测到 {provider} CLI。请安装它或传入 --agent-command。"
+    }
+  }[language]?.[key] ?? {
+    agentNotFound: "{provider} CLI was not detected. Install it or pass --agent-command."
+  }[key] ?? key;
+
+  return text.replace(/\{([A-Za-z0-9_]+)\}/g, (_, name) => (
+    Object.hasOwn(values, name) ? String(values[name]) : `{${name}}`
+  ));
 }
 
 function buildGitReadyResult() {
@@ -4708,7 +5893,9 @@ function buildIntegrationManifest(providers) {
     providers,
     requiredCommands: [
       "npm run ci",
+      "aigate test",
       "aigate git-ready",
+      "aigate aitest",
       "aigate push --dry-run origin <branch>"
     ],
     branchStrategy: "GitHub Flow with release channels",
@@ -4808,8 +5995,11 @@ function renderIntegrationReadme(providers, language = "en") {
       "",
       "```sh",
       "npm run ci",
+      "aigate test",
       "aigate git-ready",
       "```",
+      "",
+      "테스트가 실패하면 `aigate aitest`로 AI 수정 프롬프트를 생성하세요.",
       "",
       "`aigate integrate all --force`로 이 파일들을 다시 생성할 수 있습니다."
     ].join("\n") + "\n";
@@ -4829,8 +6019,11 @@ function renderIntegrationReadme(providers, language = "en") {
       "",
       "```sh",
       "npm run ci",
+      "aigate test",
       "aigate git-ready",
       "```",
+      "",
+      "テストが失敗したら `aigate aitest` で AI 修正プロンプトを生成してください。",
       "",
       "`aigate integrate all --force` でこれらのファイルを再生成できます。"
     ].join("\n") + "\n";
@@ -4850,8 +6043,11 @@ function renderIntegrationReadme(providers, language = "en") {
       "",
       "```sh",
       "npm run ci",
+      "aigate test",
       "aigate git-ready",
       "```",
+      "",
+      "如果测试失败，请运行 `aigate aitest` 生成 AI 修复提示。",
       "",
       "使用 `aigate integrate all --force` 可重新生成这些文件。"
     ].join("\n") + "\n";
@@ -4870,8 +6066,11 @@ function renderIntegrationReadme(providers, language = "en") {
     "",
     "```sh",
     "npm run ci",
+    "aigate test",
     "aigate git-ready",
     "```",
+    "",
+    "If tests fail, run `aigate aitest` to generate an AI remediation prompt.",
     "",
     "Use `aigate integrate all --force` to regenerate these files."
   ].join("\n") + "\n";
@@ -4955,8 +6154,11 @@ function renderSharedAssistantInstructions(language = "en") {
       "",
       "```sh",
       "npm run ci",
+      "aigate test",
       "aigate git-ready",
       "```",
+      "",
+      "테스트가 실패하면 `aigate aitest`로 AI 수정 프롬프트를 생성하고, 명시적으로 허용된 경우에만 `aigate aitest --apply --provider <provider>`를 실행합니다.",
       "",
       "## 푸시 워크플로",
       "",
@@ -5002,8 +6204,11 @@ function renderSharedAssistantInstructions(language = "en") {
       "",
       "```sh",
       "npm run ci",
+      "aigate test",
       "aigate git-ready",
       "```",
+      "",
+      "テストが失敗した場合は `aigate aitest` で AI 修正プロンプトを生成し、明示的に許可された場合のみ `aigate aitest --apply --provider <provider>` を実行します。",
       "",
       "## プッシュワークフロー",
       "",
@@ -5049,8 +6254,11 @@ function renderSharedAssistantInstructions(language = "en") {
       "",
       "```sh",
       "npm run ci",
+      "aigate test",
       "aigate git-ready",
       "```",
+      "",
+      "如果测试失败，请用 `aigate aitest` 生成 AI 修复提示；只有在明确允许时才运行 `aigate aitest --apply --provider <provider>`。",
       "",
       "## 推送工作流",
       "",
@@ -5095,8 +6303,11 @@ function renderSharedAssistantInstructions(language = "en") {
     "",
     "```sh",
     "npm run ci",
+    "aigate test",
     "aigate git-ready",
     "```",
+    "",
+    "If tests fail, run `aigate aitest` to generate an AI remediation prompt; only run `aigate aitest --apply --provider <provider>` when explicitly allowed.",
     "",
     "## Push Workflow",
     "",
@@ -5870,8 +7081,14 @@ function firstPositionalArg(args) {
     "--owner",
     "--pr",
     "--release",
+    "--route",
+    "--provider",
+    "--script",
+    "--command",
+    "--agent-command",
     "--team-size",
     "--details-url",
+    "--timeout",
     "--title",
     "--type",
     "--project-key",
@@ -5976,4 +7193,7 @@ function printError(value) {
   console.error(value);
 }
 
-main(process.argv.slice(2));
+main(process.argv.slice(2)).catch((error) => {
+  printError(error?.message ?? String(error));
+  process.exitCode = 1;
+});

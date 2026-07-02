@@ -1,6 +1,6 @@
-# Codex Integration
+# AIGate Claude Code Instructions
 
-AIGate generated this Codex integration guide so the assistant can follow the same Git workflow as maintainers.
+Use these instructions when working on this repository with Claude Code.
 
 ## Repository Context
 

@@ -2,6 +2,19 @@
 
 All notable changes to AIGate are documented here.
 
+## 0.1.5 - 2026-07-02
+
+- Added `aigate start` with guided setup routes for quickstart, AI agent
+  setup, pre-push hooks, release readiness, and full project guard setup.
+- Added `aigate test` to run Git readiness plus the detected project test
+  command, with support for custom npm scripts and shell commands.
+- Added `aigate aitest` to write AI remediation prompts and optionally invoke
+  Codex, Claude, Gemini, or a custom agent command with `--apply`.
+- Updated multilingual README, usage, operations, AI integration, roadmap,
+  GitHub Action, example, and generated HTML docs for the new automation flow.
+- Extended the reusable GitHub Action to support `test` and safe `aitest`
+  prompt generation.
+
 ## 0.1.4 - 2026-07-02
 
 - Added Claude Code integration through `aigate integrate claude`.

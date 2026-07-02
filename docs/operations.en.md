@@ -11,15 +11,17 @@ For copy-and-run commands, start with the [usage guide](usage.md).
 
 ```mermaid
 flowchart LR
-  A["Detect Git changes"] --> B["Run local gate"]
-  B --> C["Commit focused change"]
-  C --> D["Guarded push"]
-  D --> E["Open PR"]
-  E --> F["CI checks"]
-  F --> G["Merge to main"]
-  G --> H["Release check"]
-  H --> I["Tag release"]
-  I --> J["Publish to npm"]
+  A["Run aigate start"] --> B["Detect Git changes"]
+  B --> C["Run aigate test"]
+  C --> D["Run aitest if tests fail"]
+  D --> E["Commit focused change"]
+  E --> F["Guarded push"]
+  F --> G["Open PR"]
+  G --> H["CI checks"]
+  H --> I["Merge to main"]
+  I --> J["Release check"]
+  J --> K["Tag release"]
+  K --> L["Publish to npm"]
 ```
 
 ## Release Process
@@ -37,9 +39,9 @@ flowchart LR
 
 | Area | Commands |
 | --- | --- |
-| Setup | `init`, `setup`, `settings`, `integrate` |
+| Setup | `start`, `init`, `setup`, `settings`, `integrate` |
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
-| Guard gates | `check`, `git-ready`, `push`, `pr` |
+| Guard gates | `check`, `test`, `aitest`, `git-ready`, `push`, `pr` |
 | Reports | `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | Release | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
@@ -48,9 +50,12 @@ flowchart LR
 ```sh
 npm install -g aigate-cli
 aigate setup --language en
+aigate start --route ai --provider all
 git switch -c feature/my-change
 aigate doctor
 aigate install-hook --pre-push
+aigate test
+aigate aitest
 aigate git-ready
 git add <files>
 git commit -m "feat: short summary"
@@ -71,9 +76,12 @@ aigate release-check --npm
 
 - Public npm package `aigate-cli` and `npx` execution
 - First-run diagnostics through `aigate doctor`
+- Guided start routes through `aigate start`
 - Guided CLI demo through `aigate demo`
 - Pre-push hook installation through `aigate install-hook --pre-push`
 - Git changed-file and untracked-file readiness checks
+- Project test automation through `aigate test`
+- AI remediation prompt and optional agent execution through `aigate aitest`
 - Secret pattern detection and SARIF output
 - `git-ready`, guarded push, and guarded PR creation
 - GitHub PR comments and Checks summaries through `aigate github`

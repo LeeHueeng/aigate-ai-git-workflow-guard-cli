@@ -26,7 +26,9 @@ zero-config pre-push safety CLI입니다.
 
 ```sh
 npx -y aigate-cli check
+npx -y aigate-cli start --route quickstart --dry-run
 npx -y aigate-cli doctor
+npx -y aigate-cli test
 npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
@@ -36,7 +38,10 @@ npx -y aigate-cli evaluate-project
 
 ```sh
 npm install -g aigate-cli
+aigate start
 aigate check
+aigate test
+aigate aitest
 aigate git-ready
 aigate install-hook --pre-push
 aigate pr-check
@@ -47,6 +52,9 @@ aigate pr-check
 | 기능 | 명령어 |
 | --- | --- |
 | 로컬 Git 준비 상태 확인 | `aigate check` |
+| 안내형 설정 라우터 | `aigate start` |
+| 프로젝트 테스트 실행 | `aigate test` |
+| AI 수정 프롬프트와 선택적 에이전트 실행 | `aigate aitest` |
 | 첫 실행 환경 진단 | `aigate doctor` |
 | 안내형 CLI 데모 | `aigate demo` |
 | pre-push 안전 게이트 | `aigate git-ready` |
@@ -78,8 +86,11 @@ repository governance를 묶는 workflow layer입니다.
 
 ```sh
 git switch -c feature/my-work
+aigate start --route ai --provider all
 aigate doctor
 aigate install-hook --pre-push
+aigate test
+aigate aitest
 aigate git-ready
 git add <files>
 git commit -m "feat: focused change"
@@ -117,7 +128,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
         with:
           command: git-ready
           language: ko
@@ -132,17 +143,21 @@ Marketplace 등록값:
 - Action name: `AIGate AI Git Workflow Guard CLI`
 - 주요 카테고리: `Code quality`
 - 보조 카테고리: `Security`
-- 릴리스 제목: `AIGate AI Git Workflow Guard CLI v0.1.4`
+- 릴리스 제목: `AIGate AI Git Workflow Guard CLI v0.1.5`
 
 ## AI 에이전트 연동
 
 ```sh
 aigate integrate all
+aigate aitest --provider codex
+aigate aitest --apply --provider codex
 ```
 
 이 명령은 `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`,
 `.aigate/integrations/*`를 생성해서 Codex, Gemini, Claude Code가 같은
-브랜치, 검증, guarded push 규칙을 따르게 합니다.
+브랜치, 검증, guarded push 규칙을 따르게 합니다. `aigate aitest`는
+`.aigate/reports/ai-test.md`에 수정 프롬프트를 쓰고, `--apply`를 명시했을 때만
+Codex, Claude, Gemini 또는 사용자 지정 `--agent-command`를 실행합니다.
 
 ## 문서 바로가기
 

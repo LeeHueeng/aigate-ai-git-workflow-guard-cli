@@ -34,7 +34,9 @@ Run it without installing:
 
 ```sh
 npx -y aigate-cli check
+npx -y aigate-cli start --route quickstart --dry-run
 npx -y aigate-cli doctor
+npx -y aigate-cli test
 npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
@@ -44,7 +46,10 @@ Or install it globally:
 
 ```sh
 npm install -g aigate-cli
+aigate start
 aigate check
+aigate test
+aigate aitest
 aigate git-ready
 aigate install-hook --pre-push
 aigate pr-check
@@ -81,6 +86,9 @@ repeatable local gate before `git push` or PR creation.
 | Capability | Command |
 | --- | --- |
 | Local Git readiness check | `aigate check` |
+| Guided setup router | `aigate start` |
+| Project test runner | `aigate test` |
+| AI remediation prompt and optional agent run | `aigate aitest` |
 | First-run diagnostics | `aigate doctor` |
 | Guided CLI demo | `aigate demo` |
 | Pre-push safety gate | `aigate git-ready` |
@@ -120,8 +128,11 @@ with Husky, Lefthook, pre-commit, and Gitleaks.
 
 ```sh
 git switch -c feature/my-work
+aigate start --route ai --provider all
 aigate doctor
 aigate install-hook --pre-push
+aigate test
+aigate aitest
 aigate git-ready
 git add <files>
 git commit -m "feat: my focused change"
@@ -154,7 +165,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
         with:
           command: git-ready
           language: en
@@ -170,7 +181,7 @@ Marketplace listing:
 - Action name: `AIGate AI Git Workflow Guard CLI`
 - Primary category: `Code quality`
 - Secondary category: `Security`
-- Release title: `AIGate AI Git Workflow Guard CLI v0.1.4`
+- Release title: `AIGate AI Git Workflow Guard CLI v0.1.5`
 
 ## AI Agent Integration
 
@@ -178,11 +189,15 @@ Generate repository instructions for Codex, Gemini, and Claude Code:
 
 ```sh
 aigate integrate all
+aigate aitest --provider codex
+aigate aitest --apply --provider codex
 ```
 
 This creates `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`, and
 `.aigate/integrations/*` so AI assistants follow the same branch, validation,
-and guarded push workflow as human contributors.
+and guarded push workflow as human contributors. `aigate aitest` writes
+`.aigate/reports/ai-test.md`; `--apply` is the explicit switch that lets AIGate
+invoke Codex, Claude, Gemini, or a custom `--agent-command`.
 
 ## Output Languages
 

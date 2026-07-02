@@ -24,10 +24,10 @@ aigate --help
 저장소별 CLI 언어 설정:
 
 ```sh
-aigate settings --language en
-aigate settings --language ko
-aigate settings --language ja
-aigate settings --language zh
+aigate setup --language en
+aigate setup --language ko
+aigate setup --language ja
+aigate setup --language zh
 ```
 
 ## 저장소에서 첫 실행
@@ -35,7 +35,10 @@ aigate settings --language zh
 Git 저장소 루트로 이동한 뒤 실행합니다.
 
 ```sh
-aigate setup --language ko
+aigate start
+aigate start --route ai --provider codex
+aigate start --route full --provider all
+aigate init
 aigate doctor
 aigate demo
 aigate install-hook --pre-push
@@ -45,7 +48,11 @@ aigate install-hook --pre-push
 
 | 명령어 | 목적 |
 | --- | --- |
-| `aigate setup --language ko` | `.aigate.yml`, `.aigate/settings.json`, 리포트 디렉터리, AI 연동 안내 파일을 만듭니다. |
+| `aigate start` | TTY에서는 화살표 선택 메뉴를 열고, 비대화형 shell에서는 quickstart 루트를 실행합니다. |
+| `aigate start --route ai --provider codex` | AIGate 설정과 Codex 지침 파일을 생성합니다. |
+| `aigate start --route full --provider all` | 설정, AI 파일, pre-push hook, 릴리스 점검을 한 흐름으로 실행합니다. |
+| `aigate setup --language ko` | CLI 출력 언어를 저장합니다. |
+| `aigate init` | `.aigate.yml`과 리포트 디렉터리를 생성합니다. |
 | `aigate doctor` | Node, Git, npm package metadata, GitHub workflow, AIGate 설정을 점검합니다. |
 | `aigate demo` | 프로젝트 파일을 바꾸지 않고 주요 흐름을 보여줍니다. |
 | `aigate install-hook --pre-push` | push 전에 AIGate가 실행되는 pre-push hook을 설치합니다. |
@@ -55,6 +62,7 @@ aigate install-hook --pre-push
 ```sh
 git switch -c feature/my-work
 aigate check
+aigate test
 aigate git-ready
 git add .
 git commit -m "feat: short summary"
@@ -66,6 +74,28 @@ aigate pr --title "feat: short summary"
 실제 push 전에 확인만 하고 싶으면 `aigate push --dry-run origin <branch>`를
 사용합니다. `aigate push`는 `git push`를 대체하는 새 버전 관리 도구가 아니라,
 push 전에 AIGate 점검을 붙이는 보호 래퍼입니다.
+
+## 테스트와 AI 자동 조치 흐름
+
+```sh
+aigate test
+aigate test --script test
+aigate test --command "npm run ci"
+aigate aitest
+aigate aitest --provider codex
+aigate aitest --apply --provider codex
+aigate aitest --apply --provider claude
+aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
+```
+
+`aigate test`는 `aigate git-ready`와 감지된 npm script를 함께 실행합니다.
+감지는 `ci`, `test:ci`, `test` 순서로 진행되며, 프로젝트마다 다른 검사 명령을
+쓰면 `--script` 또는 `--command`로 직접 지정합니다.
+
+`aigate aitest`는 실패 요약, 테스트 출력, AI 수정 지시를
+`.aigate/reports/ai-test.md`에 작성합니다. 기본값은 코드를 수정하지 않는
+안전 모드입니다. 실제 Codex, Claude, Gemini CLI 또는 사용자 지정 에이전트를
+실행하려면 `--apply`를 명시합니다.
 
 ## 리포트와 출력 형식
 
@@ -114,7 +144,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
         with:
           command: git-ready
           language: ko
@@ -173,7 +203,10 @@ aigate git-ready --notify-channel terminal
 | 명령어 | 언제 쓰는가 |
 | --- | --- |
 | `aigate init` | 초기 AIGate 설정을 만듭니다. |
+| `aigate start` | 안내형 설정 루트를 선택하고 실행합니다. |
 | `aigate check` | 로컬 Git 변경사항과 secret findings를 점검합니다. |
+| `aigate test` | Git 준비 상태와 감지된 프로젝트 테스트 명령을 실행합니다. |
+| `aigate aitest` | AI 수정 프롬프트를 작성하고 필요하면 Codex, Claude, Gemini를 실행합니다. |
 | `aigate git-ready` | commit 또는 push 전 readiness gate를 실행합니다. |
 | `aigate push` | 점검 후 `git push`를 호출합니다. |
 | `aigate pr` | 유용한 본문을 포함한 pull request를 만듭니다. |

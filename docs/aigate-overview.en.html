@@ -290,7 +290,7 @@ footer p + p { margin-top: 6px; }
     <p class="eyebrow">Open Source AI Git Workflow Guard CLI</p>
     <h1>AIGate Operations Guide</h1>
     <p class="subtitle">A compact guide to how AIGate works, which commands it provides, what is implemented today, and what is planned next.</p>
-    <div class="badges"><span>npm live</span><span>Trusted Publishing</span><span>GitHub Releases</span><span>CLI v0.1.4</span></div>
+    <div class="badges"><span>npm live</span><span>Trusted Publishing</span><span>GitHub Releases</span><span>CLI v0.1.5</span></div>
   </header>
 
   <main>
@@ -323,21 +323,21 @@ npx aigate-cli check</code></pre>
         <p>AIGate keeps the same quality gate from local development through PR review, CI, release, and npm publishing.</p>
       </div>
       <div class="chart-wrap">
-    <svg class="chart" viewBox="0 0 1142 410" role="img" aria-label="End-To-End Operating Process">
+    <svg class="chart" viewBox="0 0 1142 618" role="img" aria-label="End-To-End Operating Process">
       <defs>
     <marker id="arrow-process" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
       <path d="M0,0 L0,6 L9,3 z" fill="#2f5f8f"/>
     </marker>
   </defs>
-      <path class="arrow" d="M 228 109 H 242" marker-end="url(#arrow-process)"/><path class="arrow" d="M 452 109 H 466" marker-end="url(#arrow-process)"/><path class="arrow" d="M 676 109 H 690" marker-end="url(#arrow-process)"/><path class="arrow" d="M 900 109 H 914" marker-end="url(#arrow-process)"/><path class="arrow" d="M 1019 169 V 238" marker-end="url(#arrow-process)"/><path class="arrow" d="M 1124 309 H 690" marker-end="url(#arrow-process)"/><path class="arrow" d="M 900 309 H 466" marker-end="url(#arrow-process)"/><path class="arrow" d="M 676 309 H 242" marker-end="url(#arrow-process)"/><path class="arrow" d="M 452 309 H 18" marker-end="url(#arrow-process)"/>
+      <path class="arrow" d="M 228 109 H 242" marker-end="url(#arrow-process)"/><path class="arrow" d="M 452 109 H 466" marker-end="url(#arrow-process)"/><path class="arrow" d="M 676 109 H 690" marker-end="url(#arrow-process)"/><path class="arrow" d="M 900 109 H 914" marker-end="url(#arrow-process)"/><path class="arrow" d="M 1019 178 V 209 H 1019 V 240" marker-end="url(#arrow-process)"/><path class="arrow" d="M 914 309 H 900" marker-end="url(#arrow-process)"/><path class="arrow" d="M 690 309 H 676" marker-end="url(#arrow-process)"/><path class="arrow" d="M 466 309 H 452" marker-end="url(#arrow-process)"/><path class="arrow" d="M 242 309 H 228" marker-end="url(#arrow-process)"/><path class="arrow" d="M 123 378 V 409 H 123 V 440" marker-end="url(#arrow-process)"/><path class="arrow" d="M 228 509 H 242" marker-end="url(#arrow-process)"/>
       <g class="svg-box blue">
     <rect x="28" y="50" width="190" height="118" rx="8"/>
     <circle cx="52" cy="74" r="13"/>
     <text x="52" y="79" text-anchor="middle">1</text>
     <foreignObject x="72" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>Detect changes</strong>
-        <span>Read Git diff and untracked files</span>
+        <strong>Start route</strong>
+        <span>Choose setup path with aigate start</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -346,8 +346,8 @@ npx aigate-cli check</code></pre>
     <text x="276" y="79" text-anchor="middle">2</text>
     <foreignObject x="296" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>Local gate</strong>
-        <span>git-ready checks tests, secrets, score</span>
+        <strong>Detect changes</strong>
+        <span>Read Git diff and untracked files</span>
       </div>
     </foreignObject>
   </g><g class="svg-box blue">
@@ -356,8 +356,8 @@ npx aigate-cli check</code></pre>
     <text x="500" y="79" text-anchor="middle">3</text>
     <foreignObject x="520" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>Commit</strong>
-        <span>Keep scope with Conventional Commits</span>
+        <strong>Test automation</strong>
+        <span>aigate test runs Git gate and npm scripts</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -366,8 +366,8 @@ npx aigate-cli check</code></pre>
     <text x="724" y="79" text-anchor="middle">4</text>
     <foreignObject x="744" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>Guarded push</strong>
-        <span>aigate push validates before push</span>
+        <strong>AI remediation</strong>
+        <span>aitest writes a repair prompt and can run an agent</span>
       </div>
     </foreignObject>
   </g><g class="svg-box blue">
@@ -376,8 +376,8 @@ npx aigate-cli check</code></pre>
     <text x="948" y="79" text-anchor="middle">5</text>
     <foreignObject x="968" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>Open PR</strong>
-        <span>aigate pr and pr-check prepare context</span>
+        <strong>Commit</strong>
+        <span>Keep scope with Conventional Commits</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -386,8 +386,8 @@ npx aigate-cli check</code></pre>
     <text x="948" y="279" text-anchor="middle">6</text>
     <foreignObject x="968" y="264" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>CI checks</strong>
-        <span>Node 20/22 tests and Scorecard</span>
+        <strong>Guarded push</strong>
+        <span>aigate push validates before push</span>
       </div>
     </foreignObject>
   </g><g class="svg-box blue">
@@ -396,8 +396,8 @@ npx aigate-cli check</code></pre>
     <text x="724" y="279" text-anchor="middle">7</text>
     <foreignObject x="744" y="264" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>Merge</strong>
-        <span>main remains releasable</span>
+        <strong>Open PR</strong>
+        <span>aigate pr and pr-check prepare context</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -406,8 +406,8 @@ npx aigate-cli check</code></pre>
     <text x="500" y="279" text-anchor="middle">8</text>
     <foreignObject x="520" y="264" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>Release check</strong>
-        <span>release-check --npm checks tag/npm state</span>
+        <strong>CI checks</strong>
+        <span>Node 20/22 tests and Scorecard</span>
       </div>
     </foreignObject>
   </g><g class="svg-box blue">
@@ -416,8 +416,8 @@ npx aigate-cli check</code></pre>
     <text x="276" y="279" text-anchor="middle">9</text>
     <foreignObject x="296" y="264" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
-        <strong>Tag release</strong>
-        <span>vX.Y.Z tag triggers GitHub Actions</span>
+        <strong>Merge</strong>
+        <span>main remains releasable</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -425,6 +425,26 @@ npx aigate-cli check</code></pre>
     <circle cx="52" cy="274" r="13"/>
     <text x="52" y="279" text-anchor="middle">10</text>
     <foreignObject x="72" y="264" width="134" height="94">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
+        <strong>Release check</strong>
+        <span>release-check --npm checks tag/npm state</span>
+      </div>
+    </foreignObject>
+  </g><g class="svg-box blue">
+    <rect x="28" y="450" width="190" height="118" rx="8"/>
+    <circle cx="52" cy="474" r="13"/>
+    <text x="52" y="479" text-anchor="middle">11</text>
+    <foreignObject x="72" y="464" width="134" height="94">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
+        <strong>Tag release</strong>
+        <span>vX.Y.Z tag triggers GitHub Actions</span>
+      </div>
+    </foreignObject>
+  </g><g class="svg-box green">
+    <rect x="252" y="450" width="190" height="118" rx="8"/>
+    <circle cx="276" cy="474" r="13"/>
+    <text x="276" y="479" text-anchor="middle">12</text>
+    <foreignObject x="296" y="464" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
         <strong>Publish npm</strong>
         <span>Trusted Publishing with provenance</span>
@@ -521,13 +541,13 @@ npx aigate-cli check</code></pre>
       </div>
       <div class="command-groups"><article class="command-group group-0">
       <h3>Setup</h3>
-      <div><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
+      <div><span>start</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
     </article><article class="command-group group-1">
       <h3>First run</h3>
       <div><span>doctor</span><span>demo</span><span>install-hook</span></div>
     </article><article class="command-group group-2">
       <h3>Guard gates</h3>
-      <div><span>check</span><span>git-ready</span><span>push</span><span>pr</span></div>
+      <div><span>check</span><span>test</span><span>aitest</span><span>git-ready</span><span>push</span><span>pr</span></div>
     </article><article class="command-group group-3">
       <h3>Reports</h3>
       <div><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
@@ -553,6 +573,14 @@ npx aigate-cli check</code></pre>
     <td><code>npx aigate-cli check</code></td>
     <td>Check the repository without installing.</td>
     <td>Quick trial or pre-CI check</td>
+  </tr><tr>
+    <td><code>aigate start</code></td>
+    <td>Run a guided project setup route with arrow keys or --route.</td>
+    <td>When adopting AIGate in a project</td>
+  </tr><tr>
+    <td><code>aigate start --route ai --provider all</code></td>
+    <td>Create AIGate config plus Codex/Gemini/Claude instruction files.</td>
+    <td>When aligning AI assistants at once</td>
   </tr><tr>
     <td><code>aigate init</code></td>
     <td>Create starter configuration and report folders.</td>
@@ -581,6 +609,18 @@ npx aigate-cli check</code></pre>
     <td><code>aigate check</code></td>
     <td>Summarize changed files and secret risk.</td>
     <td>Light pre-commit check</td>
+  </tr><tr>
+    <td><code>aigate test</code></td>
+    <td>Run Git readiness and the detected npm test/ci script.</td>
+    <td>Before committing with real test coverage</td>
+  </tr><tr>
+    <td><code>aigate aitest</code></td>
+    <td>Write a focused AI remediation prompt from failing tests.</td>
+    <td>When handing a failure to an AI agent</td>
+  </tr><tr>
+    <td><code>aigate aitest --apply --provider codex</code></td>
+    <td>Invoke Codex CLI to work on the failure.</td>
+    <td>When you explicitly allow AI remediation</td>
   </tr><tr>
     <td><code>aigate git-ready</code></td>
     <td>Run tests, secret scan, and project score gates.</td>
@@ -694,9 +734,12 @@ npx aigate-cli check</code></pre>
       </div>
       <pre><code>npm install -g aigate-cli
 aigate setup --language en
+aigate start --route ai --provider all
 git switch -c feature/my-change
 aigate doctor
 aigate install-hook --pre-push
+aigate test
+aigate aitest
 aigate git-ready
 git add &lt;files&gt;
 git commit -m &quot;feat: short summary&quot;
@@ -716,7 +759,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">Features</p>
         <h2>Implemented Features</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">Public npm package aigate-cli and npx execution</div><div class="feature done">Git change and untracked-file readiness checks</div><div class="feature done">First-run UX through doctor, demo, and install-hook</div><div class="feature done">Pre-push Git hook installation</div><div class="feature done">Secret pattern detection and SARIF output</div><div class="feature done">git-ready, guarded push, and guarded PR creation</div><div class="feature done">GitHub PR comments and GitHub Checks summary payloads</div><div class="feature done">PR template and CODEOWNERS guided setup</div><div class="feature done">Reusable public GitHub Action</div><div class="feature done">Project health trend history</div><div class="feature done">Markdown, HTML, JSON, and SARIF reports</div><div class="feature done">Compliance reports and a local HTML health dashboard</div><div class="feature done">Project scoring and deep Git signal evaluation</div><div class="feature done">Branch strategy recommendations, proposal comparison, and policy pack generation</div><div class="feature done">Codex/Gemini/Claude Code integration file generation</div><div class="feature done">Korean/English/Japanese/Chinese CLI settings</div><div class="feature done">release-check and release-check --npm</div><div class="feature done">Automated npm releases through Trusted Publishing</div><div class="feature done">GitHub CI, OpenSSF Scorecard, and GitHub Releases</div><div class="feature done">Terminal, Slack BLOCK, Discord, Teams, email, Linear, and Jira notifications</div><div class="feature done">GHCR Docker publish workflow and Homebrew formula draft</div></div>
+      <div class="feature-grid"><div class="feature done">Public npm package aigate-cli and npx execution</div><div class="feature done">Git change and untracked-file readiness checks</div><div class="feature done">Guided start routes through aigate start</div><div class="feature done">Project test automation through aigate test</div><div class="feature done">AI remediation prompt and optional agent execution through aigate aitest</div><div class="feature done">First-run UX through doctor, demo, and install-hook</div><div class="feature done">Pre-push Git hook installation</div><div class="feature done">Secret pattern detection and SARIF output</div><div class="feature done">git-ready, guarded push, and guarded PR creation</div><div class="feature done">GitHub PR comments and GitHub Checks summary payloads</div><div class="feature done">PR template and CODEOWNERS guided setup</div><div class="feature done">Reusable public GitHub Action</div><div class="feature done">Project health trend history</div><div class="feature done">Markdown, HTML, JSON, and SARIF reports</div><div class="feature done">Compliance reports and a local HTML health dashboard</div><div class="feature done">Project scoring and deep Git signal evaluation</div><div class="feature done">Branch strategy recommendations, proposal comparison, and policy pack generation</div><div class="feature done">Codex/Gemini/Claude Code integration file generation</div><div class="feature done">Korean/English/Japanese/Chinese CLI settings</div><div class="feature done">release-check and release-check --npm</div><div class="feature done">Automated npm releases through Trusted Publishing</div><div class="feature done">GitHub CI, OpenSSF Scorecard, and GitHub Releases</div><div class="feature done">Terminal, Slack BLOCK, Discord, Teams, email, Linear, and Jira notifications</div><div class="feature done">GHCR Docker publish workflow and Homebrew formula draft</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -730,7 +773,7 @@ aigate release-check --npm</code></pre>
 
   <footer>
     <p>This document describes the operating state after the public AIGate release.</p>
-    <p>Generated 2026-07-02. Package version 0.1.4.</p>
+    <p>Generated 2026-07-02. Package version 0.1.5.</p>
   </footer>
 </body>
 </html>

@@ -23,10 +23,10 @@ aigate --help
 按仓库设置 CLI 语言:
 
 ```sh
-aigate settings --language en
-aigate settings --language ko
-aigate settings --language ja
-aigate settings --language zh
+aigate setup --language en
+aigate setup --language ko
+aigate setup --language ja
+aigate setup --language zh
 ```
 
 ## 在仓库中首次运行
@@ -34,7 +34,10 @@ aigate settings --language zh
 进入 Git 仓库根目录后执行:
 
 ```sh
-aigate setup --language zh
+aigate start
+aigate start --route ai --provider codex
+aigate start --route full --provider all
+aigate init
 aigate doctor
 aigate demo
 aigate install-hook --pre-push
@@ -44,7 +47,11 @@ aigate install-hook --pre-push
 
 | 命令 | 用途 |
 | --- | --- |
-| `aigate setup --language zh` | 创建 `.aigate.yml`、`.aigate/settings.json`、reports 目录和 AI 集成说明文件。 |
+| `aigate start` | 在 TTY 中打开方向键路由选择，非交互 shell 中运行 quickstart 路由。 |
+| `aigate start --route ai --provider codex` | 创建 AIGate 配置和 Codex 指令文件。 |
+| `aigate start --route full --provider all` | 在一个 flow 中创建配置、AI 文件、pre-push hook 和 release checks。 |
+| `aigate setup --language zh` | 保存 CLI 输出语言。 |
+| `aigate init` | 创建 `.aigate.yml` 和 reports 目录。 |
 | `aigate doctor` | 检查 Node、Git、npm package metadata、GitHub workflow 和 AIGate 配置。 |
 | `aigate demo` | 不修改项目文件，展示主要流程。 |
 | `aigate install-hook --pre-push` | 安装 push 前运行 AIGate 的 pre-push hook。 |
@@ -54,6 +61,7 @@ aigate install-hook --pre-push
 ```sh
 git switch -c feature/my-work
 aigate check
+aigate test
 aigate git-ready
 git add .
 git commit -m "feat: short summary"
@@ -65,6 +73,27 @@ aigate pr --title "feat: short summary"
 如果想在真正 push 前预览，使用 `aigate push --dry-run origin <branch>`。
 `aigate push` 不是替代 Git 的新版本管理工具，而是在 `git push` 前增加
 AIGate 检查的 guarded wrapper。
+
+## 测试和 AI 自动修复流程
+
+```sh
+aigate test
+aigate test --script test
+aigate test --command "npm run ci"
+aigate aitest
+aigate aitest --provider codex
+aigate aitest --apply --provider codex
+aigate aitest --apply --provider claude
+aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
+```
+
+`aigate test` 会运行 `aigate git-ready` 和检测到的 npm script。检测顺序是
+`ci`, `test:ci`, `test`。如果项目使用自定义检查命令，请用 `--script`
+或 `--command` 指定。
+
+`aigate aitest` 会把失败摘要、测试输出和 AI 修复提示写入
+`.aigate/reports/ai-test.md`。默认不会修改代码。只有在需要调用 Codex、
+Claude、Gemini CLI 或自定义 agent 时才添加 `--apply`。
 
 ## 报告和输出格式
 
@@ -113,7 +142,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
         with:
           command: git-ready
           language: zh
@@ -172,7 +201,10 @@ aigate git-ready --notify-channel terminal
 | 命令 | 使用场景 |
 | --- | --- |
 | `aigate init` | 创建初始 AIGate 配置。 |
+| `aigate start` | 选择并运行引导式设置路由。 |
 | `aigate check` | 检查 local Git changes 和 secret findings。 |
+| `aigate test` | 运行 Git 就绪检查和检测到的项目测试命令。 |
+| `aigate aitest` | 写入 AI 修复提示，并可选择运行 Codex、Claude、Gemini。 |
 | `aigate git-ready` | 运行 commit 或 push 前的 readiness gate。 |
 | `aigate push` | 检查通过后调用 `git push`。 |
 | `aigate pr` | 创建带有有效正文的 pull request。 |
