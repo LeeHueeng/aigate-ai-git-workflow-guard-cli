@@ -26,6 +26,7 @@ zero-config pre-push safety CLI입니다.
 
 ```sh
 npx -y aigate-cli check
+npx -y aigate-cli start --route default --dry-run
 npx -y aigate-cli start --route quickstart --dry-run
 npx -y aigate-cli doctor
 npx -y aigate-cli test
@@ -40,6 +41,8 @@ npx -y aigate-cli evaluate-project
 ```sh
 npm install -g aigate-cli
 aigate start
+aigate start --route default --ask-steps
+aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
 aigate check
 aigate test
@@ -56,6 +59,8 @@ aigate pr-check
 | --- | --- |
 | 로컬 Git 준비 상태 확인 | `aigate check` |
 | 안내형 설정 라우터 | `aigate start` |
+| 예/아니오로 고르는 기본 설정 | `aigate start --route default --ask-steps` |
+| 필요한 단계만 지정 실행 | `aigate start --route default --steps init,repo-files` |
 | 공개 저장소 README, 이슈 템플릿, 기여 파일 생성 | `aigate start --route oss` |
 | 프로젝트 테스트 실행 | `aigate test` |
 | AI 수정 프롬프트와 선택적 에이전트 실행 | `aigate aitest` |
@@ -92,6 +97,7 @@ repository governance를 묶는 workflow layer입니다.
 ```sh
 git switch -c feature/my-work
 aigate ai report
+aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
 aigate doctor

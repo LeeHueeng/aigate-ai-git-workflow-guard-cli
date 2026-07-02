@@ -39,7 +39,7 @@ flowchart LR
 
 | 領域 | コマンド |
 | --- | --- |
-| Setup | `start`, `start --route oss`, `init`, `setup`, `settings`, `integrate` |
+| Setup | `start`, `start --route default`, `start --route oss`, `init`, `setup`, `settings`, `integrate` |
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `test`, `aitest`, `git-ready`, `push`, `pr` |
 | Reports | `ai report`, `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
@@ -51,6 +51,7 @@ flowchart LR
 npm install -g aigate-cli
 aigate setup --language ja
 aigate ai report
+aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
 git switch -c feature/my-change
@@ -78,6 +79,8 @@ aigate release-check --npm
 
 - npm package `aigate-cli` の公開配布と `npx` 実行
 - `aigate start` によるガイド付き開始ルート
+- `aigate start --route default --ask-steps` による段階的なデフォルト設定
+- `aigate start --route default --steps init,repo-files` による選択手順の実行
 - `aigate start --route oss` によるオープンソース初期ファイル生成
 - `aigate doctor` による初回実行 diagnostics
 - `aigate demo` によるガイド付き CLI demo

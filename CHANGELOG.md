@@ -12,6 +12,9 @@ All notable changes to AIGate are documented here.
 - Added the `aigate start --route oss` guided route for open-source starter
   README, contribution docs, issue templates, PR template, CODEOWNERS, and
   starter operations docs.
+- Added the `aigate start --route default` setup flow with step-by-step
+  yes/no prompts through `--ask-steps` and deterministic step selection through
+  `--steps init,repo-files`.
 - Updated multilingual README, usage, AI integration, and generated HTML docs
   for the AI report and open-source starter flow.
 

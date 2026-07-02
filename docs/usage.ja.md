@@ -36,6 +36,8 @@ Git リポジトリのルートで実行します。
 
 ```sh
 aigate start
+aigate start --route default --ask-steps
+aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
 aigate start --route oss --owner @your-org/team
 aigate start --route ai --provider codex
@@ -50,7 +52,9 @@ aigate install-hook --pre-push
 
 | コマンド | 目的 |
 | --- | --- |
-| `aigate start` | TTY では矢印キーのルート選択を開き、非対話 shell では quickstart ルートを実行します。 |
+| `aigate start` | TTY では矢印キーのルート選択を開き、非対話 shell では quickstart ルートを実行します。最初のルートはデフォルト設定フローです。 |
+| `aigate start --route default --ask-steps` | デフォルト設定フローで推奨手順ごとに実行するか確認します。 |
+| `aigate start --route default --steps init,repo-files` | 選択した設定手順 ID だけを実行し、他はスキップします。 |
 | `aigate start --route oss --owner @your-org/team` | README、貢献文書、issue テンプレート、PR テンプレート、CODEOWNERS、運用文書の草案を作成します。既存ファイルは `--force` なしでは上書きしません。 |
 | `aigate start --route ai --provider codex` | AIGate 設定と Codex 指示ファイルを作成します。 |
 | `aigate start --route full --provider all` | 設定、AI ファイル、pre-push hook、release checks を一つの flow で実行します。 |
@@ -216,6 +220,8 @@ aigate git-ready --notify-channel terminal
 | --- | --- |
 | `aigate init` | 初期 AIGate 設定を作成します。 |
 | `aigate start` | ガイド付き設定ルートを選択して実行します。 |
+| `aigate start --route default --ask-steps` | 推奨デフォルト手順を一つずつ確認してから実行します。 |
+| `aigate start --route default --steps init,repo-files` | 選択したデフォルト設定手順だけを実行します。 |
 | `aigate start --route oss` | 公開リポジトリ用 README、issue テンプレート、PR テンプレート、CODEOWNERS、貢献文書を作成します。 |
 | `aigate check` | local Git 変更と secret findings を確認します。 |
 | `aigate test` | Git 準備状態と検出した project test command を実行します。 |

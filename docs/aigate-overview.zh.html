@@ -337,7 +337,7 @@ npx aigate-cli check</code></pre>
     <foreignObject x="72" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
         <strong>启动路由</strong>
-        <span>用 aigate start 选择设置路径</span>
+        <span>用 aigate start 选择默认设置步骤</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -541,7 +541,7 @@ npx aigate-cli check</code></pre>
       </div>
       <div class="command-groups"><article class="command-group group-0">
       <h3>设置</h3>
-      <div><span>start</span><span>start --route oss</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
+      <div><span>start</span><span>start --route default</span><span>start --route oss</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
     </article><article class="command-group group-1">
       <h3>首次运行</h3>
       <div><span>doctor</span><span>demo</span><span>install-hook</span></div>
@@ -577,6 +577,14 @@ npx aigate-cli check</code></pre>
     <td><code>aigate start</code></td>
     <td>用方向键或 --route 运行引导式项目设置路由。</td>
     <td>在项目中启用 AIGate 时</td>
+  </tr><tr>
+    <td><code>aigate start --route default --ask-steps</code></td>
+    <td>逐步询问是否运行推荐设置步骤。</td>
+    <td>首次设置时想只选择必要步骤</td>
+  </tr><tr>
+    <td><code>aigate start --route default --steps init,repo-files</code></td>
+    <td>只运行指定的设置步骤 ID，其余跳过。</td>
+    <td>可重复 onboarding 或文档化设置</td>
   </tr><tr>
     <td><code>aigate start --route oss --owner @team</code></td>
     <td>创建 README、贡献文档、issue 模板、PR 模板和 CODEOWNERS。</td>
@@ -747,6 +755,7 @@ npx aigate-cli check</code></pre>
       <pre><code>npm install -g aigate-cli
 aigate setup --language zh
 aigate ai report
+aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
 git switch -c feature/my-change
@@ -773,7 +782,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">功能</p>
         <h2>当前已实现功能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">通过 aigate start 提供引导式启动路由</div><div class="feature done">通过 aigate start --route oss 生成开源起始文件</div><div class="feature done">通过 aigate test 提供项目测试自动化</div><div class="feature done">通过 aigate ai report 提供 AI 项目状态简报</div><div class="feature done">通过 aigate aitest 提供 AI 修复提示和可选 agent 执行</div><div class="feature done">通过 doctor、demo、install-hook 提供首次运行体验</div><div class="feature done">pre-push Git hook 安装</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">GitHub PR comment 和 GitHub Checks summary payload</div><div class="feature done">PR 模板和 CODEOWNERS 引导式设置</div><div class="feature done">可复用的公开 GitHub Action</div><div class="feature done">项目状态趋势历史</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">合规报告和本地 HTML 健康仪表盘</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐、提案比较和政策包生成</div><div class="feature done">Codex/Gemini/Claude Code 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow 和 Homebrew formula draft</div></div>
+      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">通过 aigate start 提供引导式启动路由</div><div class="feature done">通过 aigate start --route default 提供逐步默认设置</div><div class="feature done">通过 aigate start --route oss 生成开源起始文件</div><div class="feature done">通过 aigate test 提供项目测试自动化</div><div class="feature done">通过 aigate ai report 提供 AI 项目状态简报</div><div class="feature done">通过 aigate aitest 提供 AI 修复提示和可选 agent 执行</div><div class="feature done">通过 doctor、demo、install-hook 提供首次运行体验</div><div class="feature done">pre-push Git hook 安装</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">GitHub PR comment 和 GitHub Checks summary payload</div><div class="feature done">PR 模板和 CODEOWNERS 引导式设置</div><div class="feature done">可复用的公开 GitHub Action</div><div class="feature done">项目状态趋势历史</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">合规报告和本地 HTML 健康仪表盘</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐、提案比较和政策包生成</div><div class="feature done">Codex/Gemini/Claude Code 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow 和 Homebrew formula draft</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">

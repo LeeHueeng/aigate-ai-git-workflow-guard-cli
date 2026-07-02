@@ -129,6 +129,8 @@ test("shows help", () => {
   assert.match(result.stdout, /aitest/);
   assert.match(result.stdout, /ai report/);
   assert.match(result.stdout, /ai-report/);
+  assert.match(result.stdout, /--ask-steps/);
+  assert.match(result.stdout, /--steps <ids>/);
   assert.match(result.stdout, /github <comment\|check\|setup>/);
   assert.match(result.stdout, /setup/);
   assert.match(result.stdout, /settings/);
@@ -604,6 +606,56 @@ test("previews a guided start route", () => {
   assert.match(result.stdout, /AIGate start: 미리보기/);
   assert.match(result.stdout, /AI 에이전트 설정/);
   assert.match(result.stdout, /aigate integrate claude/);
+});
+
+test("previews the default stepwise start route", () => {
+  const projectDir = createMinimalGitProject();
+  const result = run(["start", "--route", "default", "--dry-run", "--language", "ko"], {
+    cwd: projectDir
+  });
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /기본 설정/);
+  assert.match(result.stdout, /aigate start --route oss/);
+  assert.match(result.stdout, /aigate integrate all/);
+  assert.match(result.stdout, /aigate ai report/);
+});
+
+test("runs selected default start steps and skips the rest", () => {
+  const outputDir = createOutputDir();
+  const result = run([
+    "start",
+    "--route",
+    "default",
+    "--steps",
+    "init,repo-files",
+    "--output-dir",
+    outputDir,
+    "--owner",
+    "example/team",
+    "--format",
+    "json"
+  ]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.route, "default");
+  assert.deepEqual(output.selectedSteps, ["init", "repo-files"]);
+  assert.ok(output.steps.some((step) => step.id === "init" && step.status === "PASS"));
+  assert.ok(output.steps.some((step) => step.id === "repo-files" && step.status === "PASS"));
+  assert.ok(output.steps.some((step) => step.id === "integrate" && step.status === "SKIPPED"));
+  assert.ok(output.steps.some((step) => step.id === "ai-report" && step.status === "SKIPPED"));
+  assert.ok(existsSync(join(outputDir, "README.md")));
+  assert.equal(readFileSync(join(outputDir, ".github", "CODEOWNERS"), "utf8"), "* @example/team\n");
+});
+
+test("blocks unknown default start steps", () => {
+  const result = run(["start", "--route", "default", "--steps", "unknown", "--language", "ko"]);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /알 수 없는 start 단계/);
+  assert.match(result.stdout, /지원 단계/);
+  assert.match(result.stdout, /repo-files/);
 });
 
 test("creates open source starter files from the guided start route", () => {

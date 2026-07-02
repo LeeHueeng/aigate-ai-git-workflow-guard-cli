@@ -29,6 +29,7 @@
 - [x] generated branch strategy docs を richer policy pack に拡張
 - [x] PR テンプレートと CODEOWNERS 草案をガイド付き設定に昇格
 - [x] `aigate start` でガイド付きプロジェクト設定ルートを追加
+- [x] `aigate start --route default --ask-steps` で段階的なデフォルト設定を追加
 - [x] `aigate start --route oss` でオープンソース初期ファイル生成ルートを追加
 - [x] `aigate test` でプロジェクトテスト自動化を追加
 - [x] `aigate aitest` で AI 修正プロンプトと任意の agent 実行を追加

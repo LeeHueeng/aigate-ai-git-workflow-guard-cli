@@ -337,7 +337,7 @@ npx aigate-cli check</code></pre>
     <foreignObject x="72" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
         <strong>Start route</strong>
-        <span>Choose setup path with aigate start</span>
+        <span>Choose default setup steps with aigate start</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -541,7 +541,7 @@ npx aigate-cli check</code></pre>
       </div>
       <div class="command-groups"><article class="command-group group-0">
       <h3>Setup</h3>
-      <div><span>start</span><span>start --route oss</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
+      <div><span>start</span><span>start --route default</span><span>start --route oss</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
     </article><article class="command-group group-1">
       <h3>First run</h3>
       <div><span>doctor</span><span>demo</span><span>install-hook</span></div>
@@ -577,6 +577,14 @@ npx aigate-cli check</code></pre>
     <td><code>aigate start</code></td>
     <td>Run a guided project setup route with arrow keys or --route.</td>
     <td>When adopting AIGate in a project</td>
+  </tr><tr>
+    <td><code>aigate start --route default --ask-steps</code></td>
+    <td>Ask yes/no for each recommended setup step before running it.</td>
+    <td>When you want guided control over the first setup</td>
+  </tr><tr>
+    <td><code>aigate start --route default --steps init,repo-files</code></td>
+    <td>Run only selected setup step IDs and skip the rest.</td>
+    <td>Repeatable onboarding or documented setup</td>
   </tr><tr>
     <td><code>aigate start --route oss --owner @team</code></td>
     <td>Create README, contribution docs, issue templates, PR template, and CODEOWNERS.</td>
@@ -747,6 +755,7 @@ npx aigate-cli check</code></pre>
       <pre><code>npm install -g aigate-cli
 aigate setup --language en
 aigate ai report
+aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
 git switch -c feature/my-change
@@ -773,7 +782,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">Features</p>
         <h2>Implemented Features</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">Public npm package aigate-cli and npx execution</div><div class="feature done">Git change and untracked-file readiness checks</div><div class="feature done">Guided start routes through aigate start</div><div class="feature done">Open-source starter files through aigate start --route oss</div><div class="feature done">Project test automation through aigate test</div><div class="feature done">AI project health briefs through aigate ai report</div><div class="feature done">AI remediation prompt and optional agent execution through aigate aitest</div><div class="feature done">First-run UX through doctor, demo, and install-hook</div><div class="feature done">Pre-push Git hook installation</div><div class="feature done">Secret pattern detection and SARIF output</div><div class="feature done">git-ready, guarded push, and guarded PR creation</div><div class="feature done">GitHub PR comments and GitHub Checks summary payloads</div><div class="feature done">PR template and CODEOWNERS guided setup</div><div class="feature done">Reusable public GitHub Action</div><div class="feature done">Project health trend history</div><div class="feature done">Markdown, HTML, JSON, and SARIF reports</div><div class="feature done">Compliance reports and a local HTML health dashboard</div><div class="feature done">Project scoring and deep Git signal evaluation</div><div class="feature done">Branch strategy recommendations, proposal comparison, and policy pack generation</div><div class="feature done">Codex/Gemini/Claude Code integration file generation</div><div class="feature done">Korean/English/Japanese/Chinese CLI settings</div><div class="feature done">release-check and release-check --npm</div><div class="feature done">Automated npm releases through Trusted Publishing</div><div class="feature done">GitHub CI, OpenSSF Scorecard, and GitHub Releases</div><div class="feature done">Terminal, Slack BLOCK, Discord, Teams, email, Linear, and Jira notifications</div><div class="feature done">GHCR Docker publish workflow and Homebrew formula draft</div></div>
+      <div class="feature-grid"><div class="feature done">Public npm package aigate-cli and npx execution</div><div class="feature done">Git change and untracked-file readiness checks</div><div class="feature done">Guided start routes through aigate start</div><div class="feature done">Stepwise default setup through aigate start --route default</div><div class="feature done">Open-source starter files through aigate start --route oss</div><div class="feature done">Project test automation through aigate test</div><div class="feature done">AI project health briefs through aigate ai report</div><div class="feature done">AI remediation prompt and optional agent execution through aigate aitest</div><div class="feature done">First-run UX through doctor, demo, and install-hook</div><div class="feature done">Pre-push Git hook installation</div><div class="feature done">Secret pattern detection and SARIF output</div><div class="feature done">git-ready, guarded push, and guarded PR creation</div><div class="feature done">GitHub PR comments and GitHub Checks summary payloads</div><div class="feature done">PR template and CODEOWNERS guided setup</div><div class="feature done">Reusable public GitHub Action</div><div class="feature done">Project health trend history</div><div class="feature done">Markdown, HTML, JSON, and SARIF reports</div><div class="feature done">Compliance reports and a local HTML health dashboard</div><div class="feature done">Project scoring and deep Git signal evaluation</div><div class="feature done">Branch strategy recommendations, proposal comparison, and policy pack generation</div><div class="feature done">Codex/Gemini/Claude Code integration file generation</div><div class="feature done">Korean/English/Japanese/Chinese CLI settings</div><div class="feature done">release-check and release-check --npm</div><div class="feature done">Automated npm releases through Trusted Publishing</div><div class="feature done">GitHub CI, OpenSSF Scorecard, and GitHub Releases</div><div class="feature done">Terminal, Slack BLOCK, Discord, Teams, email, Linear, and Jira notifications</div><div class="feature done">GHCR Docker publish workflow and Homebrew formula draft</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">

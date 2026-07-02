@@ -35,6 +35,8 @@ aigate setup --language zh
 
 ```sh
 aigate start
+aigate start --route default --ask-steps
+aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
 aigate start --route oss --owner @your-org/team
 aigate start --route ai --provider codex
@@ -49,7 +51,9 @@ aigate install-hook --pre-push
 
 | 命令 | 用途 |
 | --- | --- |
-| `aigate start` | 在 TTY 中打开方向键路由选择，非交互 shell 中运行 quickstart 路由。 |
+| `aigate start` | 在 TTY 中打开方向键路由选择，非交互 shell 中运行 quickstart 路由。第一个路由是默认设置流程。 |
+| `aigate start --route default --ask-steps` | 在默认设置流程中逐步询问是否运行推荐步骤。 |
+| `aigate start --route default --steps init,repo-files` | 只运行选中的设置步骤 ID，其余标记为 skipped。 |
 | `aigate start --route oss --owner @your-org/team` | 创建 README、贡献文档、issue 模板、PR 模板、CODEOWNERS 和运维文档草案。没有 `--force` 时不会覆盖已有文件。 |
 | `aigate start --route ai --provider codex` | 创建 AIGate 配置和 Codex 指令文件。 |
 | `aigate start --route full --provider all` | 在一个 flow 中创建配置、AI 文件、pre-push hook 和 release checks。 |
@@ -213,6 +217,8 @@ aigate git-ready --notify-channel terminal
 | --- | --- |
 | `aigate init` | 创建初始 AIGate 配置。 |
 | `aigate start` | 选择并运行引导式设置路由。 |
+| `aigate start --route default --ask-steps` | 逐个确认推荐的默认设置步骤后运行。 |
+| `aigate start --route default --steps init,repo-files` | 只运行选中的默认设置步骤。 |
 | `aigate start --route oss` | 创建公开仓库 README、issue 模板、PR 模板、CODEOWNERS 和贡献文档。 |
 | `aigate check` | 检查 local Git changes 和 secret findings。 |
 | `aigate test` | 运行 Git 就绪检查和检测到的项目测试命令。 |

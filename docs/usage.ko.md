@@ -36,6 +36,8 @@ Git 저장소 루트로 이동한 뒤 실행합니다.
 
 ```sh
 aigate start
+aigate start --route default --ask-steps
+aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
 aigate start --route oss --owner @your-org/team
 aigate start --route ai --provider codex
@@ -50,7 +52,9 @@ aigate install-hook --pre-push
 
 | 명령어 | 목적 |
 | --- | --- |
-| `aigate start` | TTY에서는 화살표 선택 메뉴를 열고, 비대화형 shell에서는 quickstart 루트를 실행합니다. |
+| `aigate start` | TTY에서는 화살표 선택 메뉴를 열고, 비대화형 shell에서는 quickstart 루트를 실행합니다. 첫 번째 루트는 기본 설정 흐름입니다. |
+| `aigate start --route default --ask-steps` | 기본 설정 흐름에서 추천 단계마다 예/아니오를 묻고 실행합니다. |
+| `aigate start --route default --steps init,repo-files` | 선택한 설정 단계 ID만 실행하고 나머지는 건너뜁니다. |
 | `aigate start --route oss --owner @your-org/team` | README, 기여 문서, 이슈 템플릿, PR 템플릿, CODEOWNERS, 운영 문서 초안을 생성합니다. 기존 파일은 `--force` 없이는 덮어쓰지 않습니다. |
 | `aigate start --route ai --provider codex` | AIGate 설정과 Codex 지침 파일을 생성합니다. |
 | `aigate start --route full --provider all` | 설정, AI 파일, pre-push hook, 릴리스 점검을 한 흐름으로 실행합니다. |
@@ -216,6 +220,8 @@ aigate git-ready --notify-channel terminal
 | --- | --- |
 | `aigate init` | 초기 AIGate 설정을 만듭니다. |
 | `aigate start` | 안내형 설정 루트를 선택하고 실행합니다. |
+| `aigate start --route default --ask-steps` | 기본 추천 단계를 하나씩 확인한 뒤 실행합니다. |
+| `aigate start --route default --steps init,repo-files` | 선택한 기본 설정 단계만 실행합니다. |
 | `aigate start --route oss` | 공개 저장소용 README, 이슈 템플릿, PR 템플릿, CODEOWNERS, 기여 문서를 생성합니다. |
 | `aigate check` | 로컬 Git 변경사항과 secret findings를 점검합니다. |
 | `aigate test` | Git 준비 상태와 감지된 프로젝트 테스트 명령을 실행합니다. |

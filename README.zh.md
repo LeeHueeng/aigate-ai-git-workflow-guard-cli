@@ -26,6 +26,7 @@ PR 风险和 branch strategy。
 
 ```sh
 npx -y aigate-cli check
+npx -y aigate-cli start --route default --dry-run
 npx -y aigate-cli start --route quickstart --dry-run
 npx -y aigate-cli doctor
 npx -y aigate-cli test
@@ -40,6 +41,8 @@ npx -y aigate-cli evaluate-project
 ```sh
 npm install -g aigate-cli
 aigate start
+aigate start --route default --ask-steps
+aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
 aigate check
 aigate test
@@ -56,6 +59,8 @@ aigate pr-check
 | --- | --- |
 | 本地 Git readiness check | `aigate check` |
 | 引导式设置路由器 | `aigate start` |
+| 用是/否选择默认设置步骤 | `aigate start --route default --ask-steps` |
+| 只运行指定设置步骤 | `aigate start --route default --steps init,repo-files` |
 | 公开仓库 README、issue 模板和贡献文件生成 | `aigate start --route oss` |
 | 项目测试运行器 | `aigate test` |
 | AI 修复提示和可选 agent 执行 | `aigate aitest` |
@@ -92,6 +97,7 @@ repository governance 连接成一个 workflow layer。
 ```sh
 git switch -c feature/my-work
 aigate ai report
+aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
 aigate doctor

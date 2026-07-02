@@ -27,6 +27,7 @@
 - [x] Expand generated branch strategy docs into richer policy packs.
 - [x] Promote pull request template and CODEOWNERS drafts into guided setup.
 - [x] Add guided project setup routes with `aigate start`.
+- [x] Add stepwise default setup with `aigate start --route default --ask-steps`.
 - [x] Add open-source starter route with `aigate start --route oss`.
 - [x] Add project test automation with `aigate test`.
 - [x] Add AI remediation prompts and optional agent execution with `aigate aitest`.

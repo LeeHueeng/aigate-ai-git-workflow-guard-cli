@@ -36,6 +36,8 @@ Use these commands after moving into a Git repository.
 
 ```sh
 aigate start
+aigate start --route default --ask-steps
+aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
 aigate start --route oss --owner @your-org/team
 aigate start --route ai --provider codex
@@ -50,7 +52,9 @@ What they do:
 
 | Command | Purpose |
 | --- | --- |
-| `aigate start` | Opens a guided route selector in a TTY, or runs the quickstart route in non-interactive shells. |
+| `aigate start` | Opens a guided route selector in a TTY, or runs the quickstart route in non-interactive shells. The first route is the default setup flow. |
+| `aigate start --route default --ask-steps` | Runs the default setup flow and asks yes/no before each recommended step. |
+| `aigate start --route default --steps init,repo-files` | Runs only the selected setup step IDs and marks the rest as skipped. |
 | `aigate start --route oss --owner @your-org/team` | Creates README, contribution docs, issue templates, PR template, CODEOWNERS, and starter operations docs without overwriting existing files unless `--force` is used. |
 | `aigate start --route ai --provider codex` | Creates AIGate config and Codex instruction files. |
 | `aigate start --route full --provider all` | Creates config, AI files, the pre-push hook, and release checks in one flow. |
@@ -219,6 +223,8 @@ channel:
 | --- | --- |
 | `aigate init` | Create the initial AIGate config. |
 | `aigate start` | Choose and run a guided setup route. |
+| `aigate start --route default --ask-steps` | Confirm each recommended default setup step before running it. |
+| `aigate start --route default --steps init,repo-files` | Run only selected default setup steps. |
 | `aigate start --route oss` | Create open-source starter README, issue templates, PR template, CODEOWNERS, and contribution docs. |
 | `aigate check` | Inspect local Git changes and secret findings. |
 | `aigate test` | Run Git readiness plus the detected project test command. |

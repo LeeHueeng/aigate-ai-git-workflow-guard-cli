@@ -39,7 +39,7 @@ flowchart LR
 
 | Area | Commands |
 | --- | --- |
-| Setup | `start`, `start --route oss`, `init`, `setup`, `settings`, `integrate` |
+| Setup | `start`, `start --route default`, `start --route oss`, `init`, `setup`, `settings`, `integrate` |
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `test`, `aitest`, `git-ready`, `push`, `pr` |
 | Reports | `ai report`, `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
@@ -51,6 +51,7 @@ flowchart LR
 npm install -g aigate-cli
 aigate setup --language en
 aigate ai report
+aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
 git switch -c feature/my-change
@@ -79,6 +80,8 @@ aigate release-check --npm
 - Public npm package `aigate-cli` and `npx` execution
 - First-run diagnostics through `aigate doctor`
 - Guided start routes through `aigate start`
+- Stepwise default setup through `aigate start --route default --ask-steps`
+- Selected setup step execution through `aigate start --route default --steps init,repo-files`
 - Open-source starter files through `aigate start --route oss`
 - Guided CLI demo through `aigate demo`
 - Pre-push hook installation through `aigate install-hook --pre-push`

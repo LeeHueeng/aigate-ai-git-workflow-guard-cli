@@ -13,7 +13,7 @@ const PACKAGE_ROOT = dirname(CLI_DIR);
 const VERSION = readPackageVersion();
 const SUPPORTED_LANGUAGES = ["en", "ko", "ja", "zh"];
 const SUPPORTED_INTEGRATIONS = ["codex", "gemini", "claude"];
-const START_ROUTE_IDS = ["quickstart", "oss", "ai", "hook", "release", "full"];
+const START_ROUTE_IDS = ["default", "quickstart", "oss", "ai", "hook", "release", "full"];
 const AI_TEST_PROVIDERS = ["codex", "claude", "gemini"];
 const DEFAULT_SETTINGS = {
   version: 1,
@@ -944,7 +944,9 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "Environment variable name for webhook notifications."],
       ["--linear-team-id <id>", "Linear team id for issue creation."],
       ["--jira-project-key <key>", "Jira project key for issue creation."],
-      ["--route <name>", "Start route: quickstart, oss, ai, hook, release, or full."],
+      ["--route <name>", "Start route: default, quickstart, oss, ai, hook, release, or full."],
+      ["--ask-steps", "Ask whether to run each start step."],
+      ["--steps <ids>", "Run only selected start step ids, comma-separated."],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, or all."],
       ["--script <name>", "npm script name for aigate test or aitest."],
       ["--command <shell>", "Custom shell command for aigate test or aitest."],
@@ -1023,7 +1025,9 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "webhook 알림에 사용할 환경 변수 이름입니다."],
       ["--linear-team-id <id>", "Linear 이슈 생성용 팀 ID입니다."],
       ["--jira-project-key <key>", "Jira 이슈 생성용 프로젝트 키입니다."],
-      ["--route <name>", "시작 루트입니다: quickstart, oss, ai, hook, release, full."],
+      ["--route <name>", "시작 루트입니다: default, quickstart, oss, ai, hook, release, full."],
+      ["--ask-steps", "start 단계마다 실행 여부를 묻습니다."],
+      ["--steps <ids>", "쉼표로 구분한 start 단계 id만 실행합니다."],
       ["--provider <name>", "AI 제공자입니다: auto, codex, claude, gemini, all."],
       ["--script <name>", "aigate test 또는 aitest에서 사용할 npm script 이름입니다."],
       ["--command <shell>", "aigate test 또는 aitest에서 사용할 사용자 지정 shell 명령입니다."],
@@ -1102,7 +1106,9 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "webhook 通知に使う環境変数名です。"],
       ["--linear-team-id <id>", "Linear issue 作成用 team ID です。"],
       ["--jira-project-key <key>", "Jira issue 作成用 project key です。"],
-      ["--route <name>", "開始ルート: quickstart, oss, ai, hook, release, full。"],
+      ["--route <name>", "開始ルート: default, quickstart, oss, ai, hook, release, full。"],
+      ["--ask-steps", "start の各手順を実行するか確認します。"],
+      ["--steps <ids>", "カンマ区切りの start 手順 id だけを実行します。"],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
       ["--script <name>", "aigate test または aitest で使う npm script 名です。"],
       ["--command <shell>", "aigate test または aitest で使うカスタム shell コマンドです。"],
@@ -1181,7 +1187,9 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "webhook 通知使用的环境变量名。"],
       ["--linear-team-id <id>", "创建 Linear issue 的 team ID。"],
       ["--jira-project-key <key>", "创建 Jira issue 的 project key。"],
-      ["--route <name>", "启动路由: quickstart, oss, ai, hook, release, full。"],
+      ["--route <name>", "启动路由: default, quickstart, oss, ai, hook, release, full。"],
+      ["--ask-steps", "逐步询问是否运行每个 start 步骤。"],
+      ["--steps <ids>", "仅运行逗号分隔的 start 步骤 id。"],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
       ["--script <name>", "aigate test 或 aitest 使用的 npm script 名称。"],
       ["--command <shell>", "aigate test 或 aitest 使用的自定义 shell 命令。"],
@@ -1895,12 +1903,23 @@ async function commandStart(args) {
     return renderStartError("unknown-provider", language, { provider: options.provider });
   }
 
+  let selectedStepIds = parseStartStepSelection(options.steps);
+  if (!selectedStepIds && shouldPromptStartSteps(route, options)) {
+    const previewSteps = buildStartStepCalls(route, provider, language, {
+      force: Boolean(options.force),
+      outputDir: options.outputDir ?? ".",
+      owner: options.owner
+    });
+    selectedStepIds = await promptStartStepChoices(previewSteps, language);
+  }
+
   const result = executeStartRoute(route, {
     dryRun: Boolean(options.dryRun),
     force: Boolean(options.force),
     outputDir: options.outputDir ?? ".",
     owner: options.owner,
-    provider
+    provider,
+    selectedStepIds
   }, language);
 
   if (result.status === "BLOCK") {
@@ -2232,6 +2251,18 @@ function normalizeStartProvider(provider) {
   return resolveIntegrationProviders(normalized) ? normalized : null;
 }
 
+function shouldPromptStartSteps(route, options) {
+  if (options.format || options.dryRun || options.steps) {
+    return false;
+  }
+
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    return false;
+  }
+
+  return route === "default" || Boolean(options.askSteps);
+}
+
 async function promptStartRoute(language) {
   if (!process.stdin.isTTY || !process.stdout.isTTY) {
     return null;
@@ -2309,6 +2340,43 @@ async function promptStartRoute(language) {
   });
 }
 
+async function promptStartStepChoices(steps, language) {
+  const labels = automationLabels(language);
+  const selectedIds = [];
+  process.stdout.write(`\n${labels.startStepPrompt}\n${labels.startStepPromptHint}\n\n`);
+
+  for (const step of steps) {
+    const answer = await promptStartYesNo(`${labels.startStepQuestion} ${step.title} (${step.command})`, true);
+    if (answer) {
+      selectedIds.push(step.id);
+    }
+  }
+
+  process.stdout.write("\n");
+  return selectedIds;
+}
+
+function promptStartYesNo(question, defaultValue = true) {
+  const suffix = defaultValue ? " [Y/n] " : " [y/N] ";
+  return new Promise((resolve) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    rl.question(`${question}${suffix}`, (answer) => {
+      rl.close();
+      const normalized = String(answer ?? "").trim().toLowerCase();
+      if (!normalized) {
+        resolve(defaultValue);
+        return;
+      }
+
+      resolve(["y", "yes", "예", "네", "ㅇ", "はい", "是"].includes(normalized));
+    });
+  });
+}
+
 function executeStartRoute(routeId, options, language) {
   const route = startRouteDefinitions(language).find((item) => item.id === routeId);
   const stepCalls = buildStartStepCalls(routeId, options.provider, language, {
@@ -2316,9 +2384,45 @@ function executeStartRoute(routeId, options, language) {
     outputDir: options.outputDir ?? ".",
     owner: options.owner
   });
+  const selectedStepIds = options.selectedStepIds ? new Set(options.selectedStepIds) : null;
+  const unknownStepIds = selectedStepIds
+    ? [...selectedStepIds].filter((id) => !stepCalls.some((step) => step.id === id))
+    : [];
+
+  if (unknownStepIds.length) {
+    return {
+      command: "start",
+      status: "BLOCK",
+      mode: options.dryRun ? "dry-run" : "apply",
+      route: routeId,
+      title: route?.title ?? routeId,
+      outputDir: options.outputDir ?? ".",
+      owner: normalizeCodeownersOwner(options.owner),
+      provider: options.provider,
+      steps: [],
+      next: [],
+      error: renderStartError("unknown-step", language, {
+        step: unknownStepIds.join(", "),
+        supportedSteps: stepCalls.map((step) => step.id).join(", ")
+      })
+    };
+  }
+
   const steps = [];
 
   for (const step of stepCalls) {
+    if (selectedStepIds && !selectedStepIds.has(step.id)) {
+      steps.push({
+        id: step.id,
+        title: step.title,
+        command: step.command,
+        status: "SKIPPED",
+        exitCode: 0,
+        output: ""
+      });
+      continue;
+    }
+
     if (options.dryRun) {
       steps.push({
         id: step.id,
@@ -2349,6 +2453,7 @@ function executeStartRoute(routeId, options, language) {
     outputDir: options.outputDir ?? ".",
     owner: normalizeCodeownersOwner(options.owner),
     provider: options.provider,
+    selectedSteps: selectedStepIds ? [...selectedStepIds] : "all",
     steps,
     next: route?.next ?? []
   };
@@ -2408,6 +2513,12 @@ function buildStartStepCalls(routeId, provider, language, options = {}) {
       command: "aigate release-check",
       run: () => commandReleaseCheck(baseArgs)
     },
+    aiReport: {
+      id: "ai-report",
+      title: automationLabels(language).startStepAiReport,
+      command: "aigate ai report",
+      run: () => commandAiReport(baseArgs)
+    },
     branch: {
       id: "branch-strategy",
       title: automationLabels(language).startStepBranch,
@@ -2417,6 +2528,7 @@ function buildStartStepCalls(routeId, provider, language, options = {}) {
   };
 
   return {
+    default: [steps.init, steps.repoFiles, steps.integrate, steps.hook, steps.doctor, steps.aiReport, steps.branch],
     quickstart: [steps.init, steps.doctor, steps.demo],
     oss: [steps.init, steps.repoFiles, steps.doctor, steps.branch],
     ai: [steps.init, steps.integrate, steps.doctor],
@@ -2457,6 +2569,10 @@ function runStartStep(step) {
 
 function renderStartResult(result, language) {
   const labels = automationLabels(language);
+  if (result.error) {
+    return result.error;
+  }
+
   return [
     `${labels.startTitle}: ${automationStatus(result.status, language)}`,
     `${labels.route}: ${result.title}`,
@@ -2481,7 +2597,28 @@ function renderStartError(kind, language, values = {}) {
     return `${labels.error}: ${labels.unknownProvider} ${values.provider}\n${labels.supportedProviders}: all, codex, gemini, claude`;
   }
 
+  if (kind === "unknown-step") {
+    return `${labels.error}: ${labels.unknownStep} ${values.step}\n${labels.supportedSteps}: ${values.supportedSteps}`;
+  }
+
   return `${labels.error}: ${labels.unknownRoute} ${values.route}\n${labels.supportedRoutes}: ${START_ROUTE_IDS.join(", ")}`;
+}
+
+function parseStartStepSelection(value) {
+  if (value === undefined || value === null || value === false) {
+    return null;
+  }
+
+  const text = String(value).trim();
+  if (!text || text === "all") {
+    return null;
+  }
+
+  if (text === "none") {
+    return [];
+  }
+
+  return text.split(/[\s,]+/).map((item) => item.trim()).filter(Boolean);
 }
 
 function summarizeStepOutput(output, language) {
@@ -2496,6 +2633,16 @@ function summarizeStepOutput(output, language) {
 function startRouteDefinitions(language) {
   const labels = automationLabels(language);
   return [
+    {
+      id: "default",
+      title: labels.routeDefault,
+      description: labels.routeDefaultDescription,
+      next: [
+        "aigate ai report",
+        "aigate test",
+        "aigate git-ready"
+      ]
+    },
     {
       id: "quickstart",
       title: labels.routeQuickstart,
@@ -2929,6 +3076,8 @@ function automationLabels(language) {
       provider: "Provider",
       report: "Report",
       route: "Route",
+      routeDefault: "Default setup",
+      routeDefaultDescription: "Review recommended steps and run only what you need.",
       routeAi: "AI agent setup",
       routeAiDescription: "Create Codex, Gemini, and Claude instruction files.",
       routeFull: "Full project guard",
@@ -2943,12 +3092,16 @@ function automationLabels(language) {
       routeReleaseDescription: "Check package metadata and branch policy.",
       startPrompt: "Choose an AIGate start route",
       startPromptHint: "Use arrow keys and press Enter.",
+      startStepAiReport: "Create AI project report",
       startStepBranch: "Recommend branch strategy",
       startStepDemo: "Show guided demo",
       startStepDoctor: "Run doctor",
       startStepHook: "Install pre-push hook",
       startStepInit: "Create AIGate config",
       startStepIntegrate: "Create AI integration files",
+      startStepPrompt: "Choose default setup steps",
+      startStepPromptHint: "Press Enter to run a step, or type n to skip it.",
+      startStepQuestion: "Run this step?",
       startStepRepoFiles: "Create repository starter files",
       startStepRelease: "Check release readiness",
       startTitle: "AIGate start",
@@ -2958,9 +3111,11 @@ function automationLabels(language) {
       summary: "Summary",
       supportedProviders: "Supported providers",
       supportedRoutes: "Supported routes",
+      supportedSteps: "Supported steps",
       testTitle: "AIGate test",
       unknownProvider: "Unknown AI provider:",
-      unknownRoute: "Unknown start route:"
+      unknownRoute: "Unknown start route:",
+      unknownStep: "Unknown start step:"
     },
     ko: {
       agent: "에이전트",
@@ -2982,6 +3137,8 @@ function automationLabels(language) {
       provider: "제공자",
       report: "리포트",
       route: "루트",
+      routeDefault: "기본 설정",
+      routeDefaultDescription: "추천 단계를 확인하며 필요한 것만 실행합니다.",
       routeAi: "AI 에이전트 설정",
       routeAiDescription: "Codex, Gemini, Claude 지침 파일을 생성합니다.",
       routeFull: "전체 프로젝트 보호",
@@ -2996,12 +3153,16 @@ function automationLabels(language) {
       routeReleaseDescription: "패키지 메타데이터와 브랜치 정책을 점검합니다.",
       startPrompt: "AIGate 시작 루트를 선택하세요",
       startPromptHint: "화살표 키로 이동하고 Enter를 누르세요.",
+      startStepAiReport: "AI 프로젝트 리포트 생성",
       startStepBranch: "브랜치 전략 추천",
       startStepDemo: "안내형 데모 표시",
       startStepDoctor: "doctor 실행",
       startStepHook: "pre-push hook 설치",
       startStepInit: "AIGate 설정 생성",
       startStepIntegrate: "AI 연동 파일 생성",
+      startStepPrompt: "기본 설정 단계를 선택하세요",
+      startStepPromptHint: "Enter는 실행, n은 건너뜀입니다.",
+      startStepQuestion: "이 단계를 실행할까요?",
       startStepRepoFiles: "저장소 시작 파일 생성",
       startStepRelease: "릴리스 준비 검사",
       startTitle: "AIGate start",
@@ -3011,9 +3172,11 @@ function automationLabels(language) {
       summary: "요약",
       supportedProviders: "지원 제공자",
       supportedRoutes: "지원 루트",
+      supportedSteps: "지원 단계",
       testTitle: "AIGate test",
       unknownProvider: "알 수 없는 AI 제공자:",
-      unknownRoute: "알 수 없는 시작 루트:"
+      unknownRoute: "알 수 없는 시작 루트:",
+      unknownStep: "알 수 없는 start 단계:"
     },
     ja: {
       agent: "エージェント",
@@ -3035,6 +3198,8 @@ function automationLabels(language) {
       provider: "Provider",
       report: "レポート",
       route: "ルート",
+      routeDefault: "デフォルト設定",
+      routeDefaultDescription: "推奨手順を確認し、必要なものだけ実行します。",
       routeAi: "AI エージェント設定",
       routeAiDescription: "Codex、Gemini、Claude の指示ファイルを作成します。",
       routeFull: "フルプロジェクトガード",
@@ -3049,12 +3214,16 @@ function automationLabels(language) {
       routeReleaseDescription: "パッケージメタデータとブランチポリシーを確認します。",
       startPrompt: "AIGate 開始ルートを選択してください",
       startPromptHint: "矢印キーで移動し Enter を押してください。",
+      startStepAiReport: "AI プロジェクトレポートを作成",
       startStepBranch: "ブランチ戦略を推薦",
       startStepDemo: "ガイド付きデモを表示",
       startStepDoctor: "doctor を実行",
       startStepHook: "pre-push hook をインストール",
       startStepInit: "AIGate 設定を作成",
       startStepIntegrate: "AI 連携ファイルを作成",
+      startStepPrompt: "デフォルト設定の手順を選択してください",
+      startStepPromptHint: "Enter で実行、n でスキップします。",
+      startStepQuestion: "この手順を実行しますか?",
       startStepRepoFiles: "リポジトリ初期ファイルを作成",
       startStepRelease: "リリース準備を確認",
       startTitle: "AIGate start",
@@ -3064,9 +3233,11 @@ function automationLabels(language) {
       summary: "要約",
       supportedProviders: "対応 provider",
       supportedRoutes: "対応ルート",
+      supportedSteps: "対応手順",
       testTitle: "AIGate test",
       unknownProvider: "不明な AI provider:",
-      unknownRoute: "不明な開始ルート:"
+      unknownRoute: "不明な開始ルート:",
+      unknownStep: "不明な start 手順:"
     },
     zh: {
       agent: "Agent",
@@ -3088,6 +3259,8 @@ function automationLabels(language) {
       provider: "Provider",
       report: "报告",
       route: "路由",
+      routeDefault: "默认设置",
+      routeDefaultDescription: "检查推荐步骤，并只运行需要的部分。",
       routeAi: "AI agent 设置",
       routeAiDescription: "创建 Codex、Gemini 和 Claude 指令文件。",
       routeFull: "完整项目守护",
@@ -3102,12 +3275,16 @@ function automationLabels(language) {
       routeReleaseDescription: "检查包元数据和分支策略。",
       startPrompt: "选择 AIGate 启动路由",
       startPromptHint: "使用方向键移动并按 Enter。",
+      startStepAiReport: "创建 AI 项目报告",
       startStepBranch: "推荐分支策略",
       startStepDemo: "显示引导 demo",
       startStepDoctor: "运行 doctor",
       startStepHook: "安装 pre-push hook",
       startStepInit: "创建 AIGate 配置",
       startStepIntegrate: "创建 AI 集成文件",
+      startStepPrompt: "选择默认设置步骤",
+      startStepPromptHint: "按 Enter 运行步骤，输入 n 跳过。",
+      startStepQuestion: "运行此步骤吗?",
       startStepRepoFiles: "创建仓库起始文件",
       startStepRelease: "检查发布就绪状态",
       startTitle: "AIGate start",
@@ -3117,9 +3294,11 @@ function automationLabels(language) {
       summary: "摘要",
       supportedProviders: "支持的 provider",
       supportedRoutes: "支持的路由",
+      supportedSteps: "支持的步骤",
       testTitle: "AIGate test",
       unknownProvider: "未知 AI provider:",
-      unknownRoute: "未知启动路由:"
+      unknownRoute: "未知启动路由:",
+      unknownStep: "未知 start 步骤:"
     }
   }[language] ?? automationLabels("en");
 }
@@ -8426,6 +8605,7 @@ function firstPositionalArg(args) {
     "--pr",
     "--release",
     "--route",
+    "--steps",
     "--provider",
     "--script",
     "--command",

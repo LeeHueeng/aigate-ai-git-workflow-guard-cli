@@ -337,7 +337,7 @@ npx aigate-cli check</code></pre>
     <foreignObject x="72" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
         <strong>開始ルート</strong>
-        <span>aigate start で設定経路を選択</span>
+        <span>aigate start でデフォルト設定手順を選択</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -541,7 +541,7 @@ npx aigate-cli check</code></pre>
       </div>
       <div class="command-groups"><article class="command-group group-0">
       <h3>セットアップ</h3>
-      <div><span>start</span><span>start --route oss</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
+      <div><span>start</span><span>start --route default</span><span>start --route oss</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
     </article><article class="command-group group-1">
       <h3>初回実行</h3>
       <div><span>doctor</span><span>demo</span><span>install-hook</span></div>
@@ -577,6 +577,14 @@ npx aigate-cli check</code></pre>
     <td><code>aigate start</code></td>
     <td>矢印キーまたは --route でガイド付き設定ルートを実行します。</td>
     <td>プロジェクトに AIGate を導入するとき</td>
+  </tr><tr>
+    <td><code>aigate start --route default --ask-steps</code></td>
+    <td>推奨設定手順を実行するか一つずつ確認します。</td>
+    <td>初回設定で必要な手順だけ選びたいとき</td>
+  </tr><tr>
+    <td><code>aigate start --route default --steps init,repo-files</code></td>
+    <td>指定した設定手順 ID だけを実行し、他はスキップします。</td>
+    <td>オンボーディングや手順書で同じ設定を繰り返すとき</td>
   </tr><tr>
     <td><code>aigate start --route oss --owner @team</code></td>
     <td>README、貢献文書、issue テンプレート、PR テンプレート、CODEOWNERS を作成します。</td>
@@ -747,6 +755,7 @@ npx aigate-cli check</code></pre>
       <pre><code>npm install -g aigate-cli
 aigate setup --language ja
 aigate ai report
+aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
 git switch -c feature/my-change
@@ -773,7 +782,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">機能</p>
         <h2>現在実装済みの機能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">aigate start によるガイド付き開始ルート</div><div class="feature done">aigate start --route oss によるオープンソース初期ファイル生成</div><div class="feature done">aigate test によるプロジェクトテスト自動化</div><div class="feature done">aigate ai report による AI プロジェクト状態ブリーフ</div><div class="feature done">aigate aitest による AI 修正プロンプトと任意の agent 実行</div><div class="feature done">doctor、demo、install-hook による初回実行 UX</div><div class="feature done">pre-push Git hook のインストール</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">GitHub PR comment と GitHub Checks summary payload</div><div class="feature done">PR テンプレートと CODEOWNERS のガイド付き設定</div><div class="feature done">再利用可能な公開 GitHub Action</div><div class="feature done">プロジェクト状態トレンド履歴</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">コンプライアンスレポートとローカル HTML ヘルスダッシュボード</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦、提案比較、ポリシーパック生成</div><div class="feature done">Codex/Gemini/Claude Code 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow と Homebrew formula draft</div></div>
+      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">aigate start によるガイド付き開始ルート</div><div class="feature done">aigate start --route default による段階的なデフォルト設定</div><div class="feature done">aigate start --route oss によるオープンソース初期ファイル生成</div><div class="feature done">aigate test によるプロジェクトテスト自動化</div><div class="feature done">aigate ai report による AI プロジェクト状態ブリーフ</div><div class="feature done">aigate aitest による AI 修正プロンプトと任意の agent 実行</div><div class="feature done">doctor、demo、install-hook による初回実行 UX</div><div class="feature done">pre-push Git hook のインストール</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">GitHub PR comment と GitHub Checks summary payload</div><div class="feature done">PR テンプレートと CODEOWNERS のガイド付き設定</div><div class="feature done">再利用可能な公開 GitHub Action</div><div class="feature done">プロジェクト状態トレンド履歴</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">コンプライアンスレポートとローカル HTML ヘルスダッシュボード</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦、提案比較、ポリシーパック生成</div><div class="feature done">Codex/Gemini/Claude Code 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow と Homebrew formula draft</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">

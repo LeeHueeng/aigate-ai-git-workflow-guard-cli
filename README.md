@@ -34,6 +34,7 @@ Run it without installing:
 
 ```sh
 npx -y aigate-cli check
+npx -y aigate-cli start --route default --dry-run
 npx -y aigate-cli start --route quickstart --dry-run
 npx -y aigate-cli doctor
 npx -y aigate-cli test
@@ -48,6 +49,8 @@ Or install it globally:
 ```sh
 npm install -g aigate-cli
 aigate start
+aigate start --route default --ask-steps
+aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
 aigate check
 aigate test
@@ -90,6 +93,8 @@ repeatable local gate before `git push` or PR creation.
 | --- | --- |
 | Local Git readiness check | `aigate check` |
 | Guided setup router | `aigate start` |
+| Default setup with yes/no step choices | `aigate start --route default --ask-steps` |
+| Deterministic setup step selection | `aigate start --route default --steps init,repo-files` |
 | Open source starter README, issue templates, and contribution files | `aigate start --route oss` |
 | Project test runner | `aigate test` |
 | AI remediation prompt and optional agent run | `aigate aitest` |
@@ -134,6 +139,7 @@ with Husky, Lefthook, pre-commit, and Gitleaks.
 ```sh
 git switch -c feature/my-work
 aigate ai report
+aigate start --route default --ask-steps
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
 aigate doctor
