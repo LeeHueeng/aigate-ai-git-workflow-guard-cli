@@ -134,7 +134,9 @@ aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --as
 `aigate ai report`는 더 넓은 프로젝트 브리프입니다. 현재 문제점, 잘된 점,
 방향성, 추천 명령어, 릴리스 상태, 브랜치 전략, AI 전달 프롬프트를 정리합니다.
 기본값은 코드를 수정하지 않는 안전 모드이며, 선택한 AI CLI를 실행하려면
-`--apply --provider codex|claude|gemini`를 붙입니다.
+`--apply --provider codex|claude|gemini`를 붙입니다. 기본 AI 리포트는 미생성
+릴리스 태그를 참고 신호로만 다뤄 일반 PR 작업을 릴리스 차단 상태로 표시하지
+않습니다. 엄격한 릴리스와 npm 배포 준비 상태를 보려면 `--npm`을 붙이세요.
 
 `--apply`를 텍스트 모드로 실행하면 AIGate가 프롬프트 경로, 제공자, 에이전트
 명령, 실시간 에이전트 출력을 터미널에 보여줍니다. 최종 리포트에도 에이전트

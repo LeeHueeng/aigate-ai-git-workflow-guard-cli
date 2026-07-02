@@ -134,7 +134,10 @@ Codex、Claude、Gemini CLI または独自 agent を実行する場合だけ `-
 `aigate ai report` はより広いプロジェクトブリーフです。現在の問題、良い点、
 方向性、推奨コマンド、リリース状態、ブランチ戦略、AI 引き継ぎプロンプトを
 まとめます。既定ではコードを変更せず、選択した AI CLI を実行する場合だけ
-`--apply --provider codex|claude|gemini` を付けます。
+`--apply --provider codex|claude|gemini` を付けます。既定の AI レポートでは
+未作成のリリースタグ確認は参考扱いにし、通常の PR 作業をリリースで
+ブロックされた状態として表示しません。厳密なリリースと npm 公開準備を
+確認する場合は `--npm` を付けてください。
 
 `--apply` をテキストモードで実行すると、AIGate はプロンプトのパス、provider、
 agent コマンド、リアルタイムの agent 出力をターミナルに表示します。最終レポート

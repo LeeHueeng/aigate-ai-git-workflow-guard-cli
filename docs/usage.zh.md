@@ -130,7 +130,9 @@ Claude、Gemini CLI 或自定义 agent 时才添加 `--apply`。
 
 `aigate ai report` 是更完整的项目简报。它会汇总当前问题、做得好的部分、方向、
 建议命令、发布状态、分支策略和 AI 交接提示。默认不会修改代码；只有需要运行
-所选 AI CLI 时才添加 `--apply --provider codex|claude|gemini`。
+所选 AI CLI 时才添加 `--apply --provider codex|claude|gemini`。默认 AI 报告
+会把尚未创建的发布标签检查作为参考信号，避免把普通 PR 工作标记为因发布准备而
+阻塞。需要严格检查发布和 npm 发布准备状态时，请添加 `--npm`。
 
 以文本模式运行 `--apply` 时，AIGate 会在终端显示提示文件路径、provider、agent
 命令和实时 agent 输出。最终报告也会包含 agent 命令、耗时、退出码、stdout 和

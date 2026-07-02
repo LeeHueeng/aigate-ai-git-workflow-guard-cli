@@ -57,6 +57,7 @@ function createGenericReleaseProject() {
     }
   }, null, 2)}\n`);
   writeFileSync(join(projectDir, "README.md"), "# Admin Root\n\n```sh\nnpm install admin-root-monorepo\n```\n");
+  writeFileSync(join(projectDir, "CHANGELOG.md"), "## 1.0.0\n\n- Initial release.\n");
   writeFileSync(join(projectDir, ".github", "workflows", "release.yml"), [
     "name: Release",
     "on: workflow_dispatch",
@@ -1128,6 +1129,27 @@ test("renders an AI project report as json", () => {
   assert.ok(Array.isArray(output.direction));
   assert.ok(Array.isArray(output.suggestedCommands));
   assert.match(output.prompt, /AIGate AI Report/);
+});
+
+test("keeps default AI report from treating missing release tags as active problems", () => {
+  const projectDir = createGenericReleaseProject();
+  const aiReport = run(["ai", "report", "--format", "json"], { cwd: projectDir });
+
+  assert.equal(aiReport.status, 0);
+  const output = JSON.parse(aiReport.stdout);
+  const tagCheck = output.releaseChecks.find((check) => check.name === "v1.0.0 tag exists");
+
+  assert.equal(output.releaseStatus, "READY");
+  assert.equal(tagCheck.status, "NA");
+  assert.equal(tagCheck.reason, "Release tag check is only required during explicit release readiness checks.");
+  assert.equal(output.problems.some((problem) => /tag exists/.test(problem.message)), false);
+
+  const releaseCheck = run(["release-check", "--format", "json"], { cwd: projectDir });
+  assert.equal(releaseCheck.status, 0);
+  const releaseOutput = JSON.parse(releaseCheck.stdout);
+
+  assert.equal(releaseOutput.status, "ACTION_REQUIRED");
+  assert.equal(releaseOutput.checks.find((check) => check.name === "v1.0.0 tag exists")?.status, "TODO");
 });
 
 test("renders localized AI report and alias", () => {

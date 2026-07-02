@@ -6063,7 +6063,9 @@ function buildReleaseCheck(options = {}) {
   const hasExpectedTag = tags.includes(expectedTag);
   const npmPackageRelease = profile.kind === "package";
   const publicNpmRelease = npmPackageRelease && packageJson.private !== true;
+  const requireReleaseTag = options.requireReleaseTag !== false;
   const npmOnlyReason = "npm package release check is not required for this repository profile.";
+  const tagOnlyReason = "Release tag check is only required during explicit release readiness checks.";
   const npmLockReason = `${profile.packageManager} project does not use package-lock.json.`;
   const githubOnlyReason = "GitHub Trusted Publishing check is not required for this repository hosting provider.";
   const packageCheck = (name, pass, checkOptions = {}) => makeCheck("release", name, pass, checkOptions);
@@ -6111,8 +6113,8 @@ function buildReleaseCheck(options = {}) {
       reason: npmOnlyReason
     }),
     packageCheck(`${expectedTag} tag exists`, hasExpectedTag, {
-      applicable: publicNpmRelease,
-      reason: npmOnlyReason
+      applicable: publicNpmRelease && requireReleaseTag,
+      reason: publicNpmRelease ? tagOnlyReason : npmOnlyReason
     })
   ];
   const registry = options.checkNpm && publicNpmRelease
@@ -6126,7 +6128,7 @@ function buildReleaseCheck(options = {}) {
 
   if (!publicNpmRelease) {
     nextSteps.push("No npm package publication is required for the detected app/private repository profile.");
-  } else if (!hasExpectedTag) {
+  } else if (requireReleaseTag && !hasExpectedTag) {
     if (registry.checked && registry.published) {
       nextSteps.push(`${packageName}@${version} is already on npm; create release tag ${expectedTag} to record the release.`);
     } else if (registry.checked && registry.packageExists) {
@@ -6162,7 +6164,7 @@ function buildReleaseCheck(options = {}) {
     nextSteps.push(`Document ${version} in CHANGELOG.md before tagging the release.`);
   }
 
-  if (publicNpmRelease) {
+  if (publicNpmRelease && requireReleaseTag) {
     nextSteps.push("Run npm run ci before tagging a release.");
     nextSteps.push("Run npm publish dry-run through the Release workflow_dispatch dry_run input.");
   }
@@ -6478,6 +6480,7 @@ function buildAiProjectReport(options = {}, language = "en") {
   const analysis = buildChangeAnalysis();
   const releaseCheck = buildReleaseCheck({
     checkNpm: Boolean(options.npm),
+    requireReleaseTag: Boolean(options.npm),
     projectType: options.projectType,
     hosting: options.hosting,
     ciProvider: options.ciProvider,
@@ -9836,6 +9839,11 @@ function translateNotApplicableReason(reason, language) {
       ko: "이 저장소 프로필에는 npm 패키지 배포 점검이 필요하지 않습니다.",
       ja: "このリポジトリプロファイルでは npm パッケージ公開チェックは不要です。",
       zh: "此仓库配置不需要 npm 包发布检查。"
+    },
+    "Release tag check is only required during explicit release readiness checks.": {
+      ko: "릴리스 태그 점검은 명시적인 릴리스 준비 검사에서만 필요합니다.",
+      ja: "リリースタグチェックは明示的なリリース準備チェック時のみ必要です。",
+      zh: "发布标签检查仅在显式发布就绪检查中需要。"
     },
     "GitHub Trusted Publishing check is not required for this repository hosting provider.": {
       ko: "이 호스팅 제공자에는 GitHub Trusted Publishing 점검이 필요하지 않습니다.",

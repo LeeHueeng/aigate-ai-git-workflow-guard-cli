@@ -137,7 +137,9 @@ selected AI CLI or a custom `--agent-command`.
 what is working, direction, suggested commands, release state, branch strategy,
 and an AI handoff prompt. It also does not edit code by default; add
 `--apply --provider codex|claude|gemini` only when you want AIGate to run the
-selected AI CLI with that brief.
+selected AI CLI with that brief. Default AI reports keep unreleased tag checks
+advisory so normal PR work is not marked as release-blocked; add `--npm` when
+you want strict release and npm publication readiness.
 
 When `--apply` runs in text mode, AIGate shows the prompt path, provider, agent
 command, and live agent output in the terminal. The final report also includes
