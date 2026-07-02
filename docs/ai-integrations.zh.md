@@ -31,6 +31,19 @@ aigate integrate all --output-dir /tmp/aigate-preview
 aigate integrate all --force
 ```
 
+## AI 项目报告
+
+```sh
+aigate ai report
+aigate ai report --output .aigate/reports/ai-report.md
+aigate ai report --apply --provider codex
+aigate ai report --apply --provider claude
+```
+
+`aigate ai report` 会汇总当前问题、做得好的部分、方向、建议命令、发布准备状态和
+分支策略，并生成 AI 交接提示。默认不会修改文件。只有传入 `--apply` 时才会运行
+已安装的本地 AI CLI。
+
 ## AI 测试修复流程
 
 ```sh

@@ -38,10 +38,10 @@ flowchart LR
 
 | 范围 | 命令 |
 | --- | --- |
-| Setup | `start`, `init`, `setup`, `settings`, `integrate` |
+| Setup | `start`, `start --route oss`, `init`, `setup`, `settings`, `integrate` |
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `test`, `aitest`, `git-ready`, `push`, `pr` |
-| Reports | `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
+| Reports | `ai report`, `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | Release | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
 ## 典型执行路径
@@ -49,6 +49,8 @@ flowchart LR
 ```sh
 npm install -g aigate-cli
 aigate setup --language zh
+aigate ai report
+aigate start --route oss --dry-run
 aigate start --route ai --provider all
 git switch -c feature/my-change
 aigate doctor
@@ -75,11 +77,13 @@ aigate release-check --npm
 
 - npm package `aigate-cli` 公开发布并支持 `npx` 执行
 - 通过 `aigate start` 提供引导式启动路由
+- 通过 `aigate start --route oss` 生成开源起始文件
 - 通过 `aigate doctor` 提供首次运行诊断
 - 通过 `aigate demo` 提供引导式 CLI demo
 - 通过 `aigate install-hook --pre-push` 安装 pre-push hook
 - Git changed-file 和 untracked-file readiness checks
 - 通过 `aigate test` 提供项目测试自动化
+- 通过 `aigate ai report` 提供 AI 项目状态简报
 - 通过 `aigate aitest` 提供 AI 修复提示和可选 agent 执行
 - secret pattern detection 和 SARIF output
 - `git-ready`、guarded push、guarded PR creation

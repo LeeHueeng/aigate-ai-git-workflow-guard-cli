@@ -39,10 +39,10 @@ flowchart LR
 
 | Area | Commands |
 | --- | --- |
-| Setup | `start`, `init`, `setup`, `settings`, `integrate` |
+| Setup | `start`, `start --route oss`, `init`, `setup`, `settings`, `integrate` |
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `test`, `aitest`, `git-ready`, `push`, `pr` |
-| Reports | `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
+| Reports | `ai report`, `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | Release | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
 ## Typical Command Path
@@ -50,6 +50,8 @@ flowchart LR
 ```sh
 npm install -g aigate-cli
 aigate setup --language en
+aigate ai report
+aigate start --route oss --dry-run
 aigate start --route ai --provider all
 git switch -c feature/my-change
 aigate doctor
@@ -77,10 +79,12 @@ aigate release-check --npm
 - Public npm package `aigate-cli` and `npx` execution
 - First-run diagnostics through `aigate doctor`
 - Guided start routes through `aigate start`
+- Open-source starter files through `aigate start --route oss`
 - Guided CLI demo through `aigate demo`
 - Pre-push hook installation through `aigate install-hook --pre-push`
 - Git changed-file and untracked-file readiness checks
 - Project test automation through `aigate test`
+- AI project health briefs through `aigate ai report`
 - AI remediation prompt and optional agent execution through `aigate aitest`
 - Secret pattern detection and SARIF output
 - `git-ready`, guarded push, and guarded PR creation

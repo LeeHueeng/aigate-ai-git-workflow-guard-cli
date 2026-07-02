@@ -2,6 +2,19 @@
 
 All notable changes to AIGate are documented here.
 
+## 0.1.6 - 2026-07-02
+
+- Added `aigate ai report` and `aigate ai-report` to summarize current
+  problems, strengths, direction, suggested commands, release readiness, branch
+  strategy, and AI handoff guidance.
+- Added optional `aigate ai report --apply --provider <codex|claude|gemini>`
+  execution for explicit AI agent handoff.
+- Added the `aigate start --route oss` guided route for open-source starter
+  README, contribution docs, issue templates, PR template, CODEOWNERS, and
+  starter operations docs.
+- Updated multilingual README, usage, AI integration, and generated HTML docs
+  for the AI report and open-source starter flow.
+
 ## 0.1.5 - 2026-07-02
 
 - Added `aigate start` with guided setup routes for quickstart, AI agent

@@ -35,6 +35,8 @@ aigate setup --language zh
 
 ```sh
 aigate start
+aigate start --route oss --dry-run
+aigate start --route oss --owner @your-org/team
 aigate start --route ai --provider codex
 aigate start --route full --provider all
 aigate init
@@ -48,6 +50,7 @@ aigate install-hook --pre-push
 | 命令 | 用途 |
 | --- | --- |
 | `aigate start` | 在 TTY 中打开方向键路由选择，非交互 shell 中运行 quickstart 路由。 |
+| `aigate start --route oss --owner @your-org/team` | 创建 README、贡献文档、issue 模板、PR 模板、CODEOWNERS 和运维文档草案。没有 `--force` 时不会覆盖已有文件。 |
 | `aigate start --route ai --provider codex` | 创建 AIGate 配置和 Codex 指令文件。 |
 | `aigate start --route full --provider all` | 在一个 flow 中创建配置、AI 文件、pre-push hook 和 release checks。 |
 | `aigate setup --language zh` | 保存 CLI 输出语言。 |
@@ -80,6 +83,9 @@ AIGate 检查的 guarded wrapper。
 aigate test
 aigate test --script test
 aigate test --command "npm run ci"
+aigate ai report
+aigate ai report --output .aigate/reports/ai-report.md
+aigate ai report --apply --provider codex
 aigate aitest
 aigate aitest --provider codex
 aigate aitest --apply --provider codex
@@ -95,6 +101,10 @@ aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --as
 `.aigate/reports/ai-test.md`。默认不会修改代码。只有在需要调用 Codex、
 Claude、Gemini CLI 或自定义 agent 时才添加 `--apply`。
 
+`aigate ai report` 是更完整的项目简报。它会汇总当前问题、做得好的部分、方向、
+建议命令、发布状态、分支策略和 AI 交接提示。默认不会修改代码；只有需要运行
+所选 AI CLI 时才添加 `--apply --provider codex|claude|gemini`。
+
 ## 报告和输出格式
 
 ```sh
@@ -102,6 +112,7 @@ aigate report --format markdown --output .aigate/reports/report.md
 aigate report --format html --output .aigate/reports/report.html
 aigate report --format json --output .aigate/reports/report.json
 aigate report --format sarif --output .aigate/reports/aigate.sarif
+aigate ai report --output .aigate/reports/ai-report.md
 aigate evaluate-project --deep --report
 aigate audit-report
 aigate compliance-report
@@ -142,7 +153,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
         with:
           command: git-ready
           language: zh
@@ -202,8 +213,10 @@ aigate git-ready --notify-channel terminal
 | --- | --- |
 | `aigate init` | 创建初始 AIGate 配置。 |
 | `aigate start` | 选择并运行引导式设置路由。 |
+| `aigate start --route oss` | 创建公开仓库 README、issue 模板、PR 模板、CODEOWNERS 和贡献文档。 |
 | `aigate check` | 检查 local Git changes 和 secret findings。 |
 | `aigate test` | 运行 Git 就绪检查和检测到的项目测试命令。 |
+| `aigate ai report` | 汇总当前问题、做得好的部分、方向和 AI 交接指引。 |
 | `aigate aitest` | 写入 AI 修复提示，并可选择运行 Codex、Claude、Gemini。 |
 | `aigate git-ready` | 运行 commit 或 push 前的 readiness gate。 |
 | `aigate push` | 检查通过后调用 `git push`。 |

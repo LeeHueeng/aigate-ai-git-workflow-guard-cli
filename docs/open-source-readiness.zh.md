@@ -16,6 +16,7 @@
 - [x] issue templates
 - [x] pull request template
 - [x] CODEOWNERS
+- [x] 开源起始文件生成器: `aigate start --route oss`
 - [x] funding metadata
 - [x] social preview asset: `assets/social-preview.png`
 - [x] real-world example issue template
@@ -37,6 +38,8 @@
 ## Maintainer workflow
 
 - commit 前使用 `aigate git-ready`
+- 使用 `aigate ai report` 查看当前问题、做得好的部分和方向
+- 生成或更新公开贡献文件前使用 `aigate start --route oss --dry-run`
 - 使用 `aigate push`，而不是直接 `git push`
 - 使用 `aigate pr` 创建 pull request
 - 保持 `main` 始终可发布
@@ -49,7 +52,7 @@
 - [x] 确认 `aigate-cli` 的 npm access
 - [x] 为此 GitHub repository 配置 npm Trusted Publisher
 - [x] 运行 `aigate release-check`
-- [x] 发布 npm package，当前公开版本是 `0.1.5`
-- [x] 创建 GitHub release tag 至 `v0.1.5`
+- [x] 发布 npm package，当前公开版本是 `0.1.6`
+- [x] 创建 GitHub release tag 至 `v0.1.6`
 - [x] publish 后确认 `npm view aigate-cli`
 - [x] 后续 release 关联 changelog entry 和 tagged GitHub Release

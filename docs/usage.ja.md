@@ -36,6 +36,8 @@ Git リポジトリのルートで実行します。
 
 ```sh
 aigate start
+aigate start --route oss --dry-run
+aigate start --route oss --owner @your-org/team
 aigate start --route ai --provider codex
 aigate start --route full --provider all
 aigate init
@@ -49,6 +51,7 @@ aigate install-hook --pre-push
 | コマンド | 目的 |
 | --- | --- |
 | `aigate start` | TTY では矢印キーのルート選択を開き、非対話 shell では quickstart ルートを実行します。 |
+| `aigate start --route oss --owner @your-org/team` | README、貢献文書、issue テンプレート、PR テンプレート、CODEOWNERS、運用文書の草案を作成します。既存ファイルは `--force` なしでは上書きしません。 |
 | `aigate start --route ai --provider codex` | AIGate 設定と Codex 指示ファイルを作成します。 |
 | `aigate start --route full --provider all` | 設定、AI ファイル、pre-push hook、release checks を一つの flow で実行します。 |
 | `aigate setup --language ja` | CLI 出力言語を保存します。 |
@@ -81,6 +84,9 @@ AIGate checks を追加する guarded wrapper です。
 aigate test
 aigate test --script test
 aigate test --command "npm run ci"
+aigate ai report
+aigate ai report --output .aigate/reports/ai-report.md
+aigate ai report --apply --provider codex
 aigate aitest
 aigate aitest --provider codex
 aigate aitest --apply --provider codex
@@ -97,6 +103,11 @@ aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --as
 Codex、Claude、Gemini CLI または独自 agent を実行する場合だけ `--apply`
 を付けます。
 
+`aigate ai report` はより広いプロジェクトブリーフです。現在の問題、良い点、
+方向性、推奨コマンド、リリース状態、ブランチ戦略、AI 引き継ぎプロンプトを
+まとめます。既定ではコードを変更せず、選択した AI CLI を実行する場合だけ
+`--apply --provider codex|claude|gemini` を付けます。
+
 ## レポートと出力形式
 
 ```sh
@@ -104,6 +115,7 @@ aigate report --format markdown --output .aigate/reports/report.md
 aigate report --format html --output .aigate/reports/report.html
 aigate report --format json --output .aigate/reports/report.json
 aigate report --format sarif --output .aigate/reports/aigate.sarif
+aigate ai report --output .aigate/reports/ai-report.md
 aigate evaluate-project --deep --report
 aigate audit-report
 aigate compliance-report
@@ -144,7 +156,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
         with:
           command: git-ready
           language: ja
@@ -204,8 +216,10 @@ aigate git-ready --notify-channel terminal
 | --- | --- |
 | `aigate init` | 初期 AIGate 設定を作成します。 |
 | `aigate start` | ガイド付き設定ルートを選択して実行します。 |
+| `aigate start --route oss` | 公開リポジトリ用 README、issue テンプレート、PR テンプレート、CODEOWNERS、貢献文書を作成します。 |
 | `aigate check` | local Git 変更と secret findings を確認します。 |
 | `aigate test` | Git 準備状態と検出した project test command を実行します。 |
+| `aigate ai report` | 現在の問題、良い点、方向性、AI 引き継ぎガイドをまとめます。 |
 | `aigate aitest` | AI 修正プロンプトを書き、必要なら Codex、Claude、Gemini を実行します。 |
 | `aigate git-ready` | commit または push 前の readiness gate を実行します。 |
 | `aigate push` | checks 後に `git push` を呼び出します。 |

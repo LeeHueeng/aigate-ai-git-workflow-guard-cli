@@ -31,6 +31,19 @@ aigate integrate all --output-dir /tmp/aigate-preview
 aigate integrate all --force
 ```
 
+## AI 프로젝트 리포트
+
+```sh
+aigate ai report
+aigate ai report --output .aigate/reports/ai-report.md
+aigate ai report --apply --provider codex
+aigate ai report --apply --provider claude
+```
+
+`aigate ai report`는 현재 문제점, 잘된 점, 방향성, 추천 명령어, 릴리스 준비
+상태, 브랜치 전략을 정리하고 AI 전달 프롬프트도 렌더링합니다. 기본값은 파일을
+수정하지 않습니다. `--apply`를 넘겼을 때만 설치된 로컬 AI CLI를 실행합니다.
+
 ## AI 테스트 수정 흐름
 
 ```sh

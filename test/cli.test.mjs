@@ -127,6 +127,8 @@ test("shows help", () => {
   assert.match(result.stdout, /start/);
   assert.match(result.stdout, /test/);
   assert.match(result.stdout, /aitest/);
+  assert.match(result.stdout, /ai report/);
+  assert.match(result.stdout, /ai-report/);
   assert.match(result.stdout, /github <comment\|check\|setup>/);
   assert.match(result.stdout, /setup/);
   assert.match(result.stdout, /settings/);
@@ -161,7 +163,7 @@ test("prints package version", () => {
   const result = run(["--version"]);
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /^0\.1\.5/m);
+  assert.match(result.stdout, /^0\.1\.6/m);
 });
 
 test("ships reusable GitHub Action metadata", () => {
@@ -604,6 +606,44 @@ test("previews a guided start route", () => {
   assert.match(result.stdout, /aigate integrate claude/);
 });
 
+test("creates open source starter files from the guided start route", () => {
+  const outputDir = createOutputDir();
+  const result = run([
+    "start",
+    "--route",
+    "oss",
+    "--output-dir",
+    outputDir,
+    "--owner",
+    "example/team",
+    "--format",
+    "json"
+  ]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.route, "oss");
+  assert.equal(output.owner, "@example/team");
+  assert.ok(output.steps.some((step) => step.id === "repo-files" && step.status === "PASS"));
+  assert.ok(existsSync(join(outputDir, "README.md")));
+  assert.ok(existsSync(join(outputDir, "CONTRIBUTING.md")));
+  assert.ok(existsSync(join(outputDir, ".github", "ISSUE_TEMPLATE", "bug_report.yml")));
+  assert.ok(existsSync(join(outputDir, ".github", "ISSUE_TEMPLATE", "feature_request.yml")));
+  assert.ok(existsSync(join(outputDir, ".github", "pull_request_template.md")));
+  assert.equal(readFileSync(join(outputDir, ".github", "CODEOWNERS"), "utf8"), "* @example/team\n");
+});
+
+test("previews open source starter files without writing", () => {
+  const outputDir = createOutputDir();
+  const result = run(["start", "--route", "oss", "--output-dir", outputDir, "--dry-run", "--language", "ko"]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /오픈소스 설정/);
+  assert.match(result.stdout, /aigate start --route oss/);
+  assert.equal(existsSync(join(outputDir, "README.md")), false);
+  assert.equal(existsSync(join(outputDir, ".github", "ISSUE_TEMPLATE", "bug_report.yml")), false);
+});
+
 test("runs a project test command", () => {
   const projectDir = createMinimalGitProject();
   const result = run(["test", "--command", "node -e \"process.exit(0)\"", "--format", "json"], {
@@ -654,6 +694,60 @@ test("writes an AI remediation prompt for failing tests", () => {
   assert.ok(existsSync(promptPath));
   assert.match(readFileSync(promptPath, "utf8"), /AIGate AI Test Remediation/);
   assert.match(readFileSync(promptPath, "utf8"), /node -e "process.exit\(2\)"/);
+});
+
+test("renders an AI project report as json", () => {
+  const result = run(["ai", "report", "--format", "json"]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "ai report");
+  assert.equal(typeof output.projectScore, "number");
+  assert.ok(Array.isArray(output.problems));
+  assert.ok(Array.isArray(output.strengths));
+  assert.ok(Array.isArray(output.direction));
+  assert.ok(Array.isArray(output.suggestedCommands));
+  assert.match(output.prompt, /AIGate AI Report/);
+});
+
+test("renders localized AI report and alias", () => {
+  const korean = run(["ai", "report", "--language", "ko"]);
+  assert.equal(korean.status, 0);
+  assert.match(korean.stdout, /^# AIGate AI 리포트/m);
+  assert.match(korean.stdout, /## 현재 문제점/);
+  assert.match(korean.stdout, /## 잘된 점/);
+  assert.match(korean.stdout, /## 방향성/);
+  assert.doesNotMatch(korean.stdout, /## Current Problems/);
+
+  const alias = run(["ai-report", "--format", "json"]);
+  assert.equal(alias.status, 0);
+  assert.equal(JSON.parse(alias.stdout).command, "ai report");
+});
+
+test("applies AI report through a custom agent command", () => {
+  const projectDir = createMinimalGitProject();
+  const promptPath = join(projectDir, ".aigate", "reports", "ai-report-prompt.md");
+  const result = run([
+    "ai",
+    "report",
+    "--apply",
+    "--agent-command",
+    "cat >/dev/null",
+    "--prompt-output",
+    promptPath,
+    "--format",
+    "json"
+  ], {
+    cwd: projectDir
+  });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.status, "AI_APPLIED");
+  assert.equal(output.ai.applied, true);
+  assert.equal(output.ai.promptPath, promptPath);
+  assert.ok(existsSync(promptPath));
+  assert.match(readFileSync(promptPath, "utf8"), /AIGate AI Report/);
 });
 
 test("sends terminal notifications", () => {
@@ -926,8 +1020,8 @@ test("checks release readiness", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.command, "release-check");
   assert.equal(output.packageName, "aigate-cli");
-  assert.equal(output.version, "0.1.5");
-  assert.equal(output.expectedTag, "v0.1.5");
+  assert.equal(output.version, "0.1.6");
+  assert.equal(output.expectedTag, "v0.1.6");
   assert.ok(["READY", "ACTION_REQUIRED", "RELEASED"].includes(output.status));
   assert.deepEqual(output.registry, { checked: false });
 });
@@ -935,7 +1029,7 @@ test("checks release readiness", () => {
 test("checks npm publication state when requested", () => {
   const binDir = mkdtempSync(join(tmpdir(), "aigate-npm-"));
   const npmPath = join(binDir, "npm");
-  writeFileSync(npmPath, "#!/bin/sh\nprintf '\"0.1.5\"\\n'\n");
+  writeFileSync(npmPath, "#!/bin/sh\nprintf '\"0.1.6\"\\n'\n");
   chmodSync(npmPath, 0o755);
 
   const result = run(["release-check", "--npm", "--format", "json"], {
@@ -948,7 +1042,7 @@ test("checks npm publication state when requested", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.registry.checked, true);
   assert.equal(output.registry.published, true);
-  assert.equal(output.registry.publishedVersion, "0.1.5");
+  assert.equal(output.registry.publishedVersion, "0.1.6");
 });
 
 test("uses generic npm package and repository release checks", () => {

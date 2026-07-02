@@ -29,6 +29,20 @@ Regenerate existing files:
 aigate integrate all --force
 ```
 
+## AI Project Report
+
+```sh
+aigate ai report
+aigate ai report --output .aigate/reports/ai-report.md
+aigate ai report --apply --provider codex
+aigate ai report --apply --provider claude
+```
+
+`aigate ai report` summarizes current problems, what is working, direction,
+recommended commands, release readiness, and branch strategy. It also renders an
+AI handoff prompt. It does not modify files unless `--apply` is passed. With
+`--apply`, AIGate invokes the selected local CLI when available.
+
 ## AI Test Remediation
 
 ```sh

@@ -1,6 +1,6 @@
 {
   "name": "aigate-cli",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Pre-push Git safety CLI for AI-assisted coding.",
   "license": "MIT",
   "type": "module",

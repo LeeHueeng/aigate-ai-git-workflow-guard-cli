@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
         with:
           command: git-ready
           language: ja
@@ -27,7 +27,7 @@ jobs:
 PR レポートを生成する場合:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
   with:
     command: pr-check
     report-format: markdown
@@ -50,7 +50,7 @@ PR レポートを生成する場合:
 ブランチ戦略比較:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
   with:
     command: branch-strategy-compare
     report-format: json
@@ -66,8 +66,8 @@ PR レポートを生成する場合:
 | Action name | `AIGate AI Git Workflow Guard CLI` |
 | Primary category | `Code quality` |
 | Secondary category | `Security` |
-| Release tag | `v0.1.5` |
-| Release title | `AIGate AI Git Workflow Guard CLI v0.1.5` |
+| Release tag | `v0.1.6` |
+| Release title | `AIGate AI Git Workflow Guard CLI v0.1.6` |
 
 安定 patch release では `Set as the latest release` を有効にし、pre-release
 にはしません。リリース画面で GitHub Marketplace publish option を有効にします。

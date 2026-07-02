@@ -29,6 +29,7 @@ npx -y aigate-cli check
 npx -y aigate-cli start --route quickstart --dry-run
 npx -y aigate-cli doctor
 npx -y aigate-cli test
+npx -y aigate-cli ai report
 npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
@@ -39,8 +40,10 @@ npx -y aigate-cli evaluate-project
 ```sh
 npm install -g aigate-cli
 aigate start
+aigate start --route oss --dry-run
 aigate check
 aigate test
+aigate ai report
 aigate aitest
 aigate git-ready
 aigate install-hook --pre-push
@@ -53,8 +56,10 @@ aigate pr-check
 | --- | --- |
 | 로컬 Git 준비 상태 확인 | `aigate check` |
 | 안내형 설정 라우터 | `aigate start` |
+| 공개 저장소 README, 이슈 템플릿, 기여 파일 생성 | `aigate start --route oss` |
 | 프로젝트 테스트 실행 | `aigate test` |
 | AI 수정 프롬프트와 선택적 에이전트 실행 | `aigate aitest` |
+| 현재 문제점, 잘된 점, 방향성을 정리한 AI 리포트 | `aigate ai report` |
 | 첫 실행 환경 진단 | `aigate doctor` |
 | 안내형 CLI 데모 | `aigate demo` |
 | pre-push 안전 게이트 | `aigate git-ready` |
@@ -86,6 +91,8 @@ repository governance를 묶는 workflow layer입니다.
 
 ```sh
 git switch -c feature/my-work
+aigate ai report
+aigate start --route oss --dry-run
 aigate start --route ai --provider all
 aigate doctor
 aigate install-hook --pre-push
@@ -128,7 +135,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
         with:
           command: git-ready
           language: ko
@@ -143,12 +150,14 @@ Marketplace 등록값:
 - Action name: `AIGate AI Git Workflow Guard CLI`
 - 주요 카테고리: `Code quality`
 - 보조 카테고리: `Security`
-- 릴리스 제목: `AIGate AI Git Workflow Guard CLI v0.1.5`
+- 릴리스 제목: `AIGate AI Git Workflow Guard CLI v0.1.6`
 
 ## AI 에이전트 연동
 
 ```sh
 aigate integrate all
+aigate ai report
+aigate ai report --apply --provider codex
 aigate aitest --provider codex
 aigate aitest --apply --provider codex
 ```
@@ -158,6 +167,11 @@ aigate aitest --apply --provider codex
 브랜치, 검증, guarded push 규칙을 따르게 합니다. `aigate aitest`는
 `.aigate/reports/ai-test.md`에 수정 프롬프트를 쓰고, `--apply`를 명시했을 때만
 Codex, Claude, Gemini 또는 사용자 지정 `--agent-command`를 실행합니다.
+
+`aigate ai report`는 현재 Git 상태, 저장소 기반 점수, 릴리스 준비 상태,
+브랜치 전략, AI 전달 프롬프트를 한 번에 정리합니다. 기본 실행은 파일을 바꾸지
+않고, `--apply --provider codex|claude|gemini`를 붙였을 때만 선택한 AI CLI를
+실행합니다.
 
 ## 문서 바로가기
 

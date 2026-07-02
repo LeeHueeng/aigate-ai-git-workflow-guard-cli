@@ -13,7 +13,7 @@ const PACKAGE_ROOT = dirname(CLI_DIR);
 const VERSION = readPackageVersion();
 const SUPPORTED_LANGUAGES = ["en", "ko", "ja", "zh"];
 const SUPPORTED_INTEGRATIONS = ["codex", "gemini", "claude"];
-const START_ROUTE_IDS = ["quickstart", "ai", "hook", "release", "full"];
+const START_ROUTE_IDS = ["quickstart", "oss", "ai", "hook", "release", "full"];
 const AI_TEST_PROVIDERS = ["codex", "claude", "gemini"];
 const DEFAULT_SETTINGS = {
   version: 1,
@@ -900,6 +900,8 @@ const HELP_CONTENT = {
       ["install-hook", "Install AIGate Git hooks."],
       ["test", "Run Git readiness and the detected project test command."],
       ["aitest", "Create an AI remediation prompt, and optionally run an AI agent."],
+      ["ai report", "Explain current problems, strengths, direction, and AI handoff steps."],
+      ["ai-report", "Alias for `aigate ai report`."],
       ["setup", "Configure AIGate project settings."],
       ["settings", "Show current AIGate settings."],
       ["integrate <provider>", "Generate Codex/Gemini/Claude assistant integration files."],
@@ -942,11 +944,12 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "Environment variable name for webhook notifications."],
       ["--linear-team-id <id>", "Linear team id for issue creation."],
       ["--jira-project-key <key>", "Jira project key for issue creation."],
-      ["--route <name>", "Start route: quickstart, ai, hook, release, or full."],
+      ["--route <name>", "Start route: quickstart, oss, ai, hook, release, or full."],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, or all."],
       ["--script <name>", "npm script name for aigate test or aitest."],
       ["--command <shell>", "Custom shell command for aigate test or aitest."],
-      ["--agent-command <shell>", "Custom AI agent command for aitest --apply."],
+      ["--agent-command <shell>", "Custom AI agent command for aitest or ai report --apply."],
+      ["--prompt-output <path>", "Write the AI report handoff prompt to a custom path."],
       ["--pre-push", "Install or target the pre-push Git hook."],
       ["--language <en|ko|ja|zh>", "Select output language."],
       ["--output-dir <path>", "Select integration output directory."],
@@ -976,6 +979,8 @@ const HELP_CONTENT = {
       ["install-hook", "AIGate Git hook을 설치합니다."],
       ["test", "Git 준비 상태와 감지된 프로젝트 테스트 명령을 실행합니다."],
       ["aitest", "AI 수정 프롬프트를 만들고, 선택하면 AI 에이전트를 실행합니다."],
+      ["ai report", "현재 문제점, 잘된 점, 방향성, AI 전달 단계를 설명합니다."],
+      ["ai-report", "`aigate ai report` 별칭입니다."],
       ["setup", "AIGate 프로젝트 설정을 구성합니다."],
       ["settings", "현재 AIGate 설정을 표시합니다."],
       ["integrate <provider>", "Codex/Gemini/Claude 어시스턴트 연동 파일을 생성합니다."],
@@ -1018,11 +1023,12 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "webhook 알림에 사용할 환경 변수 이름입니다."],
       ["--linear-team-id <id>", "Linear 이슈 생성용 팀 ID입니다."],
       ["--jira-project-key <key>", "Jira 이슈 생성용 프로젝트 키입니다."],
-      ["--route <name>", "시작 루트입니다: quickstart, ai, hook, release, full."],
+      ["--route <name>", "시작 루트입니다: quickstart, oss, ai, hook, release, full."],
       ["--provider <name>", "AI 제공자입니다: auto, codex, claude, gemini, all."],
       ["--script <name>", "aigate test 또는 aitest에서 사용할 npm script 이름입니다."],
       ["--command <shell>", "aigate test 또는 aitest에서 사용할 사용자 지정 shell 명령입니다."],
-      ["--agent-command <shell>", "aitest --apply에서 사용할 사용자 지정 AI 에이전트 명령입니다."],
+      ["--agent-command <shell>", "aitest 또는 ai report --apply에서 사용할 사용자 지정 AI 에이전트 명령입니다."],
+      ["--prompt-output <path>", "AI report 전달 프롬프트를 지정한 경로에 저장합니다."],
       ["--pre-push", "pre-push Git hook을 설치하거나 대상으로 지정합니다."],
       ["--language <en|ko|ja|zh>", "출력 언어를 선택합니다."],
       ["--output-dir <path>", "연동 파일 출력 디렉터리를 선택합니다."],
@@ -1052,6 +1058,8 @@ const HELP_CONTENT = {
       ["install-hook", "AIGate Git hook をインストールします。"],
       ["test", "Git 準備状態と検出したプロジェクト test コマンドを実行します。"],
       ["aitest", "AI 修正プロンプトを作成し、必要なら AI エージェントを実行します。"],
+      ["ai report", "現在の問題、良い点、方向性、AI 引き継ぎ手順を説明します。"],
+      ["ai-report", "`aigate ai report` のエイリアスです。"],
       ["setup", "AIGate プロジェクト設定を構成します。"],
       ["settings", "現在の AIGate 設定を表示します。"],
       ["integrate <provider>", "Codex/Gemini/Claude アシスタント連携ファイルを生成します。"],
@@ -1094,11 +1102,12 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "webhook 通知に使う環境変数名です。"],
       ["--linear-team-id <id>", "Linear issue 作成用 team ID です。"],
       ["--jira-project-key <key>", "Jira issue 作成用 project key です。"],
-      ["--route <name>", "開始ルート: quickstart, ai, hook, release, full。"],
+      ["--route <name>", "開始ルート: quickstart, oss, ai, hook, release, full。"],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
       ["--script <name>", "aigate test または aitest で使う npm script 名です。"],
       ["--command <shell>", "aigate test または aitest で使うカスタム shell コマンドです。"],
-      ["--agent-command <shell>", "aitest --apply で使うカスタム AI エージェントコマンドです。"],
+      ["--agent-command <shell>", "aitest または ai report --apply で使うカスタム AI エージェントコマンドです。"],
+      ["--prompt-output <path>", "AI report 引き継ぎプロンプトを指定パスへ保存します。"],
       ["--pre-push", "pre-push Git hook をインストールまたは対象にします。"],
       ["--language <en|ko|ja|zh>", "出力言語を選択します。"],
       ["--output-dir <path>", "連携ファイルの出力ディレクトリを選択します。"],
@@ -1128,6 +1137,8 @@ const HELP_CONTENT = {
       ["install-hook", "安装 AIGate Git hook。"],
       ["test", "运行 Git 就绪检查和检测到的项目测试命令。"],
       ["aitest", "创建 AI 修复提示，并可选择运行 AI agent。"],
+      ["ai report", "说明当前问题、做得好的部分、方向和 AI 交接步骤。"],
+      ["ai-report", "`aigate ai report` 的别名。"],
       ["setup", "配置 AIGate 项目设置。"],
       ["settings", "显示当前 AIGate 设置。"],
       ["integrate <provider>", "生成 Codex/Gemini/Claude 助手集成文件。"],
@@ -1170,11 +1181,12 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "webhook 通知使用的环境变量名。"],
       ["--linear-team-id <id>", "创建 Linear issue 的 team ID。"],
       ["--jira-project-key <key>", "创建 Jira issue 的 project key。"],
-      ["--route <name>", "启动路由: quickstart, ai, hook, release, full。"],
+      ["--route <name>", "启动路由: quickstart, oss, ai, hook, release, full。"],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
       ["--script <name>", "aigate test 或 aitest 使用的 npm script 名称。"],
       ["--command <shell>", "aigate test 或 aitest 使用的自定义 shell 命令。"],
-      ["--agent-command <shell>", "aitest --apply 使用的自定义 AI agent 命令。"],
+      ["--agent-command <shell>", "aitest 或 ai report --apply 使用的自定义 AI agent 命令。"],
+      ["--prompt-output <path>", "将 AI report 交接提示写入指定路径。"],
       ["--pre-push", "安装或指定 pre-push Git hook。"],
       ["--language <en|ko|ja|zh>", "选择输出语言。"],
       ["--output-dir <path>", "选择集成输出目录。"],
@@ -1548,6 +1560,8 @@ const commands = {
   "install-hook": (args) => commandInstallHook(args, commandContext()),
   test: commandTest,
   aitest: commandAiTest,
+  ai: commandAi,
+  "ai-report": commandAiReport,
   setup: commandSetup,
   settings: commandSettings,
   integrate: commandIntegrate,
@@ -1884,6 +1898,8 @@ async function commandStart(args) {
   const result = executeStartRoute(route, {
     dryRun: Boolean(options.dryRun),
     force: Boolean(options.force),
+    outputDir: options.outputDir ?? ".",
+    owner: options.owner,
     provider
   }, language);
 
@@ -1987,6 +2003,84 @@ function commandAiTest(args) {
   return renderAiTestResult(result, language);
 }
 
+function commandAi(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const action = firstPositionalArg(args) ?? "report";
+  if (action !== "report") {
+    process.exitCode = 1;
+    return renderAiReportError("unknown-action", language, { action });
+  }
+
+  return commandAiReport(args);
+}
+
+function commandAiReport(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const provider = resolveAiTestProvider(options.provider ?? "auto");
+  if (!provider) {
+    process.exitCode = 1;
+    return renderAiReportError("unknown-provider", language, { provider: options.provider });
+  }
+
+  const report = buildAiProjectReport(options, language);
+  report.ai = {
+    provider: provider.name,
+    providerInstalled: provider.installed,
+    applied: false,
+    promptPath: null,
+    agent: null
+  };
+
+  if (options.apply) {
+    const promptPath = options.promptOutput ?? join(".aigate", "reports", "ai-report-prompt.md");
+    mkdirSync(dirname(promptPath), { recursive: true });
+    writeFileSync(promptPath, `${report.prompt}\n`, "utf8");
+    report.ai.promptPath = promptPath;
+
+    const agentCommand = resolveAgentCommand(provider, options, report.prompt);
+    if (!agentCommand) {
+      report.status = "BLOCK";
+      report.ai.agent = {
+        status: "SKIPPED",
+        command: null,
+        exitCode: 1,
+        stdout: "",
+        stderr: translateAiTestText("agentNotFound", language, { provider: provider.name })
+      };
+    } else {
+      report.ai.agent = runAgentCommand(agentCommand, report.prompt);
+      report.ai.applied = report.ai.agent.exitCode === 0;
+      report.status = report.ai.applied ? "AI_APPLIED" : "BLOCK";
+    }
+  }
+
+  const output = options.format === "json"
+    ? JSON.stringify(report, null, 2)
+    : renderAiProjectReport(report, language);
+
+  if (report.status === "BLOCK") {
+    process.exitCode = 1;
+  }
+
+  if (options.output) {
+    mkdirSync(dirname(options.output), { recursive: true });
+    writeFileSync(options.output, `${output}\n`, "utf8");
+    return t(language, "common.wrote", { path: options.output });
+  }
+
+  return output;
+}
+
 function commandSetup(args) {
   const options = parseOptions(args);
   const currentSettings = readSettings();
@@ -2081,6 +2175,38 @@ function commandIntegrate(args) {
     t(language, "integrate.providers", { providers: providers.join(", ") }),
     ...results.map((result) => `- ${translateIntegrationAction(result.action, language)}: ${result.path}`),
     t(language, "integrate.next")
+  ].join("\n");
+}
+
+function commandRepositoryStarterFiles(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const outputDir = options.outputDir ?? ".";
+  const owner = normalizeCodeownersOwner(options.owner);
+  const packageJson = readJsonFile("package.json");
+  const files = buildRepositoryStarterFiles(outputDir, language, packageJson, owner);
+  const results = writeProjectFiles(files, Boolean(options.force));
+
+  if (options.format === "json") {
+    return JSON.stringify({
+      command: "repo-files",
+      outputDir,
+      owner,
+      files: results
+    }, null, 2);
+  }
+
+  const labels = repositoryStarterLabels(language);
+  return [
+    labels.complete,
+    `${labels.outputDir}: ${outputDir}`,
+    `${labels.owner}: ${owner}`,
+    ...results.map((result) => `- ${translateIntegrationAction(result.action, language)}: ${result.path}`),
+    t(language, "common.next", { next: "aigate ai report && aigate pr-check" })
   ].join("\n");
 }
 
@@ -2185,7 +2311,11 @@ async function promptStartRoute(language) {
 
 function executeStartRoute(routeId, options, language) {
   const route = startRouteDefinitions(language).find((item) => item.id === routeId);
-  const stepCalls = buildStartStepCalls(routeId, options.provider, language, options.force);
+  const stepCalls = buildStartStepCalls(routeId, options.provider, language, {
+    force: options.force,
+    outputDir: options.outputDir ?? ".",
+    owner: options.owner
+  });
   const steps = [];
 
   for (const step of stepCalls) {
@@ -2216,28 +2346,43 @@ function executeStartRoute(routeId, options, language) {
     mode: options.dryRun ? "dry-run" : "apply",
     route: routeId,
     title: route?.title ?? routeId,
+    outputDir: options.outputDir ?? ".",
+    owner: normalizeCodeownersOwner(options.owner),
     provider: options.provider,
     steps,
     next: route?.next ?? []
   };
 }
 
-function buildStartStepCalls(routeId, provider, language, force) {
+function buildStartStepCalls(routeId, provider, language, options = {}) {
+  const force = Boolean(options.force);
+  const outputDir = options.outputDir ?? ".";
+  const owner = normalizeCodeownersOwner(options.owner);
   const baseArgs = ["--language", language];
+  const outputArgs = outputDir === "." ? [] : ["--output-dir", outputDir];
+  const ownerArgs = owner ? ["--owner", owner] : [];
   const forceArgs = force ? ["--force"] : [];
   const integrationProvider = provider ?? "all";
+  const outputDirText = outputDir === "." ? "" : ` --output-dir ${quoteArgs([outputDir])[0]}`;
+  const ownerText = owner ? ` --owner ${quoteArgs([owner])[0]}` : "";
   const steps = {
     init: {
       id: "init",
       title: automationLabels(language).startStepInit,
-      command: `aigate init${force ? " --force" : ""}`,
-      run: () => commandInit([...baseArgs, ...forceArgs])
+      command: `aigate init${outputDirText}${force ? " --force" : ""}`,
+      run: () => commandInit([...baseArgs, ...outputArgs, ...forceArgs])
     },
     integrate: {
       id: "integrate",
       title: automationLabels(language).startStepIntegrate,
-      command: `aigate integrate ${integrationProvider}${force ? " --force" : ""}`,
-      run: () => commandIntegrate([integrationProvider, ...baseArgs, ...forceArgs])
+      command: `aigate integrate ${integrationProvider}${outputDirText}${force ? " --force" : ""}`,
+      run: () => commandIntegrate([integrationProvider, ...baseArgs, ...outputArgs, ...forceArgs])
+    },
+    repoFiles: {
+      id: "repo-files",
+      title: automationLabels(language).startStepRepoFiles,
+      command: `aigate start --route oss${outputDirText}${ownerText}${force ? " --force" : ""}`,
+      run: () => commandRepositoryStarterFiles([...baseArgs, ...outputArgs, ...ownerArgs, ...forceArgs])
     },
     hook: {
       id: "hook",
@@ -2273,10 +2418,11 @@ function buildStartStepCalls(routeId, provider, language, force) {
 
   return {
     quickstart: [steps.init, steps.doctor, steps.demo],
+    oss: [steps.init, steps.repoFiles, steps.doctor, steps.branch],
     ai: [steps.init, steps.integrate, steps.doctor],
     hook: [steps.init, steps.hook, steps.doctor],
     release: [steps.release, steps.branch],
-    full: [steps.init, steps.integrate, steps.hook, steps.doctor, steps.release]
+    full: [steps.init, steps.integrate, steps.repoFiles, steps.hook, steps.doctor, steps.release]
   }[routeId] ?? [steps.init, steps.doctor];
 }
 
@@ -2315,6 +2461,7 @@ function renderStartResult(result, language) {
     `${labels.startTitle}: ${automationStatus(result.status, language)}`,
     `${labels.route}: ${result.title}`,
     `${labels.mode}: ${translateAutomationMode(result.mode, language)}`,
+    `${labels.outputDir}: ${result.outputDir}`,
     `${labels.provider}: ${result.provider}`,
     "",
     `${labels.steps}:`,
@@ -2356,6 +2503,16 @@ function startRouteDefinitions(language) {
       next: [
         "aigate test",
         "aigate aitest"
+      ]
+    },
+    {
+      id: "oss",
+      title: labels.routeOss,
+      description: labels.routeOssDescription,
+      next: [
+        "aigate ai report",
+        "aigate github setup --dry-run",
+        "aigate pr-check"
       ]
     },
     {
@@ -2766,6 +2923,7 @@ function automationLabels(language) {
       none: "none",
       notDetected: "not detected",
       output: "Output",
+      outputDir: "Output directory",
       projectCommand: "Project command",
       prompt: "Prompt",
       provider: "Provider",
@@ -2777,6 +2935,8 @@ function automationLabels(language) {
       routeFullDescription: "Set config, AI files, pre-push guard, and release checks.",
       routeHook: "Pre-push guard",
       routeHookDescription: "Install the guarded git push path.",
+      routeOss: "Open source setup",
+      routeOssDescription: "Create README, contribution docs, issue templates, PR template, and CODEOWNERS.",
       routeQuickstart: "Quick setup",
       routeQuickstartDescription: "Create config, run doctor, and show the demo.",
       routeRelease: "Release readiness",
@@ -2789,6 +2949,7 @@ function automationLabels(language) {
       startStepHook: "Install pre-push hook",
       startStepInit: "Create AIGate config",
       startStepIntegrate: "Create AI integration files",
+      startStepRepoFiles: "Create repository starter files",
       startStepRelease: "Check release readiness",
       startTitle: "AIGate start",
       steps: "Steps",
@@ -2815,6 +2976,7 @@ function automationLabels(language) {
       none: "없음",
       notDetected: "감지되지 않음",
       output: "출력",
+      outputDir: "출력 디렉터리",
       projectCommand: "프로젝트 명령",
       prompt: "프롬프트",
       provider: "제공자",
@@ -2826,6 +2988,8 @@ function automationLabels(language) {
       routeFullDescription: "설정, AI 파일, pre-push 보호, 릴리스 검사를 구성합니다.",
       routeHook: "pre-push 보호",
       routeHookDescription: "보호된 git push 경로를 설치합니다.",
+      routeOss: "오픈소스 설정",
+      routeOssDescription: "README, 기여 문서, 이슈 템플릿, PR 템플릿, CODEOWNERS를 생성합니다.",
       routeQuickstart: "빠른 설정",
       routeQuickstartDescription: "설정을 만들고 doctor와 demo를 실행합니다.",
       routeRelease: "릴리스 준비",
@@ -2838,6 +3002,7 @@ function automationLabels(language) {
       startStepHook: "pre-push hook 설치",
       startStepInit: "AIGate 설정 생성",
       startStepIntegrate: "AI 연동 파일 생성",
+      startStepRepoFiles: "저장소 시작 파일 생성",
       startStepRelease: "릴리스 준비 검사",
       startTitle: "AIGate start",
       steps: "단계",
@@ -2864,6 +3029,7 @@ function automationLabels(language) {
       none: "なし",
       notDetected: "未検出",
       output: "出力",
+      outputDir: "出力ディレクトリ",
       projectCommand: "プロジェクトコマンド",
       prompt: "プロンプト",
       provider: "Provider",
@@ -2875,6 +3041,8 @@ function automationLabels(language) {
       routeFullDescription: "設定、AI ファイル、pre-push ガード、リリースチェックを構成します。",
       routeHook: "pre-push ガード",
       routeHookDescription: "保護された git push 経路をインストールします。",
+      routeOss: "オープンソース設定",
+      routeOssDescription: "README、貢献文書、issue テンプレート、PR テンプレート、CODEOWNERS を作成します。",
       routeQuickstart: "クイック設定",
       routeQuickstartDescription: "設定を作成し、doctor と demo を実行します。",
       routeRelease: "リリース準備",
@@ -2887,6 +3055,7 @@ function automationLabels(language) {
       startStepHook: "pre-push hook をインストール",
       startStepInit: "AIGate 設定を作成",
       startStepIntegrate: "AI 連携ファイルを作成",
+      startStepRepoFiles: "リポジトリ初期ファイルを作成",
       startStepRelease: "リリース準備を確認",
       startTitle: "AIGate start",
       steps: "手順",
@@ -2913,6 +3082,7 @@ function automationLabels(language) {
       none: "无",
       notDetected: "未检测到",
       output: "输出",
+      outputDir: "输出目录",
       projectCommand: "项目命令",
       prompt: "提示",
       provider: "Provider",
@@ -2924,6 +3094,8 @@ function automationLabels(language) {
       routeFullDescription: "配置设置、AI 文件、pre-push 守护和发布检查。",
       routeHook: "pre-push 守护",
       routeHookDescription: "安装受保护的 git push 路径。",
+      routeOss: "开源设置",
+      routeOssDescription: "创建 README、贡献文档、issue 模板、PR 模板和 CODEOWNERS。",
       routeQuickstart: "快速设置",
       routeQuickstartDescription: "创建配置，运行 doctor 并显示 demo。",
       routeRelease: "发布就绪",
@@ -2936,6 +3108,7 @@ function automationLabels(language) {
       startStepHook: "安装 pre-push hook",
       startStepInit: "创建 AIGate 配置",
       startStepIntegrate: "创建 AI 集成文件",
+      startStepRepoFiles: "创建仓库起始文件",
       startStepRelease: "检查发布就绪状态",
       startTitle: "AIGate start",
       steps: "步骤",
@@ -4806,6 +4979,638 @@ function buildComplianceReport() {
   };
 }
 
+function buildAiProjectReport(options = {}, language = "en") {
+  const gitStatus = buildGitStatus();
+  const evaluation = buildEvaluation({ deep: true });
+  const analysis = buildChangeAnalysis();
+  const releaseCheck = buildReleaseCheck({ checkNpm: Boolean(options.npm) });
+  const branchStrategy = buildBranchStrategy(options);
+  const problems = buildAiReportProblems({ gitStatus, evaluation, analysis, releaseCheck }, language);
+  const strengths = buildAiReportStrengths({ evaluation, releaseCheck, branchStrategy }, language);
+  const direction = buildAiReportDirection({ evaluation, releaseCheck, branchStrategy }, language);
+  const suggestedCommands = buildAiReportCommands({ evaluation, releaseCheck }, language);
+  const status = problems.some((problem) => problem.severity === "high")
+    ? "ACTION_REQUIRED"
+    : problems.length
+      ? "WARN"
+      : "PASS";
+  const report = {
+    command: "ai report",
+    generatedAt: new Date().toISOString(),
+    status,
+    branch: gitStatus.branch,
+    changedFiles: analysis.paths.length,
+    secretFindings: analysis.secretFindings.length,
+    projectScore: evaluation.score,
+    projectGrade: evaluation.grade,
+    releaseStatus: releaseCheck.status,
+    recommendedStrategy: branchStrategy.name,
+    problems,
+    strengths,
+    direction,
+    suggestedCommands,
+    checks: evaluation.checks,
+    releaseChecks: releaseCheck.checks
+  };
+
+  report.prompt = renderAiProjectReportPrompt(report, language);
+  return report;
+}
+
+function buildAiReportProblems({ gitStatus, evaluation, analysis, releaseCheck }, language = "en") {
+  const problems = [];
+
+  if (!gitStatus.insideGitRepository) {
+    problems.push(aiReportProblem("high", "git", aiReportText("notGitRepo", language), "git init"));
+  }
+
+  if (analysis.secretFindings.length) {
+    problems.push(aiReportProblem(
+      "high",
+      "security",
+      aiReportText("secretFindings", language, { count: analysis.secretFindings.length }),
+      "aigate report --format sarif"
+    ));
+  }
+
+  if (gitStatus.riskLevel === "high") {
+    problems.push(aiReportProblem("high", "security", aiReportText("highRiskFiles", language), "aigate check"));
+  }
+
+  if (analysis.paths.length > 20) {
+    problems.push(aiReportProblem("medium", "git", aiReportText("largeChange", language, { count: analysis.paths.length }), "aigate pr-check"));
+  }
+
+  for (const check of evaluation.checks.filter((item) => !item.pass).slice(0, 8)) {
+    const severity = ["testing", "ci_cd", "security"].includes(check.category) ? "high" : "medium";
+    problems.push(aiReportProblem(
+      severity,
+      check.category,
+      aiReportText("missingFoundation", language, { check: translateEvaluationCheckName(check.name, language) }),
+      aiReportCommandForEvaluationCheck(check.name)
+    ));
+  }
+
+  for (const check of releaseCheck.checks.filter((item) => !item.pass).slice(0, 5)) {
+    problems.push(aiReportProblem(
+      check.name.includes("tag exists") ? "medium" : "high",
+      "release",
+      aiReportText("releaseCheck", language, { check: translateReleaseCheckName(check.name, language) }),
+      "aigate release-check"
+    ));
+  }
+
+  if (releaseCheck.registry?.checked && releaseCheck.registry.published === false) {
+    problems.push(aiReportProblem(
+      "medium",
+      "release",
+      aiReportText("npmNotPublished", language, {
+        packageName: releaseCheck.packageName,
+        version: releaseCheck.version
+      }),
+      "aigate release-check --npm"
+    ));
+  }
+
+  return dedupeAiReportItems(problems);
+}
+
+function buildAiReportStrengths({ evaluation, releaseCheck, branchStrategy }, language = "en") {
+  const highValueChecks = [
+    "README exists",
+    "License exists",
+    "Changelog exists",
+    "Contribution guide exists",
+    "Issue templates exist",
+    "Pull request template exists",
+    "AI assistant instructions exist",
+    "Test directory exists",
+    "npm test script exists",
+    "CI workflow exists",
+    "Release workflow exists",
+    "Security policy exists",
+    "Security scanning is documented"
+  ];
+  const strengths = evaluation.checks
+    .filter((check) => check.pass && highValueChecks.includes(check.name))
+    .slice(0, 10)
+    .map((check) => ({
+      area: check.category,
+      message: aiReportText("foundationPass", language, {
+        check: translateEvaluationCheckName(check.name, language)
+      })
+    }));
+
+  if (["READY", "RELEASED"].includes(releaseCheck.status)) {
+    strengths.push({
+      area: "release",
+      message: aiReportText("releaseReady", language)
+    });
+  }
+
+  strengths.push({
+    area: "branch",
+    message: aiReportText("strategyReady", language, {
+      strategy: translateStrategyName(branchStrategy.name, language)
+    })
+  });
+
+  if (!strengths.length) {
+    strengths.push({
+      area: "foundation",
+      message: aiReportText("bootstrapAvailable", language)
+    });
+  }
+
+  return strengths;
+}
+
+function buildAiReportDirection({ evaluation, releaseCheck, branchStrategy }, language = "en") {
+  const missingChecks = new Set(evaluation.checks.filter((check) => !check.pass).map((check) => check.name));
+  const direction = [];
+
+  if (evaluation.score < 80) {
+    direction.push(aiReportText("directionRaiseScore", language));
+  }
+
+  if (["README exists", "Issue templates exist", "Pull request template exists", "Contribution guide exists"].some((name) => missingChecks.has(name))) {
+    direction.push(aiReportText("directionOss", language));
+  }
+
+  if (missingChecks.has("AI assistant instructions exist")) {
+    direction.push(aiReportText("directionAi", language));
+  }
+
+  if (["npm test script exists", "CI workflow exists"].some((name) => missingChecks.has(name))) {
+    direction.push(aiReportText("directionTests", language));
+  }
+
+  if (releaseCheck.status === "ACTION_REQUIRED") {
+    direction.push(aiReportText("directionRelease", language));
+  }
+
+  direction.push(aiReportText("directionStrategy", language, {
+    strategy: translateStrategyName(branchStrategy.name, language)
+  }));
+  direction.push(aiReportText("directionAiPolicy", language));
+
+  return dedupeStrings(direction);
+}
+
+function buildAiReportCommands({ evaluation, releaseCheck }, language = "en") {
+  const missingChecks = new Set(evaluation.checks.filter((check) => !check.pass).map((check) => check.name));
+  const commands = [];
+
+  if (["README exists", "Issue templates exist", "Pull request template exists", "Contribution guide exists", "License exists", "Roadmap exists"].some((name) => missingChecks.has(name))) {
+    commands.push(aiReportCommand("aigate start --route oss", aiReportText("commandOss", language)));
+  }
+
+  if (missingChecks.has("AI assistant instructions exist")) {
+    commands.push(aiReportCommand("aigate start --route ai --provider all", aiReportText("commandAi", language)));
+  }
+
+  commands.push(aiReportCommand("aigate ai report --output .aigate/reports/ai-report.md", aiReportText("commandReport", language)));
+  commands.push(aiReportCommand("aigate test", aiReportText("commandTest", language)));
+  commands.push(aiReportCommand("aigate aitest --provider codex", aiReportText("commandAiTest", language)));
+
+  if (releaseCheck.status === "ACTION_REQUIRED") {
+    commands.push(aiReportCommand("aigate release-check --npm", aiReportText("commandRelease", language)));
+  }
+
+  commands.push(aiReportCommand("aigate git-ready", aiReportText("commandGate", language)));
+  return dedupeAiReportCommands(commands);
+}
+
+function aiReportProblem(severity, area, message, command) {
+  return { severity, area, message, command };
+}
+
+function aiReportCommand(command, reason) {
+  return { command, reason };
+}
+
+function aiReportCommandForEvaluationCheck(name) {
+  const commands = {
+    "AIGate configuration exists": "aigate init",
+    "Branch strategy is documented": "aigate branch-strategy --apply",
+    "Git upload workflow is documented": "aigate start --route oss",
+    "Pull request template exists": "aigate start --route oss",
+    "CODEOWNERS exists": "aigate start --route oss --owner @your-org/team",
+    "Contribution guide exists": "aigate start --route oss",
+    "Issue templates exist": "aigate start --route oss",
+    "AI assistant instructions exist": "aigate start --route ai --provider all",
+    "Test directory exists": "aigate test",
+    "npm test script exists": "aigate test",
+    "CI gate script exists": "aigate test",
+    "CI workflow exists": "aigate github check --format json",
+    "Release workflow exists": "aigate release-check",
+    "Dependabot exists": "aigate ai report",
+    "Security policy exists": "aigate start --route oss",
+    "Security scanning is documented": "aigate report --format sarif",
+    "OpenSSF Scorecard workflow exists": "aigate audit-report",
+    "README exists": "aigate start --route oss",
+    "License exists": "aigate start --route oss",
+    "Changelog exists": "aigate start --route oss",
+    "Roadmap exists": "aigate start --route oss",
+    "Package metadata exists": "npm init",
+    "Support policy exists": "aigate start --route oss",
+    "Governance exists": "aigate audit-report"
+  };
+  return commands[name] ?? "aigate ai report";
+}
+
+function dedupeAiReportItems(items) {
+  const seen = new Set();
+  return items.filter((item) => {
+    const key = `${item.severity}:${item.area}:${item.message}:${item.command}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
+function dedupeAiReportCommands(commands) {
+  const seen = new Set();
+  return commands.filter((item) => {
+    if (seen.has(item.command)) {
+      return false;
+    }
+    seen.add(item.command);
+    return true;
+  });
+}
+
+function dedupeStrings(values) {
+  return [...new Set(values)];
+}
+
+function renderAiProjectReport(report, language = "en") {
+  const labels = aiReportLabels(language);
+  const lines = [
+    `# ${labels.title}`,
+    "",
+    `- ${labels.status}: ${automationStatus(report.status, language)}`,
+    `- ${labels.branch}: ${report.branch}`,
+    `- ${labels.changedFiles}: ${report.changedFiles}`,
+    `- ${labels.secretFindings}: ${report.secretFindings}`,
+    `- ${labels.projectScore}: ${report.projectScore}/100 (${report.projectGrade})`,
+    `- ${labels.releaseStatus}: ${automationStatus(report.releaseStatus, language)}`,
+    `- ${labels.recommendedStrategy}: ${translateStrategyName(report.recommendedStrategy, language)}`,
+    "",
+    `## ${labels.problems}`,
+    "",
+    ...(report.problems.length
+      ? report.problems.map((problem) => `- ${severityLabel(problem.severity, language)} ${translateAuditArea(problem.area, language)}: ${problem.message}${problem.command ? ` (${labels.command}: \`${problem.command}\`)` : ""}`)
+      : [`- ${labels.none}`]),
+    "",
+    `## ${labels.strengths}`,
+    "",
+    ...report.strengths.map((strength) => `- ${translateAuditArea(strength.area, language)}: ${strength.message}`),
+    "",
+    `## ${labels.direction}`,
+    "",
+    ...report.direction.map((item) => `- ${item}`),
+    "",
+    `## ${labels.commands}`,
+    "",
+    ...report.suggestedCommands.map((item) => `- \`${item.command}\`: ${item.reason}`),
+    "",
+    `## ${labels.aiHandoff}`,
+    "",
+    `- ${labels.provider}: ${report.ai?.provider ?? "auto"} (${report.ai?.providerInstalled ? labels.installed : labels.notInstalled})`,
+    `- ${labels.applyMode}: ${report.ai?.applied ? labels.yes : labels.no}`
+  ];
+
+  if (report.ai?.promptPath) {
+    lines.push(`- ${labels.prompt}: ${report.ai.promptPath}`);
+  }
+
+  if (report.ai?.agent) {
+    lines.push(
+      `- ${labels.agent}: ${automationStatus(report.ai.agent.exitCode === 0 ? "PASS" : "FAILED", language)}`,
+      `- ${labels.exitCode}: ${report.ai.agent.exitCode}`
+    );
+  } else {
+    lines.push(`- ${labels.next}: ${labels.applyHint}`);
+  }
+
+  return lines.join("\n");
+}
+
+function renderAiProjectReportPrompt(report, language = "en") {
+  const labels = aiReportLabels(language);
+  return [
+    `# ${labels.title}`,
+    "",
+    aiReportText("promptIntro", language),
+    "",
+    `- ${labels.status}: ${automationStatus(report.status, language)}`,
+    `- ${labels.branch}: ${report.branch}`,
+    `- ${labels.projectScore}: ${report.projectScore}/100 (${report.projectGrade})`,
+    `- ${labels.recommendedStrategy}: ${translateStrategyName(report.recommendedStrategy, language)}`,
+    "",
+    `## ${labels.problems}`,
+    "",
+    ...(report.problems.length
+      ? report.problems.map((problem) => `- ${severityLabel(problem.severity, language)} ${translateAuditArea(problem.area, language)}: ${problem.message}`)
+      : [`- ${labels.none}`]),
+    "",
+    `## ${labels.strengths}`,
+    "",
+    ...report.strengths.map((strength) => `- ${translateAuditArea(strength.area, language)}: ${strength.message}`),
+    "",
+    `## ${labels.direction}`,
+    "",
+    ...report.direction.map((item) => `- ${item}`),
+    "",
+    `## ${labels.commands}`,
+    "",
+    ...report.suggestedCommands.map((item) => `- \`${item.command}\`: ${item.reason}`),
+    "",
+    aiReportText("promptRules", language)
+  ].join("\n");
+}
+
+function renderAiReportError(kind, language, values = {}) {
+  const labels = aiReportLabels(language);
+  if (kind === "unknown-provider") {
+    return `${labels.error}: ${labels.unknownProvider} ${values.provider}\n${labels.supportedProviders}: auto, codex, claude, gemini`;
+  }
+
+  return `${labels.error}: ${labels.unknownAction} ${values.action}\n${labels.supportedActions}: report`;
+}
+
+function aiReportLabels(language = "en") {
+  return {
+    en: {
+      agent: "Agent",
+      aiHandoff: "AI Handoff",
+      applyHint: "Use `aigate ai report --apply --provider codex` only when you want AIGate to run an AI agent.",
+      applyMode: "Applied",
+      branch: "Branch",
+      changedFiles: "Changed files",
+      command: "Command",
+      commands: "Suggested Commands",
+      direction: "Direction",
+      error: "Error",
+      exitCode: "Exit code",
+      installed: "installed",
+      next: "Next",
+      no: "no",
+      none: "No current problem detected by local checks.",
+      notInstalled: "not installed",
+      problems: "Current Problems",
+      projectScore: "Project score",
+      prompt: "Prompt",
+      provider: "Provider",
+      recommendedStrategy: "Recommended strategy",
+      releaseStatus: "Release status",
+      secretFindings: "Secret findings",
+      status: "Status",
+      strengths: "What Is Working",
+      supportedActions: "Supported AI actions",
+      supportedProviders: "Supported providers",
+      title: "AIGate AI Report",
+      unknownAction: "Unknown AI action:",
+      unknownProvider: "Unknown AI provider:",
+      yes: "yes"
+    },
+    ko: {
+      agent: "에이전트",
+      aiHandoff: "AI 전달",
+      applyHint: "AIGate가 AI 에이전트를 실행하길 원할 때만 `aigate ai report --apply --provider codex`를 사용하세요.",
+      applyMode: "적용 여부",
+      branch: "브랜치",
+      changedFiles: "변경 파일",
+      command: "명령",
+      commands: "추천 명령어",
+      direction: "방향성",
+      error: "오류",
+      exitCode: "종료 코드",
+      installed: "설치됨",
+      next: "다음 단계",
+      no: "아니오",
+      none: "로컬 검사에서 현재 문제점이 감지되지 않았습니다.",
+      notInstalled: "설치되지 않음",
+      problems: "현재 문제점",
+      projectScore: "프로젝트 점수",
+      prompt: "프롬프트",
+      provider: "제공자",
+      recommendedStrategy: "권장 전략",
+      releaseStatus: "릴리스 상태",
+      secretFindings: "민감 정보 탐지",
+      status: "상태",
+      strengths: "잘된 점",
+      supportedActions: "지원 AI 작업",
+      supportedProviders: "지원 제공자",
+      title: "AIGate AI 리포트",
+      unknownAction: "알 수 없는 AI 작업:",
+      unknownProvider: "알 수 없는 AI 제공자:",
+      yes: "예"
+    },
+    ja: {
+      agent: "エージェント",
+      aiHandoff: "AI 引き継ぎ",
+      applyHint: "AIGate に AI エージェントを実行させたい場合のみ `aigate ai report --apply --provider codex` を使ってください。",
+      applyMode: "適用",
+      branch: "ブランチ",
+      changedFiles: "変更ファイル",
+      command: "コマンド",
+      commands: "推奨コマンド",
+      direction: "方向性",
+      error: "エラー",
+      exitCode: "終了コード",
+      installed: "インストール済み",
+      next: "次の手順",
+      no: "いいえ",
+      none: "ローカルチェックで現在の問題は検出されていません。",
+      notInstalled: "未インストール",
+      problems: "現在の問題",
+      projectScore: "プロジェクトスコア",
+      prompt: "プロンプト",
+      provider: "Provider",
+      recommendedStrategy: "推奨戦略",
+      releaseStatus: "リリース状態",
+      secretFindings: "機密情報検出",
+      status: "状態",
+      strengths: "良い点",
+      supportedActions: "対応 AI アクション",
+      supportedProviders: "対応 provider",
+      title: "AIGate AI レポート",
+      unknownAction: "不明な AI アクション:",
+      unknownProvider: "不明な AI provider:",
+      yes: "はい"
+    },
+    zh: {
+      agent: "Agent",
+      aiHandoff: "AI 交接",
+      applyHint: "只有在希望 AIGate 运行 AI agent 时才使用 `aigate ai report --apply --provider codex`。",
+      applyMode: "已应用",
+      branch: "分支",
+      changedFiles: "变更文件",
+      command: "命令",
+      commands: "建议命令",
+      direction: "方向",
+      error: "错误",
+      exitCode: "退出码",
+      installed: "已安装",
+      next: "下一步",
+      no: "否",
+      none: "本地检查未发现当前问题。",
+      notInstalled: "未安装",
+      problems: "当前问题",
+      projectScore: "项目分数",
+      prompt: "提示",
+      provider: "Provider",
+      recommendedStrategy: "推荐策略",
+      releaseStatus: "发布状态",
+      secretFindings: "敏感信息发现",
+      status: "状态",
+      strengths: "做得好的部分",
+      supportedActions: "支持的 AI 操作",
+      supportedProviders: "支持的 provider",
+      title: "AIGate AI 报告",
+      unknownAction: "未知 AI 操作:",
+      unknownProvider: "未知 AI provider:",
+      yes: "是"
+    }
+  }[language] ?? aiReportLabels("en");
+}
+
+function severityLabel(severity, language = "en") {
+  return {
+    en: { high: "HIGH", medium: "MEDIUM", low: "LOW" },
+    ko: { high: "높음", medium: "중간", low: "낮음" },
+    ja: { high: "高", medium: "中", low: "低" },
+    zh: { high: "高", medium: "中", low: "低" }
+  }[language]?.[severity] ?? severity;
+}
+
+function aiReportText(key, language = "en", values = {}) {
+  const table = {
+    en: {
+      bootstrapAvailable: "AIGate can bootstrap missing repository foundations with `aigate start --route oss`.",
+      commandAi: "Create AI assistant instructions for Codex, Gemini, and Claude Code.",
+      commandAiTest: "Create a focused AI remediation prompt from failing tests.",
+      commandGate: "Run the final local gate before commit, push, or PR.",
+      commandOss: "Create README, issue templates, PR template, CODEOWNERS, and OSS docs.",
+      commandRelease: "Confirm package metadata, tag, workflow, and npm state.",
+      commandReport: "Save this AI report for PRs, handoffs, or release notes.",
+      commandTest: "Run Git readiness and the detected project test command.",
+      directionAi: "Align AI assistants with repository rules so Codex, Gemini, and Claude Code follow the same workflow.",
+      directionAiPolicy: "Keep AI-generated work on focused branches and run `aigate test` or `aigate aitest` before push.",
+      directionOss: "Open the public contribution funnel with README, issue templates, PR template, CODEOWNERS, and contribution docs.",
+      directionRaiseScore: "Raise the project foundation score to at least 80 before public promotion.",
+      directionRelease: "Finish release-check items before creating a release tag or publishing package changes.",
+      directionStrategy: `Use ${values.strategy ?? "the recommended strategy"} as the branch policy baseline.`,
+      directionTests: "Make test and CI commands easy to run so contributors can validate changes before review.",
+      foundationPass: `${values.check} is present.`,
+      highRiskFiles: "Local changes include file names that may contain secrets or auth state.",
+      largeChange: `The workspace has ${values.count} changed paths; split work if the PR becomes hard to review.`,
+      missingFoundation: `Missing foundation: ${values.check}.`,
+      notGitRepo: "AIGate is not running inside a Git repository.",
+      npmNotPublished: `${values.packageName}@${values.version} is not published to npm yet.`,
+      promptIntro: "Use this brief to improve the repository with focused, minimal changes.",
+      promptRules: "Rules: preserve unrelated user work, do not push directly to main, avoid broad refactors, run validation, and summarize files changed.",
+      releaseCheck: `Release check needs attention: ${values.check}.`,
+      releaseReady: "Release metadata and workflow checks are ready.",
+      secretFindings: `${values.count} possible secret finding(s) were detected.`,
+      strategyReady: `Branch strategy recommendation is available: ${values.strategy}.`
+    },
+    ko: {
+      bootstrapAvailable: "`aigate start --route oss`로 부족한 저장소 기반 파일을 만들 수 있습니다.",
+      commandAi: "Codex, Gemini, Claude Code용 AI 어시스턴트 지침을 생성합니다.",
+      commandAiTest: "실패한 테스트를 바탕으로 집중된 AI 수정 프롬프트를 만듭니다.",
+      commandGate: "커밋, 푸시, PR 전에 마지막 로컬 게이트를 실행합니다.",
+      commandOss: "README, 이슈 템플릿, PR 템플릿, CODEOWNERS, 오픈소스 문서를 생성합니다.",
+      commandRelease: "패키지 메타데이터, 태그, 워크플로, npm 상태를 확인합니다.",
+      commandReport: "이 AI 리포트를 PR, 인수인계, 릴리스 노트용으로 저장합니다.",
+      commandTest: "Git 준비 상태와 감지된 프로젝트 테스트 명령을 실행합니다.",
+      directionAi: "Codex, Gemini, Claude Code가 같은 워크플로를 따르도록 AI 어시스턴트 지침을 맞추세요.",
+      directionAiPolicy: "AI 생성 작업은 집중된 브랜치에서 진행하고 push 전 `aigate test` 또는 `aigate aitest`를 실행하세요.",
+      directionOss: "README, 이슈 템플릿, PR 템플릿, CODEOWNERS, 기여 문서로 공개 기여 흐름을 여세요.",
+      directionRaiseScore: "공개 홍보 전에 프로젝트 기반 점수를 최소 80 이상으로 올리세요.",
+      directionRelease: "릴리스 태그 생성이나 패키지 변경 배포 전에 release-check 항목을 마무리하세요.",
+      directionStrategy: `${values.strategy ?? "권장 전략"}을 브랜치 정책 기준으로 사용하세요.`,
+      directionTests: "기여자가 리뷰 전 검증할 수 있도록 test와 CI 명령을 쉽게 실행 가능하게 만드세요.",
+      foundationPass: `${values.check} 항목이 준비되어 있습니다.`,
+      highRiskFiles: "로컬 변경사항에 민감 정보나 인증 상태가 들어갈 수 있는 파일명이 있습니다.",
+      largeChange: `현재 변경 경로가 ${values.count}개입니다. PR 리뷰가 어려워지면 작업을 나누세요.`,
+      missingFoundation: `부족한 기반 항목: ${values.check}.`,
+      notGitRepo: "AIGate가 Git 저장소 안에서 실행되고 있지 않습니다.",
+      npmNotPublished: `${values.packageName}@${values.version}은 아직 npm에 배포되지 않았습니다.`,
+      promptIntro: "이 브리프를 사용해 저장소를 작고 집중된 변경으로 개선하세요.",
+      promptRules: "규칙: 관련 없는 사용자 작업은 보존하고, main에 직접 push하지 말고, 큰 리팩터링을 피하고, 검증을 실행한 뒤 변경 파일을 요약하세요.",
+      releaseCheck: `릴리스 검사 조치 필요: ${values.check}.`,
+      releaseReady: "릴리스 메타데이터와 워크플로 검사가 준비되어 있습니다.",
+      secretFindings: `민감 정보 의심 항목 ${values.count}개가 감지됐습니다.`,
+      strategyReady: `브랜치 전략 추천이 준비되어 있습니다: ${values.strategy}.`
+    },
+    ja: {
+      bootstrapAvailable: "`aigate start --route oss` で不足しているリポジトリ基盤を作成できます。",
+      commandAi: "Codex、Gemini、Claude Code 用の AI アシスタント指示を作成します。",
+      commandAiTest: "失敗したテストから焦点を絞った AI 修正プロンプトを作成します。",
+      commandGate: "コミット、プッシュ、PR 前の最後のローカルゲートを実行します。",
+      commandOss: "README、issue テンプレート、PR テンプレート、CODEOWNERS、OSS 文書を作成します。",
+      commandRelease: "パッケージメタデータ、タグ、workflow、npm 状態を確認します。",
+      commandReport: "この AI レポートを PR、引き継ぎ、リリースノート用に保存します。",
+      commandTest: "Git 準備状態と検出したプロジェクトテストコマンドを実行します。",
+      directionAi: "Codex、Gemini、Claude Code が同じワークフローに従うよう AI アシスタント指示を揃えます。",
+      directionAiPolicy: "AI 生成作業は焦点を絞ったブランチで進め、push 前に `aigate test` または `aigate aitest` を実行します。",
+      directionOss: "README、issue テンプレート、PR テンプレート、CODEOWNERS、貢献文書で公開貢献導線を開きます。",
+      directionRaiseScore: "公開プロモーション前にプロジェクト基盤スコアを 80 以上へ上げます。",
+      directionRelease: "リリースタグ作成やパッケージ変更公開の前に release-check 項目を完了します。",
+      directionStrategy: `${values.strategy ?? "推奨戦略"} をブランチポリシーの基準として使います。`,
+      directionTests: "コントリビューターがレビュー前に検証できるよう test と CI コマンドを実行しやすくします。",
+      foundationPass: `${values.check} が用意されています。`,
+      highRiskFiles: "ローカル変更に機密情報や認証状態を含む可能性があるファイル名があります。",
+      largeChange: `変更パスが ${values.count} 件あります。PR レビューが難しくなる場合は作業を分割してください。`,
+      missingFoundation: `不足している基盤: ${values.check}.`,
+      notGitRepo: "AIGate が Git リポジトリ内で実行されていません。",
+      npmNotPublished: `${values.packageName}@${values.version} はまだ npm に公開されていません。`,
+      promptIntro: "このブリーフを使い、リポジトリを小さく焦点の合った変更で改善してください。",
+      promptRules: "ルール: 無関係なユーザー作業を保持し、main へ直接 push せず、大きなリファクタリングを避け、検証を実行し、変更ファイルを要約してください。",
+      releaseCheck: `リリースチェックで対応が必要: ${values.check}.`,
+      releaseReady: "リリースメタデータと workflow チェックは準備済みです。",
+      secretFindings: `機密情報の疑いがある項目を ${values.count} 件検出しました。`,
+      strategyReady: `ブランチ戦略推薦があります: ${values.strategy}.`
+    },
+    zh: {
+      bootstrapAvailable: "可以用 `aigate start --route oss` 创建缺失的仓库基础文件。",
+      commandAi: "为 Codex、Gemini 和 Claude Code 创建 AI 助手指令。",
+      commandAiTest: "根据失败测试创建聚焦的 AI 修复提示。",
+      commandGate: "在提交、推送或 PR 前运行最终本地关卡。",
+      commandOss: "创建 README、issue 模板、PR 模板、CODEOWNERS 和开源文档。",
+      commandRelease: "确认包元数据、标签、workflow 和 npm 状态。",
+      commandReport: "保存此 AI 报告，用于 PR、交接或发布说明。",
+      commandTest: "运行 Git 就绪检查和检测到的项目测试命令。",
+      directionAi: "让 Codex、Gemini 和 Claude Code 遵循相同工作流。",
+      directionAiPolicy: "AI 生成的工作应放在聚焦分支，并在 push 前运行 `aigate test` 或 `aigate aitest`。",
+      directionOss: "用 README、issue 模板、PR 模板、CODEOWNERS 和贡献文档打开公开贡献入口。",
+      directionRaiseScore: "公开推广前把项目基础分提高到至少 80。",
+      directionRelease: "创建发布标签或发布包变更前完成 release-check 项。",
+      directionStrategy: `将 ${values.strategy ?? "推荐策略"} 作为分支政策基线。`,
+      directionTests: "让测试和 CI 命令易于运行，方便贡献者在评审前验证。",
+      foundationPass: `${values.check} 已就绪。`,
+      highRiskFiles: "本地变更包含可能带有敏感信息或认证状态的文件名。",
+      largeChange: `当前有 ${values.count} 个变更路径；如果 PR 难以评审，请拆分工作。`,
+      missingFoundation: `缺失基础项: ${values.check}.`,
+      notGitRepo: "AIGate 未在 Git 仓库内运行。",
+      npmNotPublished: `${values.packageName}@${values.version} 尚未发布到 npm。`,
+      promptIntro: "使用此简报，以聚焦且最小的变更改进仓库。",
+      promptRules: "规则: 保留无关用户工作，不要直接 push 到 main，避免大范围重构，运行验证，并总结变更文件。",
+      releaseCheck: `发布检查需要处理: ${values.check}.`,
+      releaseReady: "发布元数据和 workflow 检查已就绪。",
+      secretFindings: `检测到 ${values.count} 个疑似敏感信息项。`,
+      strategyReady: `分支策略建议已可用: ${values.strategy}.`
+    }
+  };
+
+  return table[language]?.[key] ?? table.en[key] ?? key;
+}
+
 function buildReport(type) {
   const status = buildGitStatus();
   const evaluation = buildEvaluation();
@@ -5873,6 +6678,532 @@ function renderPullRequestTemplateDraft(language = "en") {
   ].join("\n");
 }
 
+function buildRepositoryStarterFiles(outputDir, language = "en", packageJson = {}, owner = "@maintainers") {
+  const projectName = packageJson.name ?? "my-project";
+  const strategy = buildBranchStrategy();
+  return [
+    {
+      path: join(outputDir, "README.md"),
+      content: renderStarterReadme(projectName, language)
+    },
+    {
+      path: join(outputDir, "CONTRIBUTING.md"),
+      content: renderStarterContributing(language)
+    },
+    {
+      path: join(outputDir, "SECURITY.md"),
+      content: renderStarterSecurity(language)
+    },
+    {
+      path: join(outputDir, "SUPPORT.md"),
+      content: renderStarterSupport(language)
+    },
+    {
+      path: join(outputDir, "CHANGELOG.md"),
+      content: renderStarterChangelog(language)
+    },
+    {
+      path: join(outputDir, "docs", "roadmap.md"),
+      content: renderStarterRoadmap(language)
+    },
+    {
+      path: join(outputDir, "docs", "branch-strategy.md"),
+      content: `${renderBranchStrategyMarkdown(strategy, language)}\n`
+    },
+    {
+      path: join(outputDir, "docs", "git-upload-workflow.md"),
+      content: renderStarterGitUploadWorkflow(language)
+    },
+    {
+      path: join(outputDir, ".github", "ISSUE_TEMPLATE", "bug_report.yml"),
+      content: renderIssueTemplate("bug", language)
+    },
+    {
+      path: join(outputDir, ".github", "ISSUE_TEMPLATE", "feature_request.yml"),
+      content: renderIssueTemplate("feature", language)
+    },
+    {
+      path: join(outputDir, ".github", "ISSUE_TEMPLATE", "config.yml"),
+      content: renderIssueTemplateConfig(language)
+    },
+    {
+      path: join(outputDir, ".github", "DISCUSSION_TEMPLATE", "ideas.yml"),
+      content: renderDiscussionIdeasTemplate(language)
+    },
+    {
+      path: join(outputDir, ".github", "pull_request_template.md"),
+      content: renderPullRequestTemplateDraft(language)
+    },
+    {
+      path: join(outputDir, ".github", "CODEOWNERS"),
+      content: `* ${owner}\n`
+    }
+  ];
+}
+
+function normalizeCodeownersOwner(owner) {
+  const value = String(owner ?? "").trim();
+  if (!value) {
+    return "@maintainers";
+  }
+
+  return value.startsWith("@") ? value : `@${value}`;
+}
+
+function repositoryStarterLabels(language = "en") {
+  return {
+    en: {
+      complete: "AIGate open-source starter files",
+      outputDir: "Output directory",
+      owner: "CODEOWNERS owner"
+    },
+    ko: {
+      complete: "AIGate 오픈소스 시작 파일",
+      outputDir: "출력 디렉터리",
+      owner: "CODEOWNERS 소유자"
+    },
+    ja: {
+      complete: "AIGate オープンソース初期ファイル",
+      outputDir: "出力ディレクトリ",
+      owner: "CODEOWNERS オーナー"
+    },
+    zh: {
+      complete: "AIGate 开源起始文件",
+      outputDir: "输出目录",
+      owner: "CODEOWNERS 所有者"
+    }
+  }[language] ?? repositoryStarterLabels("en");
+}
+
+function renderStarterReadme(projectName, language = "en") {
+  const title = projectNameToTitle(projectName);
+  if (language === "ko") {
+    return [
+      `# ${title}`,
+      "",
+      "프로젝트의 목적, 핵심 기능, 설치 방법을 여기에 정리하세요.",
+      "",
+      "## 빠른 시작",
+      "",
+      "```sh",
+      "npm install",
+      "npm test",
+      "```",
+      "",
+      "## 개발 워크플로",
+      "",
+      "```sh",
+      "aigate start --route quickstart",
+      "aigate ai report",
+      "aigate test",
+      "aigate git-ready",
+      "```",
+      "",
+      "## 기여",
+      "",
+      "기여 전 `CONTRIBUTING.md`를 읽고 PR에는 검증 명령과 릴리스 영향을 적어주세요.",
+      "",
+      "## 라이선스",
+      "",
+      "라이선스 정보를 `LICENSE`에 추가하세요.",
+      ""
+    ].join("\n");
+  }
+
+  if (language === "ja") {
+    return [
+      `# ${title}`,
+      "",
+      "プロジェクトの目的、主要機能、インストール方法をここにまとめてください。",
+      "",
+      "## クイックスタート",
+      "",
+      "```sh",
+      "npm install",
+      "npm test",
+      "```",
+      "",
+      "## 開発ワークフロー",
+      "",
+      "```sh",
+      "aigate start --route quickstart",
+      "aigate ai report",
+      "aigate test",
+      "aigate git-ready",
+      "```",
+      "",
+      "## コントリビュート",
+      "",
+      "貢献前に `CONTRIBUTING.md` を読み、PR には検証コマンドとリリース影響を記載してください。",
+      "",
+      "## ライセンス",
+      "",
+      "ライセンス情報を `LICENSE` に追加してください。",
+      ""
+    ].join("\n");
+  }
+
+  if (language === "zh") {
+    return [
+      `# ${title}`,
+      "",
+      "在这里说明项目目标、核心功能和安装方式。",
+      "",
+      "## 快速开始",
+      "",
+      "```sh",
+      "npm install",
+      "npm test",
+      "```",
+      "",
+      "## 开发工作流",
+      "",
+      "```sh",
+      "aigate start --route quickstart",
+      "aigate ai report",
+      "aigate test",
+      "aigate git-ready",
+      "```",
+      "",
+      "## 贡献",
+      "",
+      "贡献前请阅读 `CONTRIBUTING.md`，并在 PR 中写明验证命令和发布影响。",
+      "",
+      "## 许可证",
+      "",
+      "请在 `LICENSE` 中补充许可证信息。",
+      ""
+    ].join("\n");
+  }
+
+  return [
+    `# ${title}`,
+    "",
+    "Describe the project purpose, main features, and installation path here.",
+    "",
+    "## Quick Start",
+    "",
+    "```sh",
+    "npm install",
+    "npm test",
+    "```",
+    "",
+    "## Development Workflow",
+    "",
+    "```sh",
+    "aigate start --route quickstart",
+    "aigate ai report",
+    "aigate test",
+    "aigate git-ready",
+    "```",
+    "",
+    "## Contributing",
+    "",
+    "Read `CONTRIBUTING.md` before contributing, and include validation commands and release impact in each pull request.",
+    "",
+    "## License",
+    "",
+    "Add license details in `LICENSE`.",
+    ""
+  ].join("\n");
+}
+
+function renderStarterContributing(language = "en") {
+  if (language === "ko") {
+    return [
+      "# 기여 가이드",
+      "",
+      "1. 이슈를 열어 문제나 제안을 먼저 공유합니다.",
+      "2. `feature/*`, `fix/*`, `docs/*`, `chore/*`, `codex/*` 브랜치를 사용합니다.",
+      "3. 변경 전후에 아래 명령을 실행합니다.",
+      "",
+      "```sh",
+      "aigate ai report",
+      "aigate test",
+      "aigate git-ready",
+      "```",
+      "",
+      "4. PR에는 요약, 검증, 릴리스 영향을 포함합니다.",
+      ""
+    ].join("\n");
+  }
+
+  if (language === "ja") {
+    return [
+      "# コントリビューションガイド",
+      "",
+      "1. まず issue で問題や提案を共有します。",
+      "2. `feature/*`, `fix/*`, `docs/*`, `chore/*`, `codex/*` ブランチを使います。",
+      "3. 変更前後に次を実行します。",
+      "",
+      "```sh",
+      "aigate ai report",
+      "aigate test",
+      "aigate git-ready",
+      "```",
+      "",
+      "4. PR には概要、検証、リリース影響を含めます。",
+      ""
+    ].join("\n");
+  }
+
+  if (language === "zh") {
+    return [
+      "# 贡献指南",
+      "",
+      "1. 先通过 issue 分享问题或建议。",
+      "2. 使用 `feature/*`, `fix/*`, `docs/*`, `chore/*`, `codex/*` 分支。",
+      "3. 在变更前后运行以下命令。",
+      "",
+      "```sh",
+      "aigate ai report",
+      "aigate test",
+      "aigate git-ready",
+      "```",
+      "",
+      "4. PR 中包含摘要、验证和发布影响。",
+      ""
+    ].join("\n");
+  }
+
+  return [
+    "# Contributing",
+    "",
+    "1. Open an issue first for bugs, proposals, or unclear work.",
+    "2. Use `feature/*`, `fix/*`, `docs/*`, `chore/*`, or `codex/*` branches.",
+    "3. Run these commands before and after changes.",
+    "",
+    "```sh",
+    "aigate ai report",
+    "aigate test",
+    "aigate git-ready",
+    "```",
+    "",
+    "4. Include summary, validation, and release impact in each pull request.",
+    ""
+  ].join("\n");
+}
+
+function renderStarterSecurity(language = "en") {
+  if (language === "ko") {
+    return "# 보안 정책\n\n보안 취약점은 공개 이슈 대신 관리자에게 비공개로 제보해주세요.\n\n```sh\naigate report --format sarif\n```\n";
+  }
+
+  if (language === "ja") {
+    return "# セキュリティポリシー\n\nセキュリティ脆弱性は公開 issue ではなく、メンテナーへ非公開で報告してください。\n\n```sh\naigate report --format sarif\n```\n";
+  }
+
+  if (language === "zh") {
+    return "# 安全政策\n\n请不要在公开 issue 中报告安全漏洞，请私下联系维护者。\n\n```sh\naigate report --format sarif\n```\n";
+  }
+
+  return "# Security Policy\n\nPlease report security vulnerabilities privately to the maintainers instead of opening a public issue.\n\n```sh\naigate report --format sarif\n```\n";
+}
+
+function renderStarterSupport(language = "en") {
+  if (language === "ko") {
+    return "# 지원\n\n질문은 Discussions를, 재현 가능한 버그는 Bug report 이슈 템플릿을 사용하세요.\n";
+  }
+
+  if (language === "ja") {
+    return "# サポート\n\n質問は Discussions、再現可能なバグは Bug report issue テンプレートを使用してください。\n";
+  }
+
+  if (language === "zh") {
+    return "# 支持\n\n问题请使用 Discussions，可复现 bug 请使用 Bug report issue 模板。\n";
+  }
+
+  return "# Support\n\nUse Discussions for questions and the Bug report issue template for reproducible bugs.\n";
+}
+
+function renderStarterChangelog(language = "en") {
+  if (language === "ko") {
+    return "# 변경 기록\n\n## 미배포\n\n- 초기 공개 저장소 기반 파일을 추가했습니다.\n";
+  }
+
+  if (language === "ja") {
+    return "# 変更履歴\n\n## 未リリース\n\n- 初期公開リポジトリ基盤ファイルを追加しました。\n";
+  }
+
+  if (language === "zh") {
+    return "# 变更日志\n\n## 未发布\n\n- 添加初始公开仓库基础文件。\n";
+  }
+
+  return "# Changelog\n\n## Unreleased\n\n- Add initial public repository foundation files.\n";
+}
+
+function renderStarterRoadmap(language = "en") {
+  if (language === "ko") {
+    return "# 로드맵\n\n## 진행 중\n\n- 첫 사용자 온보딩 개선\n- 테스트와 릴리스 자동화 강화\n\n## 계획\n\n- 더 많은 예제와 통합 문서\n- 팀 대시보드와 알림 정책\n";
+  }
+
+  if (language === "ja") {
+    return "# ロードマップ\n\n## 進行中\n\n- 初回ユーザーのオンボーディング改善\n- テストとリリース自動化の強化\n\n## 計画\n\n- 追加の例と連携ドキュメント\n- チームダッシュボードと通知ポリシー\n";
+  }
+
+  if (language === "zh") {
+    return "# 路线图\n\n## 进行中\n\n- 改善首次用户引导\n- 强化测试和发布自动化\n\n## 计划\n\n- 更多示例和集成文档\n- 团队仪表盘和通知政策\n";
+  }
+
+  return "# Roadmap\n\n## In Progress\n\n- Improve first-user onboarding\n- Strengthen test and release automation\n\n## Planned\n\n- More examples and integration docs\n- Team dashboards and notification policy\n";
+}
+
+function renderStarterGitUploadWorkflow(language = "en") {
+  if (language === "ko") {
+    return "# Git 업로드 워크플로\n\n```sh\ngit switch -c feature/my-work\naigate ai report\naigate test\naigate git-ready\ngit add <files>\ngit commit -m \"feat: short summary\"\naigate push -u origin feature/my-work\naigate pr-check\n```\n";
+  }
+
+  if (language === "ja") {
+    return "# Git アップロードワークフロー\n\n```sh\ngit switch -c feature/my-work\naigate ai report\naigate test\naigate git-ready\ngit add <files>\ngit commit -m \"feat: short summary\"\naigate push -u origin feature/my-work\naigate pr-check\n```\n";
+  }
+
+  if (language === "zh") {
+    return "# Git 上传工作流\n\n```sh\ngit switch -c feature/my-work\naigate ai report\naigate test\naigate git-ready\ngit add <files>\ngit commit -m \"feat: short summary\"\naigate push -u origin feature/my-work\naigate pr-check\n```\n";
+  }
+
+  return "# Git Upload Workflow\n\n```sh\ngit switch -c feature/my-work\naigate ai report\naigate test\naigate git-ready\ngit add <files>\ngit commit -m \"feat: short summary\"\naigate push -u origin feature/my-work\naigate pr-check\n```\n";
+}
+
+function renderIssueTemplate(type, language = "en") {
+  const labels = issueTemplateLabels(type, language);
+  return [
+    `name: ${quoteYamlScalar(labels.name)}`,
+    `description: ${quoteYamlScalar(labels.description)}`,
+    `title: ${quoteYamlScalar(labels.title)}`,
+    `labels: [${labels.labels.map((label) => quoteYamlScalar(label)).join(", ")}]`,
+    "body:",
+    "  - type: markdown",
+    "    attributes:",
+    `      value: ${quoteYamlScalar(labels.intro)}`,
+    "  - type: textarea",
+    "    id: context",
+    "    attributes:",
+    `      label: ${quoteYamlScalar(labels.context)}`,
+    `      description: ${quoteYamlScalar(labels.contextDescription)}`,
+    "    validations:",
+    "      required: true",
+    "  - type: textarea",
+    "    id: validation",
+    "    attributes:",
+    `      label: ${quoteYamlScalar(labels.validation)}`,
+    `      description: ${quoteYamlScalar(labels.validationDescription)}`,
+    "      value: |",
+    "        aigate ai report",
+    "        aigate test",
+    "        aigate git-ready",
+    "    validations:",
+    "      required: false",
+    ""
+  ].join("\n");
+}
+
+function issueTemplateLabels(type, language = "en") {
+  const bug = type === "bug";
+  const table = {
+    en: {
+      name: bug ? "Bug report" : "Feature request",
+      description: bug ? "Report a reproducible problem." : "Suggest a focused improvement.",
+      title: bug ? "[Bug]: " : "[Feature]: ",
+      labels: bug ? ["bug", "needs-triage"] : ["enhancement", "needs-triage"],
+      intro: bug ? "Thanks for reporting a reproducible problem." : "Thanks for proposing an improvement.",
+      context: bug ? "What happened?" : "What should change?",
+      contextDescription: bug ? "Include reproduction steps, expected behavior, and actual behavior." : "Describe the user need and the smallest useful change.",
+      validation: "Validation",
+      validationDescription: "Paste relevant AIGate or test output."
+    },
+    ko: {
+      name: bug ? "버그 제보" : "기능 제안",
+      description: bug ? "재현 가능한 문제를 제보합니다." : "집중된 개선 사항을 제안합니다.",
+      title: bug ? "[버그]: " : "[기능]: ",
+      labels: bug ? ["bug", "needs-triage"] : ["enhancement", "needs-triage"],
+      intro: bug ? "재현 가능한 문제를 알려주셔서 감사합니다." : "개선 제안을 남겨주셔서 감사합니다.",
+      context: bug ? "무슨 일이 있었나요?" : "무엇이 바뀌어야 하나요?",
+      contextDescription: bug ? "재현 단계, 기대 동작, 실제 동작을 적어주세요." : "사용자 필요와 가장 작은 유용한 변경을 설명해주세요.",
+      validation: "검증",
+      validationDescription: "관련 AIGate 또는 테스트 출력을 붙여주세요."
+    },
+    ja: {
+      name: bug ? "バグ報告" : "機能提案",
+      description: bug ? "再現可能な問題を報告します。" : "焦点を絞った改善を提案します。",
+      title: bug ? "[Bug]: " : "[Feature]: ",
+      labels: bug ? ["bug", "needs-triage"] : ["enhancement", "needs-triage"],
+      intro: bug ? "再現可能な問題の報告ありがとうございます。" : "改善提案ありがとうございます。",
+      context: bug ? "何が起きましたか?" : "何を変更すべきですか?",
+      contextDescription: bug ? "再現手順、期待動作、実際の動作を書いてください。" : "ユーザーの必要性と最小の有用な変更を説明してください。",
+      validation: "検証",
+      validationDescription: "関連する AIGate またはテスト出力を貼ってください。"
+    },
+    zh: {
+      name: bug ? "Bug 报告" : "功能建议",
+      description: bug ? "报告可复现的问题。" : "建议聚焦的改进。",
+      title: bug ? "[Bug]: " : "[Feature]: ",
+      labels: bug ? ["bug", "needs-triage"] : ["enhancement", "needs-triage"],
+      intro: bug ? "感谢你报告可复现的问题。" : "感谢你提出改进建议。",
+      context: bug ? "发生了什么?" : "应该改变什么?",
+      contextDescription: bug ? "请写出复现步骤、预期行为和实际行为。" : "请描述用户需求和最小可用改动。",
+      validation: "验证",
+      validationDescription: "粘贴相关 AIGate 或测试输出。"
+    }
+  };
+  return table[language] ?? table.en;
+}
+
+function renderIssueTemplateConfig(language = "en") {
+  const links = {
+    en: ["Ask a question", "Use Discussions for questions and design ideas."],
+    ko: ["질문하기", "질문과 설계 아이디어는 Discussions를 사용하세요."],
+    ja: ["質問する", "質問や設計アイデアは Discussions を使用してください。"],
+    zh: ["提问", "问题和设计想法请使用 Discussions。"]
+  }[language] ?? ["Ask a question", "Use Discussions for questions and design ideas."];
+
+  return [
+    "blank_issues_enabled: false",
+    "contact_links:",
+    "  - name: " + quoteYamlScalar(links[0]),
+    "    url: https://github.com/<owner>/<repo>/discussions",
+    "    about: " + quoteYamlScalar(links[1]),
+    ""
+  ].join("\n");
+}
+
+function renderDiscussionIdeasTemplate(language = "en") {
+  const labels = {
+    en: ["Idea", "Share an idea or direction.", "[Idea]: ", "What is the idea?", "What problem does it solve?"],
+    ko: ["아이디어", "아이디어나 방향성을 공유합니다.", "[아이디어]: ", "아이디어는 무엇인가요?", "어떤 문제를 해결하나요?"],
+    ja: ["アイデア", "アイデアや方向性を共有します。", "[Idea]: ", "アイデアは何ですか?", "どの問題を解決しますか?"],
+    zh: ["想法", "分享想法或方向。", "[Idea]: ", "这个想法是什么?", "它解决什么问题?"]
+  }[language] ?? ["Idea", "Share an idea or direction.", "[Idea]: ", "What is the idea?", "What problem does it solve?"];
+
+  return [
+    `title: ${quoteYamlScalar(labels[2])}`,
+    `labels: [${quoteYamlScalar("idea")}]`,
+    "body:",
+    "  - type: markdown",
+    "    attributes:",
+    `      value: ${quoteYamlScalar(labels[1])}`,
+    "  - type: textarea",
+    "    id: idea",
+    "    attributes:",
+    `      label: ${quoteYamlScalar(labels[3])}`,
+    "    validations:",
+    "      required: true",
+    "  - type: textarea",
+    "    id: problem",
+    "    attributes:",
+    `      label: ${quoteYamlScalar(labels[4])}`,
+    ""
+  ].join("\n");
+}
+
+function projectNameToTitle(projectName) {
+  return String(projectName || "my-project")
+    .replace(/^@[^/]+\//, "")
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ") || "My Project";
+}
+
 function resolveIntegrationProviders(providerArg) {
   const provider = String(providerArg).trim().toLowerCase();
   if (provider === "all") {
@@ -6709,6 +8040,18 @@ function translateAuditArea(area, language) {
     return { ko: "릴리스", ja: "リリース", zh: "发布" }[language] ?? area;
   }
 
+  if (area === "git") {
+    return { ko: "Git", ja: "Git", zh: "Git" }[language] ?? area;
+  }
+
+  if (area === "branch") {
+    return { ko: "브랜치", ja: "ブランチ", zh: "分支" }[language] ?? area;
+  }
+
+  if (area === "foundation") {
+    return { ko: "기반", ja: "基盤", zh: "基础" }[language] ?? area;
+  }
+
   return translateEvaluationCategory(area, language);
 }
 
@@ -7079,6 +8422,7 @@ function firstPositionalArg(args) {
     "--output",
     "--output-dir",
     "--owner",
+    "--prompt-output",
     "--pr",
     "--release",
     "--route",

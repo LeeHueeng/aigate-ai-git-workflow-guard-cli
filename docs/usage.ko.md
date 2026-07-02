@@ -36,6 +36,8 @@ Git 저장소 루트로 이동한 뒤 실행합니다.
 
 ```sh
 aigate start
+aigate start --route oss --dry-run
+aigate start --route oss --owner @your-org/team
 aigate start --route ai --provider codex
 aigate start --route full --provider all
 aigate init
@@ -49,6 +51,7 @@ aigate install-hook --pre-push
 | 명령어 | 목적 |
 | --- | --- |
 | `aigate start` | TTY에서는 화살표 선택 메뉴를 열고, 비대화형 shell에서는 quickstart 루트를 실행합니다. |
+| `aigate start --route oss --owner @your-org/team` | README, 기여 문서, 이슈 템플릿, PR 템플릿, CODEOWNERS, 운영 문서 초안을 생성합니다. 기존 파일은 `--force` 없이는 덮어쓰지 않습니다. |
 | `aigate start --route ai --provider codex` | AIGate 설정과 Codex 지침 파일을 생성합니다. |
 | `aigate start --route full --provider all` | 설정, AI 파일, pre-push hook, 릴리스 점검을 한 흐름으로 실행합니다. |
 | `aigate setup --language ko` | CLI 출력 언어를 저장합니다. |
@@ -81,6 +84,9 @@ push 전에 AIGate 점검을 붙이는 보호 래퍼입니다.
 aigate test
 aigate test --script test
 aigate test --command "npm run ci"
+aigate ai report
+aigate ai report --output .aigate/reports/ai-report.md
+aigate ai report --apply --provider codex
 aigate aitest
 aigate aitest --provider codex
 aigate aitest --apply --provider codex
@@ -97,6 +103,11 @@ aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --as
 안전 모드입니다. 실제 Codex, Claude, Gemini CLI 또는 사용자 지정 에이전트를
 실행하려면 `--apply`를 명시합니다.
 
+`aigate ai report`는 더 넓은 프로젝트 브리프입니다. 현재 문제점, 잘된 점,
+방향성, 추천 명령어, 릴리스 상태, 브랜치 전략, AI 전달 프롬프트를 정리합니다.
+기본값은 코드를 수정하지 않는 안전 모드이며, 선택한 AI CLI를 실행하려면
+`--apply --provider codex|claude|gemini`를 붙입니다.
+
 ## 리포트와 출력 형식
 
 ```sh
@@ -104,6 +115,7 @@ aigate report --format markdown --output .aigate/reports/report.md
 aigate report --format html --output .aigate/reports/report.html
 aigate report --format json --output .aigate/reports/report.json
 aigate report --format sarif --output .aigate/reports/aigate.sarif
+aigate ai report --output .aigate/reports/ai-report.md
 aigate evaluate-project --deep --report
 aigate audit-report
 aigate compliance-report
@@ -144,7 +156,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
         with:
           command: git-ready
           language: ko
@@ -204,8 +216,10 @@ aigate git-ready --notify-channel terminal
 | --- | --- |
 | `aigate init` | 초기 AIGate 설정을 만듭니다. |
 | `aigate start` | 안내형 설정 루트를 선택하고 실행합니다. |
+| `aigate start --route oss` | 공개 저장소용 README, 이슈 템플릿, PR 템플릿, CODEOWNERS, 기여 문서를 생성합니다. |
 | `aigate check` | 로컬 Git 변경사항과 secret findings를 점검합니다. |
 | `aigate test` | Git 준비 상태와 감지된 프로젝트 테스트 명령을 실행합니다. |
+| `aigate ai report` | 현재 문제점, 잘된 점, 방향성, AI 전달 지침을 정리합니다. |
 | `aigate aitest` | AI 수정 프롬프트를 작성하고 필요하면 Codex, Claude, Gemini를 실행합니다. |
 | `aigate git-ready` | commit 또는 push 전 readiness gate를 실행합니다. |
 | `aigate push` | 점검 후 `git push`를 호출합니다. |

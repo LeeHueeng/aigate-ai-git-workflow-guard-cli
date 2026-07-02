@@ -29,8 +29,10 @@
 - [x] generated branch strategy docs를 richer policy pack으로 확장
 - [x] PR 템플릿과 CODEOWNERS 초안을 안내형 설정으로 승격
 - [x] `aigate start`로 안내형 프로젝트 설정 루트 추가
+- [x] `aigate start --route oss`로 오픈소스 시작 파일 생성 루트 추가
 - [x] `aigate test`로 프로젝트 테스트 자동화 추가
 - [x] `aigate aitest`로 AI 수정 프롬프트와 선택적 에이전트 실행 추가
+- [x] `aigate ai report`로 AI 프로젝트 상태 브리프 추가
 
 ## V2: Team reports와 GitHub integration
 

@@ -36,6 +36,8 @@ Use these commands after moving into a Git repository.
 
 ```sh
 aigate start
+aigate start --route oss --dry-run
+aigate start --route oss --owner @your-org/team
 aigate start --route ai --provider codex
 aigate start --route full --provider all
 aigate init
@@ -49,6 +51,7 @@ What they do:
 | Command | Purpose |
 | --- | --- |
 | `aigate start` | Opens a guided route selector in a TTY, or runs the quickstart route in non-interactive shells. |
+| `aigate start --route oss --owner @your-org/team` | Creates README, contribution docs, issue templates, PR template, CODEOWNERS, and starter operations docs without overwriting existing files unless `--force` is used. |
 | `aigate start --route ai --provider codex` | Creates AIGate config and Codex instruction files. |
 | `aigate start --route full --provider all` | Creates config, AI files, the pre-push hook, and release checks in one flow. |
 | `aigate setup --language en` | Saves the CLI output language. |
@@ -82,6 +85,9 @@ updated.
 aigate test
 aigate test --script test
 aigate test --command "npm run ci"
+aigate ai report
+aigate ai report --output .aigate/reports/ai-report.md
+aigate ai report --apply --provider codex
 aigate aitest
 aigate aitest --provider codex
 aigate aitest --apply --provider codex
@@ -98,6 +104,12 @@ test output, and a focused repair prompt for Codex, Claude, or Gemini. It does
 not edit code by default. Add `--apply` only when you want AIGate to invoke the
 selected AI CLI or a custom `--agent-command`.
 
+`aigate ai report` is a broader project brief. It summarizes current problems,
+what is working, direction, suggested commands, release state, branch strategy,
+and an AI handoff prompt. It also does not edit code by default; add
+`--apply --provider codex|claude|gemini` only when you want AIGate to run the
+selected AI CLI with that brief.
+
 ## Reports And Output Formats
 
 ```sh
@@ -105,6 +117,7 @@ aigate report --format markdown --output .aigate/reports/report.md
 aigate report --format html --output .aigate/reports/report.html
 aigate report --format json --output .aigate/reports/report.json
 aigate report --format sarif --output .aigate/reports/aigate.sarif
+aigate ai report --output .aigate/reports/ai-report.md
 aigate evaluate-project --deep --report
 aigate audit-report
 aigate compliance-report
@@ -145,7 +158,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
         with:
           command: git-ready
           language: en
@@ -206,8 +219,10 @@ channel:
 | --- | --- |
 | `aigate init` | Create the initial AIGate config. |
 | `aigate start` | Choose and run a guided setup route. |
+| `aigate start --route oss` | Create open-source starter README, issue templates, PR template, CODEOWNERS, and contribution docs. |
 | `aigate check` | Inspect local Git changes and secret findings. |
 | `aigate test` | Run Git readiness plus the detected project test command. |
+| `aigate ai report` | Summarize current problems, strengths, direction, and AI handoff guidance. |
 | `aigate aitest` | Write an AI remediation prompt, optionally invoking Codex, Claude, or Gemini. |
 | `aigate git-ready` | Run the pre-commit or pre-push readiness gate. |
 | `aigate push` | Run checks, then call `git push`. |

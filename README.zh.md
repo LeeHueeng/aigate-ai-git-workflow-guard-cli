@@ -29,6 +29,7 @@ npx -y aigate-cli check
 npx -y aigate-cli start --route quickstart --dry-run
 npx -y aigate-cli doctor
 npx -y aigate-cli test
+npx -y aigate-cli ai report
 npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
@@ -39,8 +40,10 @@ npx -y aigate-cli evaluate-project
 ```sh
 npm install -g aigate-cli
 aigate start
+aigate start --route oss --dry-run
 aigate check
 aigate test
+aigate ai report
 aigate aitest
 aigate git-ready
 aigate install-hook --pre-push
@@ -53,8 +56,10 @@ aigate pr-check
 | --- | --- |
 | 本地 Git readiness check | `aigate check` |
 | 引导式设置路由器 | `aigate start` |
+| 公开仓库 README、issue 模板和贡献文件生成 | `aigate start --route oss` |
 | 项目测试运行器 | `aigate test` |
 | AI 修复提示和可选 agent 执行 | `aigate aitest` |
+| 汇总当前问题、做得好的部分和方向的 AI 报告 | `aigate ai report` |
 | 首次运行诊断 | `aigate doctor` |
 | 引导式 CLI demo | `aigate demo` |
 | pre-push safety gate | `aigate git-ready` |
@@ -86,6 +91,8 @@ repository governance 连接成一个 workflow layer。
 
 ```sh
 git switch -c feature/my-work
+aigate ai report
+aigate start --route oss --dry-run
 aigate start --route ai --provider all
 aigate doctor
 aigate install-hook --pre-push
@@ -127,7 +134,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
         with:
           command: git-ready
           language: zh
@@ -141,12 +148,14 @@ Marketplace 发布设置:
 - Action name: `AIGate AI Git Workflow Guard CLI`
 - Primary category: `Code quality`
 - Secondary category: `Security`
-- Release title: `AIGate AI Git Workflow Guard CLI v0.1.5`
+- Release title: `AIGate AI Git Workflow Guard CLI v0.1.6`
 
 ## AI Agent 集成
 
 ```sh
 aigate integrate all
+aigate ai report
+aigate ai report --apply --provider codex
 aigate aitest --provider codex
 aigate aitest --apply --provider codex
 ```
@@ -156,6 +165,10 @@ aigate aitest --apply --provider codex
 branch、validation 与 guarded push workflow。`aigate aitest` 会把修复提示写入
 `.aigate/reports/ai-test.md`；只有显式添加 `--apply` 时才会运行 Codex、
 Claude、Gemini 或自定义 `--agent-command`。
+
+`aigate ai report` 会汇总当前 Git 状态、仓库基础分、发布准备状态、分支策略和
+AI 交接提示。默认不会修改文件；只有加上
+`--apply --provider codex|claude|gemini` 时才会运行所选 AI CLI。
 
 ## 文档
 

@@ -290,7 +290,7 @@ footer p + p { margin-top: 6px; }
     <p class="eyebrow">Open Source AI Git Workflow Guard CLI</p>
     <h1>AIGate Operations Guide</h1>
     <p class="subtitle">A compact guide to how AIGate works, which commands it provides, what is implemented today, and what is planned next.</p>
-    <div class="badges"><span>npm live</span><span>Trusted Publishing</span><span>GitHub Releases</span><span>CLI v0.1.5</span></div>
+    <div class="badges"><span>npm live</span><span>Trusted Publishing</span><span>GitHub Releases</span><span>CLI v0.1.6</span></div>
   </header>
 
   <main>
@@ -541,7 +541,7 @@ npx aigate-cli check</code></pre>
       </div>
       <div class="command-groups"><article class="command-group group-0">
       <h3>Setup</h3>
-      <div><span>start</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
+      <div><span>start</span><span>start --route oss</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
     </article><article class="command-group group-1">
       <h3>First run</h3>
       <div><span>doctor</span><span>demo</span><span>install-hook</span></div>
@@ -550,7 +550,7 @@ npx aigate-cli check</code></pre>
       <div><span>check</span><span>test</span><span>aitest</span><span>git-ready</span><span>push</span><span>pr</span></div>
     </article><article class="command-group group-3">
       <h3>Reports</h3>
-      <div><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
+      <div><span>ai report</span><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
     </article><article class="command-group group-4">
       <h3>Release</h3>
       <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>branch-strategy --compare</span><span>notify</span></div>
@@ -577,6 +577,10 @@ npx aigate-cli check</code></pre>
     <td><code>aigate start</code></td>
     <td>Run a guided project setup route with arrow keys or --route.</td>
     <td>When adopting AIGate in a project</td>
+  </tr><tr>
+    <td><code>aigate start --route oss --owner @team</code></td>
+    <td>Create README, contribution docs, issue templates, PR template, and CODEOWNERS.</td>
+    <td>Opening the public contribution path</td>
   </tr><tr>
     <td><code>aigate start --route ai --provider all</code></td>
     <td>Create AIGate config plus Codex/Gemini/Claude instruction files.</td>
@@ -613,6 +617,14 @@ npx aigate-cli check</code></pre>
     <td><code>aigate test</code></td>
     <td>Run Git readiness and the detected npm test/ci script.</td>
     <td>Before committing with real test coverage</td>
+  </tr><tr>
+    <td><code>aigate ai report</code></td>
+    <td>Summarize current problems, strengths, direction, and an AI handoff prompt.</td>
+    <td>Before asking AI to improve the project</td>
+  </tr><tr>
+    <td><code>aigate ai report --apply --provider codex</code></td>
+    <td>Hand the AI project brief to Codex CLI and run the agent.</td>
+    <td>When you explicitly allow AI automation</td>
   </tr><tr>
     <td><code>aigate aitest</code></td>
     <td>Write a focused AI remediation prompt from failing tests.</td>
@@ -734,6 +746,8 @@ npx aigate-cli check</code></pre>
       </div>
       <pre><code>npm install -g aigate-cli
 aigate setup --language en
+aigate ai report
+aigate start --route oss --dry-run
 aigate start --route ai --provider all
 git switch -c feature/my-change
 aigate doctor
@@ -759,7 +773,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">Features</p>
         <h2>Implemented Features</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">Public npm package aigate-cli and npx execution</div><div class="feature done">Git change and untracked-file readiness checks</div><div class="feature done">Guided start routes through aigate start</div><div class="feature done">Project test automation through aigate test</div><div class="feature done">AI remediation prompt and optional agent execution through aigate aitest</div><div class="feature done">First-run UX through doctor, demo, and install-hook</div><div class="feature done">Pre-push Git hook installation</div><div class="feature done">Secret pattern detection and SARIF output</div><div class="feature done">git-ready, guarded push, and guarded PR creation</div><div class="feature done">GitHub PR comments and GitHub Checks summary payloads</div><div class="feature done">PR template and CODEOWNERS guided setup</div><div class="feature done">Reusable public GitHub Action</div><div class="feature done">Project health trend history</div><div class="feature done">Markdown, HTML, JSON, and SARIF reports</div><div class="feature done">Compliance reports and a local HTML health dashboard</div><div class="feature done">Project scoring and deep Git signal evaluation</div><div class="feature done">Branch strategy recommendations, proposal comparison, and policy pack generation</div><div class="feature done">Codex/Gemini/Claude Code integration file generation</div><div class="feature done">Korean/English/Japanese/Chinese CLI settings</div><div class="feature done">release-check and release-check --npm</div><div class="feature done">Automated npm releases through Trusted Publishing</div><div class="feature done">GitHub CI, OpenSSF Scorecard, and GitHub Releases</div><div class="feature done">Terminal, Slack BLOCK, Discord, Teams, email, Linear, and Jira notifications</div><div class="feature done">GHCR Docker publish workflow and Homebrew formula draft</div></div>
+      <div class="feature-grid"><div class="feature done">Public npm package aigate-cli and npx execution</div><div class="feature done">Git change and untracked-file readiness checks</div><div class="feature done">Guided start routes through aigate start</div><div class="feature done">Open-source starter files through aigate start --route oss</div><div class="feature done">Project test automation through aigate test</div><div class="feature done">AI project health briefs through aigate ai report</div><div class="feature done">AI remediation prompt and optional agent execution through aigate aitest</div><div class="feature done">First-run UX through doctor, demo, and install-hook</div><div class="feature done">Pre-push Git hook installation</div><div class="feature done">Secret pattern detection and SARIF output</div><div class="feature done">git-ready, guarded push, and guarded PR creation</div><div class="feature done">GitHub PR comments and GitHub Checks summary payloads</div><div class="feature done">PR template and CODEOWNERS guided setup</div><div class="feature done">Reusable public GitHub Action</div><div class="feature done">Project health trend history</div><div class="feature done">Markdown, HTML, JSON, and SARIF reports</div><div class="feature done">Compliance reports and a local HTML health dashboard</div><div class="feature done">Project scoring and deep Git signal evaluation</div><div class="feature done">Branch strategy recommendations, proposal comparison, and policy pack generation</div><div class="feature done">Codex/Gemini/Claude Code integration file generation</div><div class="feature done">Korean/English/Japanese/Chinese CLI settings</div><div class="feature done">release-check and release-check --npm</div><div class="feature done">Automated npm releases through Trusted Publishing</div><div class="feature done">GitHub CI, OpenSSF Scorecard, and GitHub Releases</div><div class="feature done">Terminal, Slack BLOCK, Discord, Teams, email, Linear, and Jira notifications</div><div class="feature done">GHCR Docker publish workflow and Homebrew formula draft</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -773,7 +787,7 @@ aigate release-check --npm</code></pre>
 
   <footer>
     <p>This document describes the operating state after the public AIGate release.</p>
-    <p>Generated 2026-07-02. Package version 0.1.5.</p>
+    <p>Generated 2026-07-02. Package version 0.1.6.</p>
   </footer>
 </body>
 </html>

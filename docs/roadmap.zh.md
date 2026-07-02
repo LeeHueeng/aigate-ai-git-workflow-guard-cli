@@ -29,8 +29,10 @@
 - [x] 将 generated branch strategy docs 扩展为 richer policy pack
 - [x] 将 PR 模板和 CODEOWNERS 草案升级为引导式设置
 - [x] 通过 `aigate start` 添加引导式项目设置路由
+- [x] 通过 `aigate start --route oss` 添加开源起始文件生成路由
 - [x] 通过 `aigate test` 添加项目测试自动化
 - [x] 通过 `aigate aitest` 添加 AI 修复提示和可选 agent 执行
+- [x] 通过 `aigate ai report` 添加 AI 项目状态简报
 
 ## V2: Team reports and GitHub integration
 

@@ -39,10 +39,10 @@ flowchart LR
 
 | 領域 | コマンド |
 | --- | --- |
-| Setup | `start`, `init`, `setup`, `settings`, `integrate` |
+| Setup | `start`, `start --route oss`, `init`, `setup`, `settings`, `integrate` |
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `test`, `aitest`, `git-ready`, `push`, `pr` |
-| Reports | `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
+| Reports | `ai report`, `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | Release | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
 ## 代表的な実行手順
@@ -50,6 +50,8 @@ flowchart LR
 ```sh
 npm install -g aigate-cli
 aigate setup --language ja
+aigate ai report
+aigate start --route oss --dry-run
 aigate start --route ai --provider all
 git switch -c feature/my-change
 aigate doctor
@@ -76,11 +78,13 @@ aigate release-check --npm
 
 - npm package `aigate-cli` の公開配布と `npx` 実行
 - `aigate start` によるガイド付き開始ルート
+- `aigate start --route oss` によるオープンソース初期ファイル生成
 - `aigate doctor` による初回実行 diagnostics
 - `aigate demo` によるガイド付き CLI demo
 - `aigate install-hook --pre-push` による pre-push hook installation
 - Git changed-file と untracked-file の readiness check
 - `aigate test` による project test automation
+- `aigate ai report` による AI プロジェクト状態ブリーフ
 - `aigate aitest` による AI 修正プロンプトと任意の agent 実行
 - secret pattern detection と SARIF output
 - `git-ready`、guarded push、guarded PR creation
