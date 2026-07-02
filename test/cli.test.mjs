@@ -158,7 +158,7 @@ test("prints package version", () => {
   const result = run(["--version"]);
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /^0\.1\.2/m);
+  assert.match(result.stdout, /^0\.1\.3/m);
 });
 
 test("ships reusable GitHub Action metadata", () => {
@@ -166,6 +166,8 @@ test("ships reusable GitHub Action metadata", () => {
   const bundledAction = readFileSync(join(repoRoot, ".github", "actions", "aigate", "action.yml"), "utf8");
 
   assert.equal(bundledAction, rootAction);
+  assert.match(rootAction, /^name: AIGate AI Git Workflow Guard CLI/m);
+  assert.match(rootAction, /secret scans, and release gates/);
   assert.match(rootAction, /default: aigate-cli@latest/);
   assert.match(rootAction, /uses: actions\/setup-node@v6/);
   assert.match(rootAction, /package-manager-cache: false/);
@@ -838,8 +840,8 @@ test("checks release readiness", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.command, "release-check");
   assert.equal(output.packageName, "aigate-cli");
-  assert.equal(output.version, "0.1.2");
-  assert.equal(output.expectedTag, "v0.1.2");
+  assert.equal(output.version, "0.1.3");
+  assert.equal(output.expectedTag, "v0.1.3");
   assert.ok(["READY", "ACTION_REQUIRED", "RELEASED"].includes(output.status));
   assert.deepEqual(output.registry, { checked: false });
 });
@@ -847,7 +849,7 @@ test("checks release readiness", () => {
 test("checks npm publication state when requested", () => {
   const binDir = mkdtempSync(join(tmpdir(), "aigate-npm-"));
   const npmPath = join(binDir, "npm");
-  writeFileSync(npmPath, "#!/bin/sh\nprintf '\"0.1.2\"\\n'\n");
+  writeFileSync(npmPath, "#!/bin/sh\nprintf '\"0.1.3\"\\n'\n");
   chmodSync(npmPath, 0o755);
 
   const result = run(["release-check", "--npm", "--format", "json"], {
@@ -860,7 +862,7 @@ test("checks npm publication state when requested", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.registry.checked, true);
   assert.equal(output.registry.published, true);
-  assert.equal(output.registry.publishedVersion, "0.1.2");
+  assert.equal(output.registry.publishedVersion, "0.1.3");
 });
 
 test("uses generic npm package and repository release checks", () => {

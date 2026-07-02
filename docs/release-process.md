@@ -15,6 +15,8 @@ is created.
 6. Create and push the matching tag, for example `v0.1.3`.
 7. Confirm npm publication with `npm view aigate-cli version`.
 8. Create or update the GitHub Release notes.
+9. If publishing the Action, enable GitHub Marketplace publishing on the
+   release screen.
 
 ## Channels
 

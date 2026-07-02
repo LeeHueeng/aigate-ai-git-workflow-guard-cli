@@ -6,7 +6,7 @@ const rootDir = dirname(dirname(fileURLToPath(import.meta.url)));
 const docsDir = join(rootDir, "docs");
 const packageJson = JSON.parse(readFileSync(join(rootDir, "package.json"), "utf8"));
 const version = packageJson.version;
-const generatedOn = "2026-07-01";
+const generatedOn = "2026-07-02";
 
 const fileNames = {
   ko: "aigate-overview.ko.html",

@@ -154,7 +154,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
         with:
           command: git-ready
           language: en
@@ -164,6 +164,13 @@ Use the current release tag for stable runs, or `@main` only when you
 intentionally want unreleased behavior. Full inputs are documented in
 [GitHub Action](docs/github-action.md). The same action metadata is mirrored at
 `.github/actions/aigate` for local workflow testing.
+
+Marketplace listing:
+
+- Action name: `AIGate AI Git Workflow Guard CLI`
+- Primary category: `Code quality`
+- Secondary category: `Security`
+- Release title: `AIGate AI Git Workflow Guard CLI v0.1.3`
 
 ## AI Agent Integration
 
