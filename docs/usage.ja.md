@@ -70,6 +70,19 @@ aigate install-hook --pre-push
 | `aigate demo` | プロジェクトファイルを変更せずに主な流れを表示します。 |
 | `aigate install-hook --pre-push` | push 前に AIGate を実行する pre-push hook をインストールします。 |
 
+## 状況別の使用例
+
+今どのコマンドを実行するべきか迷ったときは、この短いルーティンから選べます。
+
+| 状況 | プロセス | コマンド例 |
+| --- | --- | --- |
+| 初めてリポジトリに導入する | デフォルト設定を選び、必要なファイルだけ作成して診断を確認します。 | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
+| AI エージェントが多数のファイルを変更した後 | 変更ファイルと secret リスクを先に確認し、失敗したテストは AI 修正プロンプトに渡します。 | `aigate check` -> `aigate test` -> `aigate aitest` |
+| PR を開く直前 | ローカル gate を通し、guarded push の後に reviewer 向けサマリーを生成します。 | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| オープンソース公開準備 | 公開貢献ファイルを作成し、リポジトリ基盤スコアを確認します。 | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
+| リリース前後 | tag と npm readiness を確認し、CI 後に状態トレンドを記録します。 | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
+| ローカル状態を整理または削除する | 削除対象を先にプレビューし、内容が正しいときだけ適用します。 | `aigate clean` -> `aigate clean --force` -> `aigate uninstall --force` |
+
 ## 日常の Git workflow
 
 ```sh

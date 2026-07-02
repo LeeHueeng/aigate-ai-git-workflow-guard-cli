@@ -56,6 +56,16 @@ aigate install-hook --pre-push
 aigate pr-check
 ```
 
+## 상황별 플레이북
+
+| 상황 | 프로세스 | 명령어 |
+| --- | --- | --- |
+| 새 저장소에 도입 | 기본 AIGate 파일을 단계별로 만들고 pre-push 보호를 설치합니다. | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
+| AI가 파일을 많이 변경 | 변경 경로를 확인하고 테스트를 돌린 뒤 실패 내용을 AI 수정 프롬프트로 만듭니다. | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
+| PR 직전 | gate를 통과시키고 AIGate로 push한 뒤 리뷰어가 볼 요약을 만듭니다. | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| 오픈소스 공개 | 공개 기여 파일을 만들고 저장소 기반을 점검합니다. | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
+| 릴리스 주간 | npm과 tag 준비 상태를 확인하고 CI 후 추세를 기록합니다. | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
+
 ## 지금 되는 것
 
 | 기능 | 명령어 |

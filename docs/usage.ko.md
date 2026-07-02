@@ -70,6 +70,19 @@ aigate install-hook --pre-push
 | `aigate demo` | 프로젝트 파일을 바꾸지 않고 주요 흐름을 보여줍니다. |
 | `aigate install-hook --pre-push` | push 전에 AIGate가 실행되는 pre-push hook을 설치합니다. |
 
+## 상황별 사용 예시
+
+지금 무엇을 실행해야 하는지 헷갈릴 때는 아래 루틴부터 고르면 됩니다.
+
+| 상황 | 프로세스 | 예시 명령 |
+| --- | --- | --- |
+| 처음 저장소에 도입할 때 | 기본 설정을 고르고 필요한 파일만 만든 뒤 진단 결과를 확인합니다. | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
+| AI 에이전트가 파일을 많이 바꾼 뒤 | 변경 파일과 secret 위험을 먼저 보고, 테스트 실패는 AI 수정 프롬프트로 넘깁니다. | `aigate check` -> `aigate test` -> `aigate aitest` |
+| PR을 열기 직전 | 로컬 gate를 통과시키고, 보호된 push 후 리뷰어용 요약을 생성합니다. | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| 오픈소스 공개 준비 | 공개 기여 파일을 만들고 저장소 기반 점수를 확인합니다. | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
+| 릴리스 전후 | 태그와 npm 상태를 점검하고, CI 후 상태 추세를 남깁니다. | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
+| 로컬 상태를 비우거나 제거할 때 | 삭제 대상을 먼저 미리 본 뒤 확실할 때만 적용합니다. | `aigate clean` -> `aigate clean --force` -> `aigate uninstall --force` |
+
 ## 매일 쓰는 Git 흐름
 
 ```sh

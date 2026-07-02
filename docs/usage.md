@@ -70,6 +70,20 @@ What they do:
 | `aigate demo` | Shows the main workflow without changing project files. |
 | `aigate install-hook --pre-push` | Installs a pre-push hook that runs AIGate before pushing. |
 
+## Situational Usage Examples
+
+Use these short routines when you want a concrete answer to "what should I run
+right now?"
+
+| Situation | Process | Example commands |
+| --- | --- | --- |
+| First-time adoption in a repository | Choose the default setup, create only the files you want, then confirm diagnostics. | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
+| After an AI agent changed many files | Inspect changed files and secret risk first, then turn failing tests into an AI repair prompt. | `aigate check` -> `aigate test` -> `aigate aitest` |
+| Right before opening a PR | Pass the local gate, push through the guarded wrapper, and generate a reviewer-ready summary. | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| Preparing an open source launch | Generate public contribution files and measure the repository foundation score. | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
+| Before or after a release | Check tag and npm readiness, run CI, then record the project trend. | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
+| Clearing or removing local AIGate state | Preview the deletion target first, then apply only when the list looks right. | `aigate clean` -> `aigate clean --force` -> `aigate uninstall --force` |
+
 ## Daily Git Workflow
 
 ```sh

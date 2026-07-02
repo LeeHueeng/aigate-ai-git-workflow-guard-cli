@@ -57,6 +57,16 @@ aigate install-hook --pre-push
 aigate pr-check
 ```
 
+## 状況別プレイブック
+
+| 状況 | プロセス | コマンド |
+| --- | --- | --- |
+| 新しいリポジトリに導入 | AIGate の基本ファイルを段階的に作成し、pre-push guard をインストールします。 | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
+| AI が多くのファイルを変更 | 変更パスを確認し、テストを実行して、失敗内容を AI 修正プロンプトにします。 | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
+| PR 直前 | gate を通し、AIGate 経由で push し、reviewer 向けの要約を作成します。 | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| オープンソース公開 | 公開貢献ファイルを作成し、リポジトリ基盤を確認します。 | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
+| リリース週 | npm と tag の準備状態を確認し、CI 後にトレンドを記録します。 | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
+
 ## 現在使える機能
 
 | 機能 | コマンド |

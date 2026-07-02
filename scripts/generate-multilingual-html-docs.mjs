@@ -65,6 +65,17 @@ const locales = {
       ["npm publish", "OIDC Trusted Publishing"],
       ["Release note", "GitHub Release 작성"]
     ],
+    useCaseTitle: "상황별 사용 예시",
+    useCaseIntro: "AIGate는 모든 순간에 같은 명령을 쓰는 도구가 아니라, 프로젝트 상태와 위험도에 따라 다른 루틴을 빠르게 꺼내 쓰는 도구입니다.",
+    useCaseHeaders: ["상황", "프로세스", "예시 명령"],
+    useCases: [
+      ["처음 저장소에 도입할 때", "기본 설정을 고르고, 부족한 문서/AI 지침/hook을 단계적으로 만듭니다.", ["aigate start --route default --ask-steps", "aigate doctor", "aigate install-hook --pre-push"]],
+      ["AI가 코드를 많이 바꾼 뒤", "변경 파일과 secret 위험을 먼저 보고, 테스트 실패는 AI 수정 프롬프트로 넘깁니다.", ["aigate check", "aigate test", "aigate aitest"]],
+      ["PR을 열기 직전", "push 전 gate를 통과시키고, PR 설명과 리뷰어용 요약을 생성합니다.", ["aigate git-ready", "aigate push -u origin feature/my-work", "aigate pr-check"]],
+      ["오픈소스 공개 준비", "README, 기여 문서, 이슈 템플릿, CODEOWNERS를 만들고 저장소 기반 점수를 확인합니다.", ["aigate start --route oss --owner @team", "aigate evaluate-project --deep --report", "aigate github setup --dry-run"]],
+      ["릴리스 전후", "태그와 npm 상태를 점검하고, 배포 후 상태 추세를 남깁니다.", ["aigate release-check --npm", "npm run ci", "aigate trends record"]],
+      ["로컬 상태를 비우거나 제거할 때", "먼저 삭제 대상을 미리 본 뒤, 확실할 때만 --force로 적용합니다.", ["aigate clean", "aigate clean --force", "aigate uninstall --force"]]
+    ],
     commandMapTitle: "명령어 맵",
     commandGroups: [
       ["설정", ["start", "start --route default", "start --route oss", "init", "reset", "setup", "settings", "integrate"]],
@@ -240,6 +251,17 @@ const locales = {
       ["GitHub Actions", "Run release.yml"],
       ["npm publish", "OIDC Trusted Publishing"],
       ["Release notes", "Create GitHub Release"]
+    ],
+    useCaseTitle: "Situational Usage Examples",
+    useCaseIntro: "AIGate is not one command for every moment. It gives you short routines for different repository states and risk levels.",
+    useCaseHeaders: ["Situation", "Process", "Example commands"],
+    useCases: [
+      ["Adopting AIGate in a repository", "Choose the default setup path, then add missing docs, AI instructions, and hooks step by step.", ["aigate start --route default --ask-steps", "aigate doctor", "aigate install-hook --pre-push"]],
+      ["After an AI agent changes many files", "Inspect changed files and secret risk first, then turn failing tests into an AI remediation prompt.", ["aigate check", "aigate test", "aigate aitest"]],
+      ["Right before opening a PR", "Pass the local gate, push through the guarded wrapper, and generate reviewer context.", ["aigate git-ready", "aigate push -u origin feature/my-work", "aigate pr-check"]],
+      ["Preparing an open source launch", "Create public contribution files and check repository foundation score.", ["aigate start --route oss --owner @team", "aigate evaluate-project --deep --report", "aigate github setup --dry-run"]],
+      ["Before and after a release", "Check tag/npm readiness, run CI, and record the health trend after publishing.", ["aigate release-check --npm", "npm run ci", "aigate trends record"]],
+      ["Clearing or removing local AIGate state", "Preview deletion targets first, then apply only when the target list is correct.", ["aigate clean", "aigate clean --force", "aigate uninstall --force"]]
     ],
     commandMapTitle: "Command Map",
     commandGroups: [
@@ -417,6 +439,17 @@ const locales = {
       ["npm publish", "OIDC Trusted Publishing"],
       ["リリースノート", "GitHub Release を作成"]
     ],
+    useCaseTitle: "状況別の使用例",
+    useCaseIntro: "AIGate は常に同じコマンドを実行する道具ではなく、リポジトリの状態とリスクに応じて短いルーティンを選ぶための道具です。",
+    useCaseHeaders: ["状況", "プロセス", "コマンド例"],
+    useCases: [
+      ["リポジトリへ初めて導入するとき", "デフォルト設定を選び、不足している文書、AI 指示、hook を段階的に作成します。", ["aigate start --route default --ask-steps", "aigate doctor", "aigate install-hook --pre-push"]],
+      ["AI が多くのファイルを変更した後", "変更ファイルと secret リスクを先に確認し、失敗したテストは AI 修正プロンプトに変換します。", ["aigate check", "aigate test", "aigate aitest"]],
+      ["PR を作成する直前", "ローカル gate を通し、保護付き wrapper で push し、レビュー担当者向けの文脈を作ります。", ["aigate git-ready", "aigate push -u origin feature/my-work", "aigate pr-check"]],
+      ["オープンソース公開準備", "公開貢献ファイルを作成し、リポジトリ基盤スコアを確認します。", ["aigate start --route oss --owner @team", "aigate evaluate-project --deep --report", "aigate github setup --dry-run"]],
+      ["リリース前後", "tag/npm 準備状況を確認し、CI を実行し、公開後の状態トレンドを記録します。", ["aigate release-check --npm", "npm run ci", "aigate trends record"]],
+      ["ローカル状態を消す、または外すとき", "削除対象を先にプレビューし、正しいときだけ --force で適用します。", ["aigate clean", "aigate clean --force", "aigate uninstall --force"]]
+    ],
     commandMapTitle: "コマンドマップ",
     commandGroups: [
       ["セットアップ", ["start", "start --route default", "start --route oss", "init", "reset", "setup", "settings", "integrate"]],
@@ -592,6 +625,17 @@ const locales = {
       ["GitHub Actions", "运行 release.yml"],
       ["npm publish", "OIDC Trusted Publishing"],
       ["发布说明", "创建 GitHub Release"]
+    ],
+    useCaseTitle: "按场景使用示例",
+    useCaseIntro: "AIGate 不是所有时刻都运行同一个命令的工具，而是根据仓库状态和风险等级选择短流程的工具。",
+    useCaseHeaders: ["场景", "流程", "命令示例"],
+    useCases: [
+      ["首次接入仓库", "选择默认设置路径，然后逐步补齐文档、AI 指令和 hook。", ["aigate start --route default --ask-steps", "aigate doctor", "aigate install-hook --pre-push"]],
+      ["AI agent 修改了很多文件后", "先检查变更文件和 secret 风险，再把失败测试转成 AI 修复提示。", ["aigate check", "aigate test", "aigate aitest"]],
+      ["创建 PR 前", "通过本地 gate，用受保护 wrapper push，并生成给评审者看的上下文。", ["aigate git-ready", "aigate push -u origin feature/my-work", "aigate pr-check"]],
+      ["开源发布准备", "创建公开贡献文件，并检查仓库基础分。", ["aigate start --route oss --owner @team", "aigate evaluate-project --deep --report", "aigate github setup --dry-run"]],
+      ["发布前后", "检查 tag/npm 就绪状态，运行 CI，并在发布后记录健康趋势。", ["aigate release-check --npm", "npm run ci", "aigate trends record"]],
+      ["清理或移除本地 AIGate 状态", "先预览删除目标，确认无误后才使用 --force 执行。", ["aigate clean", "aigate clean --force", "aigate uninstall --force"]]
     ],
     commandMapTitle: "命令地图",
     commandGroups: [
@@ -783,6 +827,15 @@ npx aigate-cli check</code></pre>
       ${renderProcessChart(t)}
     </section>
 
+    <section class="section" id="use-cases">
+      <div class="section-heading">
+        <p class="kicker">${escapeHtml(t.nav[1])}</p>
+        <h2>${escapeHtml(t.useCaseTitle)}</h2>
+        <p>${escapeHtml(t.useCaseIntro)}</p>
+      </div>
+      ${renderUseCases(t)}
+    </section>
+
     <section class="section" id="release">
       <div class="section-heading">
         <p class="kicker">${escapeHtml(t.nav[3])}</p>
@@ -924,6 +977,24 @@ function renderReleaseChart(t) {
       ${boxes}
     </svg>
   </div>`;
+}
+
+function renderUseCases(t) {
+  return `<div class="use-case-grid">${t.useCases.map(([situation, process, commands]) => `
+    <article class="use-case">
+      <div>
+        <p class="kicker">${escapeHtml(t.useCaseHeaders[0])}</p>
+        <h3>${escapeHtml(situation)}</h3>
+      </div>
+      <div>
+        <p class="kicker">${escapeHtml(t.useCaseHeaders[1])}</p>
+        <p>${escapeHtml(process)}</p>
+      </div>
+      <div>
+        <p class="kicker">${escapeHtml(t.useCaseHeaders[2])}</p>
+        <pre><code>${escapeHtml(commands.join("\n"))}</code></pre>
+      </div>
+    </article>`).join("")}</div>`;
 }
 
 function renderCommandMap(t) {
@@ -1094,7 +1165,7 @@ p { color: var(--muted); margin: 0; }
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
-.panel, .install-panel, .command-group, .feature {
+.panel, .install-panel, .command-group, .feature, .use-case {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -1167,6 +1238,25 @@ code {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.25;
+}
+.use-case-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.use-case {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: 18px;
+  padding: 20px;
+  align-items: start;
+}
+.use-case > div:last-child {
+  grid-column: 1 / -1;
+}
+.use-case pre {
+  padding: 14px;
+  font-size: 0.86rem;
 }
 .command-groups {
   display: grid;
@@ -1245,9 +1335,10 @@ footer p + p { margin-top: 6px; }
     grid-template-columns: 1fr;
     display: grid;
   }
-  .summary-grid, .command-groups, .feature-grid {
+  .summary-grid, .command-groups, .feature-grid, .use-case-grid, .use-case {
     grid-template-columns: 1fr;
   }
+  .use-case > div:last-child { grid-column: auto; }
   h1 { font-size: 2.4rem; }
   .hero { padding-bottom: 42px; }
 }

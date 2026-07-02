@@ -56,6 +56,16 @@ aigate install-hook --pre-push
 aigate pr-check
 ```
 
+## 场景式使用手册
+
+| 场景 | 流程 | 命令 |
+| --- | --- | --- |
+| 接入新仓库 | 逐步创建 AIGate 基础文件，然后安装 pre-push guard。 | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
+| AI 修改了很多文件 | 检查 changed paths，运行测试，并把失败内容整理成 AI 修复提示。 | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
+| PR 即将提交 | 通过 gate，经 AIGate push，再生成 reviewer 摘要。 | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| 开源发布 | 生成公开贡献文件，并检查仓库基础。 | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
+| 发布周 | 检查 npm 和 tag readiness，运行 CI 后记录趋势。 | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
+
 ## 当前可用功能
 
 | 功能 | 命令 |

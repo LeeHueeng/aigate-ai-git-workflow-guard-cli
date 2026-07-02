@@ -122,7 +122,7 @@ p { color: var(--muted); margin: 0; }
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
-.panel, .install-panel, .command-group, .feature {
+.panel, .install-panel, .command-group, .feature, .use-case {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -195,6 +195,25 @@ code {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.25;
+}
+.use-case-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.use-case {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: 18px;
+  padding: 20px;
+  align-items: start;
+}
+.use-case > div:last-child {
+  grid-column: 1 / -1;
+}
+.use-case pre {
+  padding: 14px;
+  font-size: 0.86rem;
 }
 .command-groups {
   display: grid;
@@ -273,9 +292,10 @@ footer p + p { margin-top: 6px; }
     grid-template-columns: 1fr;
     display: grid;
   }
-  .summary-grid, .command-groups, .feature-grid {
+  .summary-grid, .command-groups, .feature-grid, .use-case-grid, .use-case {
     grid-template-columns: 1fr;
   }
+  .use-case > div:last-child { grid-column: auto; }
   h1 { font-size: 2.4rem; }
   .hero { padding-bottom: 42px; }
 }
@@ -453,6 +473,111 @@ npx aigate-cli check</code></pre>
   </g>
     </svg>
   </div>
+    </section>
+
+    <section class="section" id="use-cases">
+      <div class="section-heading">
+        <p class="kicker">프로세스</p>
+        <h2>상황별 사용 예시</h2>
+        <p>AIGate는 모든 순간에 같은 명령을 쓰는 도구가 아니라, 프로젝트 상태와 위험도에 따라 다른 루틴을 빠르게 꺼내 쓰는 도구입니다.</p>
+      </div>
+      <div class="use-case-grid">
+    <article class="use-case">
+      <div>
+        <p class="kicker">상황</p>
+        <h3>처음 저장소에 도입할 때</h3>
+      </div>
+      <div>
+        <p class="kicker">프로세스</p>
+        <p>기본 설정을 고르고, 부족한 문서/AI 지침/hook을 단계적으로 만듭니다.</p>
+      </div>
+      <div>
+        <p class="kicker">예시 명령</p>
+        <pre><code>aigate start --route default --ask-steps
+aigate doctor
+aigate install-hook --pre-push</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">상황</p>
+        <h3>AI가 코드를 많이 바꾼 뒤</h3>
+      </div>
+      <div>
+        <p class="kicker">프로세스</p>
+        <p>변경 파일과 secret 위험을 먼저 보고, 테스트 실패는 AI 수정 프롬프트로 넘깁니다.</p>
+      </div>
+      <div>
+        <p class="kicker">예시 명령</p>
+        <pre><code>aigate check
+aigate test
+aigate aitest</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">상황</p>
+        <h3>PR을 열기 직전</h3>
+      </div>
+      <div>
+        <p class="kicker">프로세스</p>
+        <p>push 전 gate를 통과시키고, PR 설명과 리뷰어용 요약을 생성합니다.</p>
+      </div>
+      <div>
+        <p class="kicker">예시 명령</p>
+        <pre><code>aigate git-ready
+aigate push -u origin feature/my-work
+aigate pr-check</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">상황</p>
+        <h3>오픈소스 공개 준비</h3>
+      </div>
+      <div>
+        <p class="kicker">프로세스</p>
+        <p>README, 기여 문서, 이슈 템플릿, CODEOWNERS를 만들고 저장소 기반 점수를 확인합니다.</p>
+      </div>
+      <div>
+        <p class="kicker">예시 명령</p>
+        <pre><code>aigate start --route oss --owner @team
+aigate evaluate-project --deep --report
+aigate github setup --dry-run</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">상황</p>
+        <h3>릴리스 전후</h3>
+      </div>
+      <div>
+        <p class="kicker">프로세스</p>
+        <p>태그와 npm 상태를 점검하고, 배포 후 상태 추세를 남깁니다.</p>
+      </div>
+      <div>
+        <p class="kicker">예시 명령</p>
+        <pre><code>aigate release-check --npm
+npm run ci
+aigate trends record</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">상황</p>
+        <h3>로컬 상태를 비우거나 제거할 때</h3>
+      </div>
+      <div>
+        <p class="kicker">프로세스</p>
+        <p>먼저 삭제 대상을 미리 본 뒤, 확실할 때만 --force로 적용합니다.</p>
+      </div>
+      <div>
+        <p class="kicker">예시 명령</p>
+        <pre><code>aigate clean
+aigate clean --force
+aigate uninstall --force</code></pre>
+      </div>
+    </article></div>
     </section>
 
     <section class="section" id="release">

@@ -90,6 +90,16 @@ Recommendation: Run npm test, commit focused changes, push the branch, and open 
 AIGate is useful when AI coding assistants move quickly and you need one
 repeatable local gate before `git push` or PR creation.
 
+## Scenario Playbooks
+
+| Situation | Process | Commands |
+| --- | --- | --- |
+| New repository adoption | Create the default AIGate files step by step, then install the pre-push guard. | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
+| AI changed a lot of files | Inspect changed paths, run tests, and turn failures into a focused AI repair prompt. | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
+| PR is almost ready | Pass the gate, push through AIGate, and produce reviewer context. | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| Open source launch | Generate public contribution files and check repository foundations. | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
+| Release week | Verify npm and tag readiness, run CI, and record the trend. | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
+
 ## Works Today
 
 | Capability | Command |

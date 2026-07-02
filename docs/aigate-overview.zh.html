@@ -122,7 +122,7 @@ p { color: var(--muted); margin: 0; }
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
-.panel, .install-panel, .command-group, .feature {
+.panel, .install-panel, .command-group, .feature, .use-case {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -195,6 +195,25 @@ code {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.25;
+}
+.use-case-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.use-case {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: 18px;
+  padding: 20px;
+  align-items: start;
+}
+.use-case > div:last-child {
+  grid-column: 1 / -1;
+}
+.use-case pre {
+  padding: 14px;
+  font-size: 0.86rem;
 }
 .command-groups {
   display: grid;
@@ -273,9 +292,10 @@ footer p + p { margin-top: 6px; }
     grid-template-columns: 1fr;
     display: grid;
   }
-  .summary-grid, .command-groups, .feature-grid {
+  .summary-grid, .command-groups, .feature-grid, .use-case-grid, .use-case {
     grid-template-columns: 1fr;
   }
+  .use-case > div:last-child { grid-column: auto; }
   h1 { font-size: 2.4rem; }
   .hero { padding-bottom: 42px; }
 }
@@ -453,6 +473,111 @@ npx aigate-cli check</code></pre>
   </g>
     </svg>
   </div>
+    </section>
+
+    <section class="section" id="use-cases">
+      <div class="section-heading">
+        <p class="kicker">流程</p>
+        <h2>按场景使用示例</h2>
+        <p>AIGate 不是所有时刻都运行同一个命令的工具，而是根据仓库状态和风险等级选择短流程的工具。</p>
+      </div>
+      <div class="use-case-grid">
+    <article class="use-case">
+      <div>
+        <p class="kicker">场景</p>
+        <h3>首次接入仓库</h3>
+      </div>
+      <div>
+        <p class="kicker">流程</p>
+        <p>选择默认设置路径，然后逐步补齐文档、AI 指令和 hook。</p>
+      </div>
+      <div>
+        <p class="kicker">命令示例</p>
+        <pre><code>aigate start --route default --ask-steps
+aigate doctor
+aigate install-hook --pre-push</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">场景</p>
+        <h3>AI agent 修改了很多文件后</h3>
+      </div>
+      <div>
+        <p class="kicker">流程</p>
+        <p>先检查变更文件和 secret 风险，再把失败测试转成 AI 修复提示。</p>
+      </div>
+      <div>
+        <p class="kicker">命令示例</p>
+        <pre><code>aigate check
+aigate test
+aigate aitest</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">场景</p>
+        <h3>创建 PR 前</h3>
+      </div>
+      <div>
+        <p class="kicker">流程</p>
+        <p>通过本地 gate，用受保护 wrapper push，并生成给评审者看的上下文。</p>
+      </div>
+      <div>
+        <p class="kicker">命令示例</p>
+        <pre><code>aigate git-ready
+aigate push -u origin feature/my-work
+aigate pr-check</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">场景</p>
+        <h3>开源发布准备</h3>
+      </div>
+      <div>
+        <p class="kicker">流程</p>
+        <p>创建公开贡献文件，并检查仓库基础分。</p>
+      </div>
+      <div>
+        <p class="kicker">命令示例</p>
+        <pre><code>aigate start --route oss --owner @team
+aigate evaluate-project --deep --report
+aigate github setup --dry-run</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">场景</p>
+        <h3>发布前后</h3>
+      </div>
+      <div>
+        <p class="kicker">流程</p>
+        <p>检查 tag/npm 就绪状态，运行 CI，并在发布后记录健康趋势。</p>
+      </div>
+      <div>
+        <p class="kicker">命令示例</p>
+        <pre><code>aigate release-check --npm
+npm run ci
+aigate trends record</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">场景</p>
+        <h3>清理或移除本地 AIGate 状态</h3>
+      </div>
+      <div>
+        <p class="kicker">流程</p>
+        <p>先预览删除目标，确认无误后才使用 --force 执行。</p>
+      </div>
+      <div>
+        <p class="kicker">命令示例</p>
+        <pre><code>aigate clean
+aigate clean --force
+aigate uninstall --force</code></pre>
+      </div>
+    </article></div>
     </section>
 
     <section class="section" id="release">

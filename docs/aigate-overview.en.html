@@ -122,7 +122,7 @@ p { color: var(--muted); margin: 0; }
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
-.panel, .install-panel, .command-group, .feature {
+.panel, .install-panel, .command-group, .feature, .use-case {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -195,6 +195,25 @@ code {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.25;
+}
+.use-case-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.use-case {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: 18px;
+  padding: 20px;
+  align-items: start;
+}
+.use-case > div:last-child {
+  grid-column: 1 / -1;
+}
+.use-case pre {
+  padding: 14px;
+  font-size: 0.86rem;
 }
 .command-groups {
   display: grid;
@@ -273,9 +292,10 @@ footer p + p { margin-top: 6px; }
     grid-template-columns: 1fr;
     display: grid;
   }
-  .summary-grid, .command-groups, .feature-grid {
+  .summary-grid, .command-groups, .feature-grid, .use-case-grid, .use-case {
     grid-template-columns: 1fr;
   }
+  .use-case > div:last-child { grid-column: auto; }
   h1 { font-size: 2.4rem; }
   .hero { padding-bottom: 42px; }
 }
@@ -453,6 +473,111 @@ npx aigate-cli check</code></pre>
   </g>
     </svg>
   </div>
+    </section>
+
+    <section class="section" id="use-cases">
+      <div class="section-heading">
+        <p class="kicker">Process</p>
+        <h2>Situational Usage Examples</h2>
+        <p>AIGate is not one command for every moment. It gives you short routines for different repository states and risk levels.</p>
+      </div>
+      <div class="use-case-grid">
+    <article class="use-case">
+      <div>
+        <p class="kicker">Situation</p>
+        <h3>Adopting AIGate in a repository</h3>
+      </div>
+      <div>
+        <p class="kicker">Process</p>
+        <p>Choose the default setup path, then add missing docs, AI instructions, and hooks step by step.</p>
+      </div>
+      <div>
+        <p class="kicker">Example commands</p>
+        <pre><code>aigate start --route default --ask-steps
+aigate doctor
+aigate install-hook --pre-push</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">Situation</p>
+        <h3>After an AI agent changes many files</h3>
+      </div>
+      <div>
+        <p class="kicker">Process</p>
+        <p>Inspect changed files and secret risk first, then turn failing tests into an AI remediation prompt.</p>
+      </div>
+      <div>
+        <p class="kicker">Example commands</p>
+        <pre><code>aigate check
+aigate test
+aigate aitest</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">Situation</p>
+        <h3>Right before opening a PR</h3>
+      </div>
+      <div>
+        <p class="kicker">Process</p>
+        <p>Pass the local gate, push through the guarded wrapper, and generate reviewer context.</p>
+      </div>
+      <div>
+        <p class="kicker">Example commands</p>
+        <pre><code>aigate git-ready
+aigate push -u origin feature/my-work
+aigate pr-check</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">Situation</p>
+        <h3>Preparing an open source launch</h3>
+      </div>
+      <div>
+        <p class="kicker">Process</p>
+        <p>Create public contribution files and check repository foundation score.</p>
+      </div>
+      <div>
+        <p class="kicker">Example commands</p>
+        <pre><code>aigate start --route oss --owner @team
+aigate evaluate-project --deep --report
+aigate github setup --dry-run</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">Situation</p>
+        <h3>Before and after a release</h3>
+      </div>
+      <div>
+        <p class="kicker">Process</p>
+        <p>Check tag/npm readiness, run CI, and record the health trend after publishing.</p>
+      </div>
+      <div>
+        <p class="kicker">Example commands</p>
+        <pre><code>aigate release-check --npm
+npm run ci
+aigate trends record</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">Situation</p>
+        <h3>Clearing or removing local AIGate state</h3>
+      </div>
+      <div>
+        <p class="kicker">Process</p>
+        <p>Preview deletion targets first, then apply only when the target list is correct.</p>
+      </div>
+      <div>
+        <p class="kicker">Example commands</p>
+        <pre><code>aigate clean
+aigate clean --force
+aigate uninstall --force</code></pre>
+      </div>
+    </article></div>
     </section>
 
     <section class="section" id="release">
