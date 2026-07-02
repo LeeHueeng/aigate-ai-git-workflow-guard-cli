@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync, spawn, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join } from "node:path";
 import readline from "node:readline";
 import { fileURLToPath } from "node:url";
@@ -11,6 +11,7 @@ import { commandTrends } from "./commands/trends.mjs";
 const CLI_DIR = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = dirname(CLI_DIR);
 const VERSION = readPackageVersion();
+const CONFIG_SCHEMA_VERSION = 1;
 const SUPPORTED_LANGUAGES = ["en", "ko", "ja", "zh"];
 const SUPPORTED_INTEGRATIONS = ["codex", "gemini", "claude"];
 const START_ROUTE_IDS = ["default", "quickstart", "oss", "ai", "hook", "release", "full"];
@@ -476,9 +477,12 @@ const RECOMMENDATION_TRANSLATIONS = {
     "Run AIGate inside a Git repository.": "AIGate를 Git 저장소 안에서 실행하세요.",
     "Review possible secret-bearing files before commit or push.": "커밋 또는 푸시 전에 민감 정보 포함 가능성이 있는 파일을 검토하세요.",
     "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "민감 파일 제거를 커밋하고, 이미 이력에 노출된 자격 증명은 회전하세요.",
+    "Commit sensitive file removals and rotate credentials that were exposed in Git history.": "민감 파일 제거를 커밋하고, Git 이력에 노출된 자격 증명은 회전하세요.",
+    "Commit sensitive file removals; no Git history exposure was detected.": "민감 파일 제거를 커밋하세요. Git 이력 노출은 감지되지 않았습니다.",
+    "Complete missing foundations that match this private app profile.": "이 private 앱 프로필에 맞는 부족한 기반 항목을 보완하세요.",
+    "Run AIGate test, commit focused changes, push the branch, and open a pull request.": "AIGate test를 실행하고, 범위가 명확한 커밋을 만든 뒤 브랜치를 푸시하고 PR을 여세요.",
     "Open a focused branch and pull request after tests pass.": "테스트 통과 후 범위가 명확한 브랜치와 PR을 여세요.",
     "Resolve blockers before committing, pushing, or opening a pull request.": "커밋, 푸시, PR 생성 전에 차단 사유를 해결하세요.",
-    "Run npm test, commit focused changes, push the branch, and open a pull request.": "npm test를 실행하고, 범위가 명확한 변경을 커밋한 뒤 브랜치를 푸시하고 PR을 여세요.",
     "Repository foundations are ready for the next MVP slice.": "저장소 기반이 다음 MVP 단계를 진행할 준비가 됐습니다.",
     "Complete the missing repository foundations before public release.": "공개 릴리스 전에 부족한 저장소 기반 항목을 보완하세요."
   },
@@ -487,9 +491,12 @@ const RECOMMENDATION_TRANSLATIONS = {
     "Run AIGate inside a Git repository.": "AIGate は Git リポジトリ内で実行してください。",
     "Review possible secret-bearing files before commit or push.": "コミットまたはプッシュ前に機密情報を含む可能性があるファイルを確認してください。",
     "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "機密ファイル削除をコミットし、すでに履歴に露出した認証情報はローテーションしてください。",
+    "Commit sensitive file removals and rotate credentials that were exposed in Git history.": "機密ファイル削除をコミットし、Git 履歴に露出した認証情報はローテーションしてください。",
+    "Commit sensitive file removals; no Git history exposure was detected.": "機密ファイル削除をコミットしてください。Git 履歴への露出は検出されていません。",
+    "Complete missing foundations that match this private app profile.": "この private app profile に合う不足基盤項目を補完してください。",
+    "Run AIGate test, commit focused changes, push the branch, and open a pull request.": "AIGate test を実行し、焦点を絞ったコミットを作成してブランチを push し、PR を開いてください。",
     "Open a focused branch and pull request after tests pass.": "テスト通過後、範囲を絞ったブランチと PR を作成してください。",
     "Resolve blockers before committing, pushing, or opening a pull request.": "コミット、プッシュ、PR 作成の前にブロッカーを解消してください。",
-    "Run npm test, commit focused changes, push the branch, and open a pull request.": "npm test を実行し、範囲を絞ってコミットし、ブランチをプッシュして PR を作成してください。",
     "Repository foundations are ready for the next MVP slice.": "リポジトリ基盤は次の MVP スライスに進める状態です。",
     "Complete the missing repository foundations before public release.": "公開リリース前に不足しているリポジトリ基盤を整備してください。"
   },
@@ -498,9 +505,12 @@ const RECOMMENDATION_TRANSLATIONS = {
     "Run AIGate inside a Git repository.": "请在 Git 仓库内运行 AIGate。",
     "Review possible secret-bearing files before commit or push.": "提交或推送前，请检查可能包含敏感信息的文件。",
     "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "提交敏感文件移除；如果凭据已进入历史记录，请轮换它们。",
+    "Commit sensitive file removals and rotate credentials that were exposed in Git history.": "提交敏感文件移除，并轮换已暴露在 Git 历史中的凭据。",
+    "Commit sensitive file removals; no Git history exposure was detected.": "提交敏感文件移除；未检测到 Git 历史暴露。",
+    "Complete missing foundations that match this private app profile.": "补齐符合此 private app 配置的缺失基础项。",
+    "Run AIGate test, commit focused changes, push the branch, and open a pull request.": "运行 AIGate test，提交聚焦变更，推送分支并打开 PR。",
     "Open a focused branch and pull request after tests pass.": "测试通过后，创建范围清晰的分支和 PR。",
     "Resolve blockers before committing, pushing, or opening a pull request.": "提交、推送或创建 PR 前，请先解决阻塞原因。",
-    "Run npm test, commit focused changes, push the branch, and open a pull request.": "运行 npm test，提交聚焦的变更，推送分支并创建 PR。",
     "Repository foundations are ready for the next MVP slice.": "仓库基础已经可以进入下一个 MVP 阶段。",
     "Complete the missing repository foundations before public release.": "公开发布前，请补齐缺失的仓库基础项。"
   }
@@ -1470,7 +1480,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "Issue templates exist": "Issue 템플릿 존재",
     "AI assistant instructions exist": "AI 어시스턴트 지침 존재",
     "Test directory exists": "테스트 디렉터리 존재",
-    "npm test script exists": "npm test 스크립트 존재",
+    "Project test command exists": "프로젝트 테스트 명령 존재",
     "CI gate script exists": "CI 게이트 스크립트 존재",
     "CI workflow exists": "CI 워크플로 존재",
     "Release workflow exists": "릴리스 워크플로 존재",
@@ -1496,7 +1506,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "Issue templates exist": "Issue テンプレートが存在",
     "AI assistant instructions exist": "AI アシスタント指示が存在",
     "Test directory exists": "テストディレクトリが存在",
-    "npm test script exists": "npm test スクリプトが存在",
+    "Project test command exists": "プロジェクトテストコマンドが存在",
     "CI gate script exists": "CI ゲートスクリプトが存在",
     "CI workflow exists": "CI ワークフローが存在",
     "Release workflow exists": "リリースワークフローが存在",
@@ -1522,7 +1532,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "Issue templates exist": "Issue 模板存在",
     "AI assistant instructions exist": "AI 助手指令存在",
     "Test directory exists": "测试目录存在",
-    "npm test script exists": "npm test 脚本存在",
+    "Project test command exists": "项目测试命令存在",
     "CI gate script exists": "CI 关卡脚本存在",
     "CI workflow exists": "CI 工作流存在",
     "Release workflow exists": "发布工作流存在",
@@ -1777,13 +1787,15 @@ function commandContext() {
     git,
     parseOptions,
     quoteArgs,
+    readAigateConfig,
     readJsonFile,
     renderPullRequestTemplateDraft,
     renderReport,
     resolveLanguage,
     statusLabel,
     t,
-    unsupportedLanguage
+    unsupportedLanguage,
+    version: VERSION
   };
 }
 
@@ -3095,22 +3107,8 @@ function resolveProjectTestCommand(options) {
   }
 
   const packageJson = readJsonFile("package.json");
-  const scripts = packageJson.scripts ?? {};
-  const script = options.script
-    ?? (scripts.ci ? "ci" : scripts["test:ci"] ? "test:ci" : scripts.test ? "test" : null);
-
-  if (!script) {
-    return null;
-  }
-
-  return {
-    source: "npm-script",
-    script,
-    display: script === "test" ? "npm test" : `npm run ${script}`,
-    executable: "npm",
-    args: script === "test" ? ["test"] : ["run", script],
-    shell: false
-  };
+  const profile = detectProjectProfile(packageJson, options);
+  return discoverProjectTestCommand(packageJson, profile, options.script);
 }
 
 function runProjectCommand(command, options) {
@@ -3145,8 +3143,8 @@ function buildTestNextSteps(status, testCommand) {
 
   if (status === "WARN") {
     return [
-      "Add a package.json test, test:ci, or ci script.",
-      "Run aigate test --command \"npm test\" when the command exists."
+      "Add a package.json test, test:ci, or ci script in the root or a workspace package.",
+      "Run aigate test --command \"<your test command>\" when the command is custom."
     ];
   }
 
@@ -3896,12 +3894,14 @@ function translateAutomationStep(step, language) {
     ko: {
       "AI remediation prompt was written.": "AI 수정 프롬프트를 작성했습니다.",
       "Add a package.json test, test:ci, or ci script.": "package.json에 test, test:ci 또는 ci script를 추가하세요.",
+      "Add a package.json test, test:ci, or ci script in the root or a workspace package.": "루트 또는 워크스페이스 package.json에 test, test:ci 또는 ci script를 추가하세요.",
       "Resolve AIGate git-ready blockers first.": "먼저 AIGate git-ready 차단 사유를 해결하세요.",
       "Review the AI agent output.": "AI 에이전트 출력을 검토하세요.",
       "Run aigate aitest after blockers are fixed.": "차단 사유를 해결한 뒤 aigate aitest를 실행하세요.",
       "Run aigate aitest to generate an AI remediation prompt.": "AI 수정 프롬프트를 만들려면 aigate aitest를 실행하세요.",
       "Run aigate git-ready": "aigate git-ready를 실행하세요.",
       "Run aigate push -u origin <branch> when ready.": "준비되면 aigate push -u origin <branch>를 실행하세요.",
+      "Run aigate test --command \"<your test command>\" when the command is custom.": "사용자 지정 명령이라면 aigate test --command \"<테스트 명령>\"을 실행하세요.",
       "Run aigate test --command \"npm test\" when the command exists.": "명령이 준비되면 aigate test --command \"npm test\"를 실행하세요.",
       "Run aigate test again after the agent finishes.": "에이전트가 끝나면 aigate test를 다시 실행하세요.",
       "Tests already pass.": "테스트가 이미 통과했습니다.",
@@ -3911,12 +3911,14 @@ function translateAutomationStep(step, language) {
     ja: {
       "AI remediation prompt was written.": "AI 修正プロンプトを書き込みました。",
       "Add a package.json test, test:ci, or ci script.": "package.json に test、test:ci、または ci script を追加してください。",
+      "Add a package.json test, test:ci, or ci script in the root or a workspace package.": "ルートまたはワークスペース package.json に test、test:ci、または ci script を追加してください。",
       "Resolve AIGate git-ready blockers first.": "先に AIGate git-ready の blocker を解消してください。",
       "Review the AI agent output.": "AI エージェントの出力を確認してください。",
       "Run aigate aitest after blockers are fixed.": "blocker 解消後に aigate aitest を実行してください。",
       "Run aigate aitest to generate an AI remediation prompt.": "AI 修正プロンプトを生成するには aigate aitest を実行してください。",
       "Run aigate git-ready": "aigate git-ready を実行してください。",
       "Run aigate push -u origin <branch> when ready.": "準備できたら aigate push -u origin <branch> を実行してください。",
+      "Run aigate test --command \"<your test command>\" when the command is custom.": "カスタムコマンドの場合は aigate test --command \"<test command>\" を実行してください。",
       "Run aigate test --command \"npm test\" when the command exists.": "コマンドが用意できたら aigate test --command \"npm test\" を実行してください。",
       "Run aigate test again after the agent finishes.": "エージェント完了後に aigate test を再実行してください。",
       "Tests already pass.": "テストはすでに通過しています。",
@@ -3926,12 +3928,14 @@ function translateAutomationStep(step, language) {
     zh: {
       "AI remediation prompt was written.": "已写入 AI 修复提示。",
       "Add a package.json test, test:ci, or ci script.": "在 package.json 中添加 test、test:ci 或 ci script。",
+      "Add a package.json test, test:ci, or ci script in the root or a workspace package.": "在根目录或工作区 package.json 中添加 test、test:ci 或 ci script。",
       "Resolve AIGate git-ready blockers first.": "先解决 AIGate git-ready blockers。",
       "Review the AI agent output.": "检查 AI agent 输出。",
       "Run aigate aitest after blockers are fixed.": "blockers 修复后运行 aigate aitest。",
       "Run aigate aitest to generate an AI remediation prompt.": "运行 aigate aitest 生成 AI 修复提示。",
       "Run aigate git-ready": "运行 aigate git-ready。",
       "Run aigate push -u origin <branch> when ready.": "准备好后运行 aigate push -u origin <branch>。",
+      "Run aigate test --command \"<your test command>\" when the command is custom.": "如果使用自定义命令，请运行 aigate test --command \"<test command>\"。",
       "Run aigate test --command \"npm test\" when the command exists.": "命令可用后运行 aigate test --command \"npm test\"。",
       "Run aigate test again after the agent finishes.": "agent 完成后再次运行 aigate test。",
       "Tests already pass.": "测试已经通过。",
@@ -3984,7 +3988,7 @@ function buildGitReadyResult(options = {}) {
   }
 
   if (analysis.sensitiveRemovals.length) {
-    warnings.push(`${analysis.sensitiveRemovals.length} sensitive file removal(s) detected; commit the removal and rotate credentials if they were already exposed.`);
+    warnings.push(sensitiveRemovalWarning(analysis.sensitiveRemovals));
   }
 
   if (evaluation.score < 80) {
@@ -4004,8 +4008,17 @@ function buildGitReadyResult(options = {}) {
     warnings,
     recommendation: blockers.length
       ? "Resolve blockers before committing, pushing, or opening a pull request."
-      : "Run npm test, commit focused changes, push the branch, and open a pull request."
+      : "Run AIGate test, commit focused changes, push the branch, and open a pull request."
   };
+}
+
+function sensitiveRemovalWarning(sensitiveRemovals) {
+  const exposedCount = sensitiveRemovals.filter((finding) => finding.exposedInHistory).length;
+  if (exposedCount) {
+    return `${sensitiveRemovals.length} sensitive file removal(s) detected; ${exposedCount} had Git history exposure, so commit the removal and rotate exposed credentials.`;
+  }
+
+  return `${sensitiveRemovals.length} sensitive file removal(s) detected; commit the removal. No Git history exposure was detected.`;
 }
 
 function formatGitReadyResult(result, options, language = "en") {
@@ -4874,8 +4887,13 @@ function sensitiveRemovalFindings(entries) {
     .filter(Boolean)
     .map((finding) => ({
       ...finding,
-      disposition: "removed"
+      disposition: "removed",
+      exposedInHistory: pathExistsInGitHistory(finding.file)
     }));
+}
+
+function pathExistsInGitHistory(filePath) {
+  return Boolean((git(["log", "--all", "--format=%H", "--", filePath]) ?? "").trim());
 }
 
 function normalizeChangeEntries(entries) {
@@ -4985,11 +5003,17 @@ function buildEvaluation(options = {}) {
     check("git_workflow", "Git upload workflow is documented", existsSync(join("docs", "git-upload-workflow.md"))),
     check("git_workflow", "Pull request template exists", hasPullRequestTemplate(profile)),
     check("git_workflow", "CODEOWNERS exists", hasCodeowners()),
-    check("pr_quality", "Contribution guide exists", existsSync("CONTRIBUTING.md")),
-    check("pr_quality", "Issue templates exist", hasIssueTemplates(profile)),
+    check("pr_quality", "Contribution guide exists", existsSync("CONTRIBUTING.md"), {
+      applicable: profile.visibility !== "private" || existsSync("CONTRIBUTING.md"),
+      reason: publicOnlyReason
+    }),
+    check("pr_quality", "Issue templates exist", hasIssueTemplates(profile), {
+      applicable: profile.visibility !== "private" || hasIssueTemplates(profile),
+      reason: publicOnlyReason
+    }),
     check("pr_quality", "AI assistant instructions exist", existsSync("AGENTS.md") && (existsSync("GEMINI.md") || existsSync("CLAUDE.md"))),
     check("testing", "Test directory exists", hasTestDirectory()),
-    check("testing", "npm test script exists", hasTestScript(packageJson)),
+    check("testing", "Project test command exists", hasTestScript(packageJson)),
     check("testing", "CI gate script exists", hasCiGateScript(packageJson)),
     check("ci_cd", "CI workflow exists", hasCiWorkflow(profile)),
     check("ci_cd", "Release workflow exists", hasReleaseWorkflow(profile), {
@@ -5054,9 +5078,12 @@ function buildEvaluation(options = {}) {
   });
   const score = categories.reduce((sum, category) => sum + category.score, 0);
   const grade = gradeForScore(score);
+  const privateApp = profile.visibility === "private" && profile.kind === "app";
   const recommendation = score === 100
     ? "Repository foundations are ready for the next MVP slice."
-    : "Complete the missing repository foundations before public release.";
+    : privateApp
+      ? "Complete missing foundations that match this private app profile."
+      : "Complete the missing repository foundations before public release.";
   const evaluation = {
     score,
     grade,
@@ -5277,17 +5304,320 @@ function hasCodeowners() {
 }
 
 function hasTestDirectory() {
-  return pathExistsAny(["test", "tests", "__tests__", join("src", "__tests__"), "playwright"]);
+  return pathExistsAny(["test", "tests", "__tests__", join("src", "__tests__"), "playwright"]) ||
+    hasNestedDirectory(["apps", "packages", "services"], ["test", "tests", "__tests__", "playwright"]);
 }
 
 function hasTestScript(packageJson = readJsonFile("package.json")) {
-  return Object.keys(packageJson.scripts ?? {}).some((name) => (
-    name === "test" || name.endsWith(":test") || name.includes("test")
-  ));
+  return Boolean(discoverProjectTestCommand(packageJson, detectProjectProfile(packageJson)));
 }
 
 function hasCiGateScript(packageJson = readJsonFile("package.json")) {
-  return Boolean(packageJson.scripts?.ci || packageJson.scripts?.["git:ready"] || packageJson.scripts?.["frontend-test"]);
+  return Boolean(discoverValidationCommand(packageJson, detectProjectProfile(packageJson)));
+}
+
+function hasNestedDirectory(baseDirs, names) {
+  return baseDirs.some((baseDir) => {
+    if (!existsSync(baseDir)) {
+      return false;
+    }
+
+    try {
+      return readdirSync(baseDir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .some((entry) => names.some((name) => existsSync(join(baseDir, entry.name, name))));
+    } catch {
+      return false;
+    }
+  });
+}
+
+function discoverProjectTestCommand(packageJson = readJsonFile("package.json"), profile = detectProjectProfile(packageJson), requestedScript = null) {
+  const packageManager = profile.packageManager ?? detectPackageManager(packageJson);
+  const rootScripts = packageJson.scripts ?? {};
+  const rootScript = requestedScript ?? selectScriptName(rootScripts, ["ci", "test:ci", "test", "e2e", "test:e2e", "playwright"]);
+
+  if (rootScript && rootScripts[rootScript]) {
+    return packageManagerCommand(packageManager, rootScript, {
+      source: "root-script"
+    });
+  }
+
+  const turboTask = requestedScript ?? detectTurboTask(["test", "e2e", "test:e2e", "playwright"]);
+  if (turboTask) {
+    return turboCommand(packageManager, turboTask);
+  }
+
+  const workspaceScript = requestedScript
+    ? workspacePackagesWithScript(requestedScript)[0]?.script
+    : selectWorkspaceScript(["ci", "test:ci", "test", "e2e", "test:e2e", "playwright"]);
+
+  if (workspaceScript) {
+    return workspaceScriptCommand(packageManager, workspaceScript);
+  }
+
+  return null;
+}
+
+function discoverValidationCommand(packageJson = readJsonFile("package.json"), profile = detectProjectProfile(packageJson)) {
+  const packageManager = profile.packageManager ?? detectPackageManager(packageJson);
+  const rootScripts = packageJson.scripts ?? {};
+  const rootScript = selectScriptName(rootScripts, ["ci", "test:ci", "git:ready", "test", "frontend-test", "e2e", "test:e2e"]);
+
+  if (rootScript) {
+    return packageManagerCommand(packageManager, rootScript, {
+      source: "root-script"
+    });
+  }
+
+  const turboTask = detectTurboTask(["ci", "test", "e2e", "test:e2e"]);
+  if (turboTask) {
+    return turboCommand(packageManager, turboTask);
+  }
+
+  const workspaceScript = selectWorkspaceScript(["ci", "test:ci", "test", "frontend-test", "e2e", "test:e2e"]);
+  return workspaceScript ? workspaceScriptCommand(packageManager, workspaceScript) : null;
+}
+
+function selectScriptName(scripts = {}, preferredNames = []) {
+  for (const name of preferredNames) {
+    if (scripts[name]) {
+      return name;
+    }
+  }
+
+  return Object.keys(scripts).find((name) => name.endsWith(":test") || name.includes("test"));
+}
+
+function detectTurboTask(preferredNames = []) {
+  if (!existsSync("turbo.json")) {
+    return null;
+  }
+
+  const turbo = readJsonFile("turbo.json");
+  const tasks = turbo.tasks ?? turbo.pipeline ?? {};
+  for (const name of preferredNames) {
+    if (tasks[name]) {
+      return name;
+    }
+  }
+
+  return Object.keys(tasks).find((name) => name.endsWith(":test") || name.includes("test")) ?? null;
+}
+
+function selectWorkspaceScript(preferredNames = []) {
+  const packages = workspacePackages();
+  for (const script of preferredNames) {
+    if (packages.some((workspacePackage) => workspacePackage.scripts[script])) {
+      return script;
+    }
+  }
+
+  return packages.flatMap((workspacePackage) => Object.keys(workspacePackage.scripts))
+    .find((script) => script.endsWith(":test") || script.includes("test")) ?? null;
+}
+
+function workspacePackagesWithScript(script) {
+  return workspacePackages().filter((workspacePackage) => workspacePackage.scripts[script]);
+}
+
+function workspacePackages(packageJson = readJsonFile("package.json")) {
+  const packagePaths = workspacePackageJsonPaths(packageJson);
+  return packagePaths.map((packagePath) => {
+    const workspacePackageJson = readJsonFile(packagePath);
+    return {
+      path: packagePath,
+      packageJson: workspacePackageJson,
+      scripts: workspacePackageJson.scripts ?? {}
+    };
+  }).filter((workspacePackage) => Object.keys(workspacePackage.packageJson).length);
+}
+
+function workspacePackageJsonPaths(packageJson = readJsonFile("package.json")) {
+  const patterns = workspacePatterns(packageJson);
+  const paths = new Set();
+
+  for (const pattern of patterns) {
+    for (const packagePath of expandWorkspacePattern(pattern)) {
+      paths.add(packagePath);
+    }
+  }
+
+  return [...paths].filter((packagePath) => existsSync(packagePath));
+}
+
+function workspacePatterns(packageJson = readJsonFile("package.json")) {
+  const patterns = [];
+  const workspaces = packageJson.workspaces;
+
+  if (Array.isArray(workspaces)) {
+    patterns.push(...workspaces);
+  } else if (Array.isArray(workspaces?.packages)) {
+    patterns.push(...workspaces.packages);
+  }
+
+  if (existsSync("pnpm-workspace.yaml")) {
+    patterns.push(...parsePnpmWorkspacePatterns(readFileSync("pnpm-workspace.yaml", "utf8")));
+  }
+
+  if (existsSync("turbo.json") || existsSync("apps") || existsSync("packages")) {
+    patterns.push("apps/*", "packages/*");
+  }
+
+  return [...new Set(patterns.map(cleanWorkspacePattern).filter(Boolean).filter((pattern) => !pattern.startsWith("!")))];
+}
+
+function parsePnpmWorkspacePatterns(content) {
+  const patterns = [];
+  let inPackages = false;
+
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.replace(/\s+#.*$/, "");
+    if (/^packages:\s*$/.test(line.trim())) {
+      inPackages = true;
+      continue;
+    }
+
+    if (inPackages && /^\S/.test(line) && !/^packages:\s*$/.test(line.trim())) {
+      inPackages = false;
+    }
+
+    const match = inPackages ? line.match(/^\s*-\s*(.+?)\s*$/) : null;
+    if (match) {
+      patterns.push(match[1]);
+    }
+  }
+
+  return patterns;
+}
+
+function cleanWorkspacePattern(pattern) {
+  return String(pattern ?? "")
+    .trim()
+    .replace(/^['"]|['"]$/g, "")
+    .replace(/\/package\.json$/, "")
+    .replace(/\/$/, "");
+}
+
+function expandWorkspacePattern(pattern) {
+  const clean = cleanWorkspacePattern(pattern);
+  if (!clean || clean.includes("**")) {
+    return [];
+  }
+
+  const starIndex = clean.indexOf("*");
+  if (starIndex === -1) {
+    return [join(clean, "package.json")];
+  }
+
+  const base = clean.slice(0, starIndex).replace(/\/$/, "");
+  if (!base || !existsSync(base)) {
+    return [];
+  }
+
+  try {
+    return readdirSync(base, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => join(base, entry.name, "package.json"));
+  } catch {
+    return [];
+  }
+}
+
+function packageManagerCommand(packageManager, script, { source = "package-script" } = {}) {
+  const pm = normalizedPackageManagerForCommand(packageManager);
+  return {
+    source,
+    script,
+    display: packageManagerScriptCommand(pm, script),
+    executable: pm,
+    args: packageManagerScriptArgs(pm, script),
+    shell: false
+  };
+}
+
+function workspaceScriptCommand(packageManager, script) {
+  const pm = normalizedPackageManagerForCommand(packageManager);
+  if (pm === "pnpm") {
+    return {
+      source: "workspace-script",
+      script,
+      display: `pnpm -r run ${script}`,
+      executable: "pnpm",
+      args: ["-r", "run", script],
+      shell: false
+    };
+  }
+
+  if (pm === "yarn") {
+    return {
+      source: "workspace-script",
+      script,
+      display: `yarn workspaces foreach run ${script}`,
+      executable: "yarn",
+      args: ["workspaces", "foreach", "run", script],
+      shell: false
+    };
+  }
+
+  if (pm === "bun") {
+    return {
+      source: "workspace-script",
+      script,
+      display: `bun run --filter '*' ${script}`,
+      executable: "bun",
+      args: ["run", "--filter", "*", script],
+      shell: false
+    };
+  }
+
+  return {
+    source: "workspace-script",
+    script,
+    display: `npm run ${script} --workspaces`,
+    executable: "npm",
+    args: ["run", script, "--workspaces"],
+    shell: false
+  };
+}
+
+function turboCommand(packageManager, task) {
+  const pm = normalizedPackageManagerForCommand(packageManager);
+  if (pm === "npm") {
+    return {
+      source: "turbo-task",
+      script: task,
+      display: `npx turbo run ${task}`,
+      executable: "npx",
+      args: ["turbo", "run", task],
+      shell: false
+    };
+  }
+
+  return {
+    source: "turbo-task",
+    script: task,
+    display: `${pm} turbo run ${task}`,
+    executable: pm,
+    args: ["turbo", "run", task],
+    shell: false
+  };
+}
+
+function packageManagerScriptArgs(packageManager, script) {
+  if (packageManager === "yarn") {
+    return [script];
+  }
+
+  if (script === "test") {
+    return ["test"];
+  }
+
+  return ["run", script];
+}
+
+function normalizedPackageManagerForCommand(packageManager) {
+  return ["npm", "pnpm", "yarn", "bun"].includes(packageManager) ? packageManager : "npm";
 }
 
 function hasCiWorkflow(profile) {
@@ -5370,6 +5700,7 @@ function buildBranchStrategy(options = {}) {
   const profile = detectProjectProfile(packageJson, options);
   const hasCi = hasCiWorkflow(profile);
   const hasReleaseDocs = existsSync(join("docs", "roadmap.md"));
+  const hasDevelopWorkflow = hasDevelopWorkflowSignal();
   const branchNames = (git(["branch", "--all", "--format=%(refname:short)"]) ?? "")
     .split("\n")
     .map((branch) => branch.trim())
@@ -5379,6 +5710,7 @@ function buildBranchStrategy(options = {}) {
   const selectedStrategy = selectBranchStrategy({
     branchNames,
     hasCi,
+    hasDevelopWorkflow,
     teamSize,
     releaseCadence,
     profile
@@ -5418,6 +5750,7 @@ function buildBranchStrategy(options = {}) {
     signals: {
       packageName: packageJson.name ?? null,
       hasCi,
+      hasDevelopWorkflow,
       hasReleaseDocs,
       teamSize,
       releaseCadence,
@@ -5522,11 +5855,11 @@ function clampScore(score) {
   return Math.max(45, Math.min(95, score));
 }
 
-function selectBranchStrategy({ branchNames, hasCi, teamSize, releaseCadence, profile = {} }) {
+function selectBranchStrategy({ branchNames, hasCi, hasDevelopWorkflow = false, teamSize, releaseCadence, profile = {} }) {
   const hasDevelop = branchNames.some((branch) => branch === "develop" || branch.endsWith("/develop"));
   const hasReleaseBranches = branchNames.some((branch) => /(^|\/)release\//.test(branch));
 
-  if (hasDevelop || hasReleaseBranches || teamSize >= 12 || ["monthly", "quarterly", "scheduled"].includes(releaseCadence)) {
+  if (hasDevelop || hasDevelopWorkflow || hasReleaseBranches || teamSize >= 12 || ["monthly", "quarterly", "scheduled"].includes(releaseCadence)) {
     return "Git Flow";
   }
 
@@ -5539,6 +5872,19 @@ function selectBranchStrategy({ branchNames, hasCi, teamSize, releaseCadence, pr
   }
 
   return profile.hosting === "gitlab" ? "GitLab Flow with merge requests" : "GitHub Flow with release channels";
+}
+
+function hasDevelopWorkflowSignal() {
+  const files = ["CLAUDE.md", "AGENTS.md", "GEMINI.md", ".aigate.yml", join("docs", "branch-strategy.md"), join("docs", "git-upload-workflow.md")];
+  return files.some((filePath) => {
+    if (!existsSync(filePath)) {
+      return false;
+    }
+
+    const content = readFileSync(filePath, "utf8");
+    return /(?:target-branch|target_branch|base|into)\s+develop\b/i.test(content) ||
+      /(?:merge request|pull request|PR|MR).{0,80}\bdevelop\b/i.test(content);
+  });
 }
 
 function branchRulesForStrategy(strategyName) {
@@ -6188,10 +6534,13 @@ function buildAiReportProblems({ gitStatus, evaluation, analysis, releaseCheck }
   }
 
   if (analysis.sensitiveRemovals.length) {
+    const exposedCount = analysis.sensitiveRemovals.filter((finding) => finding.exposedInHistory).length;
     problems.push(aiReportProblem(
       "medium",
       "security",
-      aiReportText("sensitiveRemovals", language, { count: analysis.sensitiveRemovals.length }),
+      exposedCount
+        ? aiReportText("sensitiveRemovals", language, { count: analysis.sensitiveRemovals.length, exposedCount })
+        : aiReportText("sensitiveRemovalsNoHistory", language, { count: analysis.sensitiveRemovals.length }),
       "git status"
     ));
   }
@@ -6248,7 +6597,7 @@ function buildAiReportStrengths({ evaluation, releaseCheck, branchStrategy }, la
     "Pull request template exists",
     "AI assistant instructions exist",
     "Test directory exists",
-    "npm test script exists",
+    "Project test command exists",
     "CI workflow exists",
     "Release workflow exists",
     "Security policy exists",
@@ -6289,14 +6638,17 @@ function buildAiReportStrengths({ evaluation, releaseCheck, branchStrategy }, la
 }
 
 function buildAiReportDirection({ evaluation, releaseCheck, branchStrategy }, language = "en") {
+  const privateApp = evaluation.profile?.visibility === "private" && evaluation.profile?.kind === "app";
   const missingChecks = new Set(evaluation.checks.filter((check) => checkNeedsAction(check)).map((check) => check.name));
   const direction = [];
 
   if (evaluation.score < 80) {
-    direction.push(aiReportText("directionRaiseScore", language));
+    direction.push(aiReportText(privateApp ? "directionRaiseInternalScore" : "directionRaiseScore", language));
   }
 
-  if (["README exists", "Issue templates exist", "Pull request template exists", "Contribution guide exists"].some((name) => missingChecks.has(name))) {
+  if (privateApp && ["README exists", "Pull request template exists", "CODEOWNERS exists"].some((name) => missingChecks.has(name))) {
+    direction.push(aiReportText("directionInternalWorkflow", language));
+  } else if (!privateApp && ["README exists", "Issue templates exist", "Pull request template exists", "Contribution guide exists"].some((name) => missingChecks.has(name))) {
     direction.push(aiReportText("directionOss", language));
   }
 
@@ -6304,7 +6656,7 @@ function buildAiReportDirection({ evaluation, releaseCheck, branchStrategy }, la
     direction.push(aiReportText("directionAi", language));
   }
 
-  if (["npm test script exists", "CI workflow exists"].some((name) => missingChecks.has(name))) {
+  if (["Project test command exists", "CI workflow exists"].some((name) => missingChecks.has(name))) {
     direction.push(aiReportText("directionTests", language));
   }
 
@@ -6321,11 +6673,15 @@ function buildAiReportDirection({ evaluation, releaseCheck, branchStrategy }, la
 }
 
 function buildAiReportCommands({ evaluation, releaseCheck }, language = "en") {
+  const privateApp = evaluation.profile?.visibility === "private" && evaluation.profile?.kind === "app";
+  const profileFlags = profileOptionFlags(evaluation.profile);
   const missingChecks = new Set(evaluation.checks.filter((check) => checkNeedsAction(check)).map((check) => check.name));
   const commands = [];
 
   if (["README exists", "Issue templates exist", "Pull request template exists", "Contribution guide exists", "License exists", "Roadmap exists"].some((name) => missingChecks.has(name))) {
-    commands.push(aiReportCommand("aigate start --route oss", aiReportText("commandOss", language)));
+    commands.push(privateApp
+      ? aiReportCommand(`aigate start --route default --steps repo-files${profileFlags}`, aiReportText("commandInternalFiles", language))
+      : aiReportCommand("aigate start --route oss", aiReportText("commandOss", language)));
   }
 
   if (missingChecks.has("AI assistant instructions exist")) {
@@ -6353,33 +6709,58 @@ function aiReportCommand(command, reason) {
 }
 
 function aiReportCommandForEvaluationCheck(name) {
+  const profile = detectProjectProfile();
+  const profileFlags = profileOptionFlags(profile);
+  const repoFilesCommand = profile.visibility === "private" && profile.kind === "app"
+    ? `aigate start --route default --steps repo-files${profileFlags}`
+    : "aigate start --route oss";
+  const ciCommand = profile.hosting === "gitlab"
+    ? "aigate setup --hosting gitlab --ci-provider gitlab"
+    : "aigate github check --format json";
   const commands = {
     "AIGate configuration exists": "aigate init",
     "Branch strategy is documented": "aigate branch-strategy --apply",
-    "Git upload workflow is documented": "aigate start --route oss",
-    "Pull request template exists": "aigate start --route oss",
-    "CODEOWNERS exists": "aigate start --route oss --owner @your-org/team",
-    "Contribution guide exists": "aigate start --route oss",
-    "Issue templates exist": "aigate start --route oss",
+    "Git upload workflow is documented": repoFilesCommand,
+    "Pull request template exists": repoFilesCommand,
+    "CODEOWNERS exists": `${repoFilesCommand} --owner @your-org/team`,
+    "Contribution guide exists": repoFilesCommand,
+    "Issue templates exist": repoFilesCommand,
     "AI assistant instructions exist": "aigate start --route ai --provider all",
     "Test directory exists": "aigate test",
-    "npm test script exists": "aigate test",
+    "Project test command exists": "aigate test",
     "CI gate script exists": "aigate test",
-    "CI workflow exists": "aigate github check --format json",
+    "CI workflow exists": ciCommand,
     "Release workflow exists": "aigate release-check",
     "Dependabot exists": "aigate ai report",
-    "Security policy exists": "aigate start --route oss",
+    "Security policy exists": repoFilesCommand,
     "Security scanning is documented": "aigate report --format sarif",
     "OpenSSF Scorecard workflow exists": "aigate audit-report",
-    "README exists": "aigate start --route oss",
-    "License exists": "aigate start --route oss",
-    "Changelog exists": "aigate start --route oss",
-    "Roadmap exists": "aigate start --route oss",
+    "README exists": repoFilesCommand,
+    "License exists": repoFilesCommand,
+    "Changelog exists": repoFilesCommand,
+    "Roadmap exists": repoFilesCommand,
     "Package metadata exists": "npm init",
-    "Support policy exists": "aigate start --route oss",
+    "Support policy exists": repoFilesCommand,
     "Governance exists": "aigate audit-report"
   };
   return commands[name] ?? "aigate ai report";
+}
+
+function profileOptionFlags(profile = {}) {
+  const flags = [];
+  if (profile.hosting && !["unknown", "auto"].includes(profile.hosting)) {
+    flags.push(`--hosting ${profile.hosting}`);
+  }
+  if (profile.ciProvider && !["unknown", "auto"].includes(profile.ciProvider)) {
+    flags.push(`--ci-provider ${profile.ciProvider}`);
+  }
+  if (profile.kind && !["unknown", "auto"].includes(profile.kind)) {
+    flags.push(`--project-type ${profile.kind}`);
+  }
+  if (profile.packageManager && !["unknown", "auto"].includes(profile.packageManager)) {
+    flags.push(`--package-manager ${profile.packageManager}`);
+  }
+  return flags.length ? ` ${flags.join(" ")}` : "";
 }
 
 function dedupeAiReportItems(items) {
@@ -6691,13 +7072,16 @@ function aiReportText(key, language = "en", values = {}) {
       commandAi: "Create AI assistant instructions for Codex, Gemini, and Claude Code.",
       commandAiTest: "Create a focused AI remediation prompt from failing tests.",
       commandGate: "Run the final local gate before commit, push, or PR.",
+      commandInternalFiles: "Create internal repository starter files for the detected hosting profile.",
       commandOss: "Create README, issue templates, PR template, CODEOWNERS, and OSS docs.",
       commandRelease: "Confirm package metadata, tag, workflow, and npm state.",
       commandReport: "Save this AI report for PRs, handoffs, or release notes.",
       commandTest: "Run Git readiness and the detected project test command.",
       directionAi: "Align AI assistants with repository rules so Codex, Gemini, and Claude Code follow the same workflow.",
       directionAiPolicy: "Keep AI-generated work on focused branches and run `aigate test` or `aigate aitest` before push.",
+      directionInternalWorkflow: "Prepare internal repository workflow files such as README, MR/PR template, and CODEOWNERS for the detected hosting provider.",
       directionOss: "Open the public contribution funnel with README, issue templates, PR template, CODEOWNERS, and contribution docs.",
+      directionRaiseInternalScore: "Raise the project foundation score against the detected private app profile; do not add public OSS artifacts only for the score.",
       directionRaiseScore: "Raise the project foundation score to at least 80 before public promotion.",
       directionRelease: "Finish release-check items before creating a release tag or publishing package changes.",
       directionStrategy: `Use ${values.strategy ?? "the recommended strategy"} as the branch policy baseline.`,
@@ -6713,7 +7097,8 @@ function aiReportText(key, language = "en", values = {}) {
       releaseCheck: `Release check needs attention: ${values.check}.`,
       releaseReady: "Release metadata and workflow checks are ready.",
       secretFindings: `${values.count} possible secret finding(s) were detected.`,
-      sensitiveRemovals: `${values.count} sensitive file removal(s) were detected; commit the removal and rotate credentials if they were already exposed.`,
+      sensitiveRemovals: `${values.count} sensitive file removal(s) were detected; ${values.exposedCount ?? values.count} had Git history exposure, so rotate exposed credentials after committing the removal.`,
+      sensitiveRemovalsNoHistory: `${values.count} sensitive file removal(s) were detected; commit the removal. No Git history exposure was detected.`,
       strategyReady: `Branch strategy recommendation is available: ${values.strategy}.`
     },
     ko: {
@@ -6721,13 +7106,16 @@ function aiReportText(key, language = "en", values = {}) {
       commandAi: "Codex, Gemini, Claude Code용 AI 어시스턴트 지침을 생성합니다.",
       commandAiTest: "실패한 테스트를 바탕으로 집중된 AI 수정 프롬프트를 만듭니다.",
       commandGate: "커밋, 푸시, PR 전에 마지막 로컬 게이트를 실행합니다.",
+      commandInternalFiles: "감지된 호스팅 프로필에 맞는 내부 저장소 시작 파일을 생성합니다.",
       commandOss: "README, 이슈 템플릿, PR 템플릿, CODEOWNERS, 오픈소스 문서를 생성합니다.",
       commandRelease: "패키지 메타데이터, 태그, 워크플로, npm 상태를 확인합니다.",
       commandReport: "이 AI 리포트를 PR, 인수인계, 릴리스 노트용으로 저장합니다.",
       commandTest: "Git 준비 상태와 감지된 프로젝트 테스트 명령을 실행합니다.",
       directionAi: "Codex, Gemini, Claude Code가 같은 워크플로를 따르도록 AI 어시스턴트 지침을 맞추세요.",
       directionAiPolicy: "AI 생성 작업은 집중된 브랜치에서 진행하고 push 전 `aigate test` 또는 `aigate aitest`를 실행하세요.",
+      directionInternalWorkflow: "감지된 호스팅 제공자에 맞게 README, MR/PR 템플릿, CODEOWNERS 같은 내부 저장소 워크플로 파일을 준비하세요.",
       directionOss: "README, 이슈 템플릿, PR 템플릿, CODEOWNERS, 기여 문서로 공개 기여 흐름을 여세요.",
+      directionRaiseInternalScore: "감지된 private 앱 프로필 기준으로 프로젝트 기반 점수를 올리세요. 점수만 위해 공개 OSS 산출물을 추가하지 마세요.",
       directionRaiseScore: "공개 홍보 전에 프로젝트 기반 점수를 최소 80 이상으로 올리세요.",
       directionRelease: "릴리스 태그 생성이나 패키지 변경 배포 전에 release-check 항목을 마무리하세요.",
       directionStrategy: `${values.strategy ?? "권장 전략"}을 브랜치 정책 기준으로 사용하세요.`,
@@ -6743,7 +7131,8 @@ function aiReportText(key, language = "en", values = {}) {
       releaseCheck: `릴리스 검사 조치 필요: ${values.check}.`,
       releaseReady: "릴리스 메타데이터와 워크플로 검사가 준비되어 있습니다.",
       secretFindings: `민감 정보 의심 항목 ${values.count}개가 감지됐습니다.`,
-      sensitiveRemovals: `민감 파일 제거 ${values.count}개가 감지됐습니다. 제거를 커밋하고 이미 노출된 자격 증명은 회전하세요.`,
+      sensitiveRemovals: `민감 파일 제거 ${values.count}개가 감지됐습니다. 이 중 ${values.exposedCount ?? values.count}개는 Git 이력에 노출됐으니 제거 커밋 후 노출된 자격 증명을 회전하세요.`,
+      sensitiveRemovalsNoHistory: `민감 파일 제거 ${values.count}개가 감지됐습니다. 제거를 커밋하세요. Git 이력 노출은 감지되지 않았습니다.`,
       strategyReady: `브랜치 전략 추천이 준비되어 있습니다: ${values.strategy}.`
     },
     ja: {
@@ -6751,13 +7140,16 @@ function aiReportText(key, language = "en", values = {}) {
       commandAi: "Codex、Gemini、Claude Code 用の AI アシスタント指示を作成します。",
       commandAiTest: "失敗したテストから焦点を絞った AI 修正プロンプトを作成します。",
       commandGate: "コミット、プッシュ、PR 前の最後のローカルゲートを実行します。",
+      commandInternalFiles: "検出された hosting profile に合わせた内部リポジトリ初期ファイルを作成します。",
       commandOss: "README、issue テンプレート、PR テンプレート、CODEOWNERS、OSS 文書を作成します。",
       commandRelease: "パッケージメタデータ、タグ、workflow、npm 状態を確認します。",
       commandReport: "この AI レポートを PR、引き継ぎ、リリースノート用に保存します。",
       commandTest: "Git 準備状態と検出したプロジェクトテストコマンドを実行します。",
       directionAi: "Codex、Gemini、Claude Code が同じワークフローに従うよう AI アシスタント指示を揃えます。",
       directionAiPolicy: "AI 生成作業は焦点を絞ったブランチで進め、push 前に `aigate test` または `aigate aitest` を実行します。",
+      directionInternalWorkflow: "検出された hosting provider に合わせて README、MR/PR template、CODEOWNERS など内部リポジトリのワークフローファイルを準備します。",
       directionOss: "README、issue テンプレート、PR テンプレート、CODEOWNERS、貢献文書で公開貢献導線を開きます。",
+      directionRaiseInternalScore: "検出された private app profile に対してプロジェクト基盤スコアを上げます。スコアのためだけに公開 OSS 成果物を追加しないでください。",
       directionRaiseScore: "公開プロモーション前にプロジェクト基盤スコアを 80 以上へ上げます。",
       directionRelease: "リリースタグ作成やパッケージ変更公開の前に release-check 項目を完了します。",
       directionStrategy: `${values.strategy ?? "推奨戦略"} をブランチポリシーの基準として使います。`,
@@ -6773,7 +7165,8 @@ function aiReportText(key, language = "en", values = {}) {
       releaseCheck: `リリースチェックで対応が必要: ${values.check}.`,
       releaseReady: "リリースメタデータと workflow チェックは準備済みです。",
       secretFindings: `機密情報の疑いがある項目を ${values.count} 件検出しました。`,
-      sensitiveRemovals: `機密ファイル削除を ${values.count} 件検出しました。削除をコミットし、すでに露出した認証情報はローテーションしてください。`,
+      sensitiveRemovals: `機密ファイル削除を ${values.count} 件検出しました。このうち ${values.exposedCount ?? values.count} 件は Git 履歴に露出しているため、削除コミット後に露出した認証情報をローテーションしてください。`,
+      sensitiveRemovalsNoHistory: `機密ファイル削除を ${values.count} 件検出しました。削除をコミットしてください。Git 履歴への露出は検出されていません。`,
       strategyReady: `ブランチ戦略推薦があります: ${values.strategy}.`
     },
     zh: {
@@ -6781,13 +7174,16 @@ function aiReportText(key, language = "en", values = {}) {
       commandAi: "为 Codex、Gemini 和 Claude Code 创建 AI 助手指令。",
       commandAiTest: "根据失败测试创建聚焦的 AI 修复提示。",
       commandGate: "在提交、推送或 PR 前运行最终本地关卡。",
+      commandInternalFiles: "根据检测到的托管配置创建内部仓库起始文件。",
       commandOss: "创建 README、issue 模板、PR 模板、CODEOWNERS 和开源文档。",
       commandRelease: "确认包元数据、标签、workflow 和 npm 状态。",
       commandReport: "保存此 AI 报告，用于 PR、交接或发布说明。",
       commandTest: "运行 Git 就绪检查和检测到的项目测试命令。",
       directionAi: "让 Codex、Gemini 和 Claude Code 遵循相同工作流。",
       directionAiPolicy: "AI 生成的工作应放在聚焦分支，并在 push 前运行 `aigate test` 或 `aigate aitest`。",
+      directionInternalWorkflow: "根据检测到的托管服务准备 README、MR/PR 模板和 CODEOWNERS 等内部仓库工作流文件。",
       directionOss: "用 README、issue 模板、PR 模板、CODEOWNERS 和贡献文档打开公开贡献入口。",
+      directionRaiseInternalScore: "按检测到的 private app 配置提高项目基础分；不要只为了分数添加公开 OSS 产物。",
       directionRaiseScore: "公开推广前把项目基础分提高到至少 80。",
       directionRelease: "创建发布标签或发布包变更前完成 release-check 项。",
       directionStrategy: `将 ${values.strategy ?? "推荐策略"} 作为分支政策基线。`,
@@ -6803,7 +7199,8 @@ function aiReportText(key, language = "en", values = {}) {
       releaseCheck: `发布检查需要处理: ${values.check}.`,
       releaseReady: "发布元数据和 workflow 检查已就绪。",
       secretFindings: `检测到 ${values.count} 个疑似敏感信息项。`,
-      sensitiveRemovals: `检测到 ${values.count} 个敏感文件移除。请提交移除，并轮换已经暴露的凭据。`,
+      sensitiveRemovals: `检测到 ${values.count} 个敏感文件移除，其中 ${values.exposedCount ?? values.count} 个已暴露在 Git 历史中；提交移除后请轮换暴露的凭据。`,
+      sensitiveRemovalsNoHistory: `检测到 ${values.count} 个敏感文件移除。请提交移除；未检测到 Git 历史暴露。`,
       strategyReady: `分支策略建议已可用: ${values.strategy}.`
     }
   };
@@ -6842,10 +7239,16 @@ function buildReport(type, options = {}) {
     recommendedActions: recommendedActionsForReport(status, evaluation, analysis, type),
     recommendation: analysis.secretFindings.length
       ? "Review possible secret-bearing files before commit or push."
-      : analysis.sensitiveRemovals.length
-        ? "Commit sensitive file removals and rotate exposed credentials if they were already in history."
+    : analysis.sensitiveRemovals.length
+        ? sensitiveRemovalRecommendation(analysis.sensitiveRemovals)
         : status.recommendation
   };
+}
+
+function sensitiveRemovalRecommendation(sensitiveRemovals) {
+  return sensitiveRemovals.some((finding) => finding.exposedInHistory)
+    ? "Commit sensitive file removals and rotate credentials that were exposed in Git history."
+    : "Commit sensitive file removals; no Git history exposure was detected.";
 }
 
 function calculateRiskScore(status, evaluation, analysis) {
@@ -6874,7 +7277,7 @@ function recommendedActionsForReport(status, evaluation, analysis, type) {
   if (analysis.secretFindings.length) {
     actions.push("Remove or rotate suspected secrets before commit or push.");
   } else if (analysis.sensitiveRemovals.length) {
-    actions.push("Commit sensitive file removals and rotate exposed credentials if they were already in history.");
+    actions.push(sensitiveRemovalRecommendation(analysis.sensitiveRemovals));
   }
 
   if (status.changedFiles.length > 20) {
@@ -8534,6 +8937,12 @@ function resolveIntegrationProviders(providerArg) {
 
 function buildIntegrationManifest(providers, profile = {}, packageJson = readJsonFile("package.json")) {
   const validationCommands = buildValidationCommands(packageJson, profile);
+  const branchStrategy = buildBranchStrategy({
+    projectType: profile.kind,
+    hosting: profile.hosting,
+    ciProvider: profile.ciProvider,
+    packageManager: profile.packageManager
+  });
   return {
     version: 1,
     generatedBy: `aigate ${VERSION}`,
@@ -8551,27 +8960,17 @@ function buildIntegrationManifest(providers, profile = {}, packageJson = readJso
       "aigate push --dry-run origin <branch>"
     ])],
     validationCommands,
-    branchStrategy: profile.hosting === "gitlab" ? "GitLab merge request flow" : "GitHub Flow with release channels",
+    branchStrategy: branchStrategy.name,
     requiredChecks: requiredChecksForProfile(profile)
   };
 }
 
 function buildValidationCommands(packageJson = readJsonFile("package.json"), profile = detectProjectProfile(packageJson)) {
   const commands = [];
-  const scripts = packageJson.scripts ?? {};
-  const packageManager = profile.packageManager ?? detectPackageManager(packageJson);
-
-  if (scripts.ci) {
-    commands.push(packageManagerScriptCommand(packageManager, "ci"));
-  } else if (scripts.test) {
-    commands.push(packageManagerScriptCommand(packageManager, "test"));
-  } else {
-    const testScript = Object.keys(scripts).find((name) => name.endsWith(":test") || name.includes("test"));
-    if (testScript) {
-      commands.push(packageManagerScriptCommand(packageManager, testScript));
-    }
+  const validationCommand = discoverValidationCommand(packageJson, profile);
+  if (validationCommand) {
+    commands.push(validationCommand.display);
   }
-
   commands.push("aigate git-ready");
   return [...new Set(commands)];
 }
@@ -9029,8 +9428,13 @@ function renderDefaultConfig(packageJson, options = {}) {
     "    experimental: canary"
   ] : [];
   const validationCommands = buildValidationCommands(packageJson, profile);
+  const strategy = buildBranchStrategy(options);
+  const protectedBranches = strategy.branches
+    .filter((branch) => ["main", "develop"].includes(branch.name))
+    .map((branch) => branch.name);
   return [
-    "version: 1",
+    `version: ${CONFIG_SCHEMA_VERSION}`,
+    `generatedBy: aigate ${VERSION}`,
     "",
     "project:",
     `  name: ${quoteYamlScalar(projectName)}`,
@@ -9063,7 +9467,7 @@ function renderDefaultConfig(packageJson, options = {}) {
     "branchStrategy:",
     "  default: auto",
     "  protectedBranches:",
-    "    - main",
+    ...protectedBranches.map((branch) => `    - ${branch}`),
     "  workBranches:",
     "    - feature/*",
     "    - fix/*",
@@ -9286,6 +9690,13 @@ function readAigateConfig(filePath = ".aigate.yml") {
       continue;
     }
 
+    const topLevelValueMatch = line.match(/^([A-Za-z0-9_-]+):\s*(.*?)\s*$/);
+    if (topLevelValueMatch && topLevelValueMatch[2] !== "") {
+      section = null;
+      config[topLevelValueMatch[1]] = parseYamlScalar(topLevelValueMatch[2]);
+      continue;
+    }
+
     const sectionMatch = line.match(/^([A-Za-z0-9_-]+):\s*$/);
     if (sectionMatch) {
       section = sectionMatch[1];
@@ -9469,6 +9880,24 @@ function translateWarning(warning, language) {
       ko: `민감 파일 제거 ${removalMatch[1]}개가 감지됐습니다. 제거를 커밋하고 이미 노출된 자격 증명은 회전하세요.`,
       ja: `機密ファイル削除を ${removalMatch[1]} 件検出しました。削除をコミットし、すでに露出した認証情報はローテーションしてください。`,
       zh: `检测到 ${removalMatch[1]} 个敏感文件移除。请提交移除，并轮换已经暴露的凭据。`
+    }[language] ?? warning;
+  }
+
+  const exposedRemovalMatch = warning.match(/^(\d+) sensitive file removal\(s\) detected; (\d+) had Git history exposure, so commit the removal and rotate exposed credentials\.$/);
+  if (exposedRemovalMatch) {
+    return {
+      ko: `민감 파일 제거 ${exposedRemovalMatch[1]}개가 감지됐습니다. 이 중 ${exposedRemovalMatch[2]}개는 Git 이력에 노출됐으니 제거를 커밋하고 노출된 자격 증명을 회전하세요.`,
+      ja: `機密ファイル削除を ${exposedRemovalMatch[1]} 件検出しました。このうち ${exposedRemovalMatch[2]} 件は Git 履歴に露出しているため、削除をコミットし、露出した認証情報をローテーションしてください。`,
+      zh: `检测到 ${exposedRemovalMatch[1]} 个敏感文件移除，其中 ${exposedRemovalMatch[2]} 个已暴露在 Git 历史中；请提交移除并轮换暴露的凭据。`
+    }[language] ?? warning;
+  }
+
+  const unexposedRemovalMatch = warning.match(/^(\d+) sensitive file removal\(s\) detected; commit the removal\. No Git history exposure was detected\.$/);
+  if (unexposedRemovalMatch) {
+    return {
+      ko: `민감 파일 제거 ${unexposedRemovalMatch[1]}개가 감지됐습니다. 제거를 커밋하세요. Git 이력 노출은 감지되지 않았습니다.`,
+      ja: `機密ファイル削除を ${unexposedRemovalMatch[1]} 件検出しました。削除をコミットしてください。Git 履歴への露出は検出されていません。`,
+      zh: `检测到 ${unexposedRemovalMatch[1]} 个敏感文件移除。请提交移除；未检测到 Git 历史暴露。`
     }[language] ?? warning;
   }
 

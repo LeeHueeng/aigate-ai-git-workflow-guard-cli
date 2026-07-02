@@ -66,7 +66,7 @@ aigate install-hook --pre-push
 | `aigate reset` | AIGate config、settings、レポート placeholder を再作成します。`--dry-run` でプレビューできます。 |
 | `aigate clean --force` | 生成済み AIGate レポートとローカル生成状態を削除します。`--force` なしでは対象だけをプレビューします。 |
 | `aigate uninstall --force` | `.aigate.yml`、`.aigate/`、AIGate 所有の pre-push hook を削除します。 |
-| `aigate doctor` | Node、Git、npm package metadata、GitHub workflow、AIGate 設定を確認します。 |
+| `aigate doctor` | Node、Git、検出した test command、CI profile、古い generated files、AIGate 設定を確認します。 |
 | `aigate demo` | プロジェクトファイルを変更せずに主な流れを表示します。 |
 | `aigate install-hook --pre-push` | push 前に AIGate を実行する pre-push hook をインストールします。 |
 
@@ -79,6 +79,7 @@ aigate install-hook --pre-push
 | 初めてリポジトリに導入する | デフォルト設定を選び、必要なファイルだけ作成して診断を確認します。 | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
 | AI エージェントが多数のファイルを変更した後 | 変更ファイルと secret リスクを先に確認し、失敗したテストは AI 修正プロンプトに渡します。 | `aigate check` -> `aigate test` -> `aigate aitest` |
 | PR を開く直前 | ローカル gate を通し、guarded push の後に reviewer 向けサマリーを生成します。 | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| private GitLab monorepo | profile を固定し、workspace test を検出して実行し、GitHub 専用の score noise を避けます。 | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
 | オープンソース公開準備 | 公開貢献ファイルを作成し、リポジトリ基盤スコアを確認します。 | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
 | リリース前後 | tag と npm readiness を確認し、CI 後に状態トレンドを記録します。 | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
 | ローカル状態を整理または削除する | 削除対象を先にプレビューし、内容が正しいときだけ適用します。 | `aigate clean` -> `aigate clean --force` -> `aigate uninstall --force` |
@@ -117,10 +118,13 @@ aigate aitest --apply --provider claude
 aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
 ```
 
-`aigate test` は `aigate git-ready` と検出した package-manager script を
-実行します。検出順は `ci`、test 系 script、`test` で、検出した package
-manager (`npm`, `pnpm`, `yarn`, `bun`) を使います。独自の検証コマンドを使う
-場合は `--script` または `--command` で指定します。
+`aigate test` は `aigate git-ready` と検出した package-manager command を
+実行します。root script、`turbo.json` task、`pnpm-workspace.yaml`、
+`package.json` workspaces、一般的な `apps/*` または `packages/*` workspace
+package を探索します。検出した package manager (`npm`, `pnpm`, `yarn`,
+`bun`) を使い、`pnpm turbo run test` や `pnpm -r run test` のような command
+も実行できます。独自の検証コマンドを使う場合は `--script` または
+`--command` で指定します。
 
 `aigate aitest` は失敗サマリー、テスト出力、AI 修正指示を
 `.aigate/reports/ai-test.md` に書き込みます。既定ではコードを変更しません。
@@ -221,9 +225,15 @@ aigate release-check --project-type package --npm
 npm 公開状態が準備できているか確認します。
 
 AIGate は repository profile を自動検出します: app/package、private/public、
-GitHub/GitLab、npm/pnpm/yarn/bun。private GitLab pnpm app では、GitHub 専用
-項目と npm 公開項目を `未対応` ではなく `対象外` として表示します。npm 公開
-package として強制的に検査したい場合だけ `--project-type package` を使います。
+GitHub/GitLab、npm/pnpm/yarn/bun、workspace test signal。private GitLab
+pnpm app では、GitHub 専用、public OSS governance、npm 公開項目を `未対応`
+ではなく `対象外` として表示します。npm 公開 package として強制的に検査したい
+場合だけ `--project-type package` を使います。
+
+`aigate doctor` は、生成済み AIGate files が古い CLI で作成された場合も警告
+します。たとえば現在の CLI が `0.1.6` で `generatedBy: aigate 0.1.1` が残って
+いる場合は、最新 profile behavior を使うために `aigate init --force` と
+`aigate integrate all --force` で再生成してください。
 
 自動検出だけでは足りない場合は profile を固定します:
 

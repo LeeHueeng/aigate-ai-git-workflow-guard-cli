@@ -84,7 +84,7 @@ Secret findings: 0
 Project score: 92/100
 Blockers: none
 Warnings: none
-Recommendation: Run npm test, commit focused changes, push the branch, and open a pull request.
+Recommendation: Run AIGate test, commit focused changes, push the branch, and open a pull request.
 ```
 
 AIGate is useful when AI coding assistants move quickly and you need one
@@ -97,6 +97,7 @@ repeatable local gate before `git push` or PR creation.
 | New repository adoption | Create the default AIGate files step by step, then install the pre-push guard. | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
 | AI changed a lot of files | Inspect changed paths, run tests, and turn failures into a focused AI repair prompt. | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
 | PR is almost ready | Pass the gate, push through AIGate, and produce reviewer context. | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| Private GitLab monorepo | Pin the profile, let AIGate find workspace tests, and keep GitHub-only checks out of the score. | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
 | Open source launch | Generate public contribution files and check repository foundations. | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
 | Release week | Verify npm and tag readiness, run CI, and record the trend. | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
 
@@ -113,6 +114,7 @@ repeatable local gate before `git push` or PR creation.
 | Remove AIGate config, local state, and owned hook | `aigate uninstall --force` |
 | Open source starter README, issue templates, and contribution files | `aigate start --route oss` |
 | Project test runner | `aigate test` |
+| Turbo, pnpm, yarn, bun, and workspace test detection | `aigate test` |
 | AI remediation prompt and optional agent run | `aigate aitest` |
 | AI project health report with problems, strengths, direction, and handoff prompt | `aigate ai report` |
 | First-run diagnostics | `aigate doctor` |

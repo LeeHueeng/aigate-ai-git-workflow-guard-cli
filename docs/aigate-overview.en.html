@@ -377,7 +377,7 @@ npx aigate-cli check</code></pre>
     <foreignObject x="520" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
         <strong>Test automation</strong>
-        <span>aigate test runs Git gate and package-manager scripts</span>
+        <span>aigate test runs Git gate plus root, workspace, and turbo tests</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -528,6 +528,22 @@ aigate aitest</code></pre>
         <pre><code>aigate git-ready
 aigate push -u origin feature/my-work
 aigate pr-check</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">Situation</p>
+        <h3>Private GitLab monorepo</h3>
+      </div>
+      <div>
+        <p class="kicker">Process</p>
+        <p>Pin the profile, run detected workspace tests, and avoid GitHub-only score noise.</p>
+      </div>
+      <div>
+        <p class="kicker">Example commands</p>
+        <pre><code>aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm
+aigate test
+aigate evaluate-project</code></pre>
       </div>
     </article>
     <article class="use-case">
@@ -767,7 +783,7 @@ aigate uninstall --force</code></pre>
     <td>Light pre-commit check</td>
   </tr><tr>
     <td><code>aigate test</code></td>
-    <td>Run Git readiness and the detected package-manager test/ci script.</td>
+    <td>Run Git readiness and detected root script, turbo task, pnpm workspace, or workspace package tests.</td>
     <td>Before committing with real test coverage</td>
   </tr><tr>
     <td><code>aigate ai report</code></td>
@@ -928,7 +944,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">Features</p>
         <h2>Implemented Features</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">Public npm package aigate-cli and npx execution</div><div class="feature done">Git change and untracked-file readiness checks</div><div class="feature done">Guided start routes through aigate start</div><div class="feature done">Stepwise default setup through aigate start --route default</div><div class="feature done">Reset and deletion commands through aigate reset, clean, and uninstall</div><div class="feature done">Open-source starter files through aigate start --route oss</div><div class="feature done">Project test automation through aigate test</div><div class="feature done">AI project health briefs through aigate ai report</div><div class="feature done">AI remediation prompt, live agent logs, and optional agent execution through aigate aitest</div><div class="feature done">First-run UX through doctor, demo, and install-hook</div><div class="feature done">Pre-push Git hook installation</div><div class="feature done">Secret pattern detection and SARIF output</div><div class="feature done">git-ready, guarded push, and guarded PR creation</div><div class="feature done">GitHub PR comments and GitHub Checks summary payloads</div><div class="feature done">PR template and CODEOWNERS guided setup</div><div class="feature done">Reusable public GitHub Action</div><div class="feature done">Project health trend history</div><div class="feature done">Automatic and pinned profile support for private apps, GitLab, and pnpm</div><div class="feature done">GitHub/GitLab profile consistency across doctor, AI instructions, and branch policy packs</div><div class="feature done">Markdown, HTML, JSON, and SARIF reports</div><div class="feature done">Compliance reports and a local HTML health dashboard</div><div class="feature done">Project scoring and deep Git signal evaluation</div><div class="feature done">Branch strategy recommendations, proposal comparison, and policy pack generation</div><div class="feature done">Codex/Gemini/Claude Code integration file generation</div><div class="feature done">Korean/English/Japanese/Chinese CLI settings</div><div class="feature done">release-check and release-check --npm</div><div class="feature done">Automated npm releases through Trusted Publishing</div><div class="feature done">GitHub CI, OpenSSF Scorecard, and GitHub Releases</div><div class="feature done">Terminal, Slack BLOCK, Discord, Teams, email, Linear, and Jira notifications</div><div class="feature done">GHCR Docker publish workflow and Homebrew formula draft</div></div>
+      <div class="feature-grid"><div class="feature done">Public npm package aigate-cli and npx execution</div><div class="feature done">Git change and untracked-file readiness checks</div><div class="feature done">Guided start routes through aigate start</div><div class="feature done">Stepwise default setup through aigate start --route default</div><div class="feature done">Reset and deletion commands through aigate reset, clean, and uninstall</div><div class="feature done">Open-source starter files through aigate start --route oss</div><div class="feature done">Root, workspace, and turbo project test automation through aigate test</div><div class="feature done">pnpm-workspace.yaml, package.json workspaces, apps/*, and packages/* test detection</div><div class="feature done">AI project health briefs through aigate ai report</div><div class="feature done">AI remediation prompt, live agent logs, and optional agent execution through aigate aitest</div><div class="feature done">First-run UX through doctor, demo, and install-hook</div><div class="feature done">generatedBy version drift warnings through doctor</div><div class="feature done">Pre-push Git hook installation</div><div class="feature done">Secret pattern detection and SARIF output</div><div class="feature done">git-ready, guarded push, and guarded PR creation</div><div class="feature done">GitHub PR comments and GitHub Checks summary payloads</div><div class="feature done">PR template and CODEOWNERS guided setup</div><div class="feature done">Reusable public GitHub Action</div><div class="feature done">Project health trend history</div><div class="feature done">Automatic and pinned profile support for private apps, GitLab, and pnpm</div><div class="feature done">GitHub/GitLab profile consistency across doctor, AI instructions, and branch policy packs</div><div class="feature done">Markdown, HTML, JSON, and SARIF reports</div><div class="feature done">Compliance reports and a local HTML health dashboard</div><div class="feature done">Project scoring and deep Git signal evaluation</div><div class="feature done">Branch strategy recommendations, proposal comparison, and policy pack generation</div><div class="feature done">Codex/Gemini/Claude Code integration file generation</div><div class="feature done">Korean/English/Japanese/Chinese CLI settings</div><div class="feature done">release-check and release-check --npm</div><div class="feature done">Automated npm releases through Trusted Publishing</div><div class="feature done">GitHub CI, OpenSSF Scorecard, and GitHub Releases</div><div class="feature done">Terminal, Slack BLOCK, Discord, Teams, email, Linear, and Jira notifications</div><div class="feature done">GHCR Docker publish workflow and Homebrew formula draft</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">

@@ -160,6 +160,7 @@ function translateCheckLabel(label, language) {
   return {
     ko: {
       "AIGate config": "AIGate 설정",
+      "AIGate generated files version": "AIGate 생성 파일 버전",
       "CI workflow": "CI workflow",
       "Git repository": "Git 저장소",
       "Node.js runtime": "Node.js runtime",
@@ -172,6 +173,7 @@ function translateCheckLabel(label, language) {
     },
     ja: {
       "AIGate config": "AIGate 設定",
+      "AIGate generated files version": "AIGate 生成ファイルバージョン",
       "CI workflow": "CI workflow",
       "Git repository": "Git リポジトリ",
       "Node.js runtime": "Node.js runtime",
@@ -184,6 +186,7 @@ function translateCheckLabel(label, language) {
     },
     zh: {
       "AIGate config": "AIGate 配置",
+      "AIGate generated files version": "AIGate 生成文件版本",
       "CI workflow": "CI workflow",
       "Git repository": "Git 仓库",
       "Node.js runtime": "Node.js runtime",
@@ -203,6 +206,7 @@ function translateNextStep(step, language) {
       "Add a CI workflow or run checks before every push.": "CI workflow를 추가하거나 push 전 검사를 실행하세요.",
       "Add a CI workflow for the configured hosting provider or run checks before every push.": "설정된 호스팅 제공자에 맞는 CI workflow를 추가하거나 push 전 검사를 실행하세요.",
       "Add a real package.json test script.": "package.json에 실제 test script를 추가하세요.",
+      "Regenerate stale AIGate files with aigate init --force and aigate integrate all --force.": "오래된 AIGate 파일을 aigate init --force와 aigate integrate all --force로 다시 생성하세요.",
       "Add a package.json test script.": "package.json에 test script를 추가하세요.",
       "Add package.json or run AIGate from the project root.": "package.json을 추가하거나 프로젝트 root에서 AIGate를 실행하세요.",
       "Existing pre-push hook found. Re-run with --force to replace it.": "기존 pre-push hook이 있습니다. 교체하려면 --force로 다시 실행하세요.",
@@ -220,6 +224,7 @@ function translateNextStep(step, language) {
       "Add a CI workflow or run checks before every push.": "CI workflow を追加するか、push 前に checks を実行してください。",
       "Add a CI workflow for the configured hosting provider or run checks before every push.": "設定された hosting provider に合う CI workflow を追加するか、push 前に checks を実行してください。",
       "Add a real package.json test script.": "package.json に実際の test script を追加してください。",
+      "Regenerate stale AIGate files with aigate init --force and aigate integrate all --force.": "古い AIGate ファイルを aigate init --force と aigate integrate all --force で再生成してください。",
       "Add a package.json test script.": "package.json に test script を追加してください。",
       "Add package.json or run AIGate from the project root.": "package.json を追加するか project root で AIGate を実行してください。",
       "Existing pre-push hook found. Re-run with --force to replace it.": "既存の pre-push hook があります。置き換えるには --force で再実行してください。",
@@ -237,6 +242,7 @@ function translateNextStep(step, language) {
       "Add a CI workflow or run checks before every push.": "添加 CI workflow，或在每次 push 前运行检查。",
       "Add a CI workflow for the configured hosting provider or run checks before every push.": "请添加匹配当前托管服务的 CI workflow，或在每次 push 前运行检查。",
       "Add a real package.json test script.": "请在 package.json 中添加真实的 test script。",
+      "Regenerate stale AIGate files with aigate init --force and aigate integrate all --force.": "请用 aigate init --force 和 aigate integrate all --force 重新生成过期的 AIGate 文件。",
       "Add a package.json test script.": "在 package.json 中添加 test script。",
       "Add package.json or run AIGate from the project root.": "添加 package.json，或在 project root 运行 AIGate。",
       "Existing pre-push hook found. Re-run with --force to replace it.": "发现已有 pre-push hook。若要替换，请用 --force 重新运行。",

@@ -377,7 +377,7 @@ npx aigate-cli check</code></pre>
     <foreignObject x="520" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
         <strong>テスト自動化</strong>
-        <span>aigate test が Git gate と package-manager script を実行</span>
+        <span>aigate test が Git gate と root/workspace/turbo test を実行</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -528,6 +528,22 @@ aigate aitest</code></pre>
         <pre><code>aigate git-ready
 aigate push -u origin feature/my-work
 aigate pr-check</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">状況</p>
+        <h3>private GitLab monorepo</h3>
+      </div>
+      <div>
+        <p class="kicker">プロセス</p>
+        <p>profile を固定し、workspace test を検出して実行し、GitHub 専用 score noise を避けます。</p>
+      </div>
+      <div>
+        <p class="kicker">コマンド例</p>
+        <pre><code>aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm
+aigate test
+aigate evaluate-project</code></pre>
       </div>
     </article>
     <article class="use-case">
@@ -767,7 +783,7 @@ aigate uninstall --force</code></pre>
     <td>軽いコミット前確認</td>
   </tr><tr>
     <td><code>aigate test</code></td>
-    <td>Git readiness と検出した package-manager test/ci script を実行します。</td>
+    <td>Git readiness と root script、turbo task、pnpm workspace、workspace package test command を検出して実行します。</td>
     <td>実際のテストまで確認してから commit するとき</td>
   </tr><tr>
     <td><code>aigate ai report</code></td>
@@ -928,7 +944,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">機能</p>
         <h2>現在実装済みの機能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">aigate start によるガイド付き開始ルート</div><div class="feature done">aigate start --route default による段階的なデフォルト設定</div><div class="feature done">aigate reset、clean、uninstall による初期化と削除コマンド</div><div class="feature done">aigate start --route oss によるオープンソース初期ファイル生成</div><div class="feature done">aigate test によるプロジェクトテスト自動化</div><div class="feature done">aigate ai report による AI プロジェクト状態ブリーフ</div><div class="feature done">aigate aitest による AI 修正プロンプト、リアルタイム agent ログ、任意の agent 実行</div><div class="feature done">doctor、demo、install-hook による初回実行 UX</div><div class="feature done">pre-push Git hook のインストール</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">GitHub PR comment と GitHub Checks summary payload</div><div class="feature done">PR テンプレートと CODEOWNERS のガイド付き設定</div><div class="feature done">再利用可能な公開 GitHub Action</div><div class="feature done">プロジェクト状態トレンド履歴</div><div class="feature done">private app、GitLab、pnpm の自動検出と profile 固定</div><div class="feature done">doctor、AI 指示、branch strategy policy pack 全体の GitHub/GitLab profile 整合性</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">コンプライアンスレポートとローカル HTML ヘルスダッシュボード</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦、提案比較、ポリシーパック生成</div><div class="feature done">Codex/Gemini/Claude Code 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow と Homebrew formula draft</div></div>
+      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">aigate start によるガイド付き開始ルート</div><div class="feature done">aigate start --route default による段階的なデフォルト設定</div><div class="feature done">aigate reset、clean、uninstall による初期化と削除コマンド</div><div class="feature done">aigate start --route oss によるオープンソース初期ファイル生成</div><div class="feature done">aigate test による root/workspace/turbo プロジェクトテスト自動化</div><div class="feature done">pnpm-workspace.yaml、package.json workspaces、apps/*、packages/* test detection</div><div class="feature done">aigate ai report による AI プロジェクト状態ブリーフ</div><div class="feature done">aigate aitest による AI 修正プロンプト、リアルタイム agent ログ、任意の agent 実行</div><div class="feature done">doctor、demo、install-hook による初回実行 UX</div><div class="feature done">doctor による generatedBy version drift warning</div><div class="feature done">pre-push Git hook のインストール</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">GitHub PR comment と GitHub Checks summary payload</div><div class="feature done">PR テンプレートと CODEOWNERS のガイド付き設定</div><div class="feature done">再利用可能な公開 GitHub Action</div><div class="feature done">プロジェクト状態トレンド履歴</div><div class="feature done">private app、GitLab、pnpm の自動検出と profile 固定</div><div class="feature done">doctor、AI 指示、branch strategy policy pack 全体の GitHub/GitLab profile 整合性</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">コンプライアンスレポートとローカル HTML ヘルスダッシュボード</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦、提案比較、ポリシーパック生成</div><div class="feature done">Codex/Gemini/Claude Code 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow と Homebrew formula draft</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">

@@ -66,7 +66,7 @@ What they do:
 | `aigate reset` | Rewrites AIGate config, settings, and report placeholders. Use `--dry-run` to preview. |
 | `aigate clean --force` | Deletes generated AIGate reports and local generated state. Without `--force`, it previews targets. |
 | `aigate uninstall --force` | Removes `.aigate.yml`, `.aigate/`, and an AIGate-owned pre-push hook. |
-| `aigate doctor` | Checks Node, Git, npm package metadata, GitHub workflow files, and AIGate configuration. |
+| `aigate doctor` | Checks Node, Git, detected test command, CI profile, stale generated files, and AIGate configuration. |
 | `aigate demo` | Shows the main workflow without changing project files. |
 | `aigate install-hook --pre-push` | Installs a pre-push hook that runs AIGate before pushing. |
 
@@ -80,6 +80,7 @@ right now?"
 | First-time adoption in a repository | Choose the default setup, create only the files you want, then confirm diagnostics. | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
 | After an AI agent changed many files | Inspect changed files and secret risk first, then turn failing tests into an AI repair prompt. | `aigate check` -> `aigate test` -> `aigate aitest` |
 | Right before opening a PR | Pass the local gate, push through the guarded wrapper, and generate a reviewer-ready summary. | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| Private GitLab monorepo | Pin the profile, run detected workspace tests, and avoid GitHub-only score noise. | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
 | Preparing an open source launch | Generate public contribution files and measure the repository foundation score. | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
 | Before or after a release | Check tag and npm readiness, run CI, then record the project trend. | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
 | Clearing or removing local AIGate state | Preview the deletion target first, then apply only when the list looks right. | `aigate clean` -> `aigate clean --force` -> `aigate uninstall --force` |
@@ -119,10 +120,13 @@ aigate aitest --apply --provider claude
 aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
 ```
 
-`aigate test` runs `aigate git-ready` plus the detected package-manager script.
-Detection prefers `ci`, then test-like scripts, then `test`, and uses the
-detected package manager (`npm`, `pnpm`, `yarn`, or `bun`). Use `--script` or
-`--command` when a project has a custom check command.
+`aigate test` runs `aigate git-ready` plus the detected package-manager command.
+Detection checks root scripts, `turbo.json` tasks, `pnpm-workspace.yaml`,
+`package.json` workspaces, and common `apps/*` or `packages/*` workspace
+packages. It uses the detected package manager (`npm`, `pnpm`, `yarn`, or
+`bun`) and can run commands such as `pnpm turbo run test` or
+`pnpm -r run test`. Use `--script` or `--command` when a project has a custom
+check command.
 
 `aigate aitest` writes `.aigate/reports/ai-test.md` with the failure summary,
 test output, and a focused repair prompt for Codex, Claude, or Gemini. It does
@@ -224,10 +228,15 @@ aigate release-check --project-type package --npm
 provenance, and npm publication state are ready.
 
 AIGate auto-detects repository profile signals: app vs package, private vs
-public, GitHub vs GitLab, and npm/pnpm/yarn/bun. For a private GitLab pnpm app,
-GitHub-only and npm-publication checks are marked `N/A` instead of `TODO`. Use
-`--project-type package` only when a repository should be treated as a
-publishable npm package.
+public, GitHub vs GitLab, npm/pnpm/yarn/bun, and workspace test signals. For a
+private GitLab pnpm app, GitHub-only, public OSS governance, and npm-publication
+checks are marked `N/A` instead of `TODO`. Use `--project-type package` only
+when a repository should be treated as a publishable npm package.
+
+`aigate doctor` also warns when generated AIGate files were created by an older
+CLI version, for example `generatedBy: aigate 0.1.1` while the current CLI is
+`0.1.6`. Regenerate those files with `aigate init --force` and
+`aigate integrate all --force` when you want the latest profile behavior.
 
 Pin the profile when auto-detection is not enough:
 

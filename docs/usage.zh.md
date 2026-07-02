@@ -65,7 +65,7 @@ aigate install-hook --pre-push
 | `aigate reset` | 重新写入 AIGate config、settings 和报告占位文件。可用 `--dry-run` 预览。 |
 | `aigate clean --force` | 删除生成的 AIGate 报告和本地生成状态。没有 `--force` 时只预览目标。 |
 | `aigate uninstall --force` | 移除 `.aigate.yml`、`.aigate/` 和 AIGate 自有 pre-push hook。 |
-| `aigate doctor` | 检查 Node、Git、npm package metadata、GitHub workflow 和 AIGate 配置。 |
+| `aigate doctor` | 检查 Node、Git、检测到的 test command、CI profile、过期 generated files 和 AIGate 配置。 |
 | `aigate demo` | 不修改项目文件，展示主要流程。 |
 | `aigate install-hook --pre-push` | 安装 push 前运行 AIGate 的 pre-push hook。 |
 
@@ -78,6 +78,7 @@ aigate install-hook --pre-push
 | 首次接入仓库 | 选择默认设置，只创建需要的文件，然后确认诊断结果。 | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
 | AI agent 修改了很多文件后 | 先检查 changed files 和 secret 风险，再把失败测试交给 AI 修复提示。 | `aigate check` -> `aigate test` -> `aigate aitest` |
 | 打开 PR 之前 | 通过本地 gate，经 guarded push 推送，再生成 reviewer 摘要。 | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| private GitLab monorepo | 固定 profile，检测并运行 workspace tests，避免 GitHub 专用评分噪音。 | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
 | 准备开源发布 | 生成公开贡献文件，并检查仓库基础评分。 | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
 | 发布前后 | 检查 tag 和 npm readiness，运行 CI 后记录状态趋势。 | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
 | 清理或移除本地 AIGate 状态 | 先预览删除目标，确认无误后再应用。 | `aigate clean` -> `aigate clean --force` -> `aigate uninstall --force` |
@@ -116,10 +117,12 @@ aigate aitest --apply --provider claude
 aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
 ```
 
-`aigate test` 会运行 `aigate git-ready` 和检测到的 package-manager script。
-检测顺序是 `ci`、test 类 script、`test`，并使用检测到的 package manager
-(`npm`, `pnpm`, `yarn`, `bun`)。如果项目使用自定义检查命令，请用 `--script`
-或 `--command` 指定。
+`aigate test` 会运行 `aigate git-ready` 和检测到的 package-manager command。
+检测会查看 root scripts、`turbo.json` tasks、`pnpm-workspace.yaml`、
+`package.json` workspaces，以及常见的 `apps/*` 或 `packages/*` workspace
+packages。它会使用检测到的 package manager (`npm`, `pnpm`, `yarn`, `bun`)，
+并可运行 `pnpm turbo run test` 或 `pnpm -r run test` 等命令。如果项目使用
+自定义检查命令，请用 `--script` 或 `--command` 指定。
 
 `aigate aitest` 会把失败摘要、测试输出和 AI 修复提示写入
 `.aigate/reports/ai-test.md`。默认不会修改代码。只有在需要调用 Codex、
@@ -217,9 +220,14 @@ aigate release-check --project-type package --npm
 provenance 和 npm 发布状态是否就绪。
 
 AIGate 会自动检测仓库配置: app/package、private/public、GitHub/GitLab、
-npm/pnpm/yarn/bun。对于 private GitLab pnpm app，GitHub 专用项和 npm 公开发布项
-会显示为 `不适用`，不会算作 `待办`。只有需要把仓库强制视为可发布 npm 包时，
-才使用 `--project-type package`。
+npm/pnpm/yarn/bun，以及 workspace test 信号。对于 private GitLab pnpm app，
+GitHub 专用项、public OSS governance 和 npm 公开发布项会显示为 `不适用`，
+不会算作 `待办`。只有需要把仓库强制视为可发布 npm 包时，才使用
+`--project-type package`。
+
+`aigate doctor` 也会在生成的 AIGate 文件来自旧 CLI 时发出警告。例如当前 CLI 是
+`0.1.6`，但仍有 `generatedBy: aigate 0.1.1`，请用 `aigate init --force` 和
+`aigate integrate all --force` 重新生成，以获得最新 profile 行为。
 
 当自动检测不够时，可以固定配置:
 

@@ -66,7 +66,7 @@ aigate install-hook --pre-push
 | `aigate reset` | AIGate config, settings, 리포트 placeholder를 다시 작성합니다. `--dry-run`으로 미리 볼 수 있습니다. |
 | `aigate clean --force` | 생성된 AIGate 리포트와 로컬 생성 상태를 삭제합니다. `--force`가 없으면 대상만 미리 봅니다. |
 | `aigate uninstall --force` | `.aigate.yml`, `.aigate/`, AIGate 소유 pre-push hook을 제거합니다. |
-| `aigate doctor` | Node, Git, npm package metadata, GitHub workflow, AIGate 설정을 점검합니다. |
+| `aigate doctor` | Node, Git, 감지된 테스트 명령, CI 프로필, 오래된 생성 파일, AIGate 설정을 점검합니다. |
 | `aigate demo` | 프로젝트 파일을 바꾸지 않고 주요 흐름을 보여줍니다. |
 | `aigate install-hook --pre-push` | push 전에 AIGate가 실행되는 pre-push hook을 설치합니다. |
 
@@ -79,6 +79,7 @@ aigate install-hook --pre-push
 | 처음 저장소에 도입할 때 | 기본 설정을 고르고 필요한 파일만 만든 뒤 진단 결과를 확인합니다. | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
 | AI 에이전트가 파일을 많이 바꾼 뒤 | 변경 파일과 secret 위험을 먼저 보고, 테스트 실패는 AI 수정 프롬프트로 넘깁니다. | `aigate check` -> `aigate test` -> `aigate aitest` |
 | PR을 열기 직전 | 로컬 gate를 통과시키고, 보호된 push 후 리뷰어용 요약을 생성합니다. | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| private GitLab 모노레포 | 프로필을 고정하고 workspace 테스트를 감지해 실행하며 GitHub 전용 점수 노이즈를 줄입니다. | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
 | 오픈소스 공개 준비 | 공개 기여 파일을 만들고 저장소 기반 점수를 확인합니다. | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
 | 릴리스 전후 | 태그와 npm 상태를 점검하고, CI 후 상태 추세를 남깁니다. | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
 | 로컬 상태를 비우거나 제거할 때 | 삭제 대상을 먼저 미리 본 뒤 확실할 때만 적용합니다. | `aigate clean` -> `aigate clean --force` -> `aigate uninstall --force` |
@@ -117,10 +118,13 @@ aigate aitest --apply --provider claude
 aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
 ```
 
-`aigate test`는 `aigate git-ready`와 감지된 package-manager script를 함께
-실행합니다. 감지는 `ci`, test 계열 script, `test` 순서로 진행되며 감지된
-package manager(`npm`, `pnpm`, `yarn`, `bun`)를 사용합니다. 프로젝트마다 다른
-검사 명령을 쓰면 `--script` 또는 `--command`로 직접 지정합니다.
+`aigate test`는 `aigate git-ready`와 감지된 package-manager 명령을 함께
+실행합니다. 루트 script, `turbo.json` task, `pnpm-workspace.yaml`,
+`package.json` workspaces, 그리고 흔한 `apps/*` 또는 `packages/*` workspace
+패키지를 탐색합니다. 감지된 package manager(`npm`, `pnpm`, `yarn`, `bun`)를
+사용하며 `pnpm turbo run test` 또는 `pnpm -r run test` 같은 명령을 실행할 수
+있습니다. 프로젝트마다 다른 검사 명령을 쓰면 `--script` 또는 `--command`로
+직접 지정합니다.
 
 `aigate aitest`는 실패 요약, 테스트 출력, AI 수정 지시를
 `.aigate/reports/ai-test.md`에 작성합니다. 기본값은 코드를 수정하지 않는
@@ -221,10 +225,15 @@ aigate release-check --project-type package --npm
 npm 배포 상태가 준비됐는지 확인합니다.
 
 AIGate는 저장소 프로필을 자동 감지합니다: app/package, private/public,
-GitHub/GitLab, npm/pnpm/yarn/bun. private GitLab pnpm 앱에서는 GitHub 전용
-항목과 npm 공개 배포 항목을 `할 일`이 아니라 `해당 없음`으로 표시합니다.
-저장소를 npm 배포 패키지로 강제 검사해야 할 때만 `--project-type package`를
-사용하세요.
+GitHub/GitLab, npm/pnpm/yarn/bun, workspace 테스트 신호. private GitLab pnpm
+앱에서는 GitHub 전용, 공개 OSS 거버넌스, npm 공개 배포 항목을 `할 일`이 아니라
+`해당 없음`으로 표시합니다. 저장소를 npm 배포 패키지로 강제 검사해야 할 때만
+`--project-type package`를 사용하세요.
+
+`aigate doctor`는 생성된 AIGate 파일이 오래된 CLI로 만들어졌는지도 경고합니다.
+예를 들어 현재 CLI가 `0.1.6`인데 `generatedBy: aigate 0.1.1`이 남아 있으면
+`aigate init --force`와 `aigate integrate all --force`로 최신 프로필 동작을
+다시 생성하세요.
 
 자동 감지만으로 부족하면 프로필을 고정하세요:
 

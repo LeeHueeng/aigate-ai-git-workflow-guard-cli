@@ -1,4 +1,4 @@
-import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join } from "node:path";
 
 export const AIGATE_HOOK_MARKER = "AIGate pre-push hook";
@@ -10,6 +10,7 @@ export function buildDoctorReport(context) {
   const evaluation = context.buildEvaluation();
   const ciCheck = evaluation.checks.find((check) => check.name === "CI workflow exists");
   const profile = evaluation.profile ?? {};
+  const generatedVersion = generatedFilesVersion(context);
   const checks = [
     doctorCheck({
       id: "node",
@@ -50,6 +51,14 @@ export function buildDoctorReport(context) {
       severity: "warn",
       value: existsSync(".aigate.yml") ? "found" : "missing",
       next: "Run aigate init."
+    }),
+    doctorCheck({
+      id: "generated-version",
+      label: "AIGate generated files version",
+      pass: generatedVersion.pass,
+      severity: "warn",
+      value: generatedVersion.value,
+      next: "Regenerate stale AIGate files with aigate init --force and aigate integrate all --force."
     }),
     doctorCheck({
       id: "ci-workflow",
@@ -109,9 +118,130 @@ function detectedTestScript(packageJson) {
     return "test";
   }
 
-  return Object.keys(scripts).find((name) => (
+  const rootScript = Object.keys(scripts).find((name) => (
     name.endsWith(":test") || name.includes("test")
   ));
+  if (rootScript) {
+    return rootScript;
+  }
+
+  const workspaceScript = workspacePackages()
+    .flatMap((workspacePackage) => Object.keys(workspacePackage.scripts ?? {}))
+    .find((name) => name === "test" || name.endsWith(":test") || name.includes("test"));
+  return workspaceScript ? `workspace:${workspaceScript}` : null;
+}
+
+function workspacePackages() {
+  const patterns = [];
+  const packageJson = readJsonFile("package.json");
+  const workspaces = packageJson.workspaces;
+
+  if (Array.isArray(workspaces)) {
+    patterns.push(...workspaces);
+  } else if (Array.isArray(workspaces?.packages)) {
+    patterns.push(...workspaces.packages);
+  }
+
+  if (existsSync("pnpm-workspace.yaml")) {
+    patterns.push(...parsePnpmWorkspacePatterns(readFileSync("pnpm-workspace.yaml", "utf8")));
+  }
+
+  if (existsSync("turbo.json") || existsSync("apps") || existsSync("packages")) {
+    patterns.push("apps/*", "packages/*");
+  }
+
+  return [...new Set(patterns)]
+    .flatMap(expandWorkspacePattern)
+    .filter((packagePath) => existsSync(packagePath))
+    .map((packagePath) => readJsonFile(packagePath))
+    .filter((workspacePackage) => Object.keys(workspacePackage).length);
+}
+
+function parsePnpmWorkspacePatterns(content) {
+  const patterns = [];
+  let inPackages = false;
+
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.replace(/\s+#.*$/, "");
+    if (/^packages:\s*$/.test(line.trim())) {
+      inPackages = true;
+      continue;
+    }
+
+    if (inPackages && /^\S/.test(line) && !/^packages:\s*$/.test(line.trim())) {
+      inPackages = false;
+    }
+
+    const match = inPackages ? line.match(/^\s*-\s*(.+?)\s*$/) : null;
+    if (match) {
+      patterns.push(match[1]);
+    }
+  }
+
+  return patterns;
+}
+
+function expandWorkspacePattern(pattern) {
+  const clean = String(pattern ?? "")
+    .trim()
+    .replace(/^['"]|['"]$/g, "")
+    .replace(/\/$/, "");
+  const starIndex = clean.indexOf("*");
+  if (!clean || clean.startsWith("!") || clean.includes("**")) {
+    return [];
+  }
+
+  if (starIndex === -1) {
+    return [join(clean, "package.json")];
+  }
+
+  const base = clean.slice(0, starIndex).replace(/\/$/, "");
+  if (!base || !existsSync(base)) {
+    return [];
+  }
+
+  try {
+    return readdirSync(base, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => join(base, entry.name, "package.json"));
+  } catch {
+    return [];
+  }
+}
+
+function generatedFilesVersion(context) {
+  const currentVersion = context.version ?? "0.0.0";
+  const versions = [
+    generatedByVersion(context.readAigateConfig?.(".aigate.yml")?.generatedBy),
+    generatedByVersion(context.readJsonFile(join(".aigate", "integrations.json"))?.generatedBy)
+  ].filter(Boolean);
+
+  if (!versions.length) {
+    return { pass: true, value: "not recorded" };
+  }
+
+  const staleVersions = versions.filter((version) => version !== currentVersion);
+  return {
+    pass: staleVersions.length === 0,
+    value: staleVersions.length ? `stale ${[...new Set(staleVersions)].join(", ")}; current ${currentVersion}` : `current ${currentVersion}`
+  };
+}
+
+function generatedByVersion(value) {
+  const match = String(value ?? "").match(/\baigate\s+([0-9][^\s]*)/i);
+  return match?.[1] ?? null;
+}
+
+function readJsonFile(filePath) {
+  if (!existsSync(filePath)) {
+    return {};
+  }
+
+  try {
+    return JSON.parse(readFileSync(filePath, "utf8"));
+  } catch {
+    return {};
+  }
 }
 
 function ciWorkflowValue(profile) {

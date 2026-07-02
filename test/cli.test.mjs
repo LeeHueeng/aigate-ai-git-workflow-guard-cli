@@ -132,6 +132,48 @@ function createPrivateGitLabPnpmApp() {
   return projectDir;
 }
 
+function createPrivateGitLabPnpmWorkspaceApp() {
+  const projectDir = mkdtempSync(join(tmpdir(), "aigate-gitlab-workspace-app-"));
+  mkdirSync(join(projectDir, "apps", "admin", "playwright"), { recursive: true });
+  mkdirSync(join(projectDir, ".gitlab", "merge_request_templates"), { recursive: true });
+  writeFileSync(join(projectDir, "package.json"), `${JSON.stringify({
+    name: "admin-root-monorepo",
+    version: "1.0.0",
+    private: true,
+    packageManager: "pnpm@9.15.0",
+    repository: {
+      type: "git",
+      url: "git@gitlab.example.com:company/admin-root-monorepo.git"
+    }
+  }, null, 2)}\n`);
+  writeFileSync(join(projectDir, "pnpm-workspace.yaml"), [
+    "packages:",
+    "  - apps/*"
+  ].join("\n"));
+  writeFileSync(join(projectDir, "turbo.json"), `${JSON.stringify({
+    tasks: {
+      test: {}
+    }
+  }, null, 2)}\n`);
+  writeFileSync(join(projectDir, "apps", "admin", "package.json"), `${JSON.stringify({
+    name: "admin",
+    private: true,
+    scripts: {
+      test: "playwright test"
+    }
+  }, null, 2)}\n`);
+  writeFileSync(join(projectDir, "apps", "admin", "playwright", "admin.spec.ts"), "test('admin', async () => {});\n");
+  writeFileSync(join(projectDir, ".gitlab-ci.yml"), "test:\n  script:\n    - pnpm turbo run test\n");
+  writeFileSync(join(projectDir, ".gitlab", "merge_request_templates", "default.md"), "## Summary\n");
+  writeFileSync(join(projectDir, "CLAUDE.md"), "Use glab mr create --target-branch develop.\n");
+  spawnSync("git", ["init"], { cwd: projectDir, encoding: "utf8" });
+  spawnSync("git", ["remote", "add", "origin", "git@gitlab.example.com:company/admin-root-monorepo.git"], {
+    cwd: projectDir,
+    encoding: "utf8"
+  });
+  return projectDir;
+}
+
 function createFakeCurlBin() {
   const binDir = mkdtempSync(join(tmpdir(), "aigate-curl-"));
   const curlPath = join(binDir, "curl");
@@ -151,6 +193,18 @@ function createFakeCurlBin() {
   ].join("\n"));
   chmodSync(curlPath, 0o755);
   return { binDir, payloadPath };
+}
+
+function createFakePnpmBin() {
+  const binDir = mkdtempSync(join(tmpdir(), "aigate-pnpm-"));
+  const pnpmPath = join(binDir, "pnpm");
+  writeFileSync(pnpmPath, [
+    "#!/bin/sh",
+    "printf 'fake pnpm %s\\n' \"$*\"",
+    "exit 0"
+  ].join("\n"));
+  chmodSync(pnpmPath, 0o755);
+  return binDir;
 }
 
 test("shows help", () => {
@@ -240,6 +294,36 @@ test("initializes starter project files", () => {
   assert.equal(output.command, "init");
   assert.ok(existsSync(join(outputDir, ".aigate.yml")));
   assert.ok(existsSync(join(outputDir, ".aigate", "reports", ".gitkeep")));
+});
+
+test("initializes GitLab pnpm workspace config with real validation commands", () => {
+  const projectDir = createPrivateGitLabPnpmWorkspaceApp();
+  const result = run([
+    "init",
+    "--force",
+    "--project-type",
+    "app",
+    "--hosting",
+    "gitlab",
+    "--ci-provider",
+    "gitlab",
+    "--package-manager",
+    "pnpm",
+    "--format",
+    "json"
+  ], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const config = readFileSync(join(projectDir, ".aigate.yml"), "utf8");
+
+  assert.match(config, /generatedBy: aigate 0\.1\.6/);
+  assert.match(config, /hosting: gitlab/);
+  assert.match(config, /packageManager: pnpm/);
+  assert.match(config, /    - main/);
+  assert.match(config, /    - develop/);
+  assert.match(config, /      - pnpm turbo run test/);
+  assert.match(config, /      - aigate git-ready/);
+  assert.doesNotMatch(config, /npm run ci/);
 });
 
 test("resets AIGate config and settings", () => {
@@ -724,6 +808,47 @@ test("doctor follows GitLab app profile CI and test detection", () => {
   assert.doesNotMatch(JSON.stringify(output), /github missing/);
 });
 
+test("doctor detects pnpm workspace test scripts", () => {
+  const projectDir = createPrivateGitLabPnpmWorkspaceApp();
+  const result = run(["doctor", "--format", "json"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  const testScript = output.checks.find((check) => check.id === "test-script");
+
+  assert.equal(testScript.pass, true);
+  assert.equal(testScript.value, "workspace:test");
+});
+
+test("doctor warns when generated AIGate files are stale", () => {
+  const projectDir = createPrivateGitLabPnpmWorkspaceApp();
+  mkdirSync(join(projectDir, ".aigate"), { recursive: true });
+  writeFileSync(join(projectDir, ".aigate.yml"), [
+    "version: 1",
+    "generatedBy: aigate 0.1.1",
+    "",
+    "project:",
+    "  type: app",
+    "  hosting: gitlab",
+    "  ciProvider: gitlab",
+    "  packageManager: pnpm",
+    ""
+  ].join("\n"), "utf8");
+  writeFileSync(join(projectDir, ".aigate", "integrations.json"), `${JSON.stringify({
+    generatedBy: "aigate 0.1.1"
+  }, null, 2)}\n`);
+
+  const result = run(["doctor", "--format", "json"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  const generatedVersion = output.checks.find((check) => check.id === "generated-version");
+
+  assert.equal(generatedVersion.pass, false);
+  assert.match(generatedVersion.value, /stale 0\.1\.1; current 0\.1\.6/);
+  assert.ok(output.nextSteps.includes("Regenerate stale AIGate files with aigate init --force and aigate integrate all --force."));
+});
+
 test("renders a localized first-run demo", () => {
   const result = run(["demo", "--language", "ko"]);
 
@@ -1017,6 +1142,18 @@ test("renders localized AI report and alias", () => {
   const alias = run(["ai-report", "--format", "json"]);
   assert.equal(alias.status, 0);
   assert.equal(JSON.parse(alias.stdout).command, "ai report");
+});
+
+test("keeps AI report guidance aligned with private GitLab app profiles", () => {
+  const projectDir = createPrivateGitLabPnpmWorkspaceApp();
+  const result = run(["ai", "report", "--language", "ko"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /private 앱 프로필/);
+  assert.match(result.stdout, /aigate start --route default --steps repo-files --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm/);
+  assert.match(result.stdout, /점수만 위해 공개 OSS 산출물을 추가하지 마세요/);
+  assert.doesNotMatch(result.stdout, /공개 홍보 전/);
+  assert.doesNotMatch(result.stdout, /aigate start --route oss/);
 });
 
 test("rejects missing AI provider values clearly", () => {
@@ -1350,6 +1487,7 @@ test("treats tracked Playwright auth state removals as remediation", () => {
   assert.equal(checkOutput.secretFindings.length, 0);
   assert.equal(checkOutput.sensitiveRemovals.length, 1);
   assert.equal(checkOutput.sensitiveRemovals[0].ruleId, "sensitive-auth-state");
+  assert.equal(checkOutput.sensitiveRemovals[0].exposedInHistory, true);
 
   const ready = run(["git-ready", "--format", "json"], { cwd: projectDir });
   assert.equal(ready.status, 0);
@@ -1357,10 +1495,12 @@ test("treats tracked Playwright auth state removals as remediation", () => {
   assert.equal(readyOutput.status, "READY");
   assert.equal(readyOutput.secretFindings.length, 0);
   assert.equal(readyOutput.sensitiveRemovals.length, 1);
+  assert.equal(readyOutput.sensitiveRemovals[0].exposedInHistory, true);
 
   const aiReport = run(["ai", "report", "--language", "ko"], { cwd: projectDir });
   assert.equal(aiReport.status, 0);
   assert.match(aiReport.stdout, /민감 파일 제거: 1/);
+  assert.match(aiReport.stdout, /Git 이력에 노출/);
   assert.doesNotMatch(aiReport.stdout, /민감 정보 탐지: 1/);
 });
 
@@ -1409,6 +1549,43 @@ test("adapts project evaluation for private GitLab pnpm apps", () => {
   assert.equal(output.checks.find((check) => check.name === "Dependabot exists")?.status, "NA");
   assert.equal(output.checks.find((check) => check.name === "OpenSSF Scorecard workflow exists")?.status, "NA");
   assert.equal(output.checks.find((check) => check.name === "License exists")?.status, "NA");
+});
+
+test("scores pnpm turbo workspace tests as a project test command", () => {
+  const projectDir = createPrivateGitLabPnpmWorkspaceApp();
+  const result = run(["evaluate-project", "--format", "json"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+
+  assert.equal(output.profile.kind, "app");
+  assert.equal(output.profile.visibility, "private");
+  assert.equal(output.profile.hosting, "gitlab");
+  assert.equal(output.profile.packageManager, "pnpm");
+  assert.equal(output.checks.find((check) => check.name === "Project test command exists")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "Test directory exists")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "CI workflow exists")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "Issue templates exist")?.status, "NA");
+});
+
+test("runs detected pnpm turbo workspace test command", () => {
+  const projectDir = createPrivateGitLabPnpmWorkspaceApp();
+  const fakeBin = createFakePnpmBin();
+  const result = run(["test", "--format", "json"], {
+    cwd: projectDir,
+    env: {
+      PATH: `${fakeBin}:${process.env.PATH}`
+    }
+  });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+
+  assert.equal(output.status, "PASS");
+  assert.equal(output.testCommand.source, "turbo-task");
+  assert.equal(output.testCommand.display, "pnpm turbo run test");
+  assert.equal(output.testRun.exitCode, 0);
+  assert.match(output.testRun.stdout, /fake pnpm turbo run test/);
 });
 
 test("honors GitLab profile config over GitHub helper files", () => {
