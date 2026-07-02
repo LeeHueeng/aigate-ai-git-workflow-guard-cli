@@ -5344,7 +5344,7 @@ function discoverProjectTestCommand(packageJson = readJsonFile("package.json"), 
   }
 
   const turboTask = requestedScript ?? detectTurboTask(["test", "e2e", "test:e2e", "playwright"]);
-  if (turboTask) {
+  if (turboTask && hasTurboRunner(packageJson)) {
     return turboCommand(packageManager, turboTask);
   }
 
@@ -5371,7 +5371,7 @@ function discoverValidationCommand(packageJson = readJsonFile("package.json"), p
   }
 
   const turboTask = detectTurboTask(["ci", "test", "e2e", "test:e2e"]);
-  if (turboTask) {
+  if (turboTask && hasTurboRunner(packageJson)) {
     return turboCommand(packageManager, turboTask);
   }
 
@@ -5403,6 +5403,23 @@ function detectTurboTask(preferredNames = []) {
   }
 
   return Object.keys(tasks).find((name) => name.endsWith(":test") || name.includes("test")) ?? null;
+}
+
+function hasTurboRunner(packageJson = readJsonFile("package.json")) {
+  return Boolean(
+    hasPackageDependency(packageJson, "turbo") ||
+    existsSync(join("node_modules", ".bin", "turbo")) ||
+    existsSync(join("node_modules", ".bin", "turbo.cmd"))
+  );
+}
+
+function hasPackageDependency(packageJson = {}, dependencyName) {
+  return [
+    packageJson.dependencies,
+    packageJson.devDependencies,
+    packageJson.optionalDependencies,
+    packageJson.peerDependencies
+  ].some((dependencies) => Boolean(dependencies?.[dependencyName]));
 }
 
 function selectWorkspaceScript(preferredNames = []) {

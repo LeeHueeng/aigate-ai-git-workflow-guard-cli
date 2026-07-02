@@ -142,6 +142,9 @@ function createPrivateGitLabPnpmWorkspaceApp() {
     version: "1.0.0",
     private: true,
     packageManager: "pnpm@9.15.0",
+    devDependencies: {
+      turbo: "^2.0.0"
+    },
     repository: {
       type: "git",
       url: "git@gitlab.example.com:company/admin-root-monorepo.git"
@@ -1612,6 +1615,30 @@ test("runs detected pnpm turbo workspace test command", () => {
   assert.equal(output.testCommand.display, "pnpm turbo run test");
   assert.equal(output.testRun.exitCode, 0);
   assert.match(output.testRun.stdout, /fake pnpm turbo run test/);
+});
+
+test("falls back to workspace tests when turbo runner is not declared", () => {
+  const projectDir = createPrivateGitLabPnpmWorkspaceApp();
+  const packageJsonPath = join(projectDir, "package.json");
+  const packageJson = JSON.parse(readFileSync(packageJsonPath, "utf8"));
+  delete packageJson.devDependencies;
+  writeFileSync(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`);
+  const fakeBin = createFakePnpmBin();
+  const result = run(["test", "--format", "json"], {
+    cwd: projectDir,
+    env: {
+      PATH: `${fakeBin}:${process.env.PATH}`
+    }
+  });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+
+  assert.equal(output.status, "PASS");
+  assert.equal(output.testCommand.source, "workspace-script");
+  assert.equal(output.testCommand.display, "pnpm -r run test");
+  assert.equal(output.testRun.exitCode, 0);
+  assert.match(output.testRun.stdout, /fake pnpm -r run test/);
 });
 
 test("honors GitLab profile config over GitHub helper files", () => {
