@@ -59,8 +59,8 @@ chore: initialize public repository metadata
 `main` には次の branch protection を設定します。
 
 - merge 前の pull request 必須
-- 最低 1 approval
-- CODEOWNERS があれば matching owner review
+- デフォルトでは必須 approval を要求しない
+- リポジトリポリシーで必要な場合に maintainer または CODEOWNER review を有効化
 - required status checks の成功
 - conversation resolution 必須
 - force push を block

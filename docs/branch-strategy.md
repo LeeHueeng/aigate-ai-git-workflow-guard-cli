@@ -74,8 +74,8 @@ When the public repository is created, enable these branch protection rules on
 `main`:
 
 - Require pull request before merging.
-- Require at least one approval.
-- Require review from CODEOWNERS when a matching owner exists.
+- Do not require mandatory approval by default.
+- Enable maintainer or CODEOWNER review when the repository policy needs it.
 - Require status checks to pass.
 - Require conversation resolution.
 - Block force pushes.

@@ -85,6 +85,6 @@ aigate pr --title "feat: short summary"
 满足以下条件前不要 merge:
 
 - `test (20)` 和 `test (22)` CI job 通过
-- 至少 1 个 approval
-- review conversation 已解决
+- 遵循仓库当前 review policy
+- 如果使用了 review，则 review conversation 已解决
 - branch 没有 unrelated changes

@@ -4,6 +4,7 @@
 
 这是一份可以在 GitHub 上直接阅读的 Markdown 运维说明，不会像 HTML 文件那样显示为源码。
 可视化 HTML 版本可以在本地打开 `docs/aigate-overview.zh.html` 查看。
+可直接复制运行的命令请先看 [使用指南](usage.zh.md)。
 
 ## 整体运行流程
 

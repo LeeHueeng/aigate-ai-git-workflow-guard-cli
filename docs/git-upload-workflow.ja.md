@@ -85,6 +85,6 @@ aigate pr --title "feat: short summary"
 次を満たすまで merge しません。
 
 - `test (20)` と `test (22)` CI job が成功
-- 少なくとも 1 approval
-- review conversation が解決済み
+- リポジトリの現在の review policy に従う
+- review を使った場合は review conversation が解決済み
 - branch に unrelated changes がない

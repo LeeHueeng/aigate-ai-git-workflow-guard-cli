@@ -140,6 +140,7 @@ Codex と Gemini が同じ branch、validation、guarded push workflow に従う
 ## ドキュメント
 
 - [多言語ドキュメント索引](docs/README.ja.md)
+- [日本語使い方ガイド](docs/usage.ja.md)
 - [日本語運用ドキュメント](docs/operations.ja.md)
 - [Tool comparison](docs/comparison.ja.md)
 - [English operations guide](docs/operations.en.md)

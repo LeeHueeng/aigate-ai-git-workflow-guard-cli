@@ -49,7 +49,7 @@
 - [x] `aigate-cli` の npm access を確保
 - [x] この GitHub repository 用の npm Trusted Publisher を設定
 - [x] `aigate release-check` を実行
-- [x] 最初の version `0.1.0` を publish
-- [x] GitHub release tag `v0.1.0` を作成
+- [x] npm package を publish、現在の公開 version は `0.1.2`
+- [x] GitHub release tag を `v0.1.2` まで作成
 - [x] publish 後に `npm view aigate-cli` を確認
 - [x] future release を changelog entry と tagged GitHub Release に結びつける

@@ -59,8 +59,8 @@ chore: initialize public repository metadata
 在 `main` 上启用:
 
 - merge 前必须有 pull request
-- 至少 1 个 approval
-- 有 CODEOWNERS 时要求 matching owner review
+- 默认不要求强制 approval
+- 仓库政策需要时再启用 maintainer 或 CODEOWNER review
 - required status checks 通过
 - conversation resolution 必须完成
 - block force pushes

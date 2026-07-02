@@ -5,6 +5,7 @@
 This GitHub-readable guide explains how AIGate runs, which commands are
 available, what is implemented today, and what is planned next. The visual HTML
 version is also available for local viewing at `docs/aigate-overview.en.html`.
+For copy-and-run commands, start with the [usage guide](usage.md).
 
 ## Operating Process
 
