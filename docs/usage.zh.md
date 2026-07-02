@@ -220,6 +220,23 @@ npm/pnpm/yarn/bun。对于 private GitLab pnpm app，GitHub 专用项和 npm 公
 会显示为 `不适用`，不会算作 `待办`。只有需要把仓库强制视为可发布 npm 包时，
 才使用 `--project-type package`。
 
+当自动检测不够时，可以固定配置:
+
+```sh
+aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm
+aigate start --route oss --hosting gitlab --ci-provider gitlab --project-type app
+```
+
+团队统一规则可以提交到 `.aigate.yml`:
+
+```yaml
+project:
+  type: app
+  hosting: gitlab
+  ciProvider: gitlab
+  packageManager: pnpm
+```
+
 ## 通知
 
 ```sh
@@ -265,8 +282,8 @@ aigate git-ready --notify-channel terminal
 | `aigate doctor` | 诊断 local setup 和 repository foundation。 |
 | `aigate demo` | 不改文件展示 workflow。 |
 | `aigate install-hook` | 安装 Git hooks。 |
-| `aigate setup` | 创建 config、settings、reports 和 AI guide files。 |
-| `aigate settings` | 查看或修改语言等 AIGate 设置。 |
+| `aigate setup` | 保存语言、托管、CI 服务、项目类型和包管理器等本地设置。 |
+| `aigate settings` | 查看 AIGate 设置。 |
 | `aigate integrate <provider>` | 生成 Codex/Gemini/Claude integration files。 |
 | `aigate report` | 输出 Markdown、HTML、JSON、SARIF reports。 |
 | `aigate evaluate-project` | 为 repository foundation 和 Git signals 打分。 |

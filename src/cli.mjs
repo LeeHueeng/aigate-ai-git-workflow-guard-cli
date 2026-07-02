@@ -18,7 +18,11 @@ const AI_TEST_PROVIDERS = ["codex", "claude", "gemini"];
 const AIGATE_HOOK_MARKER = "AIGate pre-push hook";
 const DEFAULT_SETTINGS = {
   version: 1,
-  language: "en"
+  language: "en",
+  projectType: "auto",
+  hosting: "auto",
+  ciProvider: "auto",
+  packageManager: "auto"
 };
 const MAX_SECRET_SCAN_BYTES = 250_000;
 const SECRET_PATTERNS = [
@@ -116,6 +120,7 @@ const I18N = {
     "release.version": "Version: {version}",
     "settings.complete": "AIGate setup complete",
     "settings.file": "Settings file: {path}",
+    "settings.profile": "Project profile: type={type}, hosting={hosting}, ci={ciProvider}, package manager={packageManager}",
     "settings.title": "AIGate settings",
     "trends.unknownAction": "Unknown trends action: {action}",
     "unknownCommand": "Unknown command: {command}",
@@ -211,6 +216,7 @@ const I18N = {
     "release.version": "버전: {version}",
     "settings.complete": "AIGate 설정 완료",
     "settings.file": "설정 파일: {path}",
+    "settings.profile": "프로젝트 프로필: 유형={type}, 호스팅={hosting}, CI={ciProvider}, 패키지 매니저={packageManager}",
     "settings.title": "AIGate 설정",
     "trends.unknownAction": "알 수 없는 추세 작업: {action}",
     "unknownCommand": "알 수 없는 명령어: {command}",
@@ -306,6 +312,7 @@ const I18N = {
     "release.version": "バージョン: {version}",
     "settings.complete": "AIGate 設定完了",
     "settings.file": "設定ファイル: {path}",
+    "settings.profile": "プロジェクトプロファイル: 種別={type}, hosting={hosting}, CI={ciProvider}, package manager={packageManager}",
     "settings.title": "AIGate 設定",
     "trends.unknownAction": "不明なトレンドアクション: {action}",
     "unknownCommand": "不明なコマンド: {command}",
@@ -401,6 +408,7 @@ const I18N = {
     "release.version": "版本: {version}",
     "settings.complete": "AIGate 设置完成",
     "settings.file": "设置文件: {path}",
+    "settings.profile": "项目配置: 类型={type}, 托管={hosting}, CI={ciProvider}, 包管理器={packageManager}",
     "settings.title": "AIGate 设置",
     "trends.unknownAction": "未知趋势操作: {action}",
     "unknownCommand": "未知命令: {command}",
@@ -1043,6 +1051,9 @@ const HELP_CONTENT = {
       ["--ask-steps", "Ask whether to run each start step."],
       ["--steps <ids>", "Run only selected start step ids, comma-separated."],
       ["--project-type <auto|app|package>", "Override auto-detected project type for evaluation and release checks."],
+      ["--hosting <auto|github|gitlab|other>", "Override repository hosting provider."],
+      ["--ci-provider <auto|github|gitlab|other>", "Override CI provider used by repository checks."],
+      ["--package-manager <auto|npm|pnpm|yarn|bun>", "Override package manager detection."],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, or all."],
       ["--script <name>", "npm script name for aigate test or aitest."],
       ["--command <shell>", "Custom shell command for aigate test or aitest."],
@@ -1130,6 +1141,9 @@ const HELP_CONTENT = {
       ["--ask-steps", "start 단계마다 실행 여부를 묻습니다."],
       ["--steps <ids>", "쉼표로 구분한 start 단계 id만 실행합니다."],
       ["--project-type <auto|app|package>", "평가와 릴리스 검사에 사용할 프로젝트 유형을 지정합니다."],
+      ["--hosting <auto|github|gitlab|other>", "저장소 호스팅 제공자를 지정합니다."],
+      ["--ci-provider <auto|github|gitlab|other>", "저장소 점검에 사용할 CI 제공자를 지정합니다."],
+      ["--package-manager <auto|npm|pnpm|yarn|bun>", "패키지 매니저 감지를 지정합니다."],
       ["--provider <name>", "AI 제공자입니다: auto, codex, claude, gemini, all."],
       ["--script <name>", "aigate test 또는 aitest에서 사용할 npm script 이름입니다."],
       ["--command <shell>", "aigate test 또는 aitest에서 사용할 사용자 지정 shell 명령입니다."],
@@ -1217,6 +1231,9 @@ const HELP_CONTENT = {
       ["--ask-steps", "start の各手順を実行するか確認します。"],
       ["--steps <ids>", "カンマ区切りの start 手順 id だけを実行します。"],
       ["--project-type <auto|app|package>", "評価とリリースチェックに使うプロジェクト種別を指定します。"],
+      ["--hosting <auto|github|gitlab|other>", "リポジトリ hosting provider を指定します。"],
+      ["--ci-provider <auto|github|gitlab|other>", "リポジトリチェックで使う CI provider を指定します。"],
+      ["--package-manager <auto|npm|pnpm|yarn|bun>", "package manager 検出を指定します。"],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
       ["--script <name>", "aigate test または aitest で使う npm script 名です。"],
       ["--command <shell>", "aigate test または aitest で使うカスタム shell コマンドです。"],
@@ -1304,6 +1321,9 @@ const HELP_CONTENT = {
       ["--ask-steps", "逐步询问是否运行每个 start 步骤。"],
       ["--steps <ids>", "仅运行逗号分隔的 start 步骤 id。"],
       ["--project-type <auto|app|package>", "指定评估和发布检查使用的项目类型。"],
+      ["--hosting <auto|github|gitlab|other>", "指定仓库托管服务。"],
+      ["--ci-provider <auto|github|gitlab|other>", "指定仓库检查使用的 CI 服务。"],
+      ["--package-manager <auto|npm|pnpm|yarn|bun>", "指定包管理器检测结果。"],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
       ["--script <name>", "aigate test 或 aitest 使用的 npm script 名称。"],
       ["--command <shell>", "aigate test 或 aitest 使用的自定义 shell 命令。"],
@@ -1816,10 +1836,11 @@ function commandInit(args) {
 
   const packageJson = readJsonFile("package.json");
   const outputDir = options.outputDir ?? ".";
+  const profile = detectProjectProfile(packageJson, options);
   const files = [
     {
       path: options.config ?? join(outputDir, ".aigate.yml"),
-      content: renderDefaultConfig(packageJson)
+      content: renderDefaultConfig(packageJson, options)
     },
     {
       path: join(outputDir, ".aigate", "reports", ".gitkeep"),
@@ -1838,7 +1859,7 @@ function commandInit(args) {
   const lines = [
     t(language, "init.complete"),
     ...results.map((result) => `- ${translateIntegrationAction(result.action, language)}: ${result.path}`),
-    t(language, "common.next", { next: "aigate evaluate-project && aigate branch-strategy --github" })
+    t(language, "common.next", { next: profile.hosting === "github" ? "aigate evaluate-project && aigate branch-strategy --github" : "aigate evaluate-project && aigate branch-strategy" })
   ];
 
   return lines.join("\n");
@@ -1860,7 +1881,7 @@ function commandReset(args) {
   const files = [
     {
       path: options.config ?? join(outputDir, ".aigate.yml"),
-      content: renderDefaultConfig(packageJson)
+      content: renderDefaultConfig(packageJson, options)
     },
     {
       path: scopedSettingsPath(outputDir),
@@ -1987,7 +2008,7 @@ function commandGitReady(args) {
     return unsupportedLanguage(options.language);
   }
 
-  const result = buildGitReadyResult();
+  const result = buildGitReadyResult(options);
   const lines = [formatGitReadyResult(result, options, language)];
 
   if (result.blockers.length && options.format !== "json") {
@@ -2118,7 +2139,7 @@ function commandPrCheck(args) {
     return unsupportedLanguage(options.language);
   }
   const format = options.format ?? "markdown";
-  const report = buildReport("pr");
+  const report = buildReport("pr", options);
   const output = renderReport(report, format, language);
 
   if (options.output) {
@@ -2160,7 +2181,11 @@ async function commandStart(args) {
     const previewSteps = buildStartStepCalls(route, provider, language, {
       force: Boolean(options.force),
       outputDir: options.outputDir ?? ".",
-      owner: options.owner
+      owner: options.owner,
+      projectType: options.projectType,
+      hosting: options.hosting,
+      ciProvider: options.ciProvider,
+      packageManager: options.packageManager
     });
     selectedStepIds = await promptStartStepChoices(previewSteps, language);
   }
@@ -2170,6 +2195,10 @@ async function commandStart(args) {
     force: Boolean(options.force),
     outputDir: options.outputDir ?? ".",
     owner: options.owner,
+    projectType: options.projectType,
+    hosting: options.hosting,
+    ciProvider: options.ciProvider,
+    packageManager: options.packageManager,
     provider,
     selectedStepIds
   }, language);
@@ -2392,6 +2421,10 @@ function commandSetup(args) {
   const options = parseOptions(args);
   const currentSettings = readSettings();
   const language = normalizeLanguage(options.language ?? currentSettings.language ?? DEFAULT_SETTINGS.language);
+  const projectType = settingValue(options.projectType, currentSettings.projectType, normalizeProjectType, "auto");
+  const hosting = settingValue(options.hosting, currentSettings.hosting, normalizeHosting, "auto");
+  const ciProvider = settingValue(options.ciProvider, currentSettings.ciProvider, normalizeCiProvider, "auto");
+  const packageManager = settingValue(options.packageManager, currentSettings.packageManager, normalizePackageManager, "auto");
 
   if (!language) {
     return unsupportedLanguage(options.language);
@@ -2400,7 +2433,11 @@ function commandSetup(args) {
   const settings = {
     ...DEFAULT_SETTINGS,
     ...currentSettings,
-    language
+    language,
+    projectType,
+    hosting,
+    ciProvider,
+    packageManager
   };
 
   writeSettings(settings);
@@ -2416,7 +2453,8 @@ function commandSetup(args) {
   return [
     t(language, "settings.complete"),
     t(language, "settings.file", { path: getSettingsPath() }),
-    t(language, "language.label", { language: languageName(language) })
+    t(language, "language.label", { language: languageName(language) }),
+    t(language, "settings.profile", settings)
   ].join("\n");
 }
 
@@ -2442,7 +2480,8 @@ function commandSettings(args) {
   return [
     t(language, "settings.title"),
     t(language, "settings.file", { path: getSettingsPath() }),
-    t(language, "language.label", { language: languageName(settings.language) })
+    t(language, "language.label", { language: languageName(settings.language) }),
+    t(language, "settings.profile", settings)
   ].join("\n");
 }
 
@@ -2495,7 +2534,8 @@ function commandRepositoryStarterFiles(args) {
   const outputDir = options.outputDir ?? ".";
   const owner = normalizeCodeownersOwner(options.owner);
   const packageJson = readJsonFile("package.json");
-  const files = buildRepositoryStarterFiles(outputDir, language, packageJson, owner);
+  const profile = detectProjectProfile(packageJson, options);
+  const files = buildRepositoryStarterFiles(outputDir, language, packageJson, owner, profile);
   const results = writeProjectFiles(files, Boolean(options.force));
 
   if (options.format === "json") {
@@ -2503,6 +2543,7 @@ function commandRepositoryStarterFiles(args) {
       command: "repo-files",
       outputDir,
       owner,
+      hosting: profile.hosting,
       files: results
     }, null, 2);
   }
@@ -2666,11 +2707,16 @@ function promptStartYesNo(question, defaultValue = true) {
 }
 
 function executeStartRoute(routeId, options, language) {
-  const route = startRouteDefinitions(language).find((item) => item.id === routeId);
+  const profile = detectProjectProfile(readJsonFile("package.json"), options);
+  const route = startRouteDefinitions(language, profile).find((item) => item.id === routeId);
   const stepCalls = buildStartStepCalls(routeId, options.provider, language, {
     force: options.force,
     outputDir: options.outputDir ?? ".",
-    owner: options.owner
+    owner: options.owner,
+    projectType: options.projectType,
+    hosting: options.hosting,
+    ciProvider: options.ciProvider,
+    packageManager: options.packageManager
   });
   const selectedStepIds = options.selectedStepIds ? new Set(options.selectedStepIds) : null;
   const unknownStepIds = selectedStepIds
@@ -2752,18 +2798,23 @@ function buildStartStepCalls(routeId, provider, language, options = {}) {
   const outputDir = options.outputDir ?? ".";
   const owner = normalizeCodeownersOwner(options.owner);
   const baseArgs = ["--language", language];
+  const profileArgs = projectProfileOptionArgs(options);
   const outputArgs = outputDir === "." ? [] : ["--output-dir", outputDir];
   const ownerArgs = owner ? ["--owner", owner] : [];
   const forceArgs = force ? ["--force"] : [];
   const integrationProvider = provider ?? "all";
   const outputDirText = outputDir === "." ? "" : ` --output-dir ${quoteArgs([outputDir])[0]}`;
   const ownerText = owner ? ` --owner ${quoteArgs([owner])[0]}` : "";
+  const profileText = profileArgs.length ? ` ${quoteArgs(profileArgs).join(" ")}` : "";
+  const profile = detectProjectProfile(readJsonFile("package.json"), options);
+  const branchArgs = profile.hosting === "github" ? ["--github", ...baseArgs, ...profileArgs] : [...baseArgs, ...profileArgs];
+  const branchCommand = `${profile.hosting === "github" ? "aigate branch-strategy --github" : "aigate branch-strategy"}${profileText}`;
   const steps = {
     init: {
       id: "init",
       title: automationLabels(language).startStepInit,
-      command: `aigate init${outputDirText}${force ? " --force" : ""}`,
-      run: () => commandInit([...baseArgs, ...outputArgs, ...forceArgs])
+      command: `aigate init${outputDirText}${profileText}${force ? " --force" : ""}`,
+      run: () => commandInit([...baseArgs, ...profileArgs, ...outputArgs, ...forceArgs])
     },
     integrate: {
       id: "integrate",
@@ -2774,8 +2825,8 @@ function buildStartStepCalls(routeId, provider, language, options = {}) {
     repoFiles: {
       id: "repo-files",
       title: automationLabels(language).startStepRepoFiles,
-      command: `aigate start --route oss${outputDirText}${ownerText}${force ? " --force" : ""}`,
-      run: () => commandRepositoryStarterFiles([...baseArgs, ...outputArgs, ...ownerArgs, ...forceArgs])
+      command: `aigate start --route oss${outputDirText}${ownerText}${profileText}${force ? " --force" : ""}`,
+      run: () => commandRepositoryStarterFiles([...baseArgs, ...profileArgs, ...outputArgs, ...ownerArgs, ...forceArgs])
     },
     hook: {
       id: "hook",
@@ -2799,19 +2850,19 @@ function buildStartStepCalls(routeId, provider, language, options = {}) {
       id: "release-check",
       title: automationLabels(language).startStepRelease,
       command: "aigate release-check",
-      run: () => commandReleaseCheck(baseArgs)
+      run: () => commandReleaseCheck([...baseArgs, ...profileArgs])
     },
     aiReport: {
       id: "ai-report",
       title: automationLabels(language).startStepAiReport,
       command: "aigate ai report",
-      run: () => commandAiReport(baseArgs)
+      run: () => commandAiReport([...baseArgs, ...profileArgs])
     },
     branch: {
       id: "branch-strategy",
       title: automationLabels(language).startStepBranch,
-      command: "aigate branch-strategy --github",
-      run: () => commandBranchStrategy(["--github", ...baseArgs])
+      command: branchCommand,
+      run: () => commandBranchStrategy(branchArgs)
     }
   };
 
@@ -2918,8 +2969,11 @@ function summarizeStepOutput(output, language) {
   return text.split(/\r?\n/).find((line) => line.trim())?.trim() ?? automationLabels(language).none;
 }
 
-function startRouteDefinitions(language) {
+function startRouteDefinitions(language, profile = {}) {
   const labels = automationLabels(language);
+  const setupNext = profile.hosting === "gitlab"
+    ? "Review .gitlab templates and commit only useful files"
+    : "aigate github setup --dry-run";
   return [
     {
       id: "default",
@@ -2946,7 +3000,7 @@ function startRouteDefinitions(language) {
       description: labels.routeOssDescription,
       next: [
         "aigate ai report",
-        "aigate github setup --dry-run",
+        setupNext,
         "aigate pr-check"
       ]
     },
@@ -3896,9 +3950,9 @@ function translateAiTestText(key, language, values = {}) {
   ));
 }
 
-function buildGitReadyResult() {
+function buildGitReadyResult(options = {}) {
   const status = buildGitStatus();
-  const evaluation = buildEvaluation();
+  const evaluation = buildEvaluation(options);
   const analysis = buildChangeAnalysis();
   const blockers = [];
   const warnings = [];
@@ -3972,7 +4026,7 @@ function commandReport(args) {
   }
   const format = options.format ?? "markdown";
   const type = options.type ?? "local";
-  const report = buildReport(type);
+  const report = buildReport(type, options);
   const output = renderReport(report, format, language);
 
   if (options.output) {
@@ -3992,7 +4046,10 @@ function commandEvaluateProject(args) {
   }
   const evaluation = buildEvaluation({
     deep: Boolean(options.deep),
-    projectType: options.projectType
+    projectType: options.projectType,
+    hosting: options.hosting,
+    ciProvider: options.ciProvider,
+    packageManager: options.packageManager
   });
 
   if (options.report) {
@@ -4054,7 +4111,10 @@ function commandReleaseCheck(args) {
   }
   const check = buildReleaseCheck({
     checkNpm: Boolean(options.npm),
-    projectType: options.projectType
+    projectType: options.projectType,
+    hosting: options.hosting,
+    ciProvider: options.ciProvider,
+    packageManager: options.packageManager
   });
 
   if (options.format === "json") {
@@ -4105,7 +4165,8 @@ function commandBranchStrategy(args) {
   }
 
   if (options.generate || options.apply) {
-    const files = buildBranchStrategyFiles(strategy, options.outputDir ?? ".", language);
+    const profile = detectProjectProfile(readJsonFile("package.json"), options);
+    const files = buildBranchStrategyFiles(strategy, options.outputDir ?? ".", language, profile);
     const results = writeProjectFiles(files, Boolean(options.force));
 
     if (options.format === "json") {
@@ -5016,11 +5077,13 @@ function makeCheck(category, name, pass, options = {}) {
 }
 
 function detectProjectProfile(packageJson = readJsonFile("package.json"), options = {}) {
-  const packageManager = normalizePackageManager(options.packageManager) ?? detectPackageManager(packageJson);
+  const profileOptions = resolveProjectProfileOptions(options);
+  const packageManager = normalizePackageManager(profileOptions.packageManager) ?? detectPackageManager(packageJson);
   const repositoryUrl = String(packageJson.repository?.url ?? packageJson.repository ?? git(["remote", "get-url", "origin"]) ?? "");
-  const hosting = normalizeHosting(options.hosting) ?? detectHosting(repositoryUrl);
+  const hosting = normalizeHosting(profileOptions.hosting) ?? detectHosting(repositoryUrl);
   const visibility = packageJson.private === true ? "private" : "public";
-  const explicitType = normalizeProjectType(options.projectType);
+  const explicitType = normalizeProjectType(profileOptions.projectType);
+  const explicitCiProvider = normalizeCiProvider(profileOptions.ciProvider);
   const npmEntrypoint = hasNpmEntrypoint(packageJson);
   const appSignals = packageJson.private === true ||
     existsSync("pnpm-workspace.yaml") ||
@@ -5028,11 +5091,11 @@ function detectProjectProfile(packageJson = readJsonFile("package.json"), option
     existsSync("apps") ||
     Boolean(packageJson.scripts?.dev || packageJson.scripts?.start);
   const kind = explicitType ?? (appSignals && !npmEntrypoint ? "app" : "package");
-  const ciProvider = existsSync(".gitlab-ci.yml")
+  const ciProvider = explicitCiProvider ?? (existsSync(".gitlab-ci.yml")
     ? "gitlab"
     : existsSync(join(".github", "workflows"))
       ? "github"
-      : hosting;
+      : hosting);
 
   return {
     kind,
@@ -5043,6 +5106,19 @@ function detectProjectProfile(packageJson = readJsonFile("package.json"), option
     npmEntrypoint,
     publishableNpmPackage: kind === "package" && packageJson.private !== true,
     privatePackage: packageJson.private === true
+  };
+}
+
+function resolveProjectProfileOptions(options = {}) {
+  const settings = readSettings();
+  const config = readAigateConfig(options.config ?? ".aigate.yml");
+  const projectConfig = config.project ?? {};
+
+  return {
+    projectType: options.projectType ?? settings.projectType ?? settings.project?.type ?? projectConfig.type,
+    hosting: options.hosting ?? settings.hosting ?? settings.project?.hosting ?? projectConfig.hosting,
+    ciProvider: options.ciProvider ?? settings.ciProvider ?? settings.project?.ciProvider ?? projectConfig.ciProvider,
+    packageManager: options.packageManager ?? settings.packageManager ?? settings.project?.packageManager ?? projectConfig.packageManager
   };
 }
 
@@ -5064,6 +5140,10 @@ function normalizeHosting(value) {
   return ["github", "gitlab", "other", "unknown"].includes(normalized) ? normalized : null;
 }
 
+function normalizeCiProvider(value) {
+  return normalizeHosting(value);
+}
+
 function normalizePackageManager(value) {
   const normalized = String(value ?? "auto").trim().toLowerCase();
   if (!normalized || normalized === "auto") {
@@ -5071,6 +5151,29 @@ function normalizePackageManager(value) {
   }
 
   return ["npm", "pnpm", "yarn", "bun", "unknown"].includes(normalized) ? normalized : null;
+}
+
+function settingValue(optionValue, currentValue, normalize, fallback = "auto") {
+  const value = optionValue ?? currentValue ?? fallback;
+  const text = String(value ?? fallback).trim().toLowerCase();
+  if (!text || text === "auto") {
+    return "auto";
+  }
+
+  return normalize(text) ?? fallback;
+}
+
+function projectProfileOptionArgs(options = {}) {
+  const pairs = [
+    ["--project-type", options.projectType],
+    ["--hosting", options.hosting],
+    ["--ci-provider", options.ciProvider],
+    ["--package-manager", options.packageManager]
+  ];
+
+  return pairs.flatMap(([name, value]) => (
+    value === undefined || value === null || value === false ? [] : [name, String(value)]
+  ));
 }
 
 function detectHosting(url) {
@@ -5125,13 +5228,29 @@ function hasPullRequestTemplate(profile) {
     join(".gitlab", "merge_request_templates"),
     join(".gitlab", "merge_request_template.md")
   ];
-  return pathExistsAny(profile.hosting === "gitlab" ? [...gitlabTemplates, ...githubTemplates] : [...githubTemplates, ...gitlabTemplates]);
+  if (profile.hosting === "gitlab") {
+    return pathExistsAny(gitlabTemplates);
+  }
+
+  if (profile.hosting === "github") {
+    return pathExistsAny(githubTemplates);
+  }
+
+  return pathExistsAny([...githubTemplates, ...gitlabTemplates]);
 }
 
 function hasIssueTemplates(profile) {
   const githubTemplates = [join(".github", "ISSUE_TEMPLATE")];
   const gitlabTemplates = [join(".gitlab", "issue_templates")];
-  return pathExistsAny(profile.hosting === "gitlab" ? [...gitlabTemplates, ...githubTemplates] : [...githubTemplates, ...gitlabTemplates]);
+  if (profile.hosting === "gitlab") {
+    return pathExistsAny(gitlabTemplates);
+  }
+
+  if (profile.hosting === "github") {
+    return pathExistsAny(githubTemplates);
+  }
+
+  return pathExistsAny([...githubTemplates, ...gitlabTemplates]);
 }
 
 function hasCodeowners() {
@@ -5158,13 +5277,23 @@ function hasCiGateScript(packageJson = readJsonFile("package.json")) {
 }
 
 function hasCiWorkflow(profile) {
-  return profile.ciProvider === "gitlab"
-    ? existsSync(".gitlab-ci.yml") || existsSync(join(".github", "workflows", "ci.yml"))
-    : existsSync(join(".github", "workflows", "ci.yml")) || existsSync(".gitlab-ci.yml");
+  if (profile.ciProvider === "gitlab") {
+    return existsSync(".gitlab-ci.yml");
+  }
+
+  if (profile.ciProvider === "github") {
+    return existsSync(join(".github", "workflows", "ci.yml"));
+  }
+
+  return existsSync(join(".github", "workflows", "ci.yml")) || existsSync(".gitlab-ci.yml");
 }
 
-function hasReleaseWorkflow() {
-  if (existsSync(join(".github", "workflows", "release.yml"))) {
+function hasReleaseWorkflow(profile = {}) {
+  if (profile.ciProvider === "github") {
+    return existsSync(join(".github", "workflows", "release.yml"));
+  }
+
+  if (profile.ciProvider !== "gitlab" && existsSync(join(".github", "workflows", "release.yml"))) {
     return true;
   }
 
@@ -5224,7 +5353,8 @@ function buildDeepSignals() {
 
 function buildBranchStrategy(options = {}) {
   const packageJson = readJsonFile("package.json");
-  const hasCi = existsSync(join(".github", "workflows", "ci.yml"));
+  const profile = detectProjectProfile(packageJson, options);
+  const hasCi = hasCiWorkflow(profile);
   const hasReleaseDocs = existsSync(join("docs", "roadmap.md"));
   const branchNames = (git(["branch", "--all", "--format=%(refname:short)"]) ?? "")
     .split("\n")
@@ -5290,8 +5420,9 @@ function buildBranchStrategy(options = {}) {
       ".aigate/policy-packs/ai-collaboration.json",
       "docs/release-process.md",
       "docs/hotfix-process.md",
-      ".github/pull_request_template.aigate.md",
-      ".github/CODEOWNERS.aigate"
+      ...(profile.hosting === "gitlab"
+        ? [".gitlab/merge_request_templates/aigate.md", ".gitlab/CODEOWNERS"]
+        : [".github/pull_request_template.aigate.md", ".github/CODEOWNERS.aigate"])
     ]
   };
 }
@@ -5564,8 +5695,8 @@ function buildReleaseCheck(options = {}) {
       applicable: publicNpmRelease,
       reason: npmOnlyReason
     }),
-    packageCheck("release workflow exists", hasReleaseWorkflow(), {
-      applicable: publicNpmRelease || hasReleaseWorkflow(),
+    packageCheck("release workflow exists", hasReleaseWorkflow(profile), {
+      applicable: publicNpmRelease || hasReleaseWorkflow(profile),
       reason: npmOnlyReason
     }),
     packageCheck("release workflow uses npm provenance", fileIncludes(join(".github", "workflows", "release.yml"), "--provenance"), {
@@ -5942,9 +6073,21 @@ function buildComplianceReport() {
 
 function buildAiProjectReport(options = {}, language = "en") {
   const gitStatus = buildGitStatus();
-  const evaluation = buildEvaluation({ deep: true, projectType: options.projectType });
+  const evaluation = buildEvaluation({
+    deep: true,
+    projectType: options.projectType,
+    hosting: options.hosting,
+    ciProvider: options.ciProvider,
+    packageManager: options.packageManager
+  });
   const analysis = buildChangeAnalysis();
-  const releaseCheck = buildReleaseCheck({ checkNpm: Boolean(options.npm), projectType: options.projectType });
+  const releaseCheck = buildReleaseCheck({
+    checkNpm: Boolean(options.npm),
+    projectType: options.projectType,
+    hosting: options.hosting,
+    ciProvider: options.ciProvider,
+    packageManager: options.packageManager
+  });
   const branchStrategy = buildBranchStrategy(options);
   const problems = buildAiReportProblems({ gitStatus, evaluation, analysis, releaseCheck }, language);
   const strengths = buildAiReportStrengths({ evaluation, releaseCheck, branchStrategy }, language);
@@ -6619,9 +6762,9 @@ function aiReportText(key, language = "en", values = {}) {
   return table[language]?.[key] ?? table.en[key] ?? key;
 }
 
-function buildReport(type) {
+function buildReport(type, options = {}) {
   const status = buildGitStatus();
-  const evaluation = buildEvaluation();
+  const evaluation = buildEvaluation(options);
   const analysis = buildChangeAnalysis();
   const riskScore = calculateRiskScore(status, evaluation, analysis);
   const reportStatus = analysis.secretFindings.length
@@ -7214,9 +7357,9 @@ function renderStrategySignals(signals, language = "en") {
   ].join(", ");
 }
 
-function buildBranchStrategyFiles(strategy, outputDir, language = "en") {
+function buildBranchStrategyFiles(strategy, outputDir, language = "en", profile = {}) {
   const policyPacks = buildBranchPolicyPacks(strategy);
-  return [
+  const sharedFiles = [
     {
       path: join(outputDir, ".aigate", "generated-branch-strategy.md"),
       content: `${renderBranchStrategyMarkdown(strategy, language)}\n`
@@ -7247,7 +7390,25 @@ function buildBranchStrategyFiles(strategy, outputDir, language = "en") {
     {
       path: join(outputDir, "docs", "hotfix-process.md"),
       content: renderHotfixProcess(strategy, language)
-    },
+    }
+  ];
+
+  if (profile.hosting === "gitlab") {
+    return [
+      ...sharedFiles,
+      {
+        path: join(outputDir, ".gitlab", "merge_request_templates", "aigate.md"),
+        content: renderPullRequestTemplateDraft(language)
+      },
+      {
+        path: join(outputDir, ".gitlab", "CODEOWNERS"),
+        content: "* @LeeHueeng\n"
+      }
+    ];
+  }
+
+  return [
+    ...sharedFiles,
     {
       path: join(outputDir, ".github", "pull_request_template.aigate.md"),
       content: renderPullRequestTemplateDraft(language)
@@ -7700,10 +7861,10 @@ function renderPullRequestTemplateDraft(language = "en") {
   ].join("\n");
 }
 
-function buildRepositoryStarterFiles(outputDir, language = "en", packageJson = {}, owner = "@maintainers") {
+function buildRepositoryStarterFiles(outputDir, language = "en", packageJson = {}, owner = "@maintainers", profile = {}) {
   const projectName = packageJson.name ?? "my-project";
   const strategy = buildBranchStrategy();
-  return [
+  const sharedFiles = [
     {
       path: join(outputDir, "README.md"),
       content: renderStarterReadme(projectName, language)
@@ -7735,7 +7896,33 @@ function buildRepositoryStarterFiles(outputDir, language = "en", packageJson = {
     {
       path: join(outputDir, "docs", "git-upload-workflow.md"),
       content: renderStarterGitUploadWorkflow(language)
-    },
+    }
+  ];
+
+  if (profile.hosting === "gitlab") {
+    return [
+      ...sharedFiles,
+      {
+        path: join(outputDir, ".gitlab", "issue_templates", "bug.md"),
+        content: renderGitLabIssueTemplate("bug", language)
+      },
+      {
+        path: join(outputDir, ".gitlab", "issue_templates", "feature.md"),
+        content: renderGitLabIssueTemplate("feature", language)
+      },
+      {
+        path: join(outputDir, ".gitlab", "merge_request_templates", "default.md"),
+        content: renderPullRequestTemplateDraft(language)
+      },
+      {
+        path: join(outputDir, ".gitlab", "CODEOWNERS"),
+        content: `* ${owner}\n`
+      }
+    ];
+  }
+
+  return [
+    ...sharedFiles,
     {
       path: join(outputDir, ".github", "ISSUE_TEMPLATE", "bug_report.yml"),
       content: renderIssueTemplate("bug", language)
@@ -8115,6 +8302,30 @@ function renderIssueTemplate(type, language = "en") {
     "        aigate git-ready",
     "    validations:",
     "      required: false",
+    ""
+  ].join("\n");
+}
+
+function renderGitLabIssueTemplate(type, language = "en") {
+  const labels = issueTemplateLabels(type, language);
+  return [
+    `# ${labels.name}`,
+    "",
+    labels.intro,
+    "",
+    `## ${labels.context}`,
+    "",
+    "<!-- " + labels.contextDescription + " -->",
+    "",
+    `## ${labels.validation}`,
+    "",
+    "<!-- " + labels.validationDescription + " -->",
+    "",
+    "```sh",
+    "aigate ai report",
+    "aigate test",
+    "aigate git-ready",
+    "```",
     ""
   ].join("\n");
 }
@@ -8685,8 +8896,9 @@ function renderSharedAssistantInstructions(language = "en") {
   ];
 }
 
-function renderDefaultConfig(packageJson) {
+function renderDefaultConfig(packageJson, options = {}) {
   const projectName = packageJson.name ?? "my-project";
+  const profile = detectProjectProfile(packageJson, options);
   return [
     "version: 1",
     "",
@@ -8694,6 +8906,10 @@ function renderDefaultConfig(packageJson) {
     `  name: ${quoteYamlScalar(projectName)}`,
     `  package: ${quoteYamlScalar(packageJson.name ?? "")}`,
     "  defaultBranch: main",
+    `  type: ${profile.kind}`,
+    `  hosting: ${profile.hosting}`,
+    `  ciProvider: ${profile.ciProvider}`,
+    `  packageManager: ${profile.packageManager}`,
     "",
     "distribution:",
     "  primaryRegistry: npm",
@@ -8933,6 +9149,64 @@ function readJsonFile(filePath) {
   } catch {
     return {};
   }
+}
+
+function readAigateConfig(filePath = ".aigate.yml") {
+  if (!existsSync(filePath)) {
+    return {};
+  }
+
+  const config = {};
+  let section = null;
+
+  for (const rawLine of readFileSync(filePath, "utf8").split(/\r?\n/)) {
+    const line = rawLine.replace(/\s+#.*$/, "");
+    if (!line.trim()) {
+      continue;
+    }
+
+    const sectionMatch = line.match(/^([A-Za-z0-9_-]+):\s*$/);
+    if (sectionMatch) {
+      section = sectionMatch[1];
+      config[section] ??= {};
+      continue;
+    }
+
+    const valueMatch = line.match(/^\s{2}([A-Za-z0-9_-]+):\s*(.*?)\s*$/);
+    if (!valueMatch || !section) {
+      continue;
+    }
+
+    config[section] ??= {};
+    config[section][valueMatch[1]] = parseYamlScalar(valueMatch[2]);
+  }
+
+  return config;
+}
+
+function parseYamlScalar(value) {
+  const text = String(value ?? "").trim();
+  if (!text) {
+    return "";
+  }
+
+  if ((text.startsWith("\"") && text.endsWith("\"")) || (text.startsWith("'") && text.endsWith("'"))) {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text.slice(1, -1);
+    }
+  }
+
+  if (text === "true") {
+    return true;
+  }
+
+  if (text === "false") {
+    return false;
+  }
+
+  return text;
 }
 
 function fileIncludes(filePath, pattern) {
@@ -9595,6 +9869,10 @@ function stripAigatePushOptions(args) {
       arg.startsWith("--webhook-env=") ||
       arg.startsWith("--webhook-url=") ||
       arg.startsWith("--issue-type=") ||
+      arg.startsWith("--hosting=") ||
+      arg.startsWith("--ci-provider=") ||
+      arg.startsWith("--package-manager=") ||
+      arg.startsWith("--project-type=") ||
       arg.startsWith("--jira-api-token=") ||
       arg.startsWith("--jira-base-url=") ||
       arg.startsWith("--jira-email=") ||
@@ -9614,6 +9892,10 @@ function stripAigatePushOptions(args) {
       arg === "--webhook-env" ||
       arg === "--webhook-url" ||
       arg === "--issue-type" ||
+      arg === "--hosting" ||
+      arg === "--ci-provider" ||
+      arg === "--package-manager" ||
+      arg === "--project-type" ||
       arg === "--jira-api-token" ||
       arg === "--jira-base-url" ||
       arg === "--jira-email" ||
@@ -9643,6 +9925,7 @@ function firstPositionalArg(args) {
     "--base",
     "--body",
     "--channel",
+    "--ci-provider",
     "--config",
     "--event",
     "--format",
@@ -9661,6 +9944,8 @@ function firstPositionalArg(args) {
     "--output",
     "--output-dir",
     "--owner",
+    "--hosting",
+    "--package-manager",
     "--prompt-output",
     "--pr",
     "--release",

@@ -95,7 +95,7 @@ aigate pr-check
 | 컴플라이언스 통제 리포트 | `aigate compliance-report` |
 | 로컬 HTML 상태 대시보드 | `aigate dashboard` |
 | 프로젝트 상태 추세 기록 | `aigate trends record` |
-| private 앱, GitLab, pnpm 자동 프로필 감지 | `aigate evaluate-project` |
+| private 앱, GitLab, pnpm 자동 감지와 설정 고정 | `aigate setup --hosting gitlab` |
 | 브랜치 전략 정책 팩 | `aigate branch-strategy --apply` |
 | 브랜치 전략 제안 비교 | `aigate branch-strategy --compare` |
 | npm 릴리스 준비 확인 | `aigate release-check --npm` |

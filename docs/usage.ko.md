@@ -225,6 +225,23 @@ GitHub/GitLab, npm/pnpm/yarn/bun. private GitLab pnpm 앱에서는 GitHub 전용
 저장소를 npm 배포 패키지로 강제 검사해야 할 때만 `--project-type package`를
 사용하세요.
 
+자동 감지만으로 부족하면 프로필을 고정하세요:
+
+```sh
+aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm
+aigate start --route oss --hosting gitlab --ci-provider gitlab --project-type app
+```
+
+팀 전체 기준으로 쓰려면 `.aigate.yml`에 커밋하세요:
+
+```yaml
+project:
+  type: app
+  hosting: gitlab
+  ciProvider: gitlab
+  packageManager: pnpm
+```
+
 ## 알림
 
 ```sh
@@ -270,8 +287,8 @@ aigate git-ready --notify-channel terminal
 | `aigate doctor` | 로컬 환경과 저장소 기반을 진단합니다. |
 | `aigate demo` | 파일 변경 없이 workflow를 보여줍니다. |
 | `aigate install-hook` | Git hook을 설치합니다. |
-| `aigate setup` | config, settings, reports, AI guide 파일을 생성합니다. |
-| `aigate settings` | 언어 같은 AIGate 설정을 조회하거나 변경합니다. |
+| `aigate setup` | 언어, 호스팅, CI 제공자, 프로젝트 유형, 패키지 매니저 같은 로컬 설정을 저장합니다. |
+| `aigate settings` | AIGate 설정을 조회합니다. |
 | `aigate integrate <provider>` | Codex/Gemini/Claude 연동 파일을 생성합니다. |
 | `aigate report` | Markdown, HTML, JSON, SARIF 리포트를 작성합니다. |
 | `aigate evaluate-project` | 저장소 기반과 Git signal을 점수화합니다. |

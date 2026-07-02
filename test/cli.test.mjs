@@ -552,6 +552,37 @@ test("shows settings as json", () => {
   assert.equal(output.settings.language, "en");
 });
 
+test("configures GitLab project profile settings", () => {
+  const settingsPath = createSettingsPath();
+  const setup = run([
+    "setup",
+    "--language",
+    "ko",
+    "--hosting",
+    "gitlab",
+    "--ci-provider",
+    "gitlab",
+    "--project-type",
+    "app",
+    "--package-manager",
+    "pnpm",
+    "--format",
+    "json"
+  ], { settingsPath });
+
+  assert.equal(setup.status, 0);
+  const output = JSON.parse(setup.stdout);
+  assert.equal(output.settings.language, "ko");
+  assert.equal(output.settings.hosting, "gitlab");
+  assert.equal(output.settings.ciProvider, "gitlab");
+  assert.equal(output.settings.projectType, "app");
+  assert.equal(output.settings.packageManager, "pnpm");
+
+  const settings = run(["settings", "--format", "json"], { settingsPath });
+  assert.equal(settings.status, 0);
+  assert.equal(JSON.parse(settings.stdout).settings.hosting, "gitlab");
+});
+
 test("rejects unsupported language", () => {
   const result = run(["setup", "--language", "fr"]);
 
@@ -758,6 +789,41 @@ test("runs selected default start steps and skips the rest", () => {
   assert.ok(output.steps.some((step) => step.id === "ai-report" && step.status === "SKIPPED"));
   assert.ok(existsSync(join(outputDir, "README.md")));
   assert.equal(readFileSync(join(outputDir, ".github", "CODEOWNERS"), "utf8"), "* @example/team\n");
+});
+
+test("creates GitLab starter files when hosting is GitLab", () => {
+  const outputDir = createOutputDir();
+  const result = run([
+    "start",
+    "--route",
+    "default",
+    "--steps",
+    "init,repo-files",
+    "--output-dir",
+    outputDir,
+    "--owner",
+    "example/team",
+    "--hosting",
+    "gitlab",
+    "--ci-provider",
+    "gitlab",
+    "--project-type",
+    "app",
+    "--package-manager",
+    "pnpm",
+    "--format",
+    "json"
+  ]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.route, "default");
+  assert.ok(output.steps.some((step) => step.id === "repo-files" && step.status === "PASS"));
+  assert.ok(existsSync(join(outputDir, ".gitlab", "issue_templates", "bug.md")));
+  assert.ok(existsSync(join(outputDir, ".gitlab", "merge_request_templates", "default.md")));
+  assert.equal(readFileSync(join(outputDir, ".gitlab", "CODEOWNERS"), "utf8"), "* @example/team\n");
+  assert.equal(existsSync(join(outputDir, ".github", "CODEOWNERS")), false);
+  assert.match(readFileSync(join(outputDir, ".aigate.yml"), "utf8"), /hosting: gitlab/);
 });
 
 test("blocks unknown default start steps", () => {
@@ -1277,6 +1343,37 @@ test("adapts project evaluation for private GitLab pnpm apps", () => {
   assert.equal(output.checks.find((check) => check.name === "Dependabot exists")?.status, "NA");
   assert.equal(output.checks.find((check) => check.name === "OpenSSF Scorecard workflow exists")?.status, "NA");
   assert.equal(output.checks.find((check) => check.name === "License exists")?.status, "NA");
+});
+
+test("honors GitLab profile config over GitHub helper files", () => {
+  const projectDir = createMinimalGitProject();
+  mkdirSync(join(projectDir, ".github", "workflows"), { recursive: true });
+  mkdirSync(join(projectDir, ".github", "ISSUE_TEMPLATE"), { recursive: true });
+  writeFileSync(join(projectDir, ".github", "workflows", "ci.yml"), "name: CI\n", "utf8");
+  writeFileSync(join(projectDir, ".github", "pull_request_template.md"), "## Summary\n", "utf8");
+  writeFileSync(join(projectDir, ".github", "ISSUE_TEMPLATE", "bug.yml"), "name: Bug\n", "utf8");
+  writeFileSync(join(projectDir, ".aigate.yml"), [
+    "version: 1",
+    "",
+    "project:",
+    "  type: app",
+    "  hosting: gitlab",
+    "  ciProvider: gitlab",
+    "  packageManager: pnpm",
+    ""
+  ].join("\n"), "utf8");
+
+  const result = run(["evaluate-project", "--format", "json"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.profile.kind, "app");
+  assert.equal(output.profile.hosting, "gitlab");
+  assert.equal(output.profile.ciProvider, "gitlab");
+  assert.equal(output.profile.packageManager, "pnpm");
+  assert.equal(output.checks.find((check) => check.name === "CI workflow exists")?.pass, false);
+  assert.equal(output.checks.find((check) => check.name === "Pull request template exists")?.pass, false);
+  assert.equal(output.checks.find((check) => check.name === "Issue templates exist")?.pass, false);
 });
 
 test("checks release readiness", () => {

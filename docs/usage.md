@@ -228,6 +228,23 @@ GitHub-only and npm-publication checks are marked `N/A` instead of `TODO`. Use
 `--project-type package` only when a repository should be treated as a
 publishable npm package.
 
+Pin the profile when auto-detection is not enough:
+
+```sh
+aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm
+aigate start --route oss --hosting gitlab --ci-provider gitlab --project-type app
+```
+
+For team-wide behavior, commit this in `.aigate.yml`:
+
+```yaml
+project:
+  type: app
+  hosting: gitlab
+  ciProvider: gitlab
+  packageManager: pnpm
+```
+
 ## Notifications
 
 ```sh
@@ -274,8 +291,8 @@ channel:
 | `aigate doctor` | Diagnose local setup and repository foundations. |
 | `aigate demo` | Show the workflow without changing files. |
 | `aigate install-hook` | Install Git hooks. |
-| `aigate setup` | Create config, settings, reports, and AI guide files. |
-| `aigate settings` | Read or change AIGate settings such as language. |
+| `aigate setup` | Save local settings such as language, hosting, CI provider, project type, and package manager. |
+| `aigate settings` | Read AIGate settings. |
 | `aigate integrate <provider>` | Generate Codex, Gemini, and Claude Code integration files. |
 | `aigate report` | Write Markdown, HTML, JSON, or SARIF reports. |
 | `aigate evaluate-project` | Score repository foundations and Git signals. |
