@@ -1,6 +1,12 @@
 {
   "version": 1,
-  "generatedBy": "aigate 0.1.5",
+  "generatedBy": "aigate 0.1.6",
+  "profile": {
+    "type": "package",
+    "hosting": "github",
+    "ciProvider": "github",
+    "packageManager": "npm"
+  },
   "providers": [
     "codex",
     "gemini",
@@ -8,14 +14,18 @@
   ],
   "requiredCommands": [
     "npm run ci",
-    "aigate test",
     "aigate git-ready",
+    "aigate test",
     "aigate aitest",
     "aigate push --dry-run origin <branch>"
   ],
+  "validationCommands": [
+    "npm run ci",
+    "aigate git-ready"
+  ],
   "branchStrategy": "GitHub Flow with release channels",
   "requiredChecks": [
-    "test (20)",
-    "test (22)"
+    "GitHub CI workflow",
+    "aigate git-ready"
   ]
 }

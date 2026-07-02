@@ -1513,6 +1513,10 @@ test("scores repository foundations", () => {
   assert.ok(output.score > 0);
   assert.equal(typeof output.grade, "string");
   assert.ok(Array.isArray(output.categories));
+  assert.equal(output.checks.find((check) => check.name === "Contribution guide exists")?.status, "PASS");
+  assert.equal(output.checks.find((check) => check.name === "Contribution guide exists")?.reason, undefined);
+  assert.equal(output.checks.find((check) => check.name === "License exists")?.status, "PASS");
+  assert.equal(output.checks.find((check) => check.name === "License exists")?.reason, undefined);
 });
 
 test("renders deep project evaluation report", () => {

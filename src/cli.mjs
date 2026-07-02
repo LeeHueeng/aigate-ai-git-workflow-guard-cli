@@ -5109,7 +5109,7 @@ function makeCheck(category, name, pass, options = {}) {
     applicable
   };
 
-  if (options.reason) {
+  if (!applicable && options.reason) {
     check.reason = options.reason;
   }
 
