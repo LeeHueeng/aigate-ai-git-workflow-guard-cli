@@ -43,6 +43,10 @@ recommended commands, release readiness, and branch strategy. It also renders an
 AI handoff prompt. It does not modify files unless `--apply` is passed. With
 `--apply`, AIGate invokes the selected local CLI when available.
 
+During `--apply`, AIGate prints the prompt path, provider, and agent command,
+then streams the agent stdout/stderr in the terminal. The final report captures
+the command, duration, exit code, stdout, and stderr for later review.
+
 ## AI Test Remediation
 
 ```sh
@@ -59,6 +63,9 @@ captured output, Git readiness summary, and repair instructions. It does not
 modify files unless `--apply` is passed. With `--apply`, AIGate invokes the
 selected local CLI when available: Codex through `codex exec`, Claude through
 `claude --print`, or Gemini through `gemini -p`.
+
+This is not the model's hidden reasoning. It is the visible execution trace:
+what AIGate generated, what command it ran, and what the agent printed.
 
 ## Generated Files
 

@@ -134,6 +134,11 @@ and an AI handoff prompt. It also does not edit code by default; add
 `--apply --provider codex|claude|gemini` only when you want AIGate to run the
 selected AI CLI with that brief.
 
+When `--apply` runs in text mode, AIGate shows the prompt path, provider, agent
+command, and live agent output in the terminal. The final report also includes
+the agent command, duration, exit code, stdout, and stderr. JSON output keeps
+stdout machine-readable and sends progress logs to stderr.
+
 ## Reports And Output Formats
 
 ```sh

@@ -128,6 +128,10 @@ Claude、Gemini CLI 或自定义 agent 时才添加 `--apply`。
 建议命令、发布状态、分支策略和 AI 交接提示。默认不会修改代码；只有需要运行
 所选 AI CLI 时才添加 `--apply --provider codex|claude|gemini`。
 
+以文本模式运行 `--apply` 时，AIGate 会在终端显示提示文件路径、provider、agent
+命令和实时 agent 输出。最终报告也会包含 agent 命令、耗时、退出码、stdout 和
+stderr。JSON 输出会保持 stdout 为机器可读 JSON，并把进度日志发送到 stderr。
+
 ## 报告和输出格式
 
 ```sh

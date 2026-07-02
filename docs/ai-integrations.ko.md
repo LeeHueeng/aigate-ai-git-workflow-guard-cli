@@ -44,6 +44,10 @@ aigate ai report --apply --provider claude
 상태, 브랜치 전략을 정리하고 AI 전달 프롬프트도 렌더링합니다. 기본값은 파일을
 수정하지 않습니다. `--apply`를 넘겼을 때만 설치된 로컬 AI CLI를 실행합니다.
 
+`--apply` 중에는 AIGate가 프롬프트 경로, 제공자, 에이전트 명령을 먼저 보여주고
+에이전트 stdout/stderr를 터미널에 실시간으로 표시합니다. 최종 리포트에도 명령,
+소요 시간, 종료 코드, stdout, stderr를 남겨 나중에 다시 확인할 수 있습니다.
+
 ## AI 테스트 수정 흐름
 
 ```sh
@@ -59,6 +63,9 @@ aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --as
 `.aigate/reports/ai-test.md`에 작성합니다. 기본값은 파일을 수정하지 않습니다.
 `--apply`를 넘겼을 때만 설치된 로컬 CLI를 실행합니다. Codex는 `codex exec`,
 Claude는 `claude --print`, Gemini는 `gemini -p` 경로를 사용합니다.
+
+이 출력은 모델의 숨겨진 사고 과정이 아니라 AIGate의 실행 추적입니다. 즉, 어떤
+프롬프트를 만들었고 어떤 명령을 실행했으며 에이전트가 무엇을 출력했는지 보여줍니다.
 
 ## 생성되는 파일
 

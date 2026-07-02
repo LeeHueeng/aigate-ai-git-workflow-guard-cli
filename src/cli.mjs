@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { execFileSync, spawnSync } from "node:child_process";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, isAbsolute, join } from "node:path";
 import readline from "node:readline";
@@ -2145,11 +2145,16 @@ function commandTest(args) {
   return renderTestReport(result, language);
 }
 
-function commandAiTest(args) {
+async function commandAiTest(args) {
   const options = parseOptions(args);
   const language = resolveLanguage(options);
   if (!language) {
     return unsupportedLanguage(options.language);
+  }
+
+  if (isMissingOptionValue(options.provider)) {
+    process.exitCode = 1;
+    return renderAiTestError("missing-provider", language);
   }
 
   const provider = resolveAiTestProvider(options.provider ?? "auto");
@@ -2188,7 +2193,20 @@ function commandAiTest(args) {
         stderr: translateAiTestText("agentNotFound", language, { provider: provider.name })
       };
     } else {
-      result.agent = runAgentCommand(agentCommand, prompt);
+      emitAiApplyProgress("start", language, {
+        provider: provider.name,
+        promptPath,
+        command: agentCommand.display,
+        stream: options.format !== "json"
+      });
+      result.agent = await runAgentCommand(agentCommand, prompt, {
+        stream: options.format !== "json"
+      });
+      emitAiApplyProgress("finish", language, {
+        exitCode: result.agent.exitCode,
+        durationMs: result.agent.durationMs,
+        stream: options.format !== "json"
+      });
       result.applied = result.agent.exitCode === 0;
       result.status = result.applied ? "AI_APPLIED" : "BLOCK";
     }
@@ -2221,11 +2239,16 @@ function commandAi(args) {
   return commandAiReport(args);
 }
 
-function commandAiReport(args) {
+async function commandAiReport(args) {
   const options = parseOptions(args);
   const language = resolveLanguage(options);
   if (!language) {
     return unsupportedLanguage(options.language);
+  }
+
+  if (isMissingOptionValue(options.provider)) {
+    process.exitCode = 1;
+    return renderAiReportError("missing-provider", language);
   }
 
   const provider = resolveAiTestProvider(options.provider ?? "auto");
@@ -2260,7 +2283,20 @@ function commandAiReport(args) {
         stderr: translateAiTestText("agentNotFound", language, { provider: provider.name })
       };
     } else {
-      report.ai.agent = runAgentCommand(agentCommand, report.prompt);
+      emitAiApplyProgress("start", language, {
+        provider: provider.name,
+        promptPath,
+        command: agentCommand.display,
+        stream: options.format !== "json"
+      });
+      report.ai.agent = await runAgentCommand(agentCommand, report.prompt, {
+        stream: options.format !== "json"
+      });
+      emitAiApplyProgress("finish", language, {
+        exitCode: report.ai.agent.exitCode,
+        durationMs: report.ai.agent.durationMs,
+        stream: options.format !== "json"
+      });
       report.ai.applied = report.ai.agent.exitCode === 0;
       report.status = report.ai.applied ? "AI_APPLIED" : "BLOCK";
     }
@@ -3092,27 +3128,171 @@ function resolveAgentCommand(provider, options, prompt) {
   };
 }
 
-function runAgentCommand(command, prompt) {
-  const startedAt = Date.now();
-  const result = spawnSync(command.executable, command.args, {
-    cwd: process.cwd(),
-    encoding: "utf8",
-    env: process.env,
-    input: command.input ?? prompt,
-    maxBuffer: 4 * 1024 * 1024,
-    shell: Boolean(command.shell),
-    timeout: 10 * 60 * 1000
-  });
-  const exitCode = result.status ?? (result.error ? 1 : 0);
+function isMissingOptionValue(value) {
+  return value === true || value === "";
+}
 
+async function runAgentCommand(command, prompt, options = {}) {
+  const startedAt = Date.now();
+  const timeoutMs = 10 * 60 * 1000;
+  const stream = Boolean(options.stream);
+
+  return new Promise((resolve) => {
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    let timedOut = false;
+    const child = spawn(command.executable, command.args, {
+      cwd: process.cwd(),
+      env: process.env,
+      shell: Boolean(command.shell),
+      stdio: ["pipe", "pipe", "pipe"]
+    });
+
+    const finish = (exitCode, extraStderr = "") => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(timer);
+      const finalExitCode = typeof exitCode === "number" ? exitCode : 1;
+      if (extraStderr) {
+        stderr += extraStderr;
+      }
+      resolve({
+        status: finalExitCode === 0 ? "DONE" : "FAILED",
+        command: command.display,
+        exitCode: finalExitCode,
+        durationMs: Date.now() - startedAt,
+        stdout: truncateOutput(stdout),
+        stderr: truncateOutput(stderr)
+      });
+    };
+
+    const timer = setTimeout(() => {
+      timedOut = true;
+      child.kill("SIGTERM");
+    }, timeoutMs);
+
+    child.stdout.on("data", (chunk) => {
+      const text = chunk.toString();
+      stdout += text;
+      if (stream) {
+        process.stderr.write(text);
+      }
+    });
+
+    child.stderr.on("data", (chunk) => {
+      const text = chunk.toString();
+      stderr += text;
+      if (stream) {
+        process.stderr.write(text);
+      }
+    });
+
+    child.stdin.on("error", () => {
+      // Some AI CLIs can exit before reading stdin after printing an immediate error.
+    });
+
+    child.on("error", (error) => {
+      finish(1, error?.message ? `${error.message}\n` : "");
+    });
+
+    child.on("close", (code, signal) => {
+      if (timedOut) {
+        finish(1, `AI agent timed out after ${timeoutMs}ms.\n`);
+        return;
+      }
+      const exitCode = code ?? (signal ? 1 : 0);
+      finish(exitCode);
+    });
+
+    const input = command.input ?? prompt;
+    if (input) {
+      child.stdin.write(input);
+    }
+    child.stdin.end();
+  });
+}
+
+function emitAiApplyProgress(kind, language, values = {}) {
+  if (!values.stream) {
+    return;
+  }
+
+  const labels = aiApplyProgressLabels(language);
+  if (kind === "start") {
+    process.stderr.write([
+      `${labels.title}: ${labels.start}`,
+      `- ${labels.provider}: ${values.provider}`,
+      `- ${labels.prompt}: ${values.promptPath}`,
+      `- ${labels.command}: ${values.command}`,
+      `- ${labels.output}: ${labels.streaming}`,
+      ""
+    ].join("\n"));
+    return;
+  }
+
+  process.stderr.write([
+    "",
+    `${labels.title}: ${labels.finish}`,
+    `- ${labels.exitCode}: ${values.exitCode}`,
+    `- ${labels.duration}: ${values.durationMs}ms`,
+    ""
+  ].join("\n"));
+}
+
+function aiApplyProgressLabels(language = "en") {
   return {
-    status: exitCode === 0 ? "DONE" : "FAILED",
-    command: command.display,
-    exitCode,
-    durationMs: Date.now() - startedAt,
-    stdout: truncateOutput(result.stdout ?? ""),
-    stderr: truncateOutput(result.stderr ?? result.error?.message ?? "")
-  };
+    en: {
+      command: "Command",
+      duration: "Duration",
+      exitCode: "Exit code",
+      finish: "agent finished",
+      output: "Agent output",
+      prompt: "Prompt",
+      provider: "Provider",
+      start: "running agent",
+      streaming: "streaming below",
+      title: "AIGate AI apply"
+    },
+    ko: {
+      command: "명령",
+      duration: "소요 시간",
+      exitCode: "종료 코드",
+      finish: "에이전트 실행 완료",
+      output: "에이전트 출력",
+      prompt: "프롬프트",
+      provider: "제공자",
+      start: "에이전트 실행 중",
+      streaming: "아래에 실시간 표시",
+      title: "AIGate AI 적용"
+    },
+    ja: {
+      command: "コマンド",
+      duration: "所要時間",
+      exitCode: "終了コード",
+      finish: "エージェント実行完了",
+      output: "エージェント出力",
+      prompt: "プロンプト",
+      provider: "Provider",
+      start: "エージェント実行中",
+      streaming: "下にリアルタイム表示",
+      title: "AIGate AI 適用"
+    },
+    zh: {
+      command: "命令",
+      duration: "耗时",
+      exitCode: "退出码",
+      finish: "agent 执行完成",
+      output: "Agent 输出",
+      prompt: "提示",
+      provider: "Provider",
+      start: "正在运行 agent",
+      streaming: "在下方实时显示",
+      title: "AIGate AI 应用"
+    }
+  }[language] ?? aiApplyProgressLabels("en");
 }
 
 function renderAiTestPrompt(testResult, provider, language) {
@@ -3200,10 +3380,14 @@ function renderAiTestResult(result, language) {
     lines.push(
       `${labels.agent}: ${automationStatus(result.agent.status, language)}`,
       `${labels.command}: ${result.agent.command ?? labels.notDetected}`,
-      `${labels.exitCode}: ${result.agent.exitCode}`
+      `${labels.exitCode}: ${result.agent.exitCode}`,
+      `${labels.duration}: ${result.agent.durationMs}ms`
     );
+    if (result.agent.stdout.trim()) {
+      lines.push("", `${labels.stdout}:`, result.agent.stdout.trim());
+    }
     if (result.agent.stderr.trim()) {
-      lines.push(`${labels.stderr}:`, result.agent.stderr.trim());
+      lines.push("", `${labels.stderr}:`, result.agent.stderr.trim());
     }
   }
 
@@ -3213,6 +3397,10 @@ function renderAiTestResult(result, language) {
 
 function renderAiTestError(kind, language, values = {}) {
   const labels = automationLabels(language);
+  if (kind === "missing-provider") {
+    return `${labels.error}: ${labels.missingProvider}\n${labels.supportedProviders}: auto, codex, claude, gemini`;
+  }
+
   if (kind === "unknown-provider") {
     return `${labels.error}: ${labels.unknownProvider} ${values.provider}\n${labels.supportedProviders}: auto, codex, claude, gemini`;
   }
@@ -3248,6 +3436,7 @@ function automationLabels(language) {
       error: "Error",
       exitCode: "Exit code",
       gitGate: "Git gate",
+      missingProvider: "--provider requires a value.",
       mode: "Mode",
       next: "Next",
       none: "none",
@@ -3309,6 +3498,7 @@ function automationLabels(language) {
       error: "오류",
       exitCode: "종료 코드",
       gitGate: "Git 게이트",
+      missingProvider: "--provider 값이 필요합니다.",
       mode: "모드",
       next: "다음 단계",
       none: "없음",
@@ -3370,6 +3560,7 @@ function automationLabels(language) {
       error: "エラー",
       exitCode: "終了コード",
       gitGate: "Git ゲート",
+      missingProvider: "--provider には値が必要です。",
       mode: "モード",
       next: "次の手順",
       none: "なし",
@@ -3431,6 +3622,7 @@ function automationLabels(language) {
       error: "错误",
       exitCode: "退出码",
       gitGate: "Git 关卡",
+      missingProvider: "--provider 需要一个值。",
       mode: "模式",
       next: "下一步",
       none: "无",
@@ -5652,8 +5844,16 @@ function renderAiProjectReport(report, language = "en") {
   if (report.ai?.agent) {
     lines.push(
       `- ${labels.agent}: ${automationStatus(report.ai.agent.exitCode === 0 ? "PASS" : "FAILED", language)}`,
+      `- ${labels.command}: \`${report.ai.agent.command ?? labels.notInstalled}\``,
+      `- ${labels.duration}: ${report.ai.agent.durationMs}ms`,
       `- ${labels.exitCode}: ${report.ai.agent.exitCode}`
     );
+    if (report.ai.agent.stdout.trim()) {
+      lines.push("", `### ${labels.stdout}`, "", "```text", report.ai.agent.stdout.trim(), "```");
+    }
+    if (report.ai.agent.stderr.trim()) {
+      lines.push("", `### ${labels.stderr}`, "", "```text", report.ai.agent.stderr.trim(), "```");
+    }
   } else {
     lines.push(`- ${labels.next}: ${labels.applyHint}`);
   }
@@ -5697,6 +5897,10 @@ function renderAiProjectReportPrompt(report, language = "en") {
 
 function renderAiReportError(kind, language, values = {}) {
   const labels = aiReportLabels(language);
+  if (kind === "missing-provider") {
+    return `${labels.error}: ${labels.missingProvider}\n${labels.supportedProviders}: auto, codex, claude, gemini`;
+  }
+
   if (kind === "unknown-provider") {
     return `${labels.error}: ${labels.unknownProvider} ${values.provider}\n${labels.supportedProviders}: auto, codex, claude, gemini`;
   }
@@ -5716,9 +5920,11 @@ function aiReportLabels(language = "en") {
       command: "Command",
       commands: "Suggested Commands",
       direction: "Direction",
+      duration: "Duration",
       error: "Error",
       exitCode: "Exit code",
       installed: "installed",
+      missingProvider: "--provider requires a value.",
       next: "Next",
       no: "no",
       none: "No current problem detected by local checks.",
@@ -5732,6 +5938,8 @@ function aiReportLabels(language = "en") {
       secretFindings: "Secret findings",
       status: "Status",
       strengths: "What Is Working",
+      stderr: "Agent stderr",
+      stdout: "Agent stdout",
       supportedActions: "Supported AI actions",
       supportedProviders: "Supported providers",
       title: "AIGate AI Report",
@@ -5749,9 +5957,11 @@ function aiReportLabels(language = "en") {
       command: "명령",
       commands: "추천 명령어",
       direction: "방향성",
+      duration: "소요 시간",
       error: "오류",
       exitCode: "종료 코드",
       installed: "설치됨",
+      missingProvider: "--provider 값이 필요합니다.",
       next: "다음 단계",
       no: "아니오",
       none: "로컬 검사에서 현재 문제점이 감지되지 않았습니다.",
@@ -5765,6 +5975,8 @@ function aiReportLabels(language = "en") {
       secretFindings: "민감 정보 탐지",
       status: "상태",
       strengths: "잘된 점",
+      stderr: "에이전트 stderr",
+      stdout: "에이전트 stdout",
       supportedActions: "지원 AI 작업",
       supportedProviders: "지원 제공자",
       title: "AIGate AI 리포트",
@@ -5782,9 +5994,11 @@ function aiReportLabels(language = "en") {
       command: "コマンド",
       commands: "推奨コマンド",
       direction: "方向性",
+      duration: "所要時間",
       error: "エラー",
       exitCode: "終了コード",
       installed: "インストール済み",
+      missingProvider: "--provider には値が必要です。",
       next: "次の手順",
       no: "いいえ",
       none: "ローカルチェックで現在の問題は検出されていません。",
@@ -5798,6 +6012,8 @@ function aiReportLabels(language = "en") {
       secretFindings: "機密情報検出",
       status: "状態",
       strengths: "良い点",
+      stderr: "エージェント stderr",
+      stdout: "エージェント stdout",
       supportedActions: "対応 AI アクション",
       supportedProviders: "対応 provider",
       title: "AIGate AI レポート",
@@ -5815,9 +6031,11 @@ function aiReportLabels(language = "en") {
       command: "命令",
       commands: "建议命令",
       direction: "方向",
+      duration: "耗时",
       error: "错误",
       exitCode: "退出码",
       installed: "已安装",
+      missingProvider: "--provider 需要一个值。",
       next: "下一步",
       no: "否",
       none: "本地检查未发现当前问题。",
@@ -5831,6 +6049,8 @@ function aiReportLabels(language = "en") {
       secretFindings: "敏感信息发现",
       status: "状态",
       strengths: "做得好的部分",
+      stderr: "Agent stderr",
+      stdout: "Agent stdout",
       supportedActions: "支持的 AI 操作",
       supportedProviders: "支持的 provider",
       title: "AIGate AI 报告",

@@ -44,6 +44,10 @@ aigate ai report --apply --provider claude
 分支策略，并生成 AI 交接提示。默认不会修改文件。只有传入 `--apply` 时才会运行
 已安装的本地 AI CLI。
 
+运行 `--apply` 时，AIGate 会先显示提示文件路径、provider 和 agent 命令，并在
+终端实时显示 agent stdout/stderr。最终报告也会保留命令、耗时、退出码、stdout 和
+stderr，方便之后复查。
+
 ## AI 测试修复流程
 
 ```sh
@@ -59,6 +63,9 @@ aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --as
 `.aigate/reports/ai-test.md`。默认不会修改文件。只有传入 `--apply` 时，
 AIGate 才会调用可用的本地 CLI: Codex 使用 `codex exec`，Claude 使用
 `claude --print`，Gemini 使用 `gemini -p`。
+
+这不是模型隐藏的思考过程，而是 AIGate 的执行追踪: 生成了什么提示、运行了什么
+命令，以及 agent 输出了什么。
 
 ## 生成的文件
 

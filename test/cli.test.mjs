@@ -844,6 +844,15 @@ test("renders localized AI report and alias", () => {
   assert.equal(JSON.parse(alias.stdout).command, "ai report");
 });
 
+test("rejects missing AI provider values clearly", () => {
+  const result = run(["ai", "report", "--apply", "--provider", "--language", "ko"]);
+
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /--provider 값이 필요합니다/);
+  assert.match(result.stdout, /지원 제공자: auto, codex, claude, gemini/);
+  assert.doesNotMatch(result.stdout, /true/);
+});
+
 test("applies AI report through a custom agent command", () => {
   const projectDir = createMinimalGitProject();
   const promptPath = join(projectDir, ".aigate", "reports", "ai-report-prompt.md");
@@ -868,6 +877,31 @@ test("applies AI report through a custom agent command", () => {
   assert.equal(output.ai.promptPath, promptPath);
   assert.ok(existsSync(promptPath));
   assert.match(readFileSync(promptPath, "utf8"), /AIGate AI Report/);
+});
+
+test("streams AI apply progress and captures agent output", () => {
+  const projectDir = createMinimalGitProject();
+  const promptPath = join(projectDir, ".aigate", "reports", "ai-report-prompt.md");
+  const result = run([
+    "ai",
+    "report",
+    "--apply",
+    "--agent-command",
+    "cat >/dev/null; printf 'agent stdout\\n'; printf 'agent stderr\\n' >&2",
+    "--prompt-output",
+    promptPath
+  ], {
+    cwd: projectDir
+  });
+
+  assert.equal(result.status, 0);
+  assert.match(result.stderr, /AIGate AI apply: running agent/);
+  assert.match(result.stderr, /agent stdout/);
+  assert.match(result.stderr, /agent stderr/);
+  assert.match(result.stdout, /Agent stdout/);
+  assert.match(result.stdout, /agent stdout/);
+  assert.match(result.stdout, /Agent stderr/);
+  assert.match(result.stdout, /agent stderr/);
 });
 
 test("sends terminal notifications", () => {

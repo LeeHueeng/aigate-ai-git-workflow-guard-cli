@@ -131,6 +131,11 @@ aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --as
 기본값은 코드를 수정하지 않는 안전 모드이며, 선택한 AI CLI를 실행하려면
 `--apply --provider codex|claude|gemini`를 붙입니다.
 
+`--apply`를 텍스트 모드로 실행하면 AIGate가 프롬프트 경로, 제공자, 에이전트
+명령, 실시간 에이전트 출력을 터미널에 보여줍니다. 최종 리포트에도 에이전트
+명령, 소요 시간, 종료 코드, stdout, stderr가 남습니다. JSON 출력은 자동화가
+깨지지 않도록 stdout을 기계가 읽는 JSON으로 유지하고 진행 로그는 stderr로 보냅니다.
+
 ## 리포트와 출력 형식
 
 ```sh

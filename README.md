@@ -237,6 +237,9 @@ release readiness, branch strategy, and AI handoff guidance. It does not edit
 files by default. Add `--apply --provider codex|claude|gemini` only when you
 want AIGate to run the selected AI CLI with the generated project brief.
 
+When `--apply` runs, AIGate shows the prompt path, provider, agent command, and
+live agent output in the terminal, then captures stdout/stderr in the report.
+
 ## Output Languages
 
 AIGate supports English, Korean, Japanese, and Chinese CLI output:

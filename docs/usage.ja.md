@@ -131,6 +131,11 @@ Codex、Claude、Gemini CLI または独自 agent を実行する場合だけ `-
 まとめます。既定ではコードを変更せず、選択した AI CLI を実行する場合だけ
 `--apply --provider codex|claude|gemini` を付けます。
 
+`--apply` をテキストモードで実行すると、AIGate はプロンプトのパス、provider、
+agent コマンド、リアルタイムの agent 出力をターミナルに表示します。最終レポート
+にも agent コマンド、所要時間、終了コード、stdout、stderr が残ります。JSON 出力
+では stdout を機械可読 JSON のままにし、進行ログは stderr に送ります。
+
 ## レポートと出力形式
 
 ```sh

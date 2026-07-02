@@ -194,6 +194,9 @@ Claude、Gemini 或自定义 `--agent-command`。
 AI 交接提示。默认不会修改文件；只有加上
 `--apply --provider codex|claude|gemini` 时才会运行所选 AI CLI。
 
+运行 `--apply` 时，AIGate 会在终端显示提示路径、provider、agent 命令和实时
+agent 输出，并在最终报告中保留 stdout/stderr。
+
 ## 文档
 
 - [多语言文档索引](docs/README.zh.md)

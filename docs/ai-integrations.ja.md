@@ -45,6 +45,10 @@ aigate ai report --apply --provider claude
 変更しません。`--apply` を渡した場合だけ、インストール済みのローカル AI CLI を
 実行します。
 
+`--apply` 中は、AIGate がプロンプトのパス、provider、agent コマンドを先に表示し、
+agent の stdout/stderr をターミナルにリアルタイム表示します。最終レポートにも
+コマンド、所要時間、終了コード、stdout、stderr を残します。
+
 ## AI テスト修正フロー
 
 ```sh
@@ -61,6 +65,9 @@ aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --as
 変更しません。`--apply` を渡した場合だけ、利用可能なローカル CLI を実行します。
 Codex は `codex exec`、Claude は `claude --print`、Gemini は `gemini -p`
 を使います。
+
+これはモデルの隠れた思考過程ではなく、AIGate の実行トレースです。生成した
+プロンプト、実行したコマンド、agent が出力した内容を確認できます。
 
 ## 生成されるファイル
 

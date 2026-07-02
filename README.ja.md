@@ -198,6 +198,9 @@ branch、validation、guarded push workflow を守るようにします。`aigat
 変更せず、`--apply --provider codex|claude|gemini` を付けた場合だけ選択した
 AI CLI を実行します。
 
+`--apply` 実行中は、プロンプトのパス、provider、agent コマンド、リアルタイムの
+agent 出力をターミナルに表示し、最終レポートにも stdout/stderr を残します。
+
 ## ドキュメント
 
 - [多言語ドキュメント索引](docs/README.ja.md)
