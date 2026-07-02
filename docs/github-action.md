@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
         with:
           command: git-ready
           language: en
@@ -27,7 +27,7 @@ jobs:
 For a pull request report:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
   with:
     command: pr-check
     report-format: markdown
@@ -50,9 +50,25 @@ workflow testing inside this repository.
 For branch strategy comparison:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
   with:
     command: branch-strategy-compare
     report-format: json
     output: .aigate/reports/branch-strategy.json
 ```
+
+## GitHub Marketplace
+
+Use these values when publishing the next GitHub Release:
+
+| Field | Value |
+| --- | --- |
+| Action name | `AIGate AI Git Workflow Guard CLI` |
+| Primary category | `Code quality` |
+| Secondary category | `Security` |
+| Release tag | `v0.1.3` |
+| Release title | `AIGate AI Git Workflow Guard CLI v0.1.3` |
+
+Keep `Set as the latest release` enabled and do not mark the release as a
+pre-release for a stable patch release. Enable the GitHub Marketplace publish
+option on the release screen.

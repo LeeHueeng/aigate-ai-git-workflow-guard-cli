@@ -2,8 +2,13 @@
 
 All notable changes to AIGate are documented here.
 
-## 0.1.3 - Unreleased
+## 0.1.3 - 2026-07-02
 
+- Prepared GitHub Marketplace metadata with a unique searchable action name and
+  clearer Action description.
+- Added multilingual usage guides and linked them from README and docs indexes.
+- Aligned generated branch protection policy output with the current zero
+  mandatory approval repository policy.
 - Added email, Linear, and Jira notification dry-run payloads and issue
   creation routes.
 - Added `aigate compliance-report` and `aigate dashboard` for compliance

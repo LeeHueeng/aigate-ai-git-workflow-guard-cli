@@ -118,7 +118,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
         with:
           command: git-ready
           language: ja
@@ -127,6 +127,13 @@ jobs:
 安定運用では現在のリリースタグを使い、未リリースの最新動作を意図的に確認
 したい場合だけ `@main` を使ってください。入力一覧は
 [GitHub Action ドキュメント](docs/github-action.ja.md) にまとめています。
+
+Marketplace 登録値:
+
+- Action name: `AIGate AI Git Workflow Guard CLI`
+- Primary category: `Code quality`
+- Secondary category: `Security`
+- Release title: `AIGate AI Git Workflow Guard CLI v0.1.3`
 
 ## AI エージェント連携
 

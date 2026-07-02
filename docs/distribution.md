@@ -16,7 +16,7 @@ npx aigate-cli check
 The first public release is live on npm:
 
 - Package: <https://www.npmjs.com/package/aigate-cli>
-- Latest tagged public release: `v0.1.2`
+- Latest tagged public release: `v0.1.3`
 - Current repository package version: see `package.json` and `CHANGELOG.md`
 - Trusted Publishing: GitHub Actions `release.yml`
 
@@ -38,7 +38,7 @@ First publish record:
 5. Configure npm Trusted Publishing for this repository.
 6. Run `aigate release-check`.
 7. Run the Release workflow with `dry_run=true`.
-8. Create and push the release tag, for example `v0.1.2`.
+8. Create and push the release tag, for example `v0.1.3`.
 
 The first manual publish created the package on npm so Trusted Publishing could
 be attached. If a version was already published manually, the Release workflow
@@ -120,7 +120,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.2
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
         with:
           command: git-ready
           language: en

@@ -1,6 +1,6 @@
-name: AIGate
-description: Run AIGate repository checks and reports in GitHub Actions.
-author: AIGate Maintainers
+name: AIGate AI Git Workflow Guard CLI
+description: Run AI-friendly Git workflow checks, PR readiness reports, secret scans, and release gates in GitHub Actions.
+author: LeeHueeng
 
 branding:
   icon: shield
