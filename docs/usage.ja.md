@@ -3,7 +3,7 @@
 [English](usage.md) | [한국어](usage.ko.md) | [日本語](usage.ja.md) | [中文](usage.zh.md)
 
 このガイドは現在の `aigate-cli` 構成に合わせています。既存リポジトリで
-AIGate を実行する、GitHub と接続する、Codex/Gemini に同じ workflow を
+AIGate を実行する、GitHub と接続する、Codex/Gemini/Claude Code に同じ workflow を
 渡すときに使います。
 
 ## インストールまたは直接実行
@@ -114,7 +114,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
         with:
           command: git-ready
           language: ja
@@ -126,12 +126,13 @@ jobs:
 aigate integrate all
 aigate integrate codex
 aigate integrate gemini
+aigate integrate claude
 aigate integrate all --output-dir . --force
 ```
 
-このコマンドは `AGENTS.md`、`GEMINI.md`、`.aigate/integrations/*` を作成します。
-Codex と Gemini に、範囲の明確な branch、validation command、`aigate push`
-のルールを伝えます。
+このコマンドは `AGENTS.md`、`GEMINI.md`、`CLAUDE.md`、
+`.aigate/integrations/*` を作成します。Codex、Gemini、Claude Code に、
+範囲の明確な branch、validation command、`aigate push` のルールを伝えます。
 
 ## ブランチ戦略とリリース
 
@@ -183,7 +184,7 @@ aigate git-ready --notify-channel terminal
 | `aigate install-hook` | Git hook をインストールします。 |
 | `aigate setup` | config、settings、reports、AI guide files を作成します。 |
 | `aigate settings` | 言語などの AIGate 設定を確認または変更します。 |
-| `aigate integrate <provider>` | Codex/Gemini integration files を生成します。 |
+| `aigate integrate <provider>` | Codex/Gemini/Claude integration files を生成します。 |
 | `aigate report` | Markdown、HTML、JSON、SARIF reports を書き出します。 |
 | `aigate evaluate-project` | repository foundation と Git signals を score 化します。 |
 | `aigate score` | 現在の project score を表示します。 |

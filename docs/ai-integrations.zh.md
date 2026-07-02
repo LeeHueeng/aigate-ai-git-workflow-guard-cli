@@ -2,7 +2,7 @@
 
 [English](ai-integrations.md) | [한국어](ai-integrations.ko.md) | [日本語](ai-integrations.ja.md) | [中文](ai-integrations.zh.md)
 
-AIGate 可以为 Codex、Gemini 等 AI assistant 生成仓库本地指令文件，让它们
+AIGate 可以为 Codex、Gemini、Claude Code 等 AI assistant 生成仓库本地指令文件，让它们
 遵循相同的仓库规则。
 
 ## 生成集成文件
@@ -16,6 +16,7 @@ aigate integrate all
 ```sh
 aigate integrate codex
 aigate integrate gemini
+aigate integrate claude
 ```
 
 输出到其他目录预览:
@@ -36,10 +37,12 @@ aigate integrate all --force
 | --- | --- |
 | `AGENTS.md` | 面向 Codex 的仓库指令 |
 | `GEMINI.md` | 面向 Gemini 的仓库指令 |
+| `CLAUDE.md` | 面向 Claude Code 的仓库指令 |
 | `.aigate/integrations.json` | machine-readable integration manifest |
 | `.aigate/integrations/README.md` | 共享集成概览 |
 | `.aigate/integrations/codex.md` | Codex 专用说明 |
 | `.aigate/integrations/gemini.md` | Gemini 专用说明 |
+| `.aigate/integrations/claude.md` | Claude Code 专用说明 |
 
 ## Assistant 规则
 

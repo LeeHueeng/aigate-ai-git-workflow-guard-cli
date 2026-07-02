@@ -158,7 +158,7 @@ test("prints package version", () => {
   const result = run(["--version"]);
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /^0\.1\.3/m);
+  assert.match(result.stdout, /^0\.1\.4/m);
 });
 
 test("ships reusable GitHub Action metadata", () => {
@@ -465,19 +465,37 @@ test("rejects unsupported language", () => {
   assert.match(result.stdout, /en, ko, ja, zh/);
 });
 
-test("generates Codex and Gemini integration files", () => {
+test("generates Codex, Gemini, and Claude integration files", () => {
   const outputDir = createOutputDir();
   const result = run(["integrate", "all", "--output-dir", outputDir, "--format", "json"]);
 
   assert.equal(result.status, 0);
   const output = JSON.parse(result.stdout);
-  assert.deepEqual(output.providers, ["codex", "gemini"]);
+  assert.deepEqual(output.providers, ["codex", "gemini", "claude"]);
   assert.ok(existsSync(join(outputDir, "AGENTS.md")));
   assert.ok(existsSync(join(outputDir, "GEMINI.md")));
+  assert.ok(existsSync(join(outputDir, "CLAUDE.md")));
   assert.ok(existsSync(join(outputDir, ".aigate", "integrations.json")));
+  assert.ok(existsSync(join(outputDir, ".aigate", "integrations", "claude.md")));
 
   const manifest = JSON.parse(readFileSync(join(outputDir, ".aigate", "integrations.json"), "utf8"));
-  assert.deepEqual(manifest.providers, ["codex", "gemini"]);
+  assert.deepEqual(manifest.providers, ["codex", "gemini", "claude"]);
+});
+
+test("generates Claude Code integration instructions", () => {
+  const outputDir = createOutputDir();
+  const result = run(["integrate", "claude", "--language", "ko", "--output-dir", outputDir]);
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /대상: claude/);
+
+  const claude = readFileSync(join(outputDir, "CLAUDE.md"), "utf8");
+  assert.match(claude, /# AIGate Claude Code 지침/);
+  assert.match(claude, /Claude Code로 이 저장소를 작업할 때/);
+  assert.match(claude, /aigate push -u origin <branch>/);
+
+  const integration = readFileSync(join(outputDir, ".aigate", "integrations", "claude.md"), "utf8");
+  assert.match(integration, /# Claude Code 연동/);
 });
 
 test("generates localized integration instructions", () => {
@@ -840,8 +858,8 @@ test("checks release readiness", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.command, "release-check");
   assert.equal(output.packageName, "aigate-cli");
-  assert.equal(output.version, "0.1.3");
-  assert.equal(output.expectedTag, "v0.1.3");
+  assert.equal(output.version, "0.1.4");
+  assert.equal(output.expectedTag, "v0.1.4");
   assert.ok(["READY", "ACTION_REQUIRED", "RELEASED"].includes(output.status));
   assert.deepEqual(output.registry, { checked: false });
 });
@@ -849,7 +867,7 @@ test("checks release readiness", () => {
 test("checks npm publication state when requested", () => {
   const binDir = mkdtempSync(join(tmpdir(), "aigate-npm-"));
   const npmPath = join(binDir, "npm");
-  writeFileSync(npmPath, "#!/bin/sh\nprintf '\"0.1.3\"\\n'\n");
+  writeFileSync(npmPath, "#!/bin/sh\nprintf '\"0.1.4\"\\n'\n");
   chmodSync(npmPath, 0o755);
 
   const result = run(["release-check", "--npm", "--format", "json"], {
@@ -862,7 +880,7 @@ test("checks npm publication state when requested", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.registry.checked, true);
   assert.equal(output.registry.published, true);
-  assert.equal(output.registry.publishedVersion, "0.1.3");
+  assert.equal(output.registry.publishedVersion, "0.1.4");
 });
 
 test("uses generic npm package and repository release checks", () => {

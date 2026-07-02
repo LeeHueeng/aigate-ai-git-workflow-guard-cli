@@ -2,7 +2,7 @@
 
 [English](ai-integrations.md) | [한국어](ai-integrations.ko.md) | [日本語](ai-integrations.ja.md) | [中文](ai-integrations.zh.md)
 
-AIGate는 Codex와 Gemini 같은 AI assistant가 저장소 안에서 같은 규칙을
+AIGate는 Codex, Gemini, Claude Code 같은 AI assistant가 저장소 안에서 같은 규칙을
 따르도록 로컬 지침 파일을 생성합니다.
 
 ## 연동 파일 생성
@@ -16,6 +16,7 @@ Provider별 생성:
 ```sh
 aigate integrate codex
 aigate integrate gemini
+aigate integrate claude
 ```
 
 다른 폴더에 미리보기:
@@ -36,10 +37,12 @@ aigate integrate all --force
 | --- | --- |
 | `AGENTS.md` | Codex용 저장소 지침 |
 | `GEMINI.md` | Gemini용 저장소 지침 |
+| `CLAUDE.md` | Claude Code용 저장소 지침 |
 | `.aigate/integrations.json` | machine-readable 연동 manifest |
 | `.aigate/integrations/README.md` | 공통 연동 개요 |
 | `.aigate/integrations/codex.md` | Codex 전용 연동 메모 |
 | `.aigate/integrations/gemini.md` | Gemini 전용 연동 메모 |
+| `.aigate/integrations/claude.md` | Claude Code 전용 연동 메모 |
 
 ## Assistant 규칙
 

@@ -24,7 +24,7 @@ The open source CLI should include:
 - lightweight secret scanning
 - Markdown, HTML, JSON, and SARIF reports
 - branch strategy recommendations
-- Codex and Gemini assistant instructions
+- Codex, Gemini, and Claude Code assistant instructions
 - terminal and webhook notification basics
 
 ## Paid Product Direction

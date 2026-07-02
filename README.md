@@ -26,7 +26,7 @@ strategy before changes reach your remote branch or pull request review.
 - You want one command that explains readiness before `git push`.
 - You maintain an open source package and need PR, release, and repository health signals.
 - You want Markdown, HTML, JSON, and SARIF outputs that work locally and in CI.
-- You want Codex and Gemini to follow the same branch and validation workflow as humans.
+- You want Codex, Gemini, and Claude Code to follow the same branch and validation workflow as humans.
 
 ## 60-Second Quickstart
 
@@ -102,7 +102,7 @@ repeatable local gate before `git push` or PR creation.
 | Release readiness check | `aigate release-check --npm` |
 | Slack BLOCK notifications | `aigate git-ready --notify-channel slack` |
 | Discord and Teams webhook payloads | `aigate notify test --channel discord` |
-| Codex and Gemini instructions | `aigate integrate all` |
+| Codex, Gemini, and Claude Code instructions | `aigate integrate all` |
 
 ## Why Not Just Husky, Lefthook, pre-commit, Or Gitleaks?
 
@@ -154,7 +154,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
         with:
           command: git-ready
           language: en
@@ -170,19 +170,19 @@ Marketplace listing:
 - Action name: `AIGate AI Git Workflow Guard CLI`
 - Primary category: `Code quality`
 - Secondary category: `Security`
-- Release title: `AIGate AI Git Workflow Guard CLI v0.1.3`
+- Release title: `AIGate AI Git Workflow Guard CLI v0.1.4`
 
 ## AI Agent Integration
 
-Generate repository instructions for Codex and Gemini:
+Generate repository instructions for Codex, Gemini, and Claude Code:
 
 ```sh
 aigate integrate all
 ```
 
-This creates `AGENTS.md`, `GEMINI.md`, and `.aigate/integrations/*` so AI
-assistants follow the same branch, validation, and guarded push workflow as
-human contributors.
+This creates `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`, and
+`.aigate/integrations/*` so AI assistants follow the same branch, validation,
+and guarded push workflow as human contributors.
 
 ## Output Languages
 

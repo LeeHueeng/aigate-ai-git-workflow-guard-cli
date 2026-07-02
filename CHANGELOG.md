@@ -2,6 +2,14 @@
 
 All notable changes to AIGate are documented here.
 
+## 0.1.4 - 2026-07-02
+
+- Added Claude Code integration through `aigate integrate claude`.
+- Expanded `aigate integrate all` to generate `CLAUDE.md` and
+  `.aigate/integrations/claude.md` alongside Codex and Gemini files.
+- Updated multilingual integration documentation for Codex, Gemini, and
+  Claude Code.
+
 ## 0.1.3 - 2026-07-02
 
 - Prepared GitHub Marketplace metadata with a unique searchable action name and

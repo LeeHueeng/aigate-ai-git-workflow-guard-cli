@@ -18,7 +18,7 @@ PR 风险和 branch strategy。
 - 你想在 `git push` 前用一个 command 说明 readiness。
 - 你维护公开 package，需要 PR、release 和 repository health signals。
 - 你需要 Markdown、HTML、JSON、SARIF output 同时用于 local 和 CI。
-- 你希望 Codex 和 Gemini 遵循与人类相同的 branch/validation workflow。
+- 你希望 Codex、Gemini、Claude Code 遵循与人类相同的 branch/validation workflow。
 
 ## 60 秒快速开始
 
@@ -64,7 +64,7 @@ aigate pr-check
 | 分支策略政策包 | `aigate branch-strategy --apply` |
 | 分支策略提案比较 | `aigate branch-strategy --compare` |
 | npm release readiness check | `aigate release-check --npm` |
-| Codex/Gemini integration files | `aigate integrate all` |
+| Codex/Gemini/Claude integration files | `aigate integrate all` |
 
 ## 与其他工具的区别
 
@@ -116,7 +116,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
         with:
           command: git-ready
           language: zh
@@ -130,7 +130,7 @@ Marketplace 发布设置:
 - Action name: `AIGate AI Git Workflow Guard CLI`
 - Primary category: `Code quality`
 - Secondary category: `Security`
-- Release title: `AIGate AI Git Workflow Guard CLI v0.1.3`
+- Release title: `AIGate AI Git Workflow Guard CLI v0.1.4`
 
 ## AI Agent 集成
 
@@ -138,8 +138,9 @@ Marketplace 发布设置:
 aigate integrate all
 ```
 
-该命令会生成 `AGENTS.md`、`GEMINI.md` 和 `.aigate/integrations/*`，让 Codex
-和 Gemini 遵循相同的 branch、validation 与 guarded push workflow。
+该命令会生成 `AGENTS.md`、`GEMINI.md`、`CLAUDE.md` 和
+`.aigate/integrations/*`，让 Codex、Gemini、Claude Code 遵循相同的
+branch、validation 与 guarded push workflow。
 
 ## 文档
 

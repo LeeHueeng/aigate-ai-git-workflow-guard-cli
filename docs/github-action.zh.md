@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
         with:
           command: git-ready
           language: zh
@@ -26,7 +26,7 @@ jobs:
 生成 PR 报告时:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
   with:
     command: pr-check
     report-format: markdown
@@ -49,7 +49,7 @@ workflow 测试。
 分支策略比较:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
   with:
     command: branch-strategy-compare
     report-format: json
@@ -65,8 +65,8 @@ workflow 测试。
 | Action name | `AIGate AI Git Workflow Guard CLI` |
 | Primary category | `Code quality` |
 | Secondary category | `Security` |
-| Release tag | `v0.1.3` |
-| Release title | `AIGate AI Git Workflow Guard CLI v0.1.3` |
+| Release tag | `v0.1.4` |
+| Release title | `AIGate AI Git Workflow Guard CLI v0.1.4` |
 
 稳定 patch release 保持 `Set as the latest release` 开启，不要标记为
 pre-release。在 release 页面启用 GitHub Marketplace publish option。

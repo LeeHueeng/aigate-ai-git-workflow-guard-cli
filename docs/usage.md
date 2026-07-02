@@ -4,7 +4,7 @@
 
 This guide follows the current `aigate-cli` structure. Use it when you want to
 run AIGate in an existing repository, wire it into GitHub, or hand the same
-workflow to Codex and Gemini.
+workflow to Codex, Gemini, and Claude Code.
 
 ## Install Or Run Directly
 
@@ -115,7 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
         with:
           command: git-ready
           language: en
@@ -127,12 +127,13 @@ jobs:
 aigate integrate all
 aigate integrate codex
 aigate integrate gemini
+aigate integrate claude
 aigate integrate all --output-dir . --force
 ```
 
-The command creates `AGENTS.md`, `GEMINI.md`, and `.aigate/integrations/*`.
-Those files tell Codex and Gemini to use scoped branches, validation commands,
-and `aigate push`.
+The command creates `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`, and
+`.aigate/integrations/*`. Those files tell Codex, Gemini, and Claude Code to
+use scoped branches, validation commands, and `aigate push`.
 
 ## Branch Strategy And Releases
 
@@ -185,7 +186,7 @@ channel:
 | `aigate install-hook` | Install Git hooks. |
 | `aigate setup` | Create config, settings, reports, and AI guide files. |
 | `aigate settings` | Read or change AIGate settings such as language. |
-| `aigate integrate <provider>` | Generate Codex and Gemini integration files. |
+| `aigate integrate <provider>` | Generate Codex, Gemini, and Claude Code integration files. |
 | `aigate report` | Write Markdown, HTML, JSON, or SARIF reports. |
 | `aigate evaluate-project` | Score repository foundations and Git signals. |
 | `aigate score` | Print the current project score. |

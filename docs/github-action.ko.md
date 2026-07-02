@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
         with:
           command: git-ready
           language: ko
@@ -27,7 +27,7 @@ jobs:
 PR 리포트를 만들 때:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
   with:
     command: pr-check
     report-format: markdown
@@ -50,7 +50,7 @@ PR 리포트를 만들 때:
 브랜치 전략 비교:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
   with:
     command: branch-strategy-compare
     report-format: json
@@ -66,8 +66,8 @@ PR 리포트를 만들 때:
 | Action name | `AIGate AI Git Workflow Guard CLI` |
 | 주요 카테고리 | `Code quality` |
 | 보조 카테고리 | `Security` |
-| 릴리스 태그 | `v0.1.3` |
-| 릴리스 제목 | `AIGate AI Git Workflow Guard CLI v0.1.3` |
+| 릴리스 태그 | `v0.1.4` |
+| 릴리스 제목 | `AIGate AI Git Workflow Guard CLI v0.1.4` |
 
 안정 patch release라면 `Set as the latest release`는 켜고, pre-release는
 체크하지 않습니다. 릴리스 화면에서 GitHub Marketplace 게시 옵션을 켜세요.

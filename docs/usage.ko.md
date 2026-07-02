@@ -3,7 +3,7 @@
 [English](usage.md) | [한국어](usage.ko.md) | [日本語](usage.ja.md) | [中文](usage.zh.md)
 
 이 문서는 현재 `aigate-cli` 구조에 맞춘 사용법입니다. 기존 저장소에서 바로
-실행하거나, GitHub와 연결하거나, Codex/Gemini에 같은 작업 규칙을 전달할 때
+실행하거나, GitHub와 연결하거나, Codex/Gemini/Claude Code에 같은 작업 규칙을 전달할 때
 사용하세요.
 
 ## 설치 또는 바로 실행
@@ -114,7 +114,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.3
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
         with:
           command: git-ready
           language: ko
@@ -126,12 +126,13 @@ jobs:
 aigate integrate all
 aigate integrate codex
 aigate integrate gemini
+aigate integrate claude
 aigate integrate all --output-dir . --force
 ```
 
-이 명령은 `AGENTS.md`, `GEMINI.md`, `.aigate/integrations/*`를 생성합니다.
-Codex와 Gemini가 범위가 명확한 브랜치, 검증 명령, `aigate push` 규칙을
-따르도록 안내합니다.
+이 명령은 `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`,
+`.aigate/integrations/*`를 생성합니다. Codex, Gemini, Claude Code가 범위가
+명확한 브랜치, 검증 명령, `aigate push` 규칙을 따르도록 안내합니다.
 
 ## 브랜치 전략과 릴리스
 
@@ -183,7 +184,7 @@ aigate git-ready --notify-channel terminal
 | `aigate install-hook` | Git hook을 설치합니다. |
 | `aigate setup` | config, settings, reports, AI guide 파일을 생성합니다. |
 | `aigate settings` | 언어 같은 AIGate 설정을 조회하거나 변경합니다. |
-| `aigate integrate <provider>` | Codex/Gemini 연동 파일을 생성합니다. |
+| `aigate integrate <provider>` | Codex/Gemini/Claude 연동 파일을 생성합니다. |
 | `aigate report` | Markdown, HTML, JSON, SARIF 리포트를 작성합니다. |
 | `aigate evaluate-project` | 저장소 기반과 Git signal을 점수화합니다. |
 | `aigate score` | 현재 프로젝트 점수를 출력합니다. |
