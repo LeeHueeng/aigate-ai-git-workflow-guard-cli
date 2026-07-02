@@ -12,6 +12,14 @@ PR 风险和 branch strategy。
 
 ![AIGate demo](assets/demo.gif)
 
+## 适合使用 AIGate 的场景
+
+- AI coding assistant 修改文件的速度快过你的 review。
+- 你想在 `git push` 前用一个 command 说明 readiness。
+- 你维护公开 package，需要 PR、release 和 repository health signals。
+- 你需要 Markdown、HTML、JSON、SARIF output 同时用于 local 和 CI。
+- 你希望 Codex 和 Gemini 遵循与人类相同的 branch/validation workflow。
+
 ## 60 秒快速开始
 
 无需安装即可运行:
@@ -57,6 +65,14 @@ aigate pr-check
 | 分支策略提案比较 | `aigate branch-strategy --compare` |
 | npm release readiness check | `aigate release-check --npm` |
 | Codex/Gemini integration files | `aigate integrate all` |
+
+## 与其他工具的区别
+
+AIGate 不强行替代 Husky、Lefthook、pre-commit 或 Gitleaks。它位于现有 hook
+和 scanner 之上，把 AI-assisted changes 的 push safety、PR quality 和
+repository governance 连接成一个 workflow layer。
+
+详情见 [tool comparison](docs/comparison.zh.md)。
 
 ## 典型流程
 
@@ -122,6 +138,7 @@ aigate integrate all
 
 - [多语言文档索引](docs/README.zh.md)
 - [中文运维说明](docs/operations.zh.md)
+- [Tool comparison](docs/comparison.zh.md)
 - [English operations guide](docs/operations.en.md)
 - [한국어 운영 문서](docs/operations.ko.md)
 - [日本語運用ドキュメント](docs/operations.ja.md)
@@ -141,6 +158,13 @@ aigate integrate all
 - standalone binary
 - hosted dashboard
 - deeper Linear/Jira integrations
+
+## 帮助 AIGate 成长
+
+- 如果 AIGate 帮你拦下 risky push，请给 repository star 或 watch。
+- 通过 issue 分享你在真实 repository 中的使用案例。
+- 介绍项目时可以使用 demo GIF、terminal screenshot 或 `assets/social-preview.png`。
+- 可以从 docs、examples、integrations、packaging 的 good first issue 开始贡献。
 
 ## License
 

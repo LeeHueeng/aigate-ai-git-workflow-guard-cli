@@ -17,6 +17,8 @@
 - [x] pull request template
 - [x] CODEOWNERS
 - [x] funding metadata
+- [x] social preview asset: `assets/social-preview.png`
+- [x] 실제 사용 사례 issue template
 
 ## 보안과 공급망
 
@@ -39,6 +41,8 @@
 - pull request 생성에 `aigate pr` 사용
 - `main`을 항상 releasable 상태로 유지
 - roadmap item을 issue 또는 discussion과 연결
+- GitHub repository settings에서 `assets/social-preview.png` 업로드
+- 유용한 support question을 문서나 good first issue로 전환
 
 ## npm release
 

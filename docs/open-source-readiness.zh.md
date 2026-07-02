@@ -17,6 +17,8 @@
 - [x] pull request template
 - [x] CODEOWNERS
 - [x] funding metadata
+- [x] social preview asset: `assets/social-preview.png`
+- [x] real-world example issue template
 
 ## Security and supply chain
 
@@ -39,6 +41,8 @@
 - 使用 `aigate pr` 创建 pull request
 - 保持 `main` 始终可发布
 - 将 roadmap item 关联到 issue 或 discussion
+- 在 GitHub repository settings 中上传 `assets/social-preview.png`
+- 将有用的 support question 转成 documentation 或 good first issue
 
 ## npm release
 

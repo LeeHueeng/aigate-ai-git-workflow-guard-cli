@@ -15,6 +15,8 @@ This checklist keeps AIGate useful and trustworthy for public contributors.
 - [x] pull request template
 - [x] CODEOWNERS
 - [x] funding metadata
+- [x] social preview asset: `assets/social-preview.png`
+- [x] real-world example issue template
 
 ## Security And Supply Chain
 
@@ -37,6 +39,8 @@ This checklist keeps AIGate useful and trustworthy for public contributors.
 - Use `aigate pr` to create pull requests.
 - Keep `main` releasable.
 - Keep roadmap items tied to issues or discussions.
+- Upload `assets/social-preview.png` in GitHub repository settings.
+- Turn useful support questions into documentation or good first issues.
 
 ## npm Release
 
