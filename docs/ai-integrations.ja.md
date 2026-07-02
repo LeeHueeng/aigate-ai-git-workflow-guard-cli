@@ -31,6 +31,23 @@ aigate integrate all --output-dir /tmp/aigate-preview
 aigate integrate all --force
 ```
 
+## AI テスト修正フロー
+
+```sh
+aigate test
+aigate aitest
+aigate aitest --provider codex
+aigate aitest --apply --provider codex
+aigate aitest --apply --provider claude
+aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
+```
+
+`aigate aitest` は失敗したコマンド、取得した出力、Git readiness summary、
+修正指示を `.aigate/reports/ai-test.md` に書き込みます。既定ではファイルを
+変更しません。`--apply` を渡した場合だけ、利用可能なローカル CLI を実行します。
+Codex は `codex exec`、Claude は `claude --print`、Gemini は `gemini -p`
+を使います。
+
 ## 生成されるファイル
 
 | ファイル | 目的 |

@@ -11,15 +11,17 @@
 
 ```mermaid
 flowchart LR
-  A["Git 変更を検出"] --> B["ローカルゲートを実行"]
-  B --> C["範囲を絞って commit"]
-  C --> D["検証付き push"]
-  D --> E["PR 作成"]
-  E --> F["CI 確認"]
-  F --> G["main に merge"]
-  G --> H["release check"]
-  H --> I["tag release"]
-  I --> J["npm publish"]
+  A["aigate start を実行"] --> B["Git 変更を検出"]
+  B --> C["aigate test を実行"]
+  C --> D["失敗時は aitest を実行"]
+  D --> E["範囲を絞って commit"]
+  E --> F["検証付き push"]
+  F --> G["PR 作成"]
+  G --> H["CI 確認"]
+  H --> I["main に merge"]
+  I --> J["release check"]
+  J --> K["tag release"]
+  K --> L["npm publish"]
 ```
 
 ## リリースプロセス
@@ -37,9 +39,9 @@ flowchart LR
 
 | 領域 | コマンド |
 | --- | --- |
-| Setup | `init`, `setup`, `settings`, `integrate` |
+| Setup | `start`, `init`, `setup`, `settings`, `integrate` |
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
-| Guard gates | `check`, `git-ready`, `push`, `pr` |
+| Guard gates | `check`, `test`, `aitest`, `git-ready`, `push`, `pr` |
 | Reports | `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | Release | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
@@ -48,9 +50,12 @@ flowchart LR
 ```sh
 npm install -g aigate-cli
 aigate setup --language ja
+aigate start --route ai --provider all
 git switch -c feature/my-change
 aigate doctor
 aigate install-hook --pre-push
+aigate test
+aigate aitest
 aigate git-ready
 git add <files>
 git commit -m "feat: short summary"
@@ -70,10 +75,13 @@ aigate release-check --npm
 ## 現在実装済み
 
 - npm package `aigate-cli` の公開配布と `npx` 実行
+- `aigate start` によるガイド付き開始ルート
 - `aigate doctor` による初回実行 diagnostics
 - `aigate demo` によるガイド付き CLI demo
 - `aigate install-hook --pre-push` による pre-push hook installation
 - Git changed-file と untracked-file の readiness check
+- `aigate test` による project test automation
+- `aigate aitest` による AI 修正プロンプトと任意の agent 実行
 - secret pattern detection と SARIF output
 - `git-ready`、guarded push、guarded PR creation
 - `aigate github` による GitHub PR コメントと Checks サマリー

@@ -31,6 +31,22 @@ aigate integrate all --output-dir /tmp/aigate-preview
 aigate integrate all --force
 ```
 
+## AI 测试修复流程
+
+```sh
+aigate test
+aigate aitest
+aigate aitest --provider codex
+aigate aitest --apply --provider codex
+aigate aitest --apply --provider claude
+aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
+```
+
+`aigate aitest` 会把失败命令、捕获输出、Git readiness 摘要和修复指令写入
+`.aigate/reports/ai-test.md`。默认不会修改文件。只有传入 `--apply` 时，
+AIGate 才会调用可用的本地 CLI: Codex 使用 `codex exec`，Claude 使用
+`claude --print`，Gemini 使用 `gemini -p`。
+
 ## 生成的文件
 
 | 文件 | 用途 |

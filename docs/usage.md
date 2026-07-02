@@ -24,10 +24,10 @@ aigate --help
 Set the CLI language once per repository:
 
 ```sh
-aigate settings --language en
-aigate settings --language ko
-aigate settings --language ja
-aigate settings --language zh
+aigate setup --language en
+aigate setup --language ko
+aigate setup --language ja
+aigate setup --language zh
 ```
 
 ## First Run In A Repository
@@ -35,7 +35,10 @@ aigate settings --language zh
 Use these commands after moving into a Git repository.
 
 ```sh
-aigate setup --language en
+aigate start
+aigate start --route ai --provider codex
+aigate start --route full --provider all
+aigate init
 aigate doctor
 aigate demo
 aigate install-hook --pre-push
@@ -45,7 +48,11 @@ What they do:
 
 | Command | Purpose |
 | --- | --- |
-| `aigate setup --language en` | Creates `.aigate.yml`, `.aigate/settings.json`, reports directory, and AI integration guide files. |
+| `aigate start` | Opens a guided route selector in a TTY, or runs the quickstart route in non-interactive shells. |
+| `aigate start --route ai --provider codex` | Creates AIGate config and Codex instruction files. |
+| `aigate start --route full --provider all` | Creates config, AI files, the pre-push hook, and release checks in one flow. |
+| `aigate setup --language en` | Saves the CLI output language. |
+| `aigate init` | Creates `.aigate.yml` and the report directory. |
 | `aigate doctor` | Checks Node, Git, npm package metadata, GitHub workflow files, and AIGate configuration. |
 | `aigate demo` | Shows the main workflow without changing project files. |
 | `aigate install-hook --pre-push` | Installs a pre-push hook that runs AIGate before pushing. |
@@ -55,6 +62,7 @@ What they do:
 ```sh
 git switch -c feature/my-work
 aigate check
+aigate test
 aigate git-ready
 git add .
 git commit -m "feat: short summary"
@@ -67,6 +75,28 @@ Use `aigate push --dry-run origin <branch>` before a real push when you want to
 preview the command. `aigate push` is a guarded wrapper around `git push`; it is
 not a replacement for Git, but it adds AIGate checks before the remote is
 updated.
+
+## Test And AI Remediation Flow
+
+```sh
+aigate test
+aigate test --script test
+aigate test --command "npm run ci"
+aigate aitest
+aigate aitest --provider codex
+aigate aitest --apply --provider codex
+aigate aitest --apply --provider claude
+aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
+```
+
+`aigate test` runs `aigate git-ready` plus the detected npm script. Detection
+prefers `ci`, then `test:ci`, then `test`; use `--script` or `--command` when a
+project has a custom check command.
+
+`aigate aitest` writes `.aigate/reports/ai-test.md` with the failure summary,
+test output, and a focused repair prompt for Codex, Claude, or Gemini. It does
+not edit code by default. Add `--apply` only when you want AIGate to invoke the
+selected AI CLI or a custom `--agent-command`.
 
 ## Reports And Output Formats
 
@@ -115,7 +145,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
         with:
           command: git-ready
           language: en
@@ -175,7 +205,10 @@ channel:
 | Command | Use it for |
 | --- | --- |
 | `aigate init` | Create the initial AIGate config. |
+| `aigate start` | Choose and run a guided setup route. |
 | `aigate check` | Inspect local Git changes and secret findings. |
+| `aigate test` | Run Git readiness plus the detected project test command. |
+| `aigate aitest` | Write an AI remediation prompt, optionally invoking Codex, Claude, or Gemini. |
 | `aigate git-ready` | Run the pre-commit or pre-push readiness gate. |
 | `aigate push` | Run checks, then call `git push`. |
 | `aigate pr` | Create a guarded pull request with useful body content. |

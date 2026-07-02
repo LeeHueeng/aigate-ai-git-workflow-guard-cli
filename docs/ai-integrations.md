@@ -29,6 +29,23 @@ Regenerate existing files:
 aigate integrate all --force
 ```
 
+## AI Test Remediation
+
+```sh
+aigate test
+aigate aitest
+aigate aitest --provider codex
+aigate aitest --apply --provider codex
+aigate aitest --apply --provider claude
+aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
+```
+
+`aigate aitest` writes `.aigate/reports/ai-test.md` with the failing command,
+captured output, Git readiness summary, and repair instructions. It does not
+modify files unless `--apply` is passed. With `--apply`, AIGate invokes the
+selected local CLI when available: Codex through `codex exec`, Claude through
+`claude --print`, or Gemini through `gemini -p`.
+
 ## Generated Files
 
 | File | Purpose |

@@ -6,12 +6,16 @@ Enabled providers:
 
 - codex
 - gemini
+- claude
 
 Required local checks:
 
 ```sh
 npm run ci
+aigate test
 aigate git-ready
 ```
+
+If tests fail, run `aigate aitest` to generate an AI remediation prompt.
 
 Use `aigate integrate all --force` to regenerate these files.

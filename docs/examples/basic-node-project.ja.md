@@ -8,7 +8,9 @@
 
 ```sh
 npx -y aigate-cli check
+npx -y aigate-cli start --route quickstart --dry-run
 npx -y aigate-cli doctor
+npx -y aigate-cli test
 npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
@@ -18,6 +20,7 @@ npx -y aigate-cli evaluate-project
 
 ```sh
 npm install --save-dev aigate-cli
+npx aigate-cli start --route ai --provider all
 npx aigate-cli init
 npx aigate-cli setup --language ja
 npx aigate-cli install-hook --pre-push
@@ -37,7 +40,8 @@ package script を追加:
 ## Push 前
 
 ```sh
-npm test
+npx aigate-cli test
+npx aigate-cli aitest
 npx aigate-cli doctor
 npm run aigate:ready
 git add <files>

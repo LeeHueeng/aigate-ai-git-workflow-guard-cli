@@ -28,6 +28,9 @@
 - [x] Discord と Teams webhook notification payload を追加
 - [x] generated branch strategy docs を richer policy pack に拡張
 - [x] PR テンプレートと CODEOWNERS 草案をガイド付き設定に昇格
+- [x] `aigate start` でガイド付きプロジェクト設定ルートを追加
+- [x] `aigate test` でプロジェクトテスト自動化を追加
+- [x] `aigate aitest` で AI 修正プロンプトと任意の agent 実行を追加
 
 ## V2: Team reports and GitHub integration
 

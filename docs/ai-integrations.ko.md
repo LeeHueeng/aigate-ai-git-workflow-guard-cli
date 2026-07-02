@@ -31,6 +31,22 @@ aigate integrate all --output-dir /tmp/aigate-preview
 aigate integrate all --force
 ```
 
+## AI 테스트 수정 흐름
+
+```sh
+aigate test
+aigate aitest
+aigate aitest --provider codex
+aigate aitest --apply --provider codex
+aigate aitest --apply --provider claude
+aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
+```
+
+`aigate aitest`는 실패한 명령, 캡처한 출력, Git 준비 상태 요약, 수정 지시를
+`.aigate/reports/ai-test.md`에 작성합니다. 기본값은 파일을 수정하지 않습니다.
+`--apply`를 넘겼을 때만 설치된 로컬 CLI를 실행합니다. Codex는 `codex exec`,
+Claude는 `claude --print`, Gemini는 `gemini -p` 경로를 사용합니다.
+
 ## 생성되는 파일
 
 | 파일 | 목적 |

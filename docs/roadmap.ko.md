@@ -28,6 +28,9 @@
 - [x] Discord와 Teams webhook notification payload 추가
 - [x] generated branch strategy docs를 richer policy pack으로 확장
 - [x] PR 템플릿과 CODEOWNERS 초안을 안내형 설정으로 승격
+- [x] `aigate start`로 안내형 프로젝트 설정 루트 추가
+- [x] `aigate test`로 프로젝트 테스트 자동화 추가
+- [x] `aigate aitest`로 AI 수정 프롬프트와 선택적 에이전트 실행 추가
 
 ## V2: Team reports와 GitHub integration
 

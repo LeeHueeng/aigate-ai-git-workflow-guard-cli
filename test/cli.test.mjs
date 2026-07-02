@@ -124,6 +124,9 @@ test("shows help", () => {
   assert.match(result.stdout, /doctor/);
   assert.match(result.stdout, /demo/);
   assert.match(result.stdout, /install-hook/);
+  assert.match(result.stdout, /start/);
+  assert.match(result.stdout, /test/);
+  assert.match(result.stdout, /aitest/);
   assert.match(result.stdout, /github <comment\|check\|setup>/);
   assert.match(result.stdout, /setup/);
   assert.match(result.stdout, /settings/);
@@ -158,7 +161,7 @@ test("prints package version", () => {
   const result = run(["--version"]);
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /^0\.1\.4/m);
+  assert.match(result.stdout, /^0\.1\.5/m);
 });
 
 test("ships reusable GitHub Action metadata", () => {
@@ -173,6 +176,7 @@ test("ships reusable GitHub Action metadata", () => {
   assert.match(rootAction, /package-manager-cache: false/);
   assert.match(rootAction, /github-check\)/);
   assert.match(rootAction, /branch-strategy-compare\)/);
+  assert.match(rootAction, /test\|aitest\)/);
   assert.match(rootAction, /npx -y "\$PACKAGE"/);
   assert.doesNotMatch(rootAction, /node src\/cli\.mjs/);
 });
@@ -588,6 +592,70 @@ test("protects existing pre-push hooks unless forced", () => {
   assert.match(readFileSync(hookPath, "utf8"), /AIGate pre-push hook/);
 });
 
+test("previews a guided start route", () => {
+  const projectDir = createMinimalGitProject();
+  const result = run(["start", "--route", "ai", "--provider", "claude", "--dry-run", "--language", "ko"], {
+    cwd: projectDir
+  });
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /AIGate start: 미리보기/);
+  assert.match(result.stdout, /AI 에이전트 설정/);
+  assert.match(result.stdout, /aigate integrate claude/);
+});
+
+test("runs a project test command", () => {
+  const projectDir = createMinimalGitProject();
+  const result = run(["test", "--command", "node -e \"process.exit(0)\"", "--format", "json"], {
+    cwd: projectDir
+  });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "test");
+  assert.equal(output.status, "PASS");
+  assert.equal(output.testRun.exitCode, 0);
+});
+
+test("reports failing project tests in Korean", () => {
+  const projectDir = createMinimalGitProject();
+  const result = run(["test", "--command", "node -e \"process.exit(2)\"", "--language", "ko"], {
+    cwd: projectDir
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /AIGate test: 실패/);
+  assert.match(result.stdout, /종료 코드: 2/);
+  assert.match(result.stdout, /AI 수정 프롬프트/);
+});
+
+test("writes an AI remediation prompt for failing tests", () => {
+  const projectDir = createMinimalGitProject();
+  const promptPath = join(projectDir, ".aigate", "reports", "ai-test.md");
+  const result = run([
+    "aitest",
+    "--command",
+    "node -e \"process.exit(2)\"",
+    "--provider",
+    "codex",
+    "--output",
+    promptPath,
+    "--format",
+    "json"
+  ], {
+    cwd: projectDir
+  });
+
+  assert.equal(result.status, 1);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "aitest");
+  assert.equal(output.status, "ACTION_REQUIRED");
+  assert.equal(output.promptPath, promptPath);
+  assert.ok(existsSync(promptPath));
+  assert.match(readFileSync(promptPath, "utf8"), /AIGate AI Test Remediation/);
+  assert.match(readFileSync(promptPath, "utf8"), /node -e "process.exit\(2\)"/);
+});
+
 test("sends terminal notifications", () => {
   const result = run(["notify", "send", "--event", "WARN", "--channel", "terminal"]);
 
@@ -858,8 +926,8 @@ test("checks release readiness", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.command, "release-check");
   assert.equal(output.packageName, "aigate-cli");
-  assert.equal(output.version, "0.1.4");
-  assert.equal(output.expectedTag, "v0.1.4");
+  assert.equal(output.version, "0.1.5");
+  assert.equal(output.expectedTag, "v0.1.5");
   assert.ok(["READY", "ACTION_REQUIRED", "RELEASED"].includes(output.status));
   assert.deepEqual(output.registry, { checked: false });
 });
@@ -867,7 +935,7 @@ test("checks release readiness", () => {
 test("checks npm publication state when requested", () => {
   const binDir = mkdtempSync(join(tmpdir(), "aigate-npm-"));
   const npmPath = join(binDir, "npm");
-  writeFileSync(npmPath, "#!/bin/sh\nprintf '\"0.1.4\"\\n'\n");
+  writeFileSync(npmPath, "#!/bin/sh\nprintf '\"0.1.5\"\\n'\n");
   chmodSync(npmPath, 0o755);
 
   const result = run(["release-check", "--npm", "--format", "json"], {
@@ -880,7 +948,7 @@ test("checks npm publication state when requested", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.registry.checked, true);
   assert.equal(output.registry.published, true);
-  assert.equal(output.registry.publishedVersion, "0.1.4");
+  assert.equal(output.registry.publishedVersion, "0.1.5");
 });
 
 test("uses generic npm package and repository release checks", () => {

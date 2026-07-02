@@ -24,10 +24,10 @@ aigate --help
 リポジトリごとの CLI 言語設定:
 
 ```sh
-aigate settings --language en
-aigate settings --language ko
-aigate settings --language ja
-aigate settings --language zh
+aigate setup --language en
+aigate setup --language ko
+aigate setup --language ja
+aigate setup --language zh
 ```
 
 ## リポジトリでの初回実行
@@ -35,7 +35,10 @@ aigate settings --language zh
 Git リポジトリのルートで実行します。
 
 ```sh
-aigate setup --language ja
+aigate start
+aigate start --route ai --provider codex
+aigate start --route full --provider all
+aigate init
 aigate doctor
 aigate demo
 aigate install-hook --pre-push
@@ -45,7 +48,11 @@ aigate install-hook --pre-push
 
 | コマンド | 目的 |
 | --- | --- |
-| `aigate setup --language ja` | `.aigate.yml`、`.aigate/settings.json`、reports ディレクトリ、AI 連携ガイドを作成します。 |
+| `aigate start` | TTY では矢印キーのルート選択を開き、非対話 shell では quickstart ルートを実行します。 |
+| `aigate start --route ai --provider codex` | AIGate 設定と Codex 指示ファイルを作成します。 |
+| `aigate start --route full --provider all` | 設定、AI ファイル、pre-push hook、release checks を一つの flow で実行します。 |
+| `aigate setup --language ja` | CLI 出力言語を保存します。 |
+| `aigate init` | `.aigate.yml` と reports ディレクトリを作成します。 |
 | `aigate doctor` | Node、Git、npm package metadata、GitHub workflow、AIGate 設定を確認します。 |
 | `aigate demo` | プロジェクトファイルを変更せずに主な流れを表示します。 |
 | `aigate install-hook --pre-push` | push 前に AIGate を実行する pre-push hook をインストールします。 |
@@ -55,6 +62,7 @@ aigate install-hook --pre-push
 ```sh
 git switch -c feature/my-work
 aigate check
+aigate test
 aigate git-ready
 git add .
 git commit -m "feat: short summary"
@@ -66,6 +74,28 @@ aigate pr --title "feat: short summary"
 実際に push する前に確認したい場合は `aigate push --dry-run origin <branch>`
 を使います。`aigate push` は Git の置き換えではなく、`git push` の前に
 AIGate checks を追加する guarded wrapper です。
+
+## テストと AI 自動修正フロー
+
+```sh
+aigate test
+aigate test --script test
+aigate test --command "npm run ci"
+aigate aitest
+aigate aitest --provider codex
+aigate aitest --apply --provider codex
+aigate aitest --apply --provider claude
+aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --ask-for-approval never -"
+```
+
+`aigate test` は `aigate git-ready` と検出した npm script を実行します。
+検出順は `ci`, `test:ci`, `test` です。独自の検証コマンドを使う場合は
+`--script` または `--command` で指定します。
+
+`aigate aitest` は失敗サマリー、テスト出力、AI 修正指示を
+`.aigate/reports/ai-test.md` に書き込みます。既定ではコードを変更しません。
+Codex、Claude、Gemini CLI または独自 agent を実行する場合だけ `--apply`
+を付けます。
 
 ## レポートと出力形式
 
@@ -114,7 +144,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
         with:
           command: git-ready
           language: ja
@@ -173,7 +203,10 @@ aigate git-ready --notify-channel terminal
 | コマンド | 使う場面 |
 | --- | --- |
 | `aigate init` | 初期 AIGate 設定を作成します。 |
+| `aigate start` | ガイド付き設定ルートを選択して実行します。 |
 | `aigate check` | local Git 変更と secret findings を確認します。 |
+| `aigate test` | Git 準備状態と検出した project test command を実行します。 |
+| `aigate aitest` | AI 修正プロンプトを書き、必要なら Codex、Claude、Gemini を実行します。 |
 | `aigate git-ready` | commit または push 前の readiness gate を実行します。 |
 | `aigate push` | checks 後に `git push` を呼び出します。 |
 | `aigate pr` | 役立つ本文付きの pull request を作成します。 |

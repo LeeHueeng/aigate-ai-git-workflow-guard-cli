@@ -26,7 +26,9 @@ PR 风险和 branch strategy。
 
 ```sh
 npx -y aigate-cli check
+npx -y aigate-cli start --route quickstart --dry-run
 npx -y aigate-cli doctor
+npx -y aigate-cli test
 npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
@@ -36,7 +38,10 @@ npx -y aigate-cli evaluate-project
 
 ```sh
 npm install -g aigate-cli
+aigate start
 aigate check
+aigate test
+aigate aitest
 aigate git-ready
 aigate install-hook --pre-push
 aigate pr-check
@@ -47,6 +52,9 @@ aigate pr-check
 | 功能 | 命令 |
 | --- | --- |
 | 本地 Git readiness check | `aigate check` |
+| 引导式设置路由器 | `aigate start` |
+| 项目测试运行器 | `aigate test` |
+| AI 修复提示和可选 agent 执行 | `aigate aitest` |
 | 首次运行诊断 | `aigate doctor` |
 | 引导式 CLI demo | `aigate demo` |
 | pre-push safety gate | `aigate git-ready` |
@@ -78,8 +86,11 @@ repository governance 连接成一个 workflow layer。
 
 ```sh
 git switch -c feature/my-work
+aigate start --route ai --provider all
 aigate doctor
 aigate install-hook --pre-push
+aigate test
+aigate aitest
 aigate git-ready
 git add <files>
 git commit -m "feat: focused change"
@@ -116,7 +127,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.4
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
         with:
           command: git-ready
           language: zh
@@ -130,17 +141,21 @@ Marketplace 发布设置:
 - Action name: `AIGate AI Git Workflow Guard CLI`
 - Primary category: `Code quality`
 - Secondary category: `Security`
-- Release title: `AIGate AI Git Workflow Guard CLI v0.1.4`
+- Release title: `AIGate AI Git Workflow Guard CLI v0.1.5`
 
 ## AI Agent 集成
 
 ```sh
 aigate integrate all
+aigate aitest --provider codex
+aigate aitest --apply --provider codex
 ```
 
 该命令会生成 `AGENTS.md`、`GEMINI.md`、`CLAUDE.md` 和
 `.aigate/integrations/*`，让 Codex、Gemini、Claude Code 遵循相同的
-branch、validation 与 guarded push workflow。
+branch、validation 与 guarded push workflow。`aigate aitest` 会把修复提示写入
+`.aigate/reports/ai-test.md`；只有显式添加 `--apply` 时才会运行 Codex、
+Claude、Gemini 或自定义 `--agent-command`。
 
 ## 文档
 
