@@ -12,6 +12,7 @@ const requiredGroups = [
   ["ai integrations", ["docs/ai-integrations.md", "docs/ai-integrations.ko.md", "docs/ai-integrations.ja.md", "docs/ai-integrations.zh.md"]],
   ["branch strategy", ["docs/branch-strategy.md", "docs/branch-strategy.ko.md", "docs/branch-strategy.ja.md", "docs/branch-strategy.zh.md"]],
   ["commercialization", ["docs/commercialization.md", "docs/commercialization.ko.md", "docs/commercialization.ja.md", "docs/commercialization.zh.md"]],
+  ["comparison", ["docs/comparison.md", "docs/comparison.ko.md", "docs/comparison.ja.md", "docs/comparison.zh.md"]],
   ["distribution", ["docs/distribution.md", "docs/distribution.ko.md", "docs/distribution.ja.md", "docs/distribution.zh.md"]],
   ["github action", ["docs/github-action.md", "docs/github-action.ko.md", "docs/github-action.ja.md", "docs/github-action.zh.md"]],
   ["git upload workflow", ["docs/git-upload-workflow.md", "docs/git-upload-workflow.ko.md", "docs/git-upload-workflow.ja.md", "docs/git-upload-workflow.zh.md"]],

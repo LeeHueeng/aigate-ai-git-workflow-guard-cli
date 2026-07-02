@@ -1,0 +1,57 @@
+name: Real-world example
+description: Share how AIGate behaves in a real repository.
+title: "example: "
+labels:
+  - documentation
+  - showcase
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping other developers understand where AIGate works well.
+        Please remove any private paths, secrets, or company-sensitive details.
+  - type: input
+    id: repository_type
+    attributes:
+      label: Repository type
+      placeholder: Node CLI, frontend app, monorepo, internal service, open source package
+    validations:
+      required: true
+  - type: dropdown
+    id: ai_assistant
+    attributes:
+      label: AI assistant used
+      options:
+        - Codex
+        - Gemini
+        - Claude Code
+        - Cursor
+        - Other
+        - Not AI-assisted
+    validations:
+      required: true
+  - type: textarea
+    id: commands
+    attributes:
+      label: Commands run
+      description: Which AIGate commands did you try?
+      placeholder: |
+        aigate doctor
+        aigate git-ready
+        aigate pr-check
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Useful output
+      description: Paste a short sanitized output sample or screenshot link.
+    validations:
+      required: false
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: What did AIGate catch, clarify, or fail to catch?
+    validations:
+      required: true

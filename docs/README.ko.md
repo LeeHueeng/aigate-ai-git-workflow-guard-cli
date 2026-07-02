@@ -19,6 +19,7 @@
 | 오픈소스 준비 | [en](open-source-readiness.md) | [ko](open-source-readiness.ko.md) | [ja](open-source-readiness.ja.md) | [zh](open-source-readiness.zh.md) |
 | 제품 계획 | [en](product-plan.md) | [ko](product-plan.ko.md) | [ja](product-plan.ja.md) | [zh](product-plan.zh.md) |
 | 상용화 | [en](commercialization.md) | [ko](commercialization.ko.md) | [ja](commercialization.ja.md) | [zh](commercialization.zh.md) |
+| 도구 비교 | [en](comparison.md) | [ko](comparison.ko.md) | [ja](comparison.ja.md) | [zh](comparison.zh.md) |
 | 로드맵 | [en](roadmap.md) | [ko](roadmap.ko.md) | [ja](roadmap.ja.md) | [zh](roadmap.zh.md) |
 | 기본 Node 프로젝트 예제 | [en](examples/basic-node-project.md) | [ko](examples/basic-node-project.ko.md) | [ja](examples/basic-node-project.ja.md) | [zh](examples/basic-node-project.zh.md) |
 | JSON 출력 예시 | [en](examples/json-output.md) | [ko](examples/json-output.ko.md) | [ja](examples/json-output.ja.md) | [zh](examples/json-output.zh.md) |

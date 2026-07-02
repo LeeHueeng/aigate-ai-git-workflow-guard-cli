@@ -17,6 +17,8 @@
 - [x] pull request template
 - [x] CODEOWNERS
 - [x] funding metadata
+- [x] social preview asset: `assets/social-preview.png`
+- [x] real-world example issue template
 
 ## Security and supply chain
 
@@ -39,6 +41,8 @@
 - pull request 作成に `aigate pr` を使う
 - `main` を常に releasable に保つ
 - roadmap item を issue または discussion と結びつける
+- GitHub repository settings で `assets/social-preview.png` を upload
+- 有用な support question を documentation または good first issue に変換
 
 ## npm release
 

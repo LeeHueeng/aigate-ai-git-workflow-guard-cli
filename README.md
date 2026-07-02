@@ -20,6 +20,14 @@ strategy before changes reach your remote branch or pull request review.
 
 ![AIGate demo](assets/demo.gif)
 
+## Use AIGate When
+
+- Your AI coding assistant changed files faster than you can review them.
+- You want one command that explains readiness before `git push`.
+- You maintain an open source package and need PR, release, and repository health signals.
+- You want Markdown, HTML, JSON, and SARIF outputs that work locally and in CI.
+- You want Codex and Gemini to follow the same branch and validation workflow as humans.
+
 ## 60-Second Quickstart
 
 Run it without installing:
@@ -105,6 +113,9 @@ repeatable local gate before `git push` or PR creation.
 | pre-commit | Hook framework and hook ecosystem | AIGate is zero-config and Git/PR workflow focused. |
 | Gitleaks | Deep secret scanning | AIGate includes lightweight changed-file checks and SARIF output, and can complement Gitleaks. |
 
+Read the full [tool comparison](docs/comparison.md) for recommended combinations
+with Husky, Lefthook, pre-commit, and Gitleaks.
+
 ## Typical Workflow
 
 ```sh
@@ -186,11 +197,12 @@ distributed:
 - Homebrew formula
 - Standalone binaries
 - Hosted dashboard
-- Linear and Jira integrations
+- Deeper Linear and Jira workflow automation
 
 ## Documentation
 
 - [Distribution guide](docs/distribution.md)
+- [Tool comparison](docs/comparison.md)
 - [Notifications guide](docs/notifications.md)
 - [AI integrations](docs/ai-integrations.md)
 - [Basic Node project example](docs/examples/basic-node-project.md)
@@ -208,6 +220,13 @@ distributed:
 - [日本語運用ドキュメント](docs/operations.ja.md)
 - [中文运维说明](docs/operations.zh.md)
 - Local visual HTML guides: [ko](docs/aigate-overview.ko.html), [en](docs/aigate-overview.en.html), [ja](docs/aigate-overview.ja.html), [zh](docs/aigate-overview.zh.html)
+
+## Help AIGate Grow
+
+- Star or watch the repository if AIGate catches a risky push in your workflow.
+- Open a real-world example issue showing how AIGate behaves in your repository.
+- Share the demo GIF, terminal screenshot, or `assets/social-preview.png` when introducing the project.
+- Pick a good first issue if you want to improve docs, examples, integrations, or packaging.
 
 ## Contributing
 

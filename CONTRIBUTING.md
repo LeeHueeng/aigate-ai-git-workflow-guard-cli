@@ -41,6 +41,25 @@ Good first contribution ideas:
 - Add GitHub Actions examples.
 - Improve screenshots or demo assets.
 
+## 15-Minute Contribution Paths
+
+- Run `npx -y aigate-cli doctor` in one of your repositories and share a
+  sanitized real-world example issue.
+- Add one command output example to `docs/examples/`.
+- Improve one paragraph in a translated README.
+- Try the GitHub Action snippet in a small repository and report what was clear
+  or confusing.
+- Suggest one comparison note for Husky, Lefthook, pre-commit, or Gitleaks.
+
+## Sharing AIGate
+
+If AIGate helps you, the most useful signals are:
+
+- star or watch the repository,
+- share a short sanitized output screenshot,
+- open a real-world example issue,
+- mention which AI assistant and repository type you used.
+
 ## Branches
 
 Create branches from `main`:

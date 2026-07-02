@@ -19,6 +19,7 @@
 | Open source readiness | [en](open-source-readiness.md) | [ko](open-source-readiness.ko.md) | [ja](open-source-readiness.ja.md) | [zh](open-source-readiness.zh.md) |
 | Product plan | [en](product-plan.md) | [ko](product-plan.ko.md) | [ja](product-plan.ja.md) | [zh](product-plan.zh.md) |
 | Commercialization | [en](commercialization.md) | [ko](commercialization.ko.md) | [ja](commercialization.ja.md) | [zh](commercialization.zh.md) |
+| Tool comparison | [en](comparison.md) | [ko](comparison.ko.md) | [ja](comparison.ja.md) | [zh](comparison.zh.md) |
 | Roadmap | [en](roadmap.md) | [ko](roadmap.ko.md) | [ja](roadmap.ja.md) | [zh](roadmap.zh.md) |
 | Basic Node project example | [en](examples/basic-node-project.md) | [ko](examples/basic-node-project.ko.md) | [ja](examples/basic-node-project.ja.md) | [zh](examples/basic-node-project.zh.md) |
 | JSON output example | [en](examples/json-output.md) | [ko](examples/json-output.ko.md) | [ja](examples/json-output.ja.md) | [zh](examples/json-output.zh.md) |
