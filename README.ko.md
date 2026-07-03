@@ -171,8 +171,11 @@ jobs:
 의도적으로 확인할 때만 `@main`을 사용하세요. 전체 입력값은
 [GitHub Action 문서](docs/github-action.ko.md)에 정리했습니다.
 
-Marketplace 등록값:
+Action 릴리스 상태:
 
+- 현재 안정 태그: `v0.1.6`
+- Action 사용: `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6`로 사용 가능
+- Marketplace 게시: GitHub Release 화면에서 수동으로 켜는 단계
 - Action name: `AIGate AI Git Workflow Guard CLI`
 - 주요 카테고리: `Code quality`
 - 보조 카테고리: `Security`

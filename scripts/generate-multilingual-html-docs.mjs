@@ -6,7 +6,7 @@ const rootDir = dirname(dirname(fileURLToPath(import.meta.url)));
 const docsDir = join(rootDir, "docs");
 const packageJson = JSON.parse(readFileSync(join(rootDir, "package.json"), "utf8"));
 const version = packageJson.version;
-const generatedOn = "2026-07-02";
+const generatedOn = "2026-07-03";
 
 const fileNames = {
   ko: "aigate-overview.ko.html",
@@ -30,7 +30,7 @@ const locales = {
     eyebrow: "오픈소스 AI Git Workflow Guard CLI",
     subtitle: "AIGate가 어떤 흐름으로 동작하는지, 어떤 명령어를 제공하는지, 현재 구현된 기능과 앞으로의 기능 계획을 한눈에 설명합니다.",
     nav: ["개요", "프로세스", "명령어", "릴리스", "기능"],
-    badges: ["npm 배포 완료", "Trusted Publishing 연결", "GitHub Release 운영", "CLI v" + version],
+    badges: ["npm 배포 완료", "GHCR 공개", "Homebrew tap", "GitHub Release", "CLI v" + version],
     summaryTitle: "지금까지 만든 것",
     summary: [
       "AIGate는 로컬 변경사항, secret 위험, 프로젝트 기반 점수, PR 준비 상태, 릴리스 준비 상태를 점검하는 CLI입니다.",
@@ -221,7 +221,7 @@ const locales = {
     eyebrow: "Open Source AI Git Workflow Guard CLI",
     subtitle: "A compact guide to how AIGate works, which commands it provides, what is implemented today, and what is planned next.",
     nav: ["Overview", "Process", "Commands", "Release", "Features"],
-    badges: ["npm live", "Trusted Publishing", "GitHub Releases", "CLI v" + version],
+    badges: ["npm live", "GHCR public", "Homebrew tap", "GitHub Release", "CLI v" + version],
     summaryTitle: "What Has Been Built",
     summary: [
       "AIGate is a CLI that checks local changes, secret risk, project foundation score, pull request readiness, and release readiness.",
@@ -412,7 +412,7 @@ const locales = {
     eyebrow: "オープンソース AI Git Workflow Guard CLI",
     subtitle: "AIGate の動作プロセス、提供コマンド、現在実装済みの機能、今後の計画をまとめた HTML ガイドです。",
     nav: ["概要", "プロセス", "コマンド", "リリース", "機能"],
-    badges: ["npm 公開済み", "Trusted Publishing", "GitHub Release", "CLI v" + version],
+    badges: ["npm 公開済み", "GHCR 公開", "Homebrew tap", "GitHub Release", "CLI v" + version],
     summaryTitle: "これまでに構築したもの",
     summary: [
       "AIGate は、ローカル変更、secret リスク、プロジェクト基盤スコア、PR 準備状況、リリース準備状況を確認する CLI です。",
@@ -603,7 +603,7 @@ const locales = {
     eyebrow: "开源 AI Git Workflow Guard CLI",
     subtitle: "这份 HTML 文档说明 AIGate 的运行流程、全部命令、当前已实现能力以及未来规划。",
     nav: ["概览", "流程", "命令", "发布", "功能"],
-    badges: ["npm 已发布", "Trusted Publishing", "GitHub Release", "CLI v" + version],
+    badges: ["npm 已发布", "GHCR 公开", "Homebrew tap", "GitHub Release", "CLI v" + version],
     summaryTitle: "目前已经完成的内容",
     summary: [
       "AIGate 是一个 CLI，用于检查本地变更、secret 风险、项目基础分、PR 就绪状态和发布就绪状态。",

@@ -210,8 +210,11 @@ intentionally want unreleased behavior. Full inputs are documented in
 [GitHub Action](docs/github-action.md). The same action metadata is mirrored at
 `.github/actions/aigate` for local workflow testing.
 
-Marketplace listing:
+Action release status:
 
+- Current stable tag: `v0.1.6`
+- Action usage: ready through `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6`
+- Marketplace publishing: manual GitHub Release screen step
 - Action name: `AIGate AI Git Workflow Guard CLI`
 - Primary category: `Code quality`
 - Secondary category: `Security`

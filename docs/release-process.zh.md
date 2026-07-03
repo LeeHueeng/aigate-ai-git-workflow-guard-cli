@@ -13,8 +13,10 @@ AIGate 发布由标签驱动。创建版本标签前，`main` 必须处于可发
 5. 以 `dry_run=true` 运行 Release workflow。
 6. 创建并推送匹配的标签，例如 `v0.1.6`。
 7. 使用 `npm view aigate-cli version` 确认 npm 发布。
-8. 创建或更新 GitHub Release notes。
-9. 如果发布 Action，请在 release 页面启用 GitHub Marketplace publish option。
+8. 使用 `docker manifest inspect ghcr.io/leehueeng/aigate-cli:<version>` 确认 GHCR 发布。
+9. npm tarball 变化时，更新并 push Homebrew tap formula。
+10. 创建或更新 GitHub Release notes。
+11. 如果发布 Action，请在 release 页面启用 GitHub Marketplace publish option。
 
 ## 频道
 

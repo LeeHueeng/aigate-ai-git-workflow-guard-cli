@@ -14,8 +14,10 @@ AIGate 릴리스는 태그 기반으로 동작합니다. 버전 태그를 만들
 5. Release workflow를 `dry_run=true`로 실행합니다.
 6. `v0.1.6`처럼 일치하는 태그를 만들고 푸시합니다.
 7. `npm view aigate-cli version`으로 npm 배포를 확인합니다.
-8. GitHub Release note를 생성하거나 갱신합니다.
-9. Action을 공개한다면 릴리스 화면에서 GitHub Marketplace 게시 옵션을 켭니다.
+8. `docker manifest inspect ghcr.io/leehueeng/aigate-cli:<version>`으로 GHCR 배포를 확인합니다.
+9. npm tarball이 바뀌면 Homebrew tap formula를 갱신하고 푸시합니다.
+10. GitHub Release note를 생성하거나 갱신합니다.
+11. Action을 공개한다면 릴리스 화면에서 GitHub Marketplace 게시 옵션을 켭니다.
 
 ## 채널
 

@@ -14,8 +14,10 @@ is created.
 5. Run the Release workflow with `dry_run=true`.
 6. Create and push the matching tag, for example `v0.1.6`.
 7. Confirm npm publication with `npm view aigate-cli version`.
-8. Create or update the GitHub Release notes.
-9. If publishing the Action, enable GitHub Marketplace publishing on the
+8. Confirm GHCR publication with `docker manifest inspect ghcr.io/leehueeng/aigate-cli:<version>`.
+9. Update and push the Homebrew tap formula when the npm tarball changes.
+10. Create or update the GitHub Release notes.
+11. If publishing the Action, enable GitHub Marketplace publishing on the
    release screen.
 
 ## Channels

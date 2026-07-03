@@ -59,16 +59,18 @@ For branch strategy comparison:
 
 ## GitHub Marketplace
 
-Use these values when publishing the next GitHub Release:
+Current `v0.1.6` Action status and Marketplace metadata:
 
 | Field | Value |
 | --- | --- |
+| Stable action reference | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` |
+| Marketplace publishing | Manual GitHub Release screen step |
 | Action name | `AIGate AI Git Workflow Guard CLI` |
 | Primary category | `Code quality` |
 | Secondary category | `Security` |
 | Release tag | `v0.1.6` |
 | Release title | `AIGate AI Git Workflow Guard CLI v0.1.6` |
 
-Keep `Set as the latest release` enabled and do not mark the release as a
-pre-release for a stable patch release. Enable the GitHub Marketplace publish
-option on the release screen.
+The Action is usable from the release tag even before Marketplace discoverability
+is enabled. Keep `Set as the latest release` enabled and do not mark stable
+patch releases as pre-releases.
