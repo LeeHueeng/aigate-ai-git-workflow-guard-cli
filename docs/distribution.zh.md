@@ -2,8 +2,8 @@
 
 [English](distribution.md) | [한국어](distribution.ko.md) | [日本語](distribution.ja.md) | [中文](distribution.zh.md)
 
-AIGate 先通过 npm 分发。Docker、Homebrew 和 standalone binary 是计划中的
-公开分发渠道，在正式发布前不会作为可复制粘贴的 install path 展示。
+AIGate 通过 npm、GHCR Docker image、Homebrew tap 和可复用 GitHub Action
+分发。standalone binary 仍是后续分发渠道。
 
 ## npm
 
@@ -52,16 +52,15 @@ npx npm@latest trust github aigate-cli \
 
 ## Docker
 
-仓库已包含 `.github/workflows/docker.yml` GHCR 发布 workflow。在带标签的
-workflow run 发布 public image 前，请使用 local build 验证 container usage。
+带标签的 release 会通过 `.github/workflows/docker.yml` 发布 GHCR public
+image。
 
 ```sh
-docker build -t aigate/cli .
-docker run --rm -v "$PWD:/repo" -w /repo aigate/cli check
-docker run --rm -v "$PWD:/repo" -w /repo aigate/cli audit-report
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:latest audit-report
 ```
 
-发布启用后，带标签的 release 会 publish 到:
+Image:
 
 ```text
 ghcr.io/leehueeng/aigate-cli
@@ -69,11 +68,17 @@ ghcr.io/leehueeng/aigate-cli
 
 ## Homebrew
 
-仓库包含 `packaging/homebrew/aigate-cli.rb` formula 草案。匹配的 npm release
-稳定后，再发布到 Homebrew tap。
+公开 tap 位于 <https://github.com/LeeHueeng/homebrew-tap>。
 
 ```sh
-brew install --formula ./packaging/homebrew/aigate-cli.rb
+brew tap LeeHueeng/tap
+brew install aigate-cli
+```
+
+一行安装：
+
+```sh
+brew install LeeHueeng/tap/aigate-cli
 ```
 
 ## GitHub Actions
@@ -100,6 +105,4 @@ local workflow test。完整输入见 [GitHub Action](github-action.zh.md)。
 
 ## 后续渠道
 
-- GHCR workflow 标签运行成功后发布 public Docker image
-- npm package 有真实用户后发布 Homebrew tap
 - 为无 Node.js 环境提供 standalone binary

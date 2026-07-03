@@ -23,9 +23,9 @@
 ## V1.5: Workflow intelligence
 
 - [x] 准备 GHCR Docker publish workflow
-- [x] 添加 Homebrew formula 草案
-- [ ] publish Homebrew formula
-- [ ] local Docker usage 验证后 publish Docker image
+- [x] 添加 Homebrew formula
+- [x] 通过 `LeeHueeng/homebrew-tap` publish Homebrew formula
+- [x] publish Docker image 到 GHCR
 - [x] 将 bundled GitHub composite action 升级为 reusable public action
 - [x] 添加 Discord 和 Teams webhook notification payload
 - [x] 将 generated branch strategy docs 扩展为 richer policy pack

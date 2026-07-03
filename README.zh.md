@@ -217,10 +217,18 @@ agent 输出，并在最终报告中保留 stdout/stderr。
 - [Hotfix process](docs/hotfix-process.zh.md)
 - [Roadmap](docs/roadmap.zh.md)
 
+## 公开安装渠道
+
+现在可以使用这些公开安装路径。
+
+```sh
+npm install -g aigate-cli
+brew install LeeHueeng/tap/aigate-cli
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+```
+
 ## 尚未发布的计划
 
-- 公开 Docker image
-- Homebrew formula
 - standalone binary
 - hosted dashboard
 - deeper Linear/Jira integrations

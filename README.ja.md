@@ -221,10 +221,18 @@ agent 出力をターミナルに表示し、最終レポートにも stdout/std
 - [Hotfix process](docs/hotfix-process.ja.md)
 - [Roadmap](docs/roadmap.ja.md)
 
+## 公開インストールチャネル
+
+現在利用できる公開インストール経路です。
+
+```sh
+npm install -g aigate-cli
+brew install LeeHueeng/tap/aigate-cli
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+```
+
 ## まだ公開していない計画
 
-- 公開 Docker image
-- Homebrew formula
 - standalone binary
 - hosted dashboard
 - deeper Linear/Jira integrations

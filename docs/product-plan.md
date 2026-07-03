@@ -27,8 +27,8 @@ Supported and planned channels:
 | pnpm dlx | `pnpm dlx aigate-cli check` | MVP |
 | bun | `bun add -g aigate-cli` | MVP |
 | bunx | `bunx aigate-cli check` | MVP |
-| Homebrew | formula draft prepared in `packaging/homebrew/` | prepared |
-| Docker | GHCR workflow prepared; public image pending tagged release | prepared |
+| Homebrew | `brew install LeeHueeng/tap/aigate-cli` | MVP |
+| Docker | `docker run --rm ghcr.io/leehueeng/aigate-cli:0.1.6 check` | MVP |
 | GitHub Releases | standalone binary download | V2 |
 
 Release channels:

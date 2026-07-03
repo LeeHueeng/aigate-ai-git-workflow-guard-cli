@@ -375,9 +375,13 @@ channel:
 | `aigate notify <setup\|test\|send>` | Configure and send notifications. |
 | `aigate help` | Print command help. |
 
-## What Is Not A Public Install Path Yet
+## Public Install Paths
 
-The repository contains Docker and Homebrew preparation files, but the public
-npm package is the supported installation path today. Do not put Docker or
-Homebrew commands in a user quickstart until those channels are publicly
-published.
+AIGate can be installed through npm or Homebrew, and can run from the public
+GHCR image:
+
+```sh
+npm install -g aigate-cli
+brew install LeeHueeng/tap/aigate-cli
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+```

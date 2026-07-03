@@ -1,8 +1,7 @@
 # Distribution
 
-AIGate ships through npm first. Docker, Homebrew, and standalone binaries are
-planned public distribution channels and should not be presented as copy-paste
-install paths until they are published.
+AIGate ships through npm, GHCR Docker images, a Homebrew tap, and a reusable
+GitHub Action. Standalone binaries remain a planned distribution channel.
 
 ## npm
 
@@ -82,17 +81,15 @@ npx npm@latest trust github aigate-cli \
 
 ## Docker
 
-The repository now includes a GHCR publish workflow at
-`.github/workflows/docker.yml`. Until a tagged workflow run publishes the public
-image, build it locally when validating container usage:
+Tagged releases publish the public image to GHCR through
+`.github/workflows/docker.yml`.
 
 ```sh
-docker build -t aigate/cli .
-docker run --rm -v "$PWD:/repo" -w /repo aigate/cli check
-docker run --rm -v "$PWD:/repo" -w /repo aigate/cli audit-report
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:latest audit-report
 ```
 
-When publishing is enabled, tagged releases publish to:
+Image:
 
 ```text
 ghcr.io/leehueeng/aigate-cli
@@ -100,12 +97,17 @@ ghcr.io/leehueeng/aigate-cli
 
 ## Homebrew
 
-The repository includes a formula draft at
-`packaging/homebrew/aigate-cli.rb`. Publish it to a Homebrew tap only after the
-matching npm release is stable:
+The public tap is available at <https://github.com/LeeHueeng/homebrew-tap>.
 
 ```sh
-brew install --formula ./packaging/homebrew/aigate-cli.rb
+brew tap LeeHueeng/tap
+brew install aigate-cli
+```
+
+One-command install:
+
+```sh
+brew install LeeHueeng/tap/aigate-cli
 ```
 
 ## GitHub Actions
@@ -134,6 +136,4 @@ inputs.
 
 ## Later Channels
 
-- Public Docker image after the GHCR workflow has a tagged successful run.
-- Homebrew tap publication after the npm package has real users.
 - Standalone binaries for environments without Node.js.

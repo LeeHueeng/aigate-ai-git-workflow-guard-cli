@@ -23,9 +23,9 @@
 ## V1.5: Workflow intelligence
 
 - [x] GHCR Docker publish workflow を準備
-- [x] Homebrew formula draft を追加
-- [ ] Homebrew formula を publish
-- [ ] local Docker usage 検証後に Docker image を publish
+- [x] Homebrew formula を追加
+- [x] `LeeHueeng/homebrew-tap` で Homebrew formula を publish
+- [x] GHCR に Docker image を publish
 - [x] bundled GitHub composite action を reusable public action に昇格
 - [x] Discord と Teams webhook notification payload を追加
 - [x] generated branch strategy docs を richer policy pack に拡張

@@ -4,7 +4,8 @@ All notable changes to AIGate are documented here.
 
 ## Unreleased
 
-- No unreleased changes.
+- Documented the published Homebrew tap and GHCR Docker image installation
+  paths across README, distribution, usage, operations, roadmap, and HTML docs.
 
 ## 0.1.6 - 2026-07-03
 

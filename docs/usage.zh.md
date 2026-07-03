@@ -360,8 +360,12 @@ aigate git-ready --notify-channel terminal
 | `aigate notify <setup\|test\|send>` | 配置并发送通知。 |
 | `aigate help` | 输出 command help。 |
 
-## 还不是公开安装渠道的内容
+## 公开安装路径
 
-仓库包含 Docker 和 Homebrew 准备文件，但当前官方安装路径是公开 npm package。
-在 Docker 或 Homebrew channel 真正公开前，不要把这些安装命令放进用户
-quickstart。
+AIGate 可以通过 npm、Homebrew 和公开 GHCR image 使用。
+
+```sh
+npm install -g aigate-cli
+brew install LeeHueeng/tap/aigate-cli
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+```

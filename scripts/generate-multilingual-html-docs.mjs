@@ -202,12 +202,10 @@ const locales = {
       "npm Trusted Publishing 기반 자동 배포",
       "GitHub CI, OpenSSF Scorecard, GitHub Release 운영",
       "터미널, Slack BLOCK, Discord, Teams, email, Linear, Jira 알림",
-      "GHCR Docker 배포 workflow와 Homebrew formula 초안"
+      "GHCR Docker 이미지와 Homebrew tap 공개 배포"
     ],
     future: [
       "Slack BLOCK 알림을 제품 수준 UX로 고도화",
-      "태그 기반 GHCR workflow 실행 후 public Docker image",
-      "Homebrew tap publish",
       "중앙 알림 정책 강화",
       "Linear/Jira workflow 연동 심화",
       "standalone binary 배포",
@@ -395,12 +393,10 @@ const locales = {
       "Automated npm releases through Trusted Publishing",
       "GitHub CI, OpenSSF Scorecard, and GitHub Releases",
       "Terminal, Slack BLOCK, Discord, Teams, email, Linear, and Jira notifications",
-      "GHCR Docker publish workflow and Homebrew formula draft"
+      "Published GHCR Docker image and Homebrew tap"
     ],
     future: [
       "Product-grade Slack BLOCK notification UX",
-      "Public Docker image after a tagged GHCR workflow run",
-      "Homebrew tap publication",
       "Central notification policy hardening",
       "Deeper Linear/Jira workflow integrations",
       "Standalone binary distribution",
@@ -588,12 +584,10 @@ const locales = {
       "Trusted Publishing による npm 自動リリース",
       "GitHub CI、OpenSSF Scorecard、GitHub Release 運用",
       "ターミナル、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知",
-      "GHCR Docker publish workflow と Homebrew formula draft"
+      "GHCR Docker image と Homebrew tap の公開配布"
     ],
     future: [
       "製品レベルの Slack BLOCK 通知 UX",
-      "タグ付き GHCR workflow 実行後の public Docker image",
-      "Homebrew tap publish",
       "中央通知ポリシー強化",
       "Linear/Jira workflow integrations の深化",
       "standalone binary 配布",
@@ -781,12 +775,10 @@ const locales = {
       "基于 Trusted Publishing 的 npm 自动发布",
       "GitHub CI、OpenSSF Scorecard、GitHub Release 运维",
       "终端、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知",
-      "GHCR Docker publish workflow 和 Homebrew formula draft"
+      "GHCR Docker image 和 Homebrew tap 公开发布"
     ],
     future: [
       "产品级 Slack BLOCK 通知体验",
-      "标签触发 GHCR workflow 后的 public Docker image",
-      "Homebrew tap publish",
       "中央通知政策强化",
       "深化 Linear/Jira workflow integrations",
       "standalone binary 发布",

@@ -369,8 +369,12 @@ aigate git-ready --notify-channel terminal
 | `aigate notify <setup\|test\|send>` | 알림을 설정하고 전송합니다. |
 | `aigate help` | 명령어 도움말을 출력합니다. |
 
-## 아직 공개 설치 경로가 아닌 것
+## 공개 설치 경로
 
-저장소에는 Docker와 Homebrew 준비 파일이 있지만, 현재 공식 설치 경로는 공개
-npm package입니다. Docker 또는 Homebrew 채널이 실제로 공개되기 전까지는
-사용자 quickstart에 설치 명령으로 넣지 않습니다.
+AIGate는 npm, Homebrew, 공개 GHCR image로 사용할 수 있습니다.
+
+```sh
+npm install -g aigate-cli
+brew install LeeHueeng/tap/aigate-cli
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+```
