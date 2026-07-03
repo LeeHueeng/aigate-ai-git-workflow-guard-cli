@@ -12,6 +12,7 @@ GitHub Action. Standalone binaries remain a planned distribution channel.
 | Docker/GHCR | `ghcr.io/leehueeng/aigate-cli:0.1.6` and `latest` published |
 | Homebrew | `brew install LeeHueeng/tap/aigate-cli` |
 | GitHub Action | usable via `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6`; Marketplace publishing is a manual release-screen step |
+| GitHub Pages | <https://leehueeng.github.io/aigate-ai-git-workflow-guard-cli/> |
 
 ## npm
 

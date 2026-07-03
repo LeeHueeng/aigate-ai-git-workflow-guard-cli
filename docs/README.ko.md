@@ -26,6 +26,9 @@
 | JSON 출력 예시 | [en](examples/json-output.md) | [ko](examples/json-output.ko.md) | [ja](examples/json-output.ja.md) | [zh](examples/json-output.zh.md) |
 | Windows 스모크 테스트 | [en](examples/windows-smoke-test.md) | [ko](examples/windows-smoke-test.ko.md) | [ja](examples/windows-smoke-test.ja.md) | [zh](examples/windows-smoke-test.zh.md) |
 
-시각형 HTML 운영 문서는 로컬에서 열 수 있습니다:
+시각형 HTML 운영 문서는 GitHub Pages로 배포됩니다:
+<https://leehueeng.github.io/aigate-ai-git-workflow-guard-cli/>
+
+언어별 HTML 페이지:
 [ko](aigate-overview.ko.html), [en](aigate-overview.en.html),
 [ja](aigate-overview.ja.html), [zh](aigate-overview.zh.html).

@@ -4,6 +4,8 @@ All notable changes to AIGate are documented here.
 
 ## Unreleased
 
+- Added a GitHub Pages multilingual HTML documentation index for publishing the
+  `docs/` site.
 - Refreshed distribution and GitHub Action docs with the verified `0.1.6`
   npm, GitHub Release, GHCR, Homebrew, and Marketplace publishing status.
 - Documented the published Homebrew tap and GHCR Docker image installation

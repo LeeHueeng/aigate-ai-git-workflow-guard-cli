@@ -11,6 +11,7 @@ Stop risky AI-generated Git changes before push.
 
 - README: [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [中文](README.zh.md)
 - Operations guide: [English](docs/operations.en.md) | [한국어](docs/operations.ko.md) | [日本語](docs/operations.ja.md) | [中文](docs/operations.zh.md)
+- HTML overview: <https://leehueeng.github.io/aigate-ai-git-workflow-guard-cli/>
 
 AIGate is a zero-config pre-push safety CLI for AI-assisted coding. It checks
 changed files, possible secrets, repository readiness, PR risk, and branch
