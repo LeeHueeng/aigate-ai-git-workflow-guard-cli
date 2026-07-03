@@ -27,6 +27,7 @@ release branch と npm dist-tag 戦略を組み合わせます。
 | --- | --- |
 | `codex/*` | AI-assisted implementation または repository maintenance |
 | `feature/*` | user-facing feature |
+| `feat/*` | 多くのチームが使う短い feature branch alias |
 | `fix/*` | bug fix |
 | `docs/*` | documentation-only changes |
 | `chore/*` | tooling, metadata, release, maintenance |
@@ -69,8 +70,8 @@ chore: initialize public repository metadata
 
 初期 required status checks:
 
-- `test (20)`
-- `test (22)`
+- GitHub repository は `GitHub CI workflow`、GitLab repository は `GitLab CI pipeline`
+- `aigate git-ready`
 - local: `npm run lint`
 - local: `npm run typecheck`
 

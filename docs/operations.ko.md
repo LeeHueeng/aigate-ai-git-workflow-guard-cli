@@ -38,10 +38,11 @@ flowchart LR
 
 | 영역 | 명령어 |
 | --- | --- |
-| 설정 | `start`, `init`, `setup`, `settings`, `integrate` |
+| 설정 | `start`, `start --route default`, `start --route oss`, `init`, `reset`, `setup`, `settings`, `integrate` |
 | 첫 실행 | `doctor`, `demo`, `install-hook --pre-push` |
 | 보호 게이트 | `check`, `test`, `aitest`, `git-ready`, `push`, `pr` |
-| 리포트 | `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
+| 유지보수 | `clean`, `uninstall`, `delete` |
+| 리포트 | `ai report`, `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | 릴리스 | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
 ## 대표 실행 경로
@@ -49,7 +50,12 @@ flowchart LR
 ```sh
 npm install -g aigate-cli
 aigate setup --language ko
+aigate ai report
+aigate start --route default --ask-steps
+aigate start --route oss --dry-run
 aigate start --route ai --provider all
+aigate reset --dry-run
+aigate clean
 git switch -c feature/my-change
 aigate doctor
 aigate install-hook --pre-push
@@ -75,11 +81,18 @@ aigate release-check --npm
 
 - npm 패키지 `aigate-cli` 공개 배포와 `npx` 실행
 - `aigate start` 기반 안내형 시작 루트
+- `aigate start --route default --ask-steps` 기반 단계별 기본 설정
+- `aigate start --route default --steps init,repo-files` 기반 선택 단계 실행
+- `aigate reset` 기반 설정 초기화
+- `aigate clean --force` 기반 생성 상태 삭제
+- `aigate uninstall --force` 기반 로컬 AIGate 제거
+- `aigate start --route oss` 기반 오픈소스 시작 파일 생성
 - `aigate doctor` 기반 첫 실행 환경 진단
 - `aigate demo` 기반 안내형 CLI 데모
 - `aigate install-hook --pre-push` 기반 pre-push hook 설치
 - Git 변경 파일과 untracked 파일 기반 readiness check
 - `aigate test` 기반 프로젝트 테스트 자동화
+- `aigate ai report` 기반 AI 프로젝트 상태 브리프
 - `aigate aitest` 기반 AI 수정 프롬프트와 선택적 에이전트 실행
 - secret 패턴 탐지와 SARIF 출력
 - `git-ready`, guarded push, guarded PR 생성 흐름

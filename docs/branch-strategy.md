@@ -25,6 +25,7 @@ release branches and npm dist-tags for package publication.
 | --- | --- |
 | `codex/*` | AI-assisted implementation or repository maintenance. |
 | `feature/*` | User-facing feature work. |
+| `feat/*` | Short feature branch alias used by many teams. |
 | `fix/*` | Bug fixes. |
 | `docs/*` | Documentation-only changes. |
 | `chore/*` | Tooling, metadata, release, or maintenance changes. |
@@ -84,8 +85,8 @@ When the public repository is created, enable these branch protection rules on
 
 Initial required status checks:
 
-- `test (20)`
-- `test (22)`
+- `GitHub CI workflow` for GitHub repositories, or `GitLab CI pipeline` for GitLab repositories
+- `aigate git-ready`
 - local: `npm run lint`
 - local: `npm run typecheck`
 

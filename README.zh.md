@@ -26,9 +26,11 @@ PR 风险和 branch strategy。
 
 ```sh
 npx -y aigate-cli check
+npx -y aigate-cli start --route default --dry-run
 npx -y aigate-cli start --route quickstart --dry-run
 npx -y aigate-cli doctor
 npx -y aigate-cli test
+npx -y aigate-cli ai report
 npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
@@ -39,13 +41,31 @@ npx -y aigate-cli evaluate-project
 ```sh
 npm install -g aigate-cli
 aigate start
+aigate start --route default --ask-steps
+aigate start --route default --steps init,repo-files
+aigate start --route oss --dry-run
+aigate reset --dry-run
+aigate clean
+aigate uninstall
 aigate check
 aigate test
+aigate ai report
 aigate aitest
 aigate git-ready
 aigate install-hook --pre-push
 aigate pr-check
 ```
+
+## 场景式使用手册
+
+| 场景 | 流程 | 命令 |
+| --- | --- | --- |
+| 接入新仓库 | 逐步创建 AIGate 基础文件，然后安装 pre-push guard。 | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
+| AI 修改了很多文件 | 检查 changed paths，运行测试，并把失败内容整理成 AI 修复提示。 | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
+| PR 即将提交 | 通过 gate，经 AIGate push，再生成 reviewer 摘要。 | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| private GitLab monorepo | 固定 profile，检测 turbo runner 后自动回退到 workspace tests，并把 GitHub/npm 包检查排除在 app 评分外。 | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
+| 开源发布 | 生成公开贡献文件，并检查仓库基础。 | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
+| 发布周 | 检查 npm 和 tag readiness，运行 CI 后记录趋势。 | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
 
 ## 当前可用功能
 
@@ -53,8 +73,15 @@ aigate pr-check
 | --- | --- |
 | 本地 Git readiness check | `aigate check` |
 | 引导式设置路由器 | `aigate start` |
-| 项目测试运行器 | `aigate test` |
+| 用是/否选择默认设置步骤 | `aigate start --route default --ask-steps` |
+| 只运行指定设置步骤 | `aigate start --route default --steps init,repo-files` |
+| 重置 AIGate 配置和 settings | `aigate reset` |
+| 删除生成的本地报告和状态 | `aigate clean --force` |
+| 移除 AIGate 配置、本地状态和自有 hook | `aigate uninstall --force` |
+| 公开仓库 README、issue 模板和贡献文件生成 | `aigate start --route oss` |
+| 检测 turbo runner 并回退到 workspace test | `aigate test` |
 | AI 修复提示和可选 agent 执行 | `aigate aitest` |
+| 汇总当前问题、做得好的部分和方向的 AI 报告 | `aigate ai report` |
 | 首次运行诊断 | `aigate doctor` |
 | 引导式 CLI demo | `aigate demo` |
 | pre-push safety gate | `aigate git-ready` |
@@ -69,6 +96,7 @@ aigate pr-check
 | 合规控制报告 | `aigate compliance-report` |
 | 本地 HTML 健康仪表盘 | `aigate dashboard` |
 | 项目状态趋势历史 | `aigate trends record` |
+| 自动检测 private app、GitLab、pnpm，并排除 npm 包检查 | `aigate setup --hosting gitlab` |
 | 分支策略政策包 | `aigate branch-strategy --apply` |
 | 分支策略提案比较 | `aigate branch-strategy --compare` |
 | npm release readiness check | `aigate release-check --npm` |
@@ -86,7 +114,12 @@ repository governance 连接成一个 workflow layer。
 
 ```sh
 git switch -c feature/my-work
+aigate ai report
+aigate start --route default --ask-steps
+aigate start --route oss --dry-run
 aigate start --route ai --provider all
+aigate reset --dry-run
+aigate clean
 aigate doctor
 aigate install-hook --pre-push
 aigate test
@@ -127,7 +160,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
         with:
           command: git-ready
           language: zh
@@ -141,12 +174,14 @@ Marketplace 发布设置:
 - Action name: `AIGate AI Git Workflow Guard CLI`
 - Primary category: `Code quality`
 - Secondary category: `Security`
-- Release title: `AIGate AI Git Workflow Guard CLI v0.1.5`
+- Release title: `AIGate AI Git Workflow Guard CLI v0.1.6`
 
 ## AI Agent 集成
 
 ```sh
 aigate integrate all
+aigate ai report
+aigate ai report --apply --provider codex
 aigate aitest --provider codex
 aigate aitest --apply --provider codex
 ```
@@ -156,6 +191,13 @@ aigate aitest --apply --provider codex
 branch、validation 与 guarded push workflow。`aigate aitest` 会把修复提示写入
 `.aigate/reports/ai-test.md`；只有显式添加 `--apply` 时才会运行 Codex、
 Claude、Gemini 或自定义 `--agent-command`。
+
+`aigate ai report` 会汇总当前 Git 状态、仓库基础分、发布准备状态、分支策略和
+AI 交接提示。默认不会修改文件；只有加上
+`--apply --provider codex|claude|gemini` 时才会运行所选 AI CLI。
+
+运行 `--apply` 时，AIGate 会在终端显示提示路径、provider、agent 命令和实时
+agent 输出，并在最终报告中保留 stdout/stderr。
 
 ## 文档
 

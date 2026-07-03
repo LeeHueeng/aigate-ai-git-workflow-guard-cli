@@ -5,6 +5,8 @@
 - [x] Publish `aigate-cli` to npm.
 - [x] Support npm, npx, yarn, pnpm, and bun install paths.
 - [x] Create starter project configuration with `aigate init`.
+- [x] Reset local AIGate setup with `aigate reset`.
+- [x] Delete generated local AIGate state with `aigate clean` and `aigate uninstall`.
 - [x] Generate Markdown, HTML, JSON, and SARIF reports.
 - [x] Generate pull request readiness reports with `aigate pr-check`.
 - [x] Diagnose first-run setup with `aigate doctor`.
@@ -27,8 +29,11 @@
 - [x] Expand generated branch strategy docs into richer policy packs.
 - [x] Promote pull request template and CODEOWNERS drafts into guided setup.
 - [x] Add guided project setup routes with `aigate start`.
+- [x] Add stepwise default setup with `aigate start --route default --ask-steps`.
+- [x] Add open-source starter route with `aigate start --route oss`.
 - [x] Add project test automation with `aigate test`.
 - [x] Add AI remediation prompts and optional agent execution with `aigate aitest`.
+- [x] Add AI project health briefs with `aigate ai report`.
 
 ## V2: Team Reports And GitHub Integration
 

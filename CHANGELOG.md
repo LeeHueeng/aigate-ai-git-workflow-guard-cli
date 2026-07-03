@@ -2,6 +2,53 @@
 
 All notable changes to AIGate are documented here.
 
+## Unreleased
+
+- Ignores stale generated `.aigate.yml` profile values during scoring and gates
+  while keeping `doctor` warnings and explicit regeneration guidance.
+- Added workflow settings for private GitLab/pnpm teams, including distribution
+  mode, target branch, protected branches, required checks, quality command,
+  default AI providers, and pinned branch strategy.
+- Protects existing root AI instruction files during `aigate integrate --force`;
+  AIGate sidecar instructions are still regenerated under `.aigate/integrations/`.
+- Added `aigate setup --ai-root-files <protect|sidecar|overwrite>` so teams can
+  persist whether root AI instruction files are protected, skipped, or replaced.
+- Added `aigate clean --github-files --force` for removing generated GitHub
+  helper templates from GitLab repositories.
+- Added `aigate setup --work-branches <list>` and default `feat/*` support so
+  teams that use short feature prefixes are not penalized by branch scoring.
+- Aligned GitLab project scoring with merge request templates, `.gitlab`
+  CODEOWNERS, and existing security scan documentation in `SECURITY.md` or
+  GitLab CI.
+- Treats `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`, or generated
+  `.aigate/integrations/*` files as valid AI assistant instructions instead of
+  requiring a Codex-style root `AGENTS.md`.
+- Updated AI report and usage guidance so missing GitLab MR templates and
+  CODEOWNERS point to a ready `aigate start --route default --steps repo-files`
+  command with an owner placeholder.
+- Fixed generated AI instruction files so repository context uses the detected
+  project name instead of a hard-coded AIGate product description.
+- Updated usage and HTML overview docs in English, Korean, Japanese, and
+  Chinese for stale generated profile behavior.
+
+## 0.1.6 - 2026-07-02
+
+- Added `aigate ai report` and `aigate ai-report` to summarize current
+  problems, strengths, direction, suggested commands, release readiness, branch
+  strategy, and AI handoff guidance.
+- Added optional `aigate ai report --apply --provider <codex|claude|gemini>`
+  execution for explicit AI agent handoff.
+- Added the `aigate start --route oss` guided route for open-source starter
+  README, contribution docs, issue templates, PR template, CODEOWNERS, and
+  starter operations docs.
+- Added the `aigate start --route default` setup flow with step-by-step
+  yes/no prompts through `--ask-steps` and deterministic step selection through
+  `--steps init,repo-files`.
+- Added `aigate reset`, `aigate clean`, `aigate uninstall`, and the `delete`
+  alias for safe setup reset and generated-state removal.
+- Updated multilingual README, usage, AI integration, and generated HTML docs
+  for the AI report and open-source starter flow.
+
 ## 0.1.5 - 2026-07-02
 
 - Added `aigate start` with guided setup routes for quickstart, AI agent

@@ -18,7 +18,7 @@ npx aigate-cli check
 첫 공개 release는 npm에 올라가 있습니다.
 
 - Package: <https://www.npmjs.com/package/aigate-cli>
-- Latest tagged public release: `v0.1.5`
+- Latest tagged public release: `v0.1.6`
 - Current repository package version: `package.json`, `CHANGELOG.md` 참고
 - Trusted Publishing: GitHub Actions `release.yml`
 
@@ -90,7 +90,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
         with:
           command: git-ready
           language: ko

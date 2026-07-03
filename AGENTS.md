@@ -21,7 +21,6 @@ Run these commands before proposing, pushing, or merging changes:
 
 ```sh
 npm run ci
-aigate test
 aigate git-ready
 ```
 
@@ -45,5 +44,5 @@ aigate push --dry-run origin <branch>
 
 - Target `main`.
 - Include summary, why, validation, and release impact.
-- Required checks: `test (20)` and `test (22)`.
+- Required checks: `GitHub CI workflow`, `aigate git-ready`.
 - Follow the repository's current review policy and resolve conversations before merge.

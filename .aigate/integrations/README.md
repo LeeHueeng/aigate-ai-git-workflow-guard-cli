@@ -12,7 +12,6 @@ Required local checks:
 
 ```sh
 npm run ci
-aigate test
 aigate git-ready
 ```
 

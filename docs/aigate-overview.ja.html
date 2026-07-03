@@ -122,7 +122,7 @@ p { color: var(--muted); margin: 0; }
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
-.panel, .install-panel, .command-group, .feature {
+.panel, .install-panel, .command-group, .feature, .use-case {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -195,6 +195,25 @@ code {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.25;
+}
+.use-case-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.use-case {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: 18px;
+  padding: 20px;
+  align-items: start;
+}
+.use-case > div:last-child {
+  grid-column: 1 / -1;
+}
+.use-case pre {
+  padding: 14px;
+  font-size: 0.86rem;
 }
 .command-groups {
   display: grid;
@@ -273,9 +292,10 @@ footer p + p { margin-top: 6px; }
     grid-template-columns: 1fr;
     display: grid;
   }
-  .summary-grid, .command-groups, .feature-grid {
+  .summary-grid, .command-groups, .feature-grid, .use-case-grid, .use-case {
     grid-template-columns: 1fr;
   }
+  .use-case > div:last-child { grid-column: auto; }
   h1 { font-size: 2.4rem; }
   .hero { padding-bottom: 42px; }
 }
@@ -290,7 +310,7 @@ footer p + p { margin-top: 6px; }
     <p class="eyebrow">オープンソース AI Git Workflow Guard CLI</p>
     <h1>AIGate 運用ドキュメント</h1>
     <p class="subtitle">AIGate の動作プロセス、提供コマンド、現在実装済みの機能、今後の計画をまとめた HTML ガイドです。</p>
-    <div class="badges"><span>npm 公開済み</span><span>Trusted Publishing</span><span>GitHub Release</span><span>CLI v0.1.5</span></div>
+    <div class="badges"><span>npm 公開済み</span><span>Trusted Publishing</span><span>GitHub Release</span><span>CLI v0.1.6</span></div>
   </header>
 
   <main>
@@ -337,7 +357,7 @@ npx aigate-cli check</code></pre>
     <foreignObject x="72" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
         <strong>開始ルート</strong>
-        <span>aigate start で設定経路を選択</span>
+        <span>aigate start でデフォルト設定手順を選択</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -357,7 +377,7 @@ npx aigate-cli check</code></pre>
     <foreignObject x="520" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
         <strong>テスト自動化</strong>
-        <span>aigate test が Git gate と npm script を実行</span>
+        <span>aigate test が Git gate と turbo 実行環境を確認した workspace test を実行</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -455,6 +475,130 @@ npx aigate-cli check</code></pre>
   </div>
     </section>
 
+    <section class="section" id="use-cases">
+      <div class="section-heading">
+        <p class="kicker">プロセス</p>
+        <h2>状況別の使用例</h2>
+        <p>AIGate は常に同じコマンドを実行する道具ではなく、リポジトリの状態とリスクに応じて短いルーティンを選ぶための道具です。</p>
+      </div>
+      <div class="use-case-grid">
+    <article class="use-case">
+      <div>
+        <p class="kicker">状況</p>
+        <h3>リポジトリへ初めて導入するとき</h3>
+      </div>
+      <div>
+        <p class="kicker">プロセス</p>
+        <p>デフォルト設定を選び、不足している文書、AI 指示、hook を段階的に作成します。</p>
+      </div>
+      <div>
+        <p class="kicker">コマンド例</p>
+        <pre><code>aigate start --route default --ask-steps
+aigate doctor
+aigate install-hook --pre-push</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">状況</p>
+        <h3>AI が多くのファイルを変更した後</h3>
+      </div>
+      <div>
+        <p class="kicker">プロセス</p>
+        <p>変更ファイルと secret リスクを先に確認し、失敗したテストは AI 修正プロンプトに変換します。</p>
+      </div>
+      <div>
+        <p class="kicker">コマンド例</p>
+        <pre><code>aigate check
+aigate test
+aigate aitest</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">状況</p>
+        <h3>PR を作成する直前</h3>
+      </div>
+      <div>
+        <p class="kicker">プロセス</p>
+        <p>ローカル gate を通し、保護付き wrapper で push し、レビュー担当者向けの文脈を作ります。</p>
+      </div>
+      <div>
+        <p class="kicker">コマンド例</p>
+        <pre><code>aigate git-ready
+aigate push -u origin feature/my-work
+aigate pr-check</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">状況</p>
+        <h3>private GitLab monorepo</h3>
+      </div>
+      <div>
+        <p class="kicker">プロセス</p>
+        <p>profile を固定し、turbo 実行環境を確認して workspace test に切り替え、GitHub/npm パッケージ検査を app score から外します。</p>
+      </div>
+      <div>
+        <p class="kicker">コマンド例</p>
+        <pre><code>aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm
+aigate setup --ai-root-files sidecar
+aigate integrate claude --force
+aigate clean --github-files --force
+aigate test
+aigate evaluate-project</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">状況</p>
+        <h3>オープンソース公開準備</h3>
+      </div>
+      <div>
+        <p class="kicker">プロセス</p>
+        <p>公開貢献ファイルを作成し、リポジトリ基盤スコアを確認します。</p>
+      </div>
+      <div>
+        <p class="kicker">コマンド例</p>
+        <pre><code>aigate start --route oss --owner @team
+aigate evaluate-project --deep --report
+aigate github setup --dry-run</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">状況</p>
+        <h3>リリース前後</h3>
+      </div>
+      <div>
+        <p class="kicker">プロセス</p>
+        <p>tag/npm 準備状況を確認し、CI を実行し、公開後の状態トレンドを記録します。</p>
+      </div>
+      <div>
+        <p class="kicker">コマンド例</p>
+        <pre><code>aigate release-check --npm
+npm run ci
+aigate trends record</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">状況</p>
+        <h3>ローカル状態を消す、または外すとき</h3>
+      </div>
+      <div>
+        <p class="kicker">プロセス</p>
+        <p>削除対象を先にプレビューし、正しいときだけ --force で適用します。</p>
+      </div>
+      <div>
+        <p class="kicker">コマンド例</p>
+        <pre><code>aigate clean
+aigate clean --force
+aigate uninstall --force</code></pre>
+      </div>
+    </article></div>
+    </section>
+
     <section class="section" id="release">
       <div class="section-heading">
         <p class="kicker">リリース</p>
@@ -541,7 +685,7 @@ npx aigate-cli check</code></pre>
       </div>
       <div class="command-groups"><article class="command-group group-0">
       <h3>セットアップ</h3>
-      <div><span>start</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
+      <div><span>start</span><span>start --route default</span><span>start --route oss</span><span>init</span><span>reset</span><span>setup</span><span>settings</span><span>integrate</span></div>
     </article><article class="command-group group-1">
       <h3>初回実行</h3>
       <div><span>doctor</span><span>demo</span><span>install-hook</span></div>
@@ -549,9 +693,12 @@ npx aigate-cli check</code></pre>
       <h3>保護ゲート</h3>
       <div><span>check</span><span>test</span><span>aitest</span><span>git-ready</span><span>push</span><span>pr</span></div>
     </article><article class="command-group group-3">
-      <h3>レポート</h3>
-      <div><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
+      <h3>メンテナンス</h3>
+      <div><span>clean</span><span>uninstall</span><span>delete</span></div>
     </article><article class="command-group group-4">
+      <h3>レポート</h3>
+      <div><span>ai report</span><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
+    </article><article class="command-group group-5">
       <h3>リリース</h3>
       <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>branch-strategy --compare</span><span>notify</span></div>
     </article></div>
@@ -578,6 +725,18 @@ npx aigate-cli check</code></pre>
     <td>矢印キーまたは --route でガイド付き設定ルートを実行します。</td>
     <td>プロジェクトに AIGate を導入するとき</td>
   </tr><tr>
+    <td><code>aigate start --route default --ask-steps</code></td>
+    <td>推奨設定手順を実行するか一つずつ確認します。</td>
+    <td>初回設定で必要な手順だけ選びたいとき</td>
+  </tr><tr>
+    <td><code>aigate start --route default --steps init,repo-files</code></td>
+    <td>指定した設定手順 ID だけを実行し、他はスキップします。</td>
+    <td>オンボーディングや手順書で同じ設定を繰り返すとき</td>
+  </tr><tr>
+    <td><code>aigate start --route oss --owner @team</code></td>
+    <td>README、貢献文書、issue テンプレート、PR テンプレート、CODEOWNERS を作成します。</td>
+    <td>公開コントリビューション導線を開くとき</td>
+  </tr><tr>
     <td><code>aigate start --route ai --provider all</code></td>
     <td>AIGate 設定と Codex/Gemini/Claude 指示ファイルを作成します。</td>
     <td>AI assistant の規則をまとめて入れるとき</td>
@@ -586,9 +745,29 @@ npx aigate-cli check</code></pre>
     <td>基本設定とレポート用フォルダを作成します。</td>
     <td>新しいプロジェクトに導入するとき</td>
   </tr><tr>
+    <td><code>aigate reset</code></td>
+    <td>AIGate 設定、settings、レポート placeholder を再作成します。</td>
+    <td>ローカル設定を初期状態に戻すとき</td>
+  </tr><tr>
+    <td><code>aigate clean --force</code></td>
+    <td>生成済み AIGate レポートとローカル状態を削除します。</td>
+    <td>レポートと generated state を空にするとき</td>
+  </tr><tr>
+    <td><code>aigate clean --github-files --force</code></td>
+    <td>実際の運用が GitLab の場合に、残っている GitHub 補助テンプレートを削除します。</td>
+    <td>GitLab project から古い GitHub 生成物を整理するとき</td>
+  </tr><tr>
+    <td><code>aigate uninstall --force</code></td>
+    <td>AIGate 設定、.aigate ディレクトリ、AIGate 所有 hook を削除します。</td>
+    <td>プロジェクトから AIGate を外すとき</td>
+  </tr><tr>
     <td><code>aigate setup --language &lt;en|ko|ja|zh&gt;</code></td>
     <td>CLI 出力言語を保存します。</td>
     <td>チームの出力言語をそろえるとき</td>
+  </tr><tr>
+    <td><code>aigate setup --hosting gitlab --ci-provider gitlab</code></td>
+    <td>GitLab project profile を保存します。</td>
+    <td>GitHub 前提が合わない内部 GitLab app</td>
   </tr><tr>
     <td><code>aigate settings</code></td>
     <td>現在の AIGate 設定を表示します。</td>
@@ -607,19 +786,27 @@ npx aigate-cli check</code></pre>
     <td>危険な push をローカルで防ぐとき</td>
   </tr><tr>
     <td><code>aigate check</code></td>
-    <td>変更ファイルと secret リスクを要約します。</td>
+    <td>変更ファイル、実際の secret finding、機密ファイル削除状態を要約します。</td>
     <td>軽いコミット前確認</td>
   </tr><tr>
     <td><code>aigate test</code></td>
-    <td>Git readiness と検出した npm test/ci script を実行します。</td>
+    <td>Git readiness と root script、turbo task、pnpm workspace、workspace package test command を検出して実行します。turbo runner がない場合は workspace script に切り替えます。</td>
     <td>実際のテストまで確認してから commit するとき</td>
+  </tr><tr>
+    <td><code>aigate ai report</code></td>
+    <td>現在の問題、良い点、方向性、AI 引き継ぎプロンプトをまとめます。</td>
+    <td>AI にプロジェクト改善を任せる前</td>
+  </tr><tr>
+    <td><code>aigate ai report --apply --provider codex</code></td>
+    <td>AI プロジェクトブリーフを AI CLI に渡し、agent 出力をリアルタイム表示して stdout/stderr をレポートに残します。</td>
+    <td>AI 自動化を明示的に許可するとき</td>
   </tr><tr>
     <td><code>aigate aitest</code></td>
     <td>失敗したテストから AI 修正プロンプトを作成します。</td>
     <td>失敗を AI agent に渡すとき</td>
   </tr><tr>
     <td><code>aigate aitest --apply --provider codex</code></td>
-    <td>Codex CLI を呼び出して修正作業を実行します。</td>
+    <td>AI CLI を呼び出し、実行ログ、終了コード、stdout、stderr を表示します。</td>
     <td>AI 修正を明示的に許可するとき</td>
   </tr><tr>
     <td><code>aigate git-ready</code></td>
@@ -698,12 +885,16 @@ npx aigate-cli check</code></pre>
     <td>Codex、Gemini、Claude Code 統合ファイルを生成します。</td>
     <td>AI assistant の規則をそろえるとき</td>
   </tr><tr>
+    <td><code>aigate setup --ai-root-files sidecar</code></td>
+    <td>integrate が .aigate/integrations/* だけを書くように root AI ファイル処理を保存します。</td>
+    <td>プロジェクト固有の AGENTS/GEMINI/CLAUDE ファイルを保護するとき</td>
+  </tr><tr>
     <td><code>aigate release-check</code></td>
     <td>パッケージ、workflow、tag の準備状態を確認します。</td>
     <td>リリース tag 作成前</td>
   </tr><tr>
     <td><code>aigate release-check --npm</code></td>
-    <td>該当バージョンが npm に存在するか確認します。</td>
+    <td>repository profile を検出し、npm registry/GitHub/GitLab/package manager 状態を確認し、app に不要な npm/package version gate を除外します。</td>
     <td>自動公開の前後</td>
   </tr><tr>
     <td><code>aigate audit-report</code></td>
@@ -730,10 +921,15 @@ npx aigate-cli check</code></pre>
       <div>
         <p class="kicker">Git</p>
         <h2>ブランチとデリバリーの流れ</h2>
-        <p>main は保護された安定ブランチです。作業は codex/*、feature/*、fix/*、docs/*、chore/* で行い、PR 経由で main に入れます。release/* と hotfix/* はリリース安定化と緊急修正用です。</p>
+        <p>main は保護された安定ブランチです。作業は codex/*、feature/*、feat/*、fix/*、docs/*、chore/* で行い、PR 経由で main に入れます。release/* と hotfix/* はリリース安定化と緊急修正用です。</p>
       </div>
       <pre><code>npm install -g aigate-cli
 aigate setup --language ja
+aigate ai report
+aigate start --route default --ask-steps
+aigate start --route oss --dry-run
+aigate reset --dry-run
+aigate clean
 aigate start --route ai --provider all
 git switch -c feature/my-change
 aigate doctor
@@ -759,7 +955,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">機能</p>
         <h2>現在実装済みの機能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">aigate start によるガイド付き開始ルート</div><div class="feature done">aigate test によるプロジェクトテスト自動化</div><div class="feature done">aigate aitest による AI 修正プロンプトと任意の agent 実行</div><div class="feature done">doctor、demo、install-hook による初回実行 UX</div><div class="feature done">pre-push Git hook のインストール</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">GitHub PR comment と GitHub Checks summary payload</div><div class="feature done">PR テンプレートと CODEOWNERS のガイド付き設定</div><div class="feature done">再利用可能な公開 GitHub Action</div><div class="feature done">プロジェクト状態トレンド履歴</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">コンプライアンスレポートとローカル HTML ヘルスダッシュボード</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦、提案比較、ポリシーパック生成</div><div class="feature done">Codex/Gemini/Claude Code 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow と Homebrew formula draft</div></div>
+      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">aigate start によるガイド付き開始ルート</div><div class="feature done">aigate start --route default による段階的なデフォルト設定</div><div class="feature done">aigate reset、clean、uninstall による初期化と削除コマンド</div><div class="feature done">aigate start --route oss によるオープンソース初期ファイル生成</div><div class="feature done">aigate test による turbo 実行環境を確認した root/workspace プロジェクトテスト自動化</div><div class="feature done">pnpm-workspace.yaml、package.json workspaces、apps/*、packages/* test detection と切り替え</div><div class="feature done">aigate ai report による AI プロジェクト状態ブリーフ</div><div class="feature done">aigate aitest による AI 修正プロンプト、リアルタイム agent ログ、任意の agent 実行</div><div class="feature done">doctor、demo、install-hook による初回実行 UX</div><div class="feature done">doctor による generatedBy version drift warning と gate 実行時の古い profile 無視</div><div class="feature done">pre-push Git hook のインストール</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">GitHub PR comment と GitHub Checks summary payload</div><div class="feature done">PR テンプレートと CODEOWNERS のガイド付き設定</div><div class="feature done">再利用可能な公開 GitHub Action</div><div class="feature done">プロジェクト状態トレンド履歴</div><div class="feature done">private app、GitLab、pnpm、develop 対象、Claude 中心チーム向けの profile と workflow 設定固定</div><div class="feature done">doctor、AI 指示、branch strategy policy pack 全体の GitHub/GitLab profile 整合性</div><div class="feature done">root AI 指示ファイルの保護、sidecar 専用、上書きポリシー設定</div><div class="feature done">GitLab repository 向け GitHub 補助生成物の明示的な整理</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">コンプライアンスレポートとローカル HTML ヘルスダッシュボード</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦、提案比較、ポリシーパック生成</div><div class="feature done">Codex/Gemini/Claude Code 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と app profile 対応 release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow と Homebrew formula draft</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -773,7 +969,7 @@ aigate release-check --npm</code></pre>
 
   <footer>
     <p>この文書は AIGate の公開リリース後の運用状態を説明します。</p>
-    <p>Generated 2026-07-02. Package version 0.1.5.</p>
+    <p>Generated 2026-07-02. Package version 0.1.6.</p>
   </footer>
 </body>
 </html>

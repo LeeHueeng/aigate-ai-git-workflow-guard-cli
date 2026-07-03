@@ -14,6 +14,7 @@ This checklist keeps AIGate useful and trustworthy for public contributors.
 - [x] issue templates
 - [x] pull request template
 - [x] CODEOWNERS
+- [x] open-source starter generator: `aigate start --route oss`
 - [x] funding metadata
 - [x] social preview asset: `assets/social-preview.png`
 - [x] real-world example issue template
@@ -35,6 +36,8 @@ This checklist keeps AIGate useful and trustworthy for public contributors.
 ## Maintainer Workflow
 
 - Use `aigate git-ready` before commits.
+- Use `aigate ai report` to review current problems, strengths, and direction.
+- Use `aigate start --route oss --dry-run` before generating or refreshing public contribution files.
 - Use `aigate push` instead of raw `git push`.
 - Use `aigate pr` to create pull requests.
 - Keep `main` releasable.
@@ -47,7 +50,7 @@ This checklist keeps AIGate useful and trustworthy for public contributors.
 - [x] Claim or confirm npm access for `aigate-cli`.
 - [x] Configure npm Trusted Publisher for this GitHub repository.
 - [x] Run `aigate release-check`.
-- [x] Publish the npm package; current public version is `0.1.5`.
-- [x] Create GitHub release tags through `v0.1.5`.
+- [x] Publish the npm package; current public version is `0.1.6`.
+- [x] Create GitHub release tags through `v0.1.6`.
 - [x] Confirm `npm view aigate-cli` after publish.
 - [x] Keep future releases tied to changelog entries and tagged GitHub Releases.

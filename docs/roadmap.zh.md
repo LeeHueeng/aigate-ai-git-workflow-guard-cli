@@ -7,6 +7,8 @@
 - [x] 将 `aigate-cli` publish 到 npm
 - [x] 支持 npm、npx、yarn、pnpm、bun install path
 - [x] 通过 `aigate init` 创建 starter project configuration
+- [x] 通过 `aigate reset` 重置本地 AIGate 设置
+- [x] 通过 `aigate clean` 和 `aigate uninstall` 删除生成的本地 AIGate 状态
 - [x] 生成 Markdown、HTML、JSON、SARIF reports
 - [x] 通过 `aigate pr-check` 生成 pull request readiness report
 - [x] 通过 `aigate doctor` 诊断 first-run setup
@@ -29,8 +31,11 @@
 - [x] 将 generated branch strategy docs 扩展为 richer policy pack
 - [x] 将 PR 模板和 CODEOWNERS 草案升级为引导式设置
 - [x] 通过 `aigate start` 添加引导式项目设置路由
+- [x] 通过 `aigate start --route default --ask-steps` 添加逐步默认设置
+- [x] 通过 `aigate start --route oss` 添加开源起始文件生成路由
 - [x] 通过 `aigate test` 添加项目测试自动化
 - [x] 通过 `aigate aitest` 添加 AI 修复提示和可选 agent 执行
+- [x] 通过 `aigate ai report` 添加 AI 项目状态简报
 
 ## V2: Team reports and GitHub integration
 

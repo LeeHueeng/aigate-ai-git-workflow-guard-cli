@@ -39,10 +39,11 @@ flowchart LR
 
 | Area | Commands |
 | --- | --- |
-| Setup | `start`, `init`, `setup`, `settings`, `integrate` |
+| Setup | `start`, `start --route default`, `start --route oss`, `init`, `reset`, `setup`, `settings`, `integrate` |
 | First run | `doctor`, `demo`, `install-hook --pre-push` |
 | Guard gates | `check`, `test`, `aitest`, `git-ready`, `push`, `pr` |
-| Reports | `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
+| Maintenance | `clean`, `uninstall`, `delete` |
+| Reports | `ai report`, `pr-check`, `report`, `evaluate-project`, `compliance-report`, `dashboard`, `audit-report` |
 | Release | `release-check`, `release-check --npm`, `branch-strategy`, `branch-strategy --compare`, `notify` |
 
 ## Typical Command Path
@@ -50,7 +51,12 @@ flowchart LR
 ```sh
 npm install -g aigate-cli
 aigate setup --language en
+aigate ai report
+aigate start --route default --ask-steps
+aigate start --route oss --dry-run
 aigate start --route ai --provider all
+aigate reset --dry-run
+aigate clean
 git switch -c feature/my-change
 aigate doctor
 aigate install-hook --pre-push
@@ -77,10 +83,17 @@ aigate release-check --npm
 - Public npm package `aigate-cli` and `npx` execution
 - First-run diagnostics through `aigate doctor`
 - Guided start routes through `aigate start`
+- Stepwise default setup through `aigate start --route default --ask-steps`
+- Selected setup step execution through `aigate start --route default --steps init,repo-files`
+- Config reset through `aigate reset`
+- Safe generated-state cleanup through `aigate clean --force`
+- Local AIGate uninstall through `aigate uninstall --force`
+- Open-source starter files through `aigate start --route oss`
 - Guided CLI demo through `aigate demo`
 - Pre-push hook installation through `aigate install-hook --pre-push`
 - Git changed-file and untracked-file readiness checks
 - Project test automation through `aigate test`
+- AI project health briefs through `aigate ai report`
 - AI remediation prompt and optional agent execution through `aigate aitest`
 - Secret pattern detection and SARIF output
 - `git-ready`, guarded push, and guarded PR creation

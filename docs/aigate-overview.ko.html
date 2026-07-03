@@ -122,7 +122,7 @@ p { color: var(--muted); margin: 0; }
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
-.panel, .install-panel, .command-group, .feature {
+.panel, .install-panel, .command-group, .feature, .use-case {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -195,6 +195,25 @@ code {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.25;
+}
+.use-case-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.use-case {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: 18px;
+  padding: 20px;
+  align-items: start;
+}
+.use-case > div:last-child {
+  grid-column: 1 / -1;
+}
+.use-case pre {
+  padding: 14px;
+  font-size: 0.86rem;
 }
 .command-groups {
   display: grid;
@@ -273,9 +292,10 @@ footer p + p { margin-top: 6px; }
     grid-template-columns: 1fr;
     display: grid;
   }
-  .summary-grid, .command-groups, .feature-grid {
+  .summary-grid, .command-groups, .feature-grid, .use-case-grid, .use-case {
     grid-template-columns: 1fr;
   }
+  .use-case > div:last-child { grid-column: auto; }
   h1 { font-size: 2.4rem; }
   .hero { padding-bottom: 42px; }
 }
@@ -290,7 +310,7 @@ footer p + p { margin-top: 6px; }
     <p class="eyebrow">오픈소스 AI Git Workflow Guard CLI</p>
     <h1>AIGate 운영 문서</h1>
     <p class="subtitle">AIGate가 어떤 흐름으로 동작하는지, 어떤 명령어를 제공하는지, 현재 구현된 기능과 앞으로의 기능 계획을 한눈에 설명합니다.</p>
-    <div class="badges"><span>npm 배포 완료</span><span>Trusted Publishing 연결</span><span>GitHub Release 운영</span><span>CLI v0.1.5</span></div>
+    <div class="badges"><span>npm 배포 완료</span><span>Trusted Publishing 연결</span><span>GitHub Release 운영</span><span>CLI v0.1.6</span></div>
   </header>
 
   <main>
@@ -337,7 +357,7 @@ npx aigate-cli check</code></pre>
     <foreignObject x="72" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
         <strong>시작 루트</strong>
-        <span>aigate start로 설정 경로 선택</span>
+        <span>aigate start 기본 설정과 단계 선택</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -357,7 +377,7 @@ npx aigate-cli check</code></pre>
     <foreignObject x="520" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
         <strong>테스트 자동화</strong>
-        <span>aigate test가 Git gate와 npm script 실행</span>
+        <span>aigate test가 Git gate와 turbo 실행기 감지 기반 workspace 테스트 실행</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -455,6 +475,130 @@ npx aigate-cli check</code></pre>
   </div>
     </section>
 
+    <section class="section" id="use-cases">
+      <div class="section-heading">
+        <p class="kicker">프로세스</p>
+        <h2>상황별 사용 예시</h2>
+        <p>AIGate는 모든 순간에 같은 명령을 쓰는 도구가 아니라, 프로젝트 상태와 위험도에 따라 다른 루틴을 빠르게 꺼내 쓰는 도구입니다.</p>
+      </div>
+      <div class="use-case-grid">
+    <article class="use-case">
+      <div>
+        <p class="kicker">상황</p>
+        <h3>처음 저장소에 도입할 때</h3>
+      </div>
+      <div>
+        <p class="kicker">프로세스</p>
+        <p>기본 설정을 고르고, 부족한 문서/AI 지침/hook을 단계적으로 만듭니다.</p>
+      </div>
+      <div>
+        <p class="kicker">예시 명령</p>
+        <pre><code>aigate start --route default --ask-steps
+aigate doctor
+aigate install-hook --pre-push</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">상황</p>
+        <h3>AI가 코드를 많이 바꾼 뒤</h3>
+      </div>
+      <div>
+        <p class="kicker">프로세스</p>
+        <p>변경 파일과 secret 위험을 먼저 보고, 테스트 실패는 AI 수정 프롬프트로 넘깁니다.</p>
+      </div>
+      <div>
+        <p class="kicker">예시 명령</p>
+        <pre><code>aigate check
+aigate test
+aigate aitest</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">상황</p>
+        <h3>PR을 열기 직전</h3>
+      </div>
+      <div>
+        <p class="kicker">프로세스</p>
+        <p>push 전 gate를 통과시키고, PR 설명과 리뷰어용 요약을 생성합니다.</p>
+      </div>
+      <div>
+        <p class="kicker">예시 명령</p>
+        <pre><code>aigate git-ready
+aigate push -u origin feature/my-work
+aigate pr-check</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">상황</p>
+        <h3>private GitLab 모노레포</h3>
+      </div>
+      <div>
+        <p class="kicker">프로세스</p>
+        <p>프로필을 고정하고 turbo 실행기 감지 후 workspace 테스트를 대체 실행하며 GitHub/npm 패키지 검사를 앱 점수에서 제외합니다.</p>
+      </div>
+      <div>
+        <p class="kicker">예시 명령</p>
+        <pre><code>aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm
+aigate setup --ai-root-files sidecar
+aigate integrate claude --force
+aigate clean --github-files --force
+aigate test
+aigate evaluate-project</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">상황</p>
+        <h3>오픈소스 공개 준비</h3>
+      </div>
+      <div>
+        <p class="kicker">프로세스</p>
+        <p>README, 기여 문서, 이슈 템플릿, CODEOWNERS를 만들고 저장소 기반 점수를 확인합니다.</p>
+      </div>
+      <div>
+        <p class="kicker">예시 명령</p>
+        <pre><code>aigate start --route oss --owner @team
+aigate evaluate-project --deep --report
+aigate github setup --dry-run</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">상황</p>
+        <h3>릴리스 전후</h3>
+      </div>
+      <div>
+        <p class="kicker">프로세스</p>
+        <p>태그와 npm 상태를 점검하고, 배포 후 상태 추세를 남깁니다.</p>
+      </div>
+      <div>
+        <p class="kicker">예시 명령</p>
+        <pre><code>aigate release-check --npm
+npm run ci
+aigate trends record</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">상황</p>
+        <h3>로컬 상태를 비우거나 제거할 때</h3>
+      </div>
+      <div>
+        <p class="kicker">프로세스</p>
+        <p>먼저 삭제 대상을 미리 본 뒤, 확실할 때만 --force로 적용합니다.</p>
+      </div>
+      <div>
+        <p class="kicker">예시 명령</p>
+        <pre><code>aigate clean
+aigate clean --force
+aigate uninstall --force</code></pre>
+      </div>
+    </article></div>
+    </section>
+
     <section class="section" id="release">
       <div class="section-heading">
         <p class="kicker">릴리스</p>
@@ -541,7 +685,7 @@ npx aigate-cli check</code></pre>
       </div>
       <div class="command-groups"><article class="command-group group-0">
       <h3>설정</h3>
-      <div><span>start</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
+      <div><span>start</span><span>start --route default</span><span>start --route oss</span><span>init</span><span>reset</span><span>setup</span><span>settings</span><span>integrate</span></div>
     </article><article class="command-group group-1">
       <h3>첫 실행</h3>
       <div><span>doctor</span><span>demo</span><span>install-hook</span></div>
@@ -549,9 +693,12 @@ npx aigate-cli check</code></pre>
       <h3>보호 게이트</h3>
       <div><span>check</span><span>test</span><span>aitest</span><span>git-ready</span><span>push</span><span>pr</span></div>
     </article><article class="command-group group-3">
-      <h3>보고서</h3>
-      <div><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
+      <h3>유지보수</h3>
+      <div><span>clean</span><span>uninstall</span><span>delete</span></div>
     </article><article class="command-group group-4">
+      <h3>보고서</h3>
+      <div><span>ai report</span><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
+    </article><article class="command-group group-5">
       <h3>릴리스</h3>
       <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>branch-strategy --compare</span><span>notify</span></div>
     </article></div>
@@ -578,6 +725,18 @@ npx aigate-cli check</code></pre>
     <td>화살표 메뉴 또는 route 옵션으로 프로젝트 설정 흐름을 실행합니다.</td>
     <td>처음 프로젝트에 AIGate를 적용할 때</td>
   </tr><tr>
+    <td><code>aigate start --route default --ask-steps</code></td>
+    <td>추천 설정 단계를 예/아니오로 확인하며 실행합니다.</td>
+    <td>처음 적용할 때 필요한 단계만 고르고 싶을 때</td>
+  </tr><tr>
+    <td><code>aigate start --route default --steps init,repo-files</code></td>
+    <td>지정한 설정 단계 ID만 실행하고 나머지는 건너뜁니다.</td>
+    <td>문서화된 온보딩이나 반복 실행</td>
+  </tr><tr>
+    <td><code>aigate start --route oss --owner @team</code></td>
+    <td>README, 기여 문서, 이슈 템플릿, PR 템플릿, CODEOWNERS를 생성합니다.</td>
+    <td>공개 저장소 기여 흐름을 열 때</td>
+  </tr><tr>
     <td><code>aigate start --route ai --provider all</code></td>
     <td>AIGate 설정과 Codex/Gemini/Claude 지침 파일을 생성합니다.</td>
     <td>AI assistant 규칙을 한 번에 심을 때</td>
@@ -586,9 +745,29 @@ npx aigate-cli check</code></pre>
     <td>AIGate 기본 설정 파일과 리포트 폴더를 만듭니다.</td>
     <td>새 프로젝트에 AIGate를 적용할 때</td>
   </tr><tr>
+    <td><code>aigate reset</code></td>
+    <td>AIGate 설정과 settings, 리포트 placeholder를 다시 작성합니다.</td>
+    <td>설정을 처음 상태로 되돌릴 때</td>
+  </tr><tr>
+    <td><code>aigate clean --force</code></td>
+    <td>생성된 AIGate 리포트와 로컬 상태를 삭제합니다.</td>
+    <td>리포트와 generated state를 비울 때</td>
+  </tr><tr>
+    <td><code>aigate clean --github-files --force</code></td>
+    <td>실제 운영은 GitLab인데 남아 있는 GitHub 보조 템플릿을 삭제합니다.</td>
+    <td>GitLab 프로젝트에서 오래된 GitHub 산출물을 정리할 때</td>
+  </tr><tr>
+    <td><code>aigate uninstall --force</code></td>
+    <td>AIGate 설정, .aigate 디렉터리, AIGate 소유 hook을 제거합니다.</td>
+    <td>프로젝트에서 AIGate를 제거할 때</td>
+  </tr><tr>
     <td><code>aigate setup --language &lt;en|ko|ja|zh&gt;</code></td>
     <td>CLI 출력 언어를 저장합니다.</td>
     <td>팀 기본 언어를 맞출 때</td>
+  </tr><tr>
+    <td><code>aigate setup --hosting gitlab --ci-provider gitlab</code></td>
+    <td>GitLab 프로젝트 프로필을 저장합니다.</td>
+    <td>GitHub 기준이 맞지 않는 내부 GitLab 앱</td>
   </tr><tr>
     <td><code>aigate settings</code></td>
     <td>현재 AIGate 설정을 확인합니다.</td>
@@ -607,19 +786,27 @@ npx aigate-cli check</code></pre>
     <td>push 실수를 로컬에서 막고 싶을 때</td>
   </tr><tr>
     <td><code>aigate check</code></td>
-    <td>변경 파일과 secret 위험을 요약합니다.</td>
+    <td>변경 파일, 실제 secret finding, 민감 파일 제거 상태를 요약합니다.</td>
     <td>커밋 전 가벼운 점검</td>
   </tr><tr>
     <td><code>aigate test</code></td>
-    <td>Git readiness와 감지된 npm test/ci script를 실행합니다.</td>
+    <td>Git readiness와 root script, turbo task, pnpm workspace, workspace package 테스트 명령을 감지해 실행합니다. turbo 실행기가 없으면 workspace script로 대체 실행합니다.</td>
     <td>커밋 전 실제 테스트까지 확인할 때</td>
+  </tr><tr>
+    <td><code>aigate ai report</code></td>
+    <td>현재 문제점, 잘된 점, 방향성, AI 전달 프롬프트를 정리합니다.</td>
+    <td>AI에게 프로젝트 개선 방향을 맡기기 전</td>
+  </tr><tr>
+    <td><code>aigate ai report --apply --provider codex</code></td>
+    <td>AI 프로젝트 브리프를 CLI에 전달하고 실시간 에이전트 출력과 stdout/stderr 리포트를 남깁니다.</td>
+    <td>명시적으로 AI 자동 조치를 허용할 때</td>
   </tr><tr>
     <td><code>aigate aitest</code></td>
     <td>테스트 실패를 AI가 고칠 수 있도록 프롬프트 파일을 생성합니다.</td>
     <td>실패 원인을 AI 에이전트에 넘길 때</td>
   </tr><tr>
     <td><code>aigate aitest --apply --provider codex</code></td>
-    <td>Codex CLI를 호출해 수정 작업을 실행합니다.</td>
+    <td>AI CLI를 호출하고 실행 로그, 종료 코드, stdout/stderr를 표시합니다.</td>
     <td>명시적으로 AI 자동 조치를 허용할 때</td>
   </tr><tr>
     <td><code>aigate git-ready</code></td>
@@ -698,12 +885,16 @@ npx aigate-cli check</code></pre>
     <td>Codex, Gemini, Claude Code 통합 문서를 생성합니다.</td>
     <td>AI assistant가 같은 규칙을 따르게 할 때</td>
   </tr><tr>
+    <td><code>aigate setup --ai-root-files sidecar</code></td>
+    <td>integrate가 .aigate/integrations/*만 쓰도록 루트 AI 파일 처리 방식을 저장합니다.</td>
+    <td>프로젝트 고유 AGENTS/GEMINI/CLAUDE 파일을 보호할 때</td>
+  </tr><tr>
     <td><code>aigate release-check</code></td>
     <td>패키지, workflow, tag 상태를 점검합니다.</td>
     <td>릴리스 태그 생성 전</td>
   </tr><tr>
     <td><code>aigate release-check --npm</code></td>
-    <td>npm registry에 해당 버전이 있는지 확인합니다.</td>
+    <td>프로필을 감지해 npm registry, GitHub/GitLab, package manager 상태를 확인하고 app에 해당 없는 npm/package version gate는 제외합니다.</td>
     <td>자동 배포 전후</td>
   </tr><tr>
     <td><code>aigate audit-report</code></td>
@@ -730,10 +921,15 @@ npx aigate-cli check</code></pre>
       <div>
         <p class="kicker">Git</p>
         <h2>브랜치와 배포 흐름</h2>
-        <p>main은 보호된 안정 브랜치이며, codex/*와 feature/* 같은 작업 브랜치에서 PR을 만든 뒤 병합합니다. release/*와 hotfix/*는 배포 안정화와 긴급 수정에 예약되어 있습니다.</p>
+        <p>main은 보호된 안정 브랜치이며, codex/*, feature/*, feat/* 같은 작업 브랜치에서 PR을 만든 뒤 병합합니다. release/*와 hotfix/*는 배포 안정화와 긴급 수정에 예약되어 있습니다.</p>
       </div>
       <pre><code>npm install -g aigate-cli
 aigate setup --language ko
+aigate ai report
+aigate start --route default --ask-steps
+aigate start --route oss --dry-run
+aigate reset --dry-run
+aigate clean
 aigate start --route ai --provider all
 git switch -c feature/my-change
 aigate doctor
@@ -759,7 +955,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">기능</p>
         <h2>현재 구현된 기능</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm 패키지 aigate-cli 공개 배포와 npx 실행</div><div class="feature done">Git 변경사항과 untracked 파일 기반 readiness check</div><div class="feature done">aigate start 기반 안내형 시작 루트</div><div class="feature done">aigate test 기반 프로젝트 테스트 자동화</div><div class="feature done">aigate aitest 기반 AI 수정 프롬프트와 선택적 에이전트 실행</div><div class="feature done">doctor, demo, install-hook 기반 첫 실행 UX</div><div class="feature done">pre-push Git hook 설치</div><div class="feature done">secret 패턴 탐지와 SARIF 출력</div><div class="feature done">git-ready, guarded push, guarded PR 생성 흐름</div><div class="feature done">GitHub PR comment와 GitHub Checks summary payload</div><div class="feature done">PR 템플릿과 CODEOWNERS 안내형 설정</div><div class="feature done">재사용 가능한 공개 GitHub Action</div><div class="feature done">프로젝트 상태 추세 기록</div><div class="feature done">Markdown, HTML, JSON, SARIF 리포트</div><div class="feature done">컴플라이언스 리포트와 로컬 HTML 상태 대시보드</div><div class="feature done">프로젝트 점수와 deep Git signal 평가</div><div class="feature done">브랜치 전략 추천, 제안 비교, 정책 팩 생성</div><div class="feature done">Codex/Gemini/Claude Code 통합 파일 생성</div><div class="feature done">한국어/영어/일본어/중국어 CLI 설정</div><div class="feature done">release-check와 release-check --npm</div><div class="feature done">npm Trusted Publishing 기반 자동 배포</div><div class="feature done">GitHub CI, OpenSSF Scorecard, GitHub Release 운영</div><div class="feature done">터미널, Slack BLOCK, Discord, Teams, email, Linear, Jira 알림</div><div class="feature done">GHCR Docker 배포 workflow와 Homebrew formula 초안</div></div>
+      <div class="feature-grid"><div class="feature done">npm 패키지 aigate-cli 공개 배포와 npx 실행</div><div class="feature done">Git 변경사항과 untracked 파일 기반 readiness check</div><div class="feature done">aigate start 기반 안내형 시작 루트</div><div class="feature done">aigate start --route default 기반 단계별 기본 설정</div><div class="feature done">aigate reset, clean, uninstall 기반 초기화와 삭제 명령</div><div class="feature done">aigate start --route oss 기반 오픈소스 시작 파일 생성</div><div class="feature done">aigate test 기반 turbo 실행기 감지형 root/workspace 테스트 자동화</div><div class="feature done">pnpm-workspace.yaml, package.json workspaces, apps/*, packages/* 테스트 탐지와 대체 실행</div><div class="feature done">aigate ai report 기반 AI 프로젝트 상태 브리프</div><div class="feature done">aigate aitest 기반 AI 수정 프롬프트, 실시간 에이전트 로그, 선택적 에이전트 실행</div><div class="feature done">doctor, demo, install-hook 기반 첫 실행 UX</div><div class="feature done">doctor 기반 generatedBy 버전 드리프트 경고와 게이트 실행 시 오래된 프로필 무시</div><div class="feature done">pre-push Git hook 설치</div><div class="feature done">secret 패턴 탐지와 SARIF 출력</div><div class="feature done">git-ready, guarded push, guarded PR 생성 흐름</div><div class="feature done">GitHub PR comment와 GitHub Checks summary payload</div><div class="feature done">PR 템플릿과 CODEOWNERS 안내형 설정</div><div class="feature done">재사용 가능한 공개 GitHub Action</div><div class="feature done">프로젝트 상태 추세 기록</div><div class="feature done">private 앱, GitLab, pnpm, develop 대상, Claude 중심 팀을 위한 프로필과 워크플로 설정 고정</div><div class="feature done">doctor, AI 지침, branch strategy 정책팩의 GitHub/GitLab 프로필 정합성</div><div class="feature done">루트 AI 지침 파일 보호, sidecar 전용, 덮어쓰기 정책 설정</div><div class="feature done">GitLab 저장소용 GitHub 보조 산출물 명시적 정리</div><div class="feature done">Markdown, HTML, JSON, SARIF 리포트</div><div class="feature done">컴플라이언스 리포트와 로컬 HTML 상태 대시보드</div><div class="feature done">프로젝트 점수와 deep Git signal 평가</div><div class="feature done">브랜치 전략 추천, 제안 비교, 정책 팩 생성</div><div class="feature done">Codex/Gemini/Claude Code 통합 파일 생성</div><div class="feature done">한국어/영어/일본어/중국어 CLI 설정</div><div class="feature done">release-check와 앱 프로필 인식 release-check --npm</div><div class="feature done">npm Trusted Publishing 기반 자동 배포</div><div class="feature done">GitHub CI, OpenSSF Scorecard, GitHub Release 운영</div><div class="feature done">터미널, Slack BLOCK, Discord, Teams, email, Linear, Jira 알림</div><div class="feature done">GHCR Docker 배포 workflow와 Homebrew formula 초안</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -773,7 +969,7 @@ aigate release-check --npm</code></pre>
 
   <footer>
     <p>이 문서는 AIGate 공개 릴리스 이후의 운영 상태를 설명합니다.</p>
-    <p>Generated 2026-07-02. Package version 0.1.5.</p>
+    <p>Generated 2026-07-02. Package version 0.1.6.</p>
   </footer>
 </body>
 </html>

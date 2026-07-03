@@ -7,6 +7,8 @@
 - [x] `aigate-cli` を npm に publish
 - [x] npm、npx、yarn、pnpm、bun install path をサポート
 - [x] `aigate init` で starter project configuration を生成
+- [x] `aigate reset` でローカル AIGate 設定を初期化
+- [x] `aigate clean` と `aigate uninstall` で生成済みローカル AIGate 状態を削除
 - [x] Markdown、HTML、JSON、SARIF reports を生成
 - [x] `aigate pr-check` で pull request readiness report を生成
 - [x] `aigate doctor` で first-run setup を診断
@@ -29,8 +31,11 @@
 - [x] generated branch strategy docs を richer policy pack に拡張
 - [x] PR テンプレートと CODEOWNERS 草案をガイド付き設定に昇格
 - [x] `aigate start` でガイド付きプロジェクト設定ルートを追加
+- [x] `aigate start --route default --ask-steps` で段階的なデフォルト設定を追加
+- [x] `aigate start --route oss` でオープンソース初期ファイル生成ルートを追加
 - [x] `aigate test` でプロジェクトテスト自動化を追加
 - [x] `aigate aitest` で AI 修正プロンプトと任意の agent 実行を追加
+- [x] `aigate ai report` で AI プロジェクト状態ブリーフを追加
 
 ## V2: Team reports and GitHub integration
 

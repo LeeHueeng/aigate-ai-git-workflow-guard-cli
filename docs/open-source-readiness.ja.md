@@ -16,6 +16,7 @@
 - [x] issue templates
 - [x] pull request template
 - [x] CODEOWNERS
+- [x] オープンソース初期ファイル生成: `aigate start --route oss`
 - [x] funding metadata
 - [x] social preview asset: `assets/social-preview.png`
 - [x] real-world example issue template
@@ -37,6 +38,8 @@
 ## Maintainer workflow
 
 - commit 前に `aigate git-ready` を使う
+- 現在の問題、良い点、方向性の確認に `aigate ai report` を使う
+- 公開貢献ファイルの生成または更新前に `aigate start --route oss --dry-run` を使う
 - raw `git push` の代わりに `aigate push` を使う
 - pull request 作成に `aigate pr` を使う
 - `main` を常に releasable に保つ
@@ -49,7 +52,7 @@
 - [x] `aigate-cli` の npm access を確保
 - [x] この GitHub repository 用の npm Trusted Publisher を設定
 - [x] `aigate release-check` を実行
-- [x] npm package を publish、現在の公開 version は `0.1.5`
-- [x] GitHub release tag を `v0.1.5` まで作成
+- [x] npm package を publish、現在の公開 version は `0.1.6`
+- [x] GitHub release tag を `v0.1.6` まで作成
 - [x] publish 後に `npm view aigate-cli` を確認
 - [x] future release を changelog entry と tagged GitHub Release に結びつける

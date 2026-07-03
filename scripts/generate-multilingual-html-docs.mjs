@@ -42,9 +42,9 @@ const locales = {
     flowTitle: "전체 운영 프로세스",
     flowIntro: "AIGate는 개발자가 커밋하기 전부터 PR, CI, 릴리스, npm 배포까지 같은 기준으로 검증하도록 설계되었습니다.",
     processSteps: [
-      ["시작 루트", "aigate start로 설정 경로 선택"],
+      ["시작 루트", "aigate start 기본 설정과 단계 선택"],
       ["변경 감지", "Git diff와 untracked 파일 확인"],
-      ["테스트 자동화", "aigate test가 Git gate와 npm script 실행"],
+      ["테스트 자동화", "aigate test가 Git gate와 turbo 실행기 감지 기반 workspace 테스트 실행"],
       ["AI 조치", "aitest가 수정 프롬프트와 선택 실행 제공"],
       ["커밋", "Conventional Commit으로 범위 고정"],
       ["Guarded push", "aigate push가 push 전 검증"],
@@ -65,12 +65,25 @@ const locales = {
       ["npm publish", "OIDC Trusted Publishing"],
       ["Release note", "GitHub Release 작성"]
     ],
+    useCaseTitle: "상황별 사용 예시",
+    useCaseIntro: "AIGate는 모든 순간에 같은 명령을 쓰는 도구가 아니라, 프로젝트 상태와 위험도에 따라 다른 루틴을 빠르게 꺼내 쓰는 도구입니다.",
+    useCaseHeaders: ["상황", "프로세스", "예시 명령"],
+    useCases: [
+      ["처음 저장소에 도입할 때", "기본 설정을 고르고, 부족한 문서/AI 지침/hook을 단계적으로 만듭니다.", ["aigate start --route default --ask-steps", "aigate doctor", "aigate install-hook --pre-push"]],
+      ["AI가 코드를 많이 바꾼 뒤", "변경 파일과 secret 위험을 먼저 보고, 테스트 실패는 AI 수정 프롬프트로 넘깁니다.", ["aigate check", "aigate test", "aigate aitest"]],
+      ["PR을 열기 직전", "push 전 gate를 통과시키고, PR 설명과 리뷰어용 요약을 생성합니다.", ["aigate git-ready", "aigate push -u origin feature/my-work", "aigate pr-check"]],
+      ["private GitLab 모노레포", "프로필을 고정하고 turbo 실행기 감지 후 workspace 테스트를 대체 실행하며 GitHub/npm 패키지 검사를 앱 점수에서 제외합니다.", ["aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm", "aigate test", "aigate evaluate-project"]],
+      ["오픈소스 공개 준비", "README, 기여 문서, 이슈 템플릿, CODEOWNERS를 만들고 저장소 기반 점수를 확인합니다.", ["aigate start --route oss --owner @team", "aigate evaluate-project --deep --report", "aigate github setup --dry-run"]],
+      ["릴리스 전후", "태그와 npm 상태를 점검하고, 배포 후 상태 추세를 남깁니다.", ["aigate release-check --npm", "npm run ci", "aigate trends record"]],
+      ["로컬 상태를 비우거나 제거할 때", "먼저 삭제 대상을 미리 본 뒤, 확실할 때만 --force로 적용합니다.", ["aigate clean", "aigate clean --force", "aigate uninstall --force"]]
+    ],
     commandMapTitle: "명령어 맵",
     commandGroups: [
-      ["설정", ["start", "init", "setup", "settings", "integrate"]],
+      ["설정", ["start", "start --route default", "start --route oss", "init", "reset", "setup", "settings", "integrate"]],
       ["첫 실행", ["doctor", "demo", "install-hook"]],
       ["보호 게이트", ["check", "test", "aitest", "git-ready", "push", "pr"]],
-      ["보고서", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
+      ["유지보수", ["clean", "uninstall", "delete"]],
+      ["보고서", ["ai report", "pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
       ["릴리스", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
     commandsTitle: "전체 명령어와 사용 과정",
@@ -79,17 +92,26 @@ const locales = {
       ["npm install -g aigate-cli", "CLI를 전역 설치합니다.", "처음 사용하는 개발자 환경"],
       ["npx aigate-cli check", "설치 없이 현재 저장소 상태를 확인합니다.", "빠른 체험 또는 CI 전 점검"],
       ["aigate start", "화살표 메뉴 또는 route 옵션으로 프로젝트 설정 흐름을 실행합니다.", "처음 프로젝트에 AIGate를 적용할 때"],
+      ["aigate start --route default --ask-steps", "추천 설정 단계를 예/아니오로 확인하며 실행합니다.", "처음 적용할 때 필요한 단계만 고르고 싶을 때"],
+      ["aigate start --route default --steps init,repo-files", "지정한 설정 단계 ID만 실행하고 나머지는 건너뜁니다.", "문서화된 온보딩이나 반복 실행"],
+      ["aigate start --route oss --owner @team", "README, 기여 문서, 이슈 템플릿, PR 템플릿, CODEOWNERS를 생성합니다.", "공개 저장소 기여 흐름을 열 때"],
       ["aigate start --route ai --provider all", "AIGate 설정과 Codex/Gemini/Claude 지침 파일을 생성합니다.", "AI assistant 규칙을 한 번에 심을 때"],
       ["aigate init", "AIGate 기본 설정 파일과 리포트 폴더를 만듭니다.", "새 프로젝트에 AIGate를 적용할 때"],
+      ["aigate reset", "AIGate 설정과 settings, 리포트 placeholder를 다시 작성합니다.", "설정을 처음 상태로 되돌릴 때"],
+      ["aigate clean --force", "생성된 AIGate 리포트와 로컬 상태를 삭제합니다.", "리포트와 generated state를 비울 때"],
+      ["aigate uninstall --force", "AIGate 설정, .aigate 디렉터리, AIGate 소유 hook을 제거합니다.", "프로젝트에서 AIGate를 제거할 때"],
       ["aigate setup --language <en|ko|ja|zh>", "CLI 출력 언어를 저장합니다.", "팀 기본 언어를 맞출 때"],
+      ["aigate setup --hosting gitlab --ci-provider gitlab", "GitLab 프로젝트 프로필을 저장합니다.", "GitHub 기준이 맞지 않는 내부 GitLab 앱"],
       ["aigate settings", "현재 AIGate 설정을 확인합니다.", "설정 검증"],
       ["aigate doctor", "첫 실행 환경, Git hook, 프로젝트 기반 상태를 진단합니다.", "처음 실행하거나 저장소 상태를 점검할 때"],
       ["aigate demo", "파일을 바꾸지 않고 AIGate 사용 흐름을 보여줍니다.", "처음 체험하거나 팀에 사용법을 설명할 때"],
       ["aigate install-hook --pre-push", "git push 전에 git-ready가 실행되도록 pre-push hook을 설치합니다.", "push 실수를 로컬에서 막고 싶을 때"],
-      ["aigate check", "변경 파일과 secret 위험을 요약합니다.", "커밋 전 가벼운 점검"],
-      ["aigate test", "Git readiness와 감지된 npm test/ci script를 실행합니다.", "커밋 전 실제 테스트까지 확인할 때"],
+      ["aigate check", "변경 파일, 실제 secret finding, 민감 파일 제거 상태를 요약합니다.", "커밋 전 가벼운 점검"],
+      ["aigate test", "Git readiness와 root script, turbo task, pnpm workspace, workspace package 테스트 명령을 감지해 실행합니다. turbo 실행기가 없으면 workspace script로 대체 실행합니다.", "커밋 전 실제 테스트까지 확인할 때"],
+      ["aigate ai report", "현재 문제점, 잘된 점, 방향성, AI 전달 프롬프트를 정리합니다.", "AI에게 프로젝트 개선 방향을 맡기기 전"],
+      ["aigate ai report --apply --provider codex", "AI 프로젝트 브리프를 CLI에 전달하고 실시간 에이전트 출력과 stdout/stderr 리포트를 남깁니다.", "명시적으로 AI 자동 조치를 허용할 때"],
       ["aigate aitest", "테스트 실패를 AI가 고칠 수 있도록 프롬프트 파일을 생성합니다.", "실패 원인을 AI 에이전트에 넘길 때"],
-      ["aigate aitest --apply --provider codex", "Codex CLI를 호출해 수정 작업을 실행합니다.", "명시적으로 AI 자동 조치를 허용할 때"],
+      ["aigate aitest --apply --provider codex", "AI CLI를 호출하고 실행 로그, 종료 코드, stdout/stderr를 표시합니다.", "명시적으로 AI 자동 조치를 허용할 때"],
       ["aigate git-ready", "테스트, secret scan, 프로젝트 점수를 포함한 게이트를 실행합니다.", "커밋/푸시 전 필수 점검"],
       ["aigate push -u origin <branch>", "검증 통과 후 git push를 실행합니다.", "브랜치를 원격에 올릴 때"],
       ["aigate pr-check", "PR 준비 상태 리포트를 생성합니다.", "PR 설명 작성 전"],
@@ -110,7 +132,7 @@ const locales = {
       ["aigate branch-strategy --apply", "브랜치 정책, 릴리스, hotfix, PR, CODEOWNERS, 정책 팩 초안을 생성합니다.", "정책 파일을 시작할 때"],
       ["aigate integrate all", "Codex, Gemini, Claude Code 통합 문서를 생성합니다.", "AI assistant가 같은 규칙을 따르게 할 때"],
       ["aigate release-check", "패키지, workflow, tag 상태를 점검합니다.", "릴리스 태그 생성 전"],
-      ["aigate release-check --npm", "npm registry에 해당 버전이 있는지 확인합니다.", "자동 배포 전후"],
+      ["aigate release-check --npm", "프로필을 감지해 npm registry, GitHub/GitLab, package manager 상태를 확인하고 app에 해당 없는 npm/package version gate는 제외합니다.", "자동 배포 전후"],
       ["aigate audit-report", "거버넌스와 정책 상태를 요약합니다.", "운영 감사와 공개 준비 리뷰"],
       ["aigate notify send --channel terminal", "로컬 알림 이벤트를 출력합니다.", "게이트 차단 상황 확인"],
       ["aigate git-ready --notify-channel slack", "BLOCK 상황에서 Slack webhook 알림을 전송합니다.", "민감 정보나 고위험 변경이 차단될 때"],
@@ -122,6 +144,11 @@ const locales = {
     commandPath: [
       "npm install -g aigate-cli",
       "aigate setup --language ko",
+      "aigate ai report",
+      "aigate start --route default --ask-steps",
+      "aigate start --route oss --dry-run",
+      "aigate reset --dry-run",
+      "aigate clean",
       "aigate start --route ai --provider all",
       "git switch -c feature/my-change",
       "aigate doctor",
@@ -147,9 +174,15 @@ const locales = {
       "npm 패키지 aigate-cli 공개 배포와 npx 실행",
       "Git 변경사항과 untracked 파일 기반 readiness check",
       "aigate start 기반 안내형 시작 루트",
-      "aigate test 기반 프로젝트 테스트 자동화",
-      "aigate aitest 기반 AI 수정 프롬프트와 선택적 에이전트 실행",
+      "aigate start --route default 기반 단계별 기본 설정",
+      "aigate reset, clean, uninstall 기반 초기화와 삭제 명령",
+      "aigate start --route oss 기반 오픈소스 시작 파일 생성",
+      "aigate test 기반 turbo 실행기 감지형 root/workspace 테스트 자동화",
+      "pnpm-workspace.yaml, package.json workspaces, apps/*, packages/* 테스트 탐지와 대체 실행",
+      "aigate ai report 기반 AI 프로젝트 상태 브리프",
+      "aigate aitest 기반 AI 수정 프롬프트, 실시간 에이전트 로그, 선택적 에이전트 실행",
       "doctor, demo, install-hook 기반 첫 실행 UX",
+      "doctor 기반 generatedBy 버전 드리프트 경고",
       "pre-push Git hook 설치",
       "secret 패턴 탐지와 SARIF 출력",
       "git-ready, guarded push, guarded PR 생성 흐름",
@@ -157,13 +190,15 @@ const locales = {
       "PR 템플릿과 CODEOWNERS 안내형 설정",
       "재사용 가능한 공개 GitHub Action",
       "프로젝트 상태 추세 기록",
+      "private 앱, GitLab, pnpm 자동 프로필 감지와 설정 고정",
+      "doctor, AI 지침, branch strategy 정책팩의 GitHub/GitLab 프로필 정합성",
       "Markdown, HTML, JSON, SARIF 리포트",
       "컴플라이언스 리포트와 로컬 HTML 상태 대시보드",
       "프로젝트 점수와 deep Git signal 평가",
       "브랜치 전략 추천, 제안 비교, 정책 팩 생성",
       "Codex/Gemini/Claude Code 통합 파일 생성",
       "한국어/영어/일본어/중국어 CLI 설정",
-      "release-check와 release-check --npm",
+      "release-check와 앱 프로필 인식 release-check --npm",
       "npm Trusted Publishing 기반 자동 배포",
       "GitHub CI, OpenSSF Scorecard, GitHub Release 운영",
       "터미널, Slack BLOCK, Discord, Teams, email, Linear, Jira 알림",
@@ -200,9 +235,9 @@ const locales = {
     flowTitle: "End-To-End Operating Process",
     flowIntro: "AIGate keeps the same quality gate from local development through PR review, CI, release, and npm publishing.",
     processSteps: [
-      ["Start route", "Choose setup path with aigate start"],
+      ["Start route", "Choose default setup steps with aigate start"],
       ["Detect changes", "Read Git diff and untracked files"],
-      ["Test automation", "aigate test runs Git gate and npm scripts"],
+      ["Test automation", "aigate test runs Git gate plus turbo-aware workspace tests"],
       ["AI remediation", "aitest writes a repair prompt and can run an agent"],
       ["Commit", "Keep scope with Conventional Commits"],
       ["Guarded push", "aigate push validates before push"],
@@ -223,12 +258,25 @@ const locales = {
       ["npm publish", "OIDC Trusted Publishing"],
       ["Release notes", "Create GitHub Release"]
     ],
+    useCaseTitle: "Situational Usage Examples",
+    useCaseIntro: "AIGate is not one command for every moment. It gives you short routines for different repository states and risk levels.",
+    useCaseHeaders: ["Situation", "Process", "Example commands"],
+    useCases: [
+      ["Adopting AIGate in a repository", "Choose the default setup path, then add missing docs, AI instructions, and hooks step by step.", ["aigate start --route default --ask-steps", "aigate doctor", "aigate install-hook --pre-push"]],
+      ["After an AI agent changes many files", "Inspect changed files and secret risk first, then turn failing tests into an AI remediation prompt.", ["aigate check", "aigate test", "aigate aitest"]],
+      ["Right before opening a PR", "Pass the local gate, push through the guarded wrapper, and generate reviewer context.", ["aigate git-ready", "aigate push -u origin feature/my-work", "aigate pr-check"]],
+      ["Private GitLab monorepo", "Pin the profile, run workspace tests with turbo-aware fallback, and keep GitHub/npm package gates out of app scores.", ["aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm", "aigate test", "aigate evaluate-project"]],
+      ["Preparing an open source launch", "Create public contribution files and check repository foundation score.", ["aigate start --route oss --owner @team", "aigate evaluate-project --deep --report", "aigate github setup --dry-run"]],
+      ["Before and after a release", "Check tag/npm readiness, run CI, and record the health trend after publishing.", ["aigate release-check --npm", "npm run ci", "aigate trends record"]],
+      ["Clearing or removing local AIGate state", "Preview deletion targets first, then apply only when the target list is correct.", ["aigate clean", "aigate clean --force", "aigate uninstall --force"]]
+    ],
     commandMapTitle: "Command Map",
     commandGroups: [
-      ["Setup", ["start", "init", "setup", "settings", "integrate"]],
+      ["Setup", ["start", "start --route default", "start --route oss", "init", "reset", "setup", "settings", "integrate"]],
       ["First run", ["doctor", "demo", "install-hook"]],
       ["Guard gates", ["check", "test", "aitest", "git-ready", "push", "pr"]],
-      ["Reports", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
+      ["Maintenance", ["clean", "uninstall", "delete"]],
+      ["Reports", ["ai report", "pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
       ["Release", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
     commandsTitle: "Commands And When To Use Them",
@@ -237,17 +285,26 @@ const locales = {
       ["npm install -g aigate-cli", "Install the CLI globally.", "First-time developer setup"],
       ["npx aigate-cli check", "Check the repository without installing.", "Quick trial or pre-CI check"],
       ["aigate start", "Run a guided project setup route with arrow keys or --route.", "When adopting AIGate in a project"],
+      ["aigate start --route default --ask-steps", "Ask yes/no for each recommended setup step before running it.", "When you want guided control over the first setup"],
+      ["aigate start --route default --steps init,repo-files", "Run only selected setup step IDs and skip the rest.", "Repeatable onboarding or documented setup"],
+      ["aigate start --route oss --owner @team", "Create README, contribution docs, issue templates, PR template, and CODEOWNERS.", "Opening the public contribution path"],
       ["aigate start --route ai --provider all", "Create AIGate config plus Codex/Gemini/Claude instruction files.", "When aligning AI assistants at once"],
       ["aigate init", "Create starter configuration and report folders.", "When adopting AIGate in a new project"],
+      ["aigate reset", "Rewrite AIGate config, settings, and report placeholders.", "Resetting AIGate to a clean local setup"],
+      ["aigate clean --force", "Delete generated AIGate reports and local generated state.", "Clearing reports and generated state"],
+      ["aigate uninstall --force", "Remove AIGate config, the .aigate directory, and an AIGate-owned hook.", "Removing AIGate from a project"],
       ["aigate setup --language <en|ko|ja|zh>", "Save the CLI output language.", "When aligning team language"],
+      ["aigate setup --hosting gitlab --ci-provider gitlab", "Save a GitLab project profile.", "Internal GitLab apps where GitHub assumptions do not apply"],
       ["aigate settings", "Show current AIGate settings.", "Configuration review"],
       ["aigate doctor", "Diagnose first-run environment, Git hook, and project foundations.", "First run or repository health check"],
       ["aigate demo", "Show the AIGate workflow without changing files.", "Trying the CLI or explaining it to a team"],
       ["aigate install-hook --pre-push", "Install a pre-push hook that runs git-ready before git push.", "Preventing risky pushes locally"],
-      ["aigate check", "Summarize changed files and secret risk.", "Light pre-commit check"],
-      ["aigate test", "Run Git readiness and the detected npm test/ci script.", "Before committing with real test coverage"],
+      ["aigate check", "Summarize changed files, active secret findings, and sensitive file removals.", "Light pre-commit check"],
+      ["aigate test", "Run Git readiness and detected root script, turbo task, pnpm workspace, or workspace package tests. If no turbo runner is available, fall back to workspace scripts.", "Before committing with real test coverage"],
+      ["aigate ai report", "Summarize current problems, strengths, direction, and an AI handoff prompt.", "Before asking AI to improve the project"],
+      ["aigate ai report --apply --provider codex", "Hand the AI project brief to an AI CLI, stream agent output, and capture stdout/stderr in the report.", "When you explicitly allow AI automation"],
       ["aigate aitest", "Write a focused AI remediation prompt from failing tests.", "When handing a failure to an AI agent"],
-      ["aigate aitest --apply --provider codex", "Invoke Codex CLI to work on the failure.", "When you explicitly allow AI remediation"],
+      ["aigate aitest --apply --provider codex", "Invoke an AI CLI and show the execution log, exit code, stdout, and stderr.", "When you explicitly allow AI remediation"],
       ["aigate git-ready", "Run tests, secret scan, and project score gates.", "Required before commit or push"],
       ["aigate push -u origin <branch>", "Run the gate, then forward to git push.", "When publishing a branch"],
       ["aigate pr-check", "Generate a PR readiness report.", "Before writing the PR description"],
@@ -268,7 +325,7 @@ const locales = {
       ["aigate branch-strategy --apply", "Generate branch policy, release, hotfix, PR, CODEOWNERS, and policy pack drafts.", "Starting policy files"],
       ["aigate integrate all", "Generate Codex, Gemini, and Claude Code integration files.", "Keeping AI assistants aligned"],
       ["aigate release-check", "Check package, workflow, and tag readiness.", "Before creating a release tag"],
-      ["aigate release-check --npm", "Check whether the version exists on npm.", "Before and after automated publishing"],
+      ["aigate release-check --npm", "Detect the repository profile, check npm registry/GitHub/GitLab/package-manager state, and exclude npm/package-version gates that do not apply to apps.", "Before and after automated publishing"],
       ["aigate audit-report", "Summarize governance and policy posture.", "Operational audit and public readiness"],
       ["aigate notify send --channel terminal", "Print a local notification event.", "Checking gate-block events"],
       ["aigate git-ready --notify-channel slack", "Send a Slack webhook notification when a BLOCK occurs.", "When secrets or risky changes block the gate"],
@@ -280,6 +337,11 @@ const locales = {
     commandPath: [
       "npm install -g aigate-cli",
       "aigate setup --language en",
+      "aigate ai report",
+      "aigate start --route default --ask-steps",
+      "aigate start --route oss --dry-run",
+      "aigate reset --dry-run",
+      "aigate clean",
       "aigate start --route ai --provider all",
       "git switch -c feature/my-change",
       "aigate doctor",
@@ -305,9 +367,15 @@ const locales = {
       "Public npm package aigate-cli and npx execution",
       "Git change and untracked-file readiness checks",
       "Guided start routes through aigate start",
-      "Project test automation through aigate test",
-      "AI remediation prompt and optional agent execution through aigate aitest",
+      "Stepwise default setup through aigate start --route default",
+      "Reset and deletion commands through aigate reset, clean, and uninstall",
+      "Open-source starter files through aigate start --route oss",
+      "Turbo-aware root and workspace test automation through aigate test",
+      "pnpm-workspace.yaml, package.json workspaces, apps/*, and packages/* test detection with fallback",
+      "AI project health briefs through aigate ai report",
+      "AI remediation prompt, live agent logs, and optional agent execution through aigate aitest",
       "First-run UX through doctor, demo, and install-hook",
+      "generatedBy version drift warnings through doctor",
       "Pre-push Git hook installation",
       "Secret pattern detection and SARIF output",
       "git-ready, guarded push, and guarded PR creation",
@@ -315,13 +383,15 @@ const locales = {
       "PR template and CODEOWNERS guided setup",
       "Reusable public GitHub Action",
       "Project health trend history",
+      "Automatic and pinned profile support for private apps, GitLab, and pnpm",
+      "GitHub/GitLab profile consistency across doctor, AI instructions, and branch policy packs",
       "Markdown, HTML, JSON, and SARIF reports",
       "Compliance reports and a local HTML health dashboard",
       "Project scoring and deep Git signal evaluation",
       "Branch strategy recommendations, proposal comparison, and policy pack generation",
       "Codex/Gemini/Claude Code integration file generation",
       "Korean/English/Japanese/Chinese CLI settings",
-      "release-check and release-check --npm",
+      "release-check and app-aware release-check --npm",
       "Automated npm releases through Trusted Publishing",
       "GitHub CI, OpenSSF Scorecard, and GitHub Releases",
       "Terminal, Slack BLOCK, Discord, Teams, email, Linear, and Jira notifications",
@@ -358,9 +428,9 @@ const locales = {
     flowTitle: "全体運用プロセス",
     flowIntro: "AIGate はローカル開発から PR、CI、リリース、npm 公開まで同じ品質ゲートでつなぎます。",
     processSteps: [
-      ["開始ルート", "aigate start で設定経路を選択"],
+      ["開始ルート", "aigate start でデフォルト設定手順を選択"],
       ["変更検出", "Git diff と untracked ファイルを確認"],
-      ["テスト自動化", "aigate test が Git gate と npm script を実行"],
+      ["テスト自動化", "aigate test が Git gate と turbo 実行環境を確認した workspace test を実行"],
       ["AI 修正", "aitest が修正プロンプトと任意の agent 実行を提供"],
       ["コミット", "Conventional Commit で範囲を固定"],
       ["保護付き push", "aigate push が push 前に検証"],
@@ -381,12 +451,25 @@ const locales = {
       ["npm publish", "OIDC Trusted Publishing"],
       ["リリースノート", "GitHub Release を作成"]
     ],
+    useCaseTitle: "状況別の使用例",
+    useCaseIntro: "AIGate は常に同じコマンドを実行する道具ではなく、リポジトリの状態とリスクに応じて短いルーティンを選ぶための道具です。",
+    useCaseHeaders: ["状況", "プロセス", "コマンド例"],
+    useCases: [
+      ["リポジトリへ初めて導入するとき", "デフォルト設定を選び、不足している文書、AI 指示、hook を段階的に作成します。", ["aigate start --route default --ask-steps", "aigate doctor", "aigate install-hook --pre-push"]],
+      ["AI が多くのファイルを変更した後", "変更ファイルと secret リスクを先に確認し、失敗したテストは AI 修正プロンプトに変換します。", ["aigate check", "aigate test", "aigate aitest"]],
+      ["PR を作成する直前", "ローカル gate を通し、保護付き wrapper で push し、レビュー担当者向けの文脈を作ります。", ["aigate git-ready", "aigate push -u origin feature/my-work", "aigate pr-check"]],
+      ["private GitLab monorepo", "profile を固定し、turbo 実行環境を確認して workspace test に切り替え、GitHub/npm パッケージ検査を app score から外します。", ["aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm", "aigate test", "aigate evaluate-project"]],
+      ["オープンソース公開準備", "公開貢献ファイルを作成し、リポジトリ基盤スコアを確認します。", ["aigate start --route oss --owner @team", "aigate evaluate-project --deep --report", "aigate github setup --dry-run"]],
+      ["リリース前後", "tag/npm 準備状況を確認し、CI を実行し、公開後の状態トレンドを記録します。", ["aigate release-check --npm", "npm run ci", "aigate trends record"]],
+      ["ローカル状態を消す、または外すとき", "削除対象を先にプレビューし、正しいときだけ --force で適用します。", ["aigate clean", "aigate clean --force", "aigate uninstall --force"]]
+    ],
     commandMapTitle: "コマンドマップ",
     commandGroups: [
-      ["セットアップ", ["start", "init", "setup", "settings", "integrate"]],
+      ["セットアップ", ["start", "start --route default", "start --route oss", "init", "reset", "setup", "settings", "integrate"]],
       ["初回実行", ["doctor", "demo", "install-hook"]],
       ["保護ゲート", ["check", "test", "aitest", "git-ready", "push", "pr"]],
-      ["レポート", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
+      ["メンテナンス", ["clean", "uninstall", "delete"]],
+      ["レポート", ["ai report", "pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
       ["リリース", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
     commandsTitle: "コマンド一覧と利用タイミング",
@@ -395,17 +478,26 @@ const locales = {
       ["npm install -g aigate-cli", "CLI をグローバルにインストールします。", "初回セットアップ"],
       ["npx aigate-cli check", "インストールせずに現在のリポジトリを確認します。", "試用または CI 前確認"],
       ["aigate start", "矢印キーまたは --route でガイド付き設定ルートを実行します。", "プロジェクトに AIGate を導入するとき"],
+      ["aigate start --route default --ask-steps", "推奨設定手順を実行するか一つずつ確認します。", "初回設定で必要な手順だけ選びたいとき"],
+      ["aigate start --route default --steps init,repo-files", "指定した設定手順 ID だけを実行し、他はスキップします。", "オンボーディングや手順書で同じ設定を繰り返すとき"],
+      ["aigate start --route oss --owner @team", "README、貢献文書、issue テンプレート、PR テンプレート、CODEOWNERS を作成します。", "公開コントリビューション導線を開くとき"],
       ["aigate start --route ai --provider all", "AIGate 設定と Codex/Gemini/Claude 指示ファイルを作成します。", "AI assistant の規則をまとめて入れるとき"],
       ["aigate init", "基本設定とレポート用フォルダを作成します。", "新しいプロジェクトに導入するとき"],
+      ["aigate reset", "AIGate 設定、settings、レポート placeholder を再作成します。", "ローカル設定を初期状態に戻すとき"],
+      ["aigate clean --force", "生成済み AIGate レポートとローカル状態を削除します。", "レポートと generated state を空にするとき"],
+      ["aigate uninstall --force", "AIGate 設定、.aigate ディレクトリ、AIGate 所有 hook を削除します。", "プロジェクトから AIGate を外すとき"],
       ["aigate setup --language <en|ko|ja|zh>", "CLI 出力言語を保存します。", "チームの出力言語をそろえるとき"],
+      ["aigate setup --hosting gitlab --ci-provider gitlab", "GitLab project profile を保存します。", "GitHub 前提が合わない内部 GitLab app"],
       ["aigate settings", "現在の AIGate 設定を表示します。", "設定確認"],
       ["aigate doctor", "初回実行環境、Git hook、プロジェクト基盤を診断します。", "初回実行またはリポジトリ確認"],
       ["aigate demo", "ファイルを変更せず AIGate の利用フローを表示します。", "CLI の試用やチーム説明"],
       ["aigate install-hook --pre-push", "git push 前に git-ready を実行する pre-push hook をインストールします。", "危険な push をローカルで防ぐとき"],
-      ["aigate check", "変更ファイルと secret リスクを要約します。", "軽いコミット前確認"],
-      ["aigate test", "Git readiness と検出した npm test/ci script を実行します。", "実際のテストまで確認してから commit するとき"],
+      ["aigate check", "変更ファイル、実際の secret finding、機密ファイル削除状態を要約します。", "軽いコミット前確認"],
+      ["aigate test", "Git readiness と root script、turbo task、pnpm workspace、workspace package test command を検出して実行します。turbo runner がない場合は workspace script に切り替えます。", "実際のテストまで確認してから commit するとき"],
+      ["aigate ai report", "現在の問題、良い点、方向性、AI 引き継ぎプロンプトをまとめます。", "AI にプロジェクト改善を任せる前"],
+      ["aigate ai report --apply --provider codex", "AI プロジェクトブリーフを AI CLI に渡し、agent 出力をリアルタイム表示して stdout/stderr をレポートに残します。", "AI 自動化を明示的に許可するとき"],
       ["aigate aitest", "失敗したテストから AI 修正プロンプトを作成します。", "失敗を AI agent に渡すとき"],
-      ["aigate aitest --apply --provider codex", "Codex CLI を呼び出して修正作業を実行します。", "AI 修正を明示的に許可するとき"],
+      ["aigate aitest --apply --provider codex", "AI CLI を呼び出し、実行ログ、終了コード、stdout、stderr を表示します。", "AI 修正を明示的に許可するとき"],
       ["aigate git-ready", "テスト、secret scan、プロジェクトスコアを含むゲートを実行します。", "コミットまたは push 前"],
       ["aigate push -u origin <branch>", "ゲート通過後に git push を実行します。", "ブランチをリモートへ送るとき"],
       ["aigate pr-check", "PR 準備レポートを生成します。", "PR 説明を書く前"],
@@ -426,7 +518,7 @@ const locales = {
       ["aigate branch-strategy --apply", "ブランチポリシー、release、hotfix、PR、CODEOWNERS、ポリシーパックの草案を生成します。", "ポリシーファイル作成時"],
       ["aigate integrate all", "Codex、Gemini、Claude Code 統合ファイルを生成します。", "AI assistant の規則をそろえるとき"],
       ["aigate release-check", "パッケージ、workflow、tag の準備状態を確認します。", "リリース tag 作成前"],
-      ["aigate release-check --npm", "該当バージョンが npm に存在するか確認します。", "自動公開の前後"],
+      ["aigate release-check --npm", "repository profile を検出し、npm registry/GitHub/GitLab/package manager 状態を確認し、app に不要な npm/package version gate を除外します。", "自動公開の前後"],
       ["aigate audit-report", "ガバナンスとポリシー状態を要約します。", "運用監査と公開準備レビュー"],
       ["aigate notify send --channel terminal", "ローカル通知イベントを出力します。", "ゲートブロック確認"],
       ["aigate git-ready --notify-channel slack", "BLOCK 時に Slack webhook 通知を送信します。", "secret や高リスク変更でゲートが止まるとき"],
@@ -438,6 +530,11 @@ const locales = {
     commandPath: [
       "npm install -g aigate-cli",
       "aigate setup --language ja",
+      "aigate ai report",
+      "aigate start --route default --ask-steps",
+      "aigate start --route oss --dry-run",
+      "aigate reset --dry-run",
+      "aigate clean",
       "aigate start --route ai --provider all",
       "git switch -c feature/my-change",
       "aigate doctor",
@@ -463,9 +560,15 @@ const locales = {
       "npm パッケージ aigate-cli の公開と npx 実行",
       "Git 変更と untracked ファイルの readiness check",
       "aigate start によるガイド付き開始ルート",
-      "aigate test によるプロジェクトテスト自動化",
-      "aigate aitest による AI 修正プロンプトと任意の agent 実行",
+      "aigate start --route default による段階的なデフォルト設定",
+      "aigate reset、clean、uninstall による初期化と削除コマンド",
+      "aigate start --route oss によるオープンソース初期ファイル生成",
+      "aigate test による turbo 実行環境を確認した root/workspace プロジェクトテスト自動化",
+      "pnpm-workspace.yaml、package.json workspaces、apps/*、packages/* test detection と切り替え",
+      "aigate ai report による AI プロジェクト状態ブリーフ",
+      "aigate aitest による AI 修正プロンプト、リアルタイム agent ログ、任意の agent 実行",
       "doctor、demo、install-hook による初回実行 UX",
+      "doctor による generatedBy version drift warning",
       "pre-push Git hook のインストール",
       "secret パターン検出と SARIF 出力",
       "git-ready、保護付き push、保護付き PR 作成",
@@ -473,13 +576,15 @@ const locales = {
       "PR テンプレートと CODEOWNERS のガイド付き設定",
       "再利用可能な公開 GitHub Action",
       "プロジェクト状態トレンド履歴",
+      "private app、GitLab、pnpm の自動検出と profile 固定",
+      "doctor、AI 指示、branch strategy policy pack 全体の GitHub/GitLab profile 整合性",
       "Markdown、HTML、JSON、SARIF レポート",
       "コンプライアンスレポートとローカル HTML ヘルスダッシュボード",
       "プロジェクトスコアと deep Git signal 評価",
       "ブランチ戦略推薦、提案比較、ポリシーパック生成",
       "Codex/Gemini/Claude Code 統合ファイル生成",
       "韓国語/英語/日本語/中国語 CLI 設定",
-      "release-check と release-check --npm",
+      "release-check と app profile 対応 release-check --npm",
       "Trusted Publishing による npm 自動リリース",
       "GitHub CI、OpenSSF Scorecard、GitHub Release 運用",
       "ターミナル、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知",
@@ -516,9 +621,9 @@ const locales = {
     flowTitle: "整体运行流程",
     flowIntro: "AIGate 将本地开发、PR、CI、发布和 npm 分发串成同一套质量门禁。",
     processSteps: [
-      ["启动路由", "用 aigate start 选择设置路径"],
+      ["启动路由", "用 aigate start 选择默认设置步骤"],
       ["检测变更", "读取 Git diff 和 untracked 文件"],
-      ["测试自动化", "aigate test 运行 Git gate 和 npm script"],
+      ["测试自动化", "aigate test 运行 Git gate，并检测 turbo runner 后运行 workspace tests"],
       ["AI 修复", "aitest 写入修复提示并可运行 agent"],
       ["提交", "用 Conventional Commit 固定范围"],
       ["受保护 push", "aigate push 在 push 前验证"],
@@ -539,12 +644,25 @@ const locales = {
       ["npm publish", "OIDC Trusted Publishing"],
       ["发布说明", "创建 GitHub Release"]
     ],
+    useCaseTitle: "按场景使用示例",
+    useCaseIntro: "AIGate 不是所有时刻都运行同一个命令的工具，而是根据仓库状态和风险等级选择短流程的工具。",
+    useCaseHeaders: ["场景", "流程", "命令示例"],
+    useCases: [
+      ["首次接入仓库", "选择默认设置路径，然后逐步补齐文档、AI 指令和 hook。", ["aigate start --route default --ask-steps", "aigate doctor", "aigate install-hook --pre-push"]],
+      ["AI agent 修改了很多文件后", "先检查变更文件和 secret 风险，再把失败测试转成 AI 修复提示。", ["aigate check", "aigate test", "aigate aitest"]],
+      ["创建 PR 前", "通过本地 gate，用受保护 wrapper push，并生成给评审者看的上下文。", ["aigate git-ready", "aigate push -u origin feature/my-work", "aigate pr-check"]],
+      ["private GitLab monorepo", "固定 profile，检测 turbo runner 后自动回退到 workspace tests，并把 GitHub/npm 包检查排除在 app 评分外。", ["aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm", "aigate test", "aigate evaluate-project"]],
+      ["开源发布准备", "创建公开贡献文件，并检查仓库基础分。", ["aigate start --route oss --owner @team", "aigate evaluate-project --deep --report", "aigate github setup --dry-run"]],
+      ["发布前后", "检查 tag/npm 就绪状态，运行 CI，并在发布后记录健康趋势。", ["aigate release-check --npm", "npm run ci", "aigate trends record"]],
+      ["清理或移除本地 AIGate 状态", "先预览删除目标，确认无误后才使用 --force 执行。", ["aigate clean", "aigate clean --force", "aigate uninstall --force"]]
+    ],
     commandMapTitle: "命令地图",
     commandGroups: [
-      ["设置", ["start", "init", "setup", "settings", "integrate"]],
+      ["设置", ["start", "start --route default", "start --route oss", "init", "reset", "setup", "settings", "integrate"]],
       ["首次运行", ["doctor", "demo", "install-hook"]],
       ["保护门禁", ["check", "test", "aitest", "git-ready", "push", "pr"]],
-      ["报告", ["pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
+      ["维护", ["clean", "uninstall", "delete"]],
+      ["报告", ["ai report", "pr-check", "github comment", "github check", "github setup", "trends", "report", "evaluate-project", "compliance-report", "dashboard", "audit-report"]],
       ["发布", ["release-check", "release-check --npm", "branch-strategy", "branch-strategy --compare", "notify"]]
     ],
     commandsTitle: "全部命令与使用时机",
@@ -553,17 +671,26 @@ const locales = {
       ["npm install -g aigate-cli", "全局安装 CLI。", "首次开发环境设置"],
       ["npx aigate-cli check", "无需安装即可检查仓库。", "快速体验或 CI 前检查"],
       ["aigate start", "用方向键或 --route 运行引导式项目设置路由。", "在项目中启用 AIGate 时"],
+      ["aigate start --route default --ask-steps", "逐步询问是否运行推荐设置步骤。", "首次设置时想只选择必要步骤"],
+      ["aigate start --route default --steps init,repo-files", "只运行指定的设置步骤 ID，其余跳过。", "可重复 onboarding 或文档化设置"],
+      ["aigate start --route oss --owner @team", "创建 README、贡献文档、issue 模板、PR 模板和 CODEOWNERS。", "打开公开贡献路径时"],
       ["aigate start --route ai --provider all", "创建 AIGate 配置和 Codex/Gemini/Claude 指令文件。", "一次性对齐 AI assistant 规则时"],
       ["aigate init", "创建基础配置和报告目录。", "在新项目中启用 AIGate"],
+      ["aigate reset", "重新写入 AIGate 配置、settings 和报告占位文件。", "把本地设置恢复到初始状态"],
+      ["aigate clean --force", "删除生成的 AIGate 报告和本地状态。", "清空报告和 generated state"],
+      ["aigate uninstall --force", "移除 AIGate 配置、.aigate 目录和 AIGate 自有 hook。", "从项目中移除 AIGate"],
       ["aigate setup --language <en|ko|ja|zh>", "保存 CLI 输出语言。", "统一团队输出语言"],
+      ["aigate setup --hosting gitlab --ci-provider gitlab", "保存 GitLab 项目配置。", "不适合 GitHub 假设的内部 GitLab app"],
       ["aigate settings", "显示当前 AIGate 设置。", "配置核对"],
       ["aigate doctor", "诊断首次运行环境、Git hook 和项目基础状态。", "首次运行或检查仓库状态"],
       ["aigate demo", "不改动文件，展示 AIGate 使用流程。", "试用 CLI 或向团队说明"],
       ["aigate install-hook --pre-push", "安装 pre-push hook，在 git push 前运行 git-ready。", "在本地阻止有风险的 push"],
-      ["aigate check", "汇总变更文件和 secret 风险。", "轻量提交前检查"],
-      ["aigate test", "运行 Git readiness 和检测到的 npm test/ci script。", "提交前确认真实测试结果"],
+      ["aigate check", "汇总变更文件、实际 secret finding 和敏感文件移除状态。", "轻量提交前检查"],
+      ["aigate test", "运行 Git readiness，并检测 root script、turbo task、pnpm workspace 或 workspace package tests。没有 turbo runner 时会自动回退到 workspace script。", "提交前确认真实测试结果"],
+      ["aigate ai report", "汇总当前问题、做得好的部分、方向和 AI 交接提示。", "让 AI 改进项目之前"],
+      ["aigate ai report --apply --provider codex", "把 AI 项目简报交给 AI CLI，实时显示 agent 输出，并在报告中保留 stdout/stderr。", "明确允许 AI 自动化时"],
       ["aigate aitest", "根据失败测试写入 AI 修复提示。", "把失败交给 AI agent 处理时"],
-      ["aigate aitest --apply --provider codex", "调用 Codex CLI 执行修复工作。", "明确允许 AI 自动修复时"],
+      ["aigate aitest --apply --provider codex", "调用 AI CLI，并显示执行日志、退出码、stdout 和 stderr。", "明确允许 AI 自动修复时"],
       ["aigate git-ready", "运行测试、secret scan 和项目分数门禁。", "提交或 push 前"],
       ["aigate push -u origin <branch>", "门禁通过后转发到 git push。", "推送分支时"],
       ["aigate pr-check", "生成 PR 就绪报告。", "编写 PR 描述前"],
@@ -584,7 +711,7 @@ const locales = {
       ["aigate branch-strategy --apply", "生成分支政策、release、hotfix、PR、CODEOWNERS 和政策包草案。", "创建政策文件时"],
       ["aigate integrate all", "生成 Codex、Gemini、Claude Code 集成文件。", "让 AI assistant 保持一致规则"],
       ["aigate release-check", "检查包、workflow 和 tag 准备状态。", "创建发布 tag 前"],
-      ["aigate release-check --npm", "检查该版本是否存在于 npm。", "自动发布前后"],
+      ["aigate release-check --npm", "检测仓库配置，检查 npm registry/GitHub/GitLab/package manager 状态，并排除不适用于 app 的 npm/package version gate。", "自动发布前后"],
       ["aigate audit-report", "汇总治理和政策状态。", "运维审计和公开准备"],
       ["aigate notify send --channel terminal", "输出本地通知事件。", "检查门禁阻塞事件"],
       ["aigate git-ready --notify-channel slack", "BLOCK 时发送 Slack webhook 通知。", "敏感信息或高风险变更阻塞门禁时"],
@@ -596,6 +723,11 @@ const locales = {
     commandPath: [
       "npm install -g aigate-cli",
       "aigate setup --language zh",
+      "aigate ai report",
+      "aigate start --route default --ask-steps",
+      "aigate start --route oss --dry-run",
+      "aigate reset --dry-run",
+      "aigate clean",
       "aigate start --route ai --provider all",
       "git switch -c feature/my-change",
       "aigate doctor",
@@ -621,9 +753,15 @@ const locales = {
       "公开 npm 包 aigate-cli 和 npx 运行",
       "基于 Git 变更和 untracked 文件的 readiness check",
       "通过 aigate start 提供引导式启动路由",
-      "通过 aigate test 提供项目测试自动化",
-      "通过 aigate aitest 提供 AI 修复提示和可选 agent 执行",
+      "通过 aigate start --route default 提供逐步默认设置",
+      "通过 aigate reset、clean、uninstall 提供重置和删除命令",
+      "通过 aigate start --route oss 生成开源起始文件",
+      "通过 aigate test 提供检测 turbo runner 的 root/workspace 项目测试自动化",
+      "pnpm-workspace.yaml、package.json workspaces、apps/*、packages/* test detection 和自动回退",
+      "通过 aigate ai report 提供 AI 项目状态简报",
+      "通过 aigate aitest 提供 AI 修复提示、实时 agent 日志和可选 agent 执行",
       "通过 doctor、demo、install-hook 提供首次运行体验",
+      "通过 doctor 提供 generatedBy 版本漂移警告",
       "pre-push Git hook 安装",
       "secret 模式检测和 SARIF 输出",
       "git-ready、受保护 push、受保护 PR 创建",
@@ -631,13 +769,15 @@ const locales = {
       "PR 模板和 CODEOWNERS 引导式设置",
       "可复用的公开 GitHub Action",
       "项目状态趋势历史",
+      "自动检测并固定 private app、GitLab 和 pnpm 配置",
+      "doctor、AI 指令和 branch strategy 政策包中的 GitHub/GitLab profile 一致性",
       "Markdown、HTML、JSON、SARIF 报告",
       "合规报告和本地 HTML 健康仪表盘",
       "项目分数和 deep Git signal 评估",
       "分支策略推荐、提案比较和政策包生成",
       "Codex/Gemini/Claude Code 集成文件生成",
       "韩语/英语/日语/中文 CLI 设置",
-      "release-check 和 release-check --npm",
+      "release-check 和识别 app 配置的 release-check --npm",
       "基于 Trusted Publishing 的 npm 自动发布",
       "GitHub CI、OpenSSF Scorecard、GitHub Release 运维",
       "终端、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知",
@@ -709,6 +849,15 @@ npx aigate-cli check</code></pre>
         <p>${escapeHtml(t.flowIntro)}</p>
       </div>
       ${renderProcessChart(t)}
+    </section>
+
+    <section class="section" id="use-cases">
+      <div class="section-heading">
+        <p class="kicker">${escapeHtml(t.nav[1])}</p>
+        <h2>${escapeHtml(t.useCaseTitle)}</h2>
+        <p>${escapeHtml(t.useCaseIntro)}</p>
+      </div>
+      ${renderUseCases(t)}
     </section>
 
     <section class="section" id="release">
@@ -852,6 +1001,24 @@ function renderReleaseChart(t) {
       ${boxes}
     </svg>
   </div>`;
+}
+
+function renderUseCases(t) {
+  return `<div class="use-case-grid">${t.useCases.map(([situation, process, commands]) => `
+    <article class="use-case">
+      <div>
+        <p class="kicker">${escapeHtml(t.useCaseHeaders[0])}</p>
+        <h3>${escapeHtml(situation)}</h3>
+      </div>
+      <div>
+        <p class="kicker">${escapeHtml(t.useCaseHeaders[1])}</p>
+        <p>${escapeHtml(process)}</p>
+      </div>
+      <div>
+        <p class="kicker">${escapeHtml(t.useCaseHeaders[2])}</p>
+        <pre><code>${escapeHtml(commands.join("\n"))}</code></pre>
+      </div>
+    </article>`).join("")}</div>`;
 }
 
 function renderCommandMap(t) {
@@ -1022,7 +1189,7 @@ p { color: var(--muted); margin: 0; }
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
-.panel, .install-panel, .command-group, .feature {
+.panel, .install-panel, .command-group, .feature, .use-case {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -1095,6 +1262,25 @@ code {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.25;
+}
+.use-case-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.use-case {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: 18px;
+  padding: 20px;
+  align-items: start;
+}
+.use-case > div:last-child {
+  grid-column: 1 / -1;
+}
+.use-case pre {
+  padding: 14px;
+  font-size: 0.86rem;
 }
 .command-groups {
   display: grid;
@@ -1173,9 +1359,10 @@ footer p + p { margin-top: 6px; }
     grid-template-columns: 1fr;
     display: grid;
   }
-  .summary-grid, .command-groups, .feature-grid {
+  .summary-grid, .command-groups, .feature-grid, .use-case-grid, .use-case {
     grid-template-columns: 1fr;
   }
+  .use-case > div:last-child { grid-column: auto; }
   h1 { font-size: 2.4rem; }
   .hero { padding-bottom: 42px; }
 }

@@ -16,6 +16,7 @@
 - [x] issue templates
 - [x] pull request template
 - [x] CODEOWNERS
+- [x] 오픈소스 시작 파일 생성기: `aigate start --route oss`
 - [x] funding metadata
 - [x] social preview asset: `assets/social-preview.png`
 - [x] 실제 사용 사례 issue template
@@ -37,6 +38,8 @@
 ## Maintainer workflow
 
 - commit 전 `aigate git-ready` 사용
+- 현재 문제점, 잘된 점, 방향성 점검에 `aigate ai report` 사용
+- 공개 기여 파일 생성 또는 갱신 전 `aigate start --route oss --dry-run` 사용
 - raw `git push` 대신 `aigate push` 사용
 - pull request 생성에 `aigate pr` 사용
 - `main`을 항상 releasable 상태로 유지
@@ -49,7 +52,7 @@
 - [x] `aigate-cli` npm 접근 권한 확보
 - [x] 이 GitHub repository용 npm Trusted Publisher 설정
 - [x] `aigate release-check` 실행
-- [x] npm package publish, 현재 공개 버전은 `0.1.5`
-- [x] GitHub release tag를 `v0.1.5`까지 생성
+- [x] npm package publish, 현재 공개 버전은 `0.1.6`
+- [x] GitHub release tag를 `v0.1.6`까지 생성
 - [x] publish 후 `npm view aigate-cli` 확인
 - [x] future release를 changelog entry와 tagged GitHub Release에 연결

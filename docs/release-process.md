@@ -12,7 +12,7 @@ is created.
 3. Run `npm run ci`.
 4. Run `aigate release-check --npm`.
 5. Run the Release workflow with `dry_run=true`.
-6. Create and push the matching tag, for example `v0.1.5`.
+6. Create and push the matching tag, for example `v0.1.6`.
 7. Confirm npm publication with `npm view aigate-cli version`.
 8. Create or update the GitHub Release notes.
 9. If publishing the Action, enable GitHub Marketplace publishing on the

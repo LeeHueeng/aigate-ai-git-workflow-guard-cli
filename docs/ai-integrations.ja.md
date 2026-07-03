@@ -31,6 +31,24 @@ aigate integrate all --output-dir /tmp/aigate-preview
 aigate integrate all --force
 ```
 
+## AI プロジェクトレポート
+
+```sh
+aigate ai report
+aigate ai report --output .aigate/reports/ai-report.md
+aigate ai report --apply --provider codex
+aigate ai report --apply --provider claude
+```
+
+`aigate ai report` は現在の問題、良い点、方向性、推奨コマンド、リリース準備、
+ブランチ戦略をまとめ、AI 引き継ぎプロンプトも生成します。既定ではファイルを
+変更しません。`--apply` を渡した場合だけ、インストール済みのローカル AI CLI を
+実行します。
+
+`--apply` 中は、AIGate がプロンプトのパス、provider、agent コマンドを先に表示し、
+agent の stdout/stderr をターミナルにリアルタイム表示します。最終レポートにも
+コマンド、所要時間、終了コード、stdout、stderr を残します。
+
 ## AI テスト修正フロー
 
 ```sh
@@ -47,6 +65,9 @@ aigate aitest --apply --agent-command "codex exec --sandbox workspace-write --as
 変更しません。`--apply` を渡した場合だけ、利用可能なローカル CLI を実行します。
 Codex は `codex exec`、Claude は `claude --print`、Gemini は `gemini -p`
 を使います。
+
+これはモデルの隠れた思考過程ではなく、AIGate の実行トレースです。生成した
+プロンプト、実行したコマンド、agent が出力した内容を確認できます。
 
 ## 生成されるファイル
 
@@ -69,7 +90,9 @@ Codex は `codex exec`、Claude は `claude --print`、Gemini は `gemini -p`
   `docs/git-upload-workflow.md` を先に読む
 - `main` へ直接 push しない
 - 目的が明確な branch と Conventional Commits を使う
-- `npm run ci` と `aigate git-ready` を実行する
+- project profile から検出した検証コマンドを実行する。例: pnpm app は
+  `pnpm run ci`、npm package は `npm run ci`
+- push または merge 前に `aigate git-ready` を実行する
 - `aigate push -u origin <branch>` を使う
-- `main` に pull request を開く
-- merge 前に `test (20)` と `test (22)` の成功を待つ
+- `main` に pull request または GitLab merge request を開く
+- merge 前に `GitHub CI workflow` や `GitLab CI pipeline` など設定済みの必須チェックを待つ

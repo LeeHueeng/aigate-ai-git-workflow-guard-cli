@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { execFileSync, spawn, spawnSync } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { dirname, isAbsolute, join } from "node:path";
 import readline from "node:readline";
 import { fileURLToPath } from "node:url";
 import { commandDemo, commandDoctor, commandInstallHook } from "./commands/first-run.mjs";
@@ -11,13 +11,31 @@ import { commandTrends } from "./commands/trends.mjs";
 const CLI_DIR = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = dirname(CLI_DIR);
 const VERSION = readPackageVersion();
+const CONFIG_SCHEMA_VERSION = 1;
 const SUPPORTED_LANGUAGES = ["en", "ko", "ja", "zh"];
 const SUPPORTED_INTEGRATIONS = ["codex", "gemini", "claude"];
-const START_ROUTE_IDS = ["quickstart", "ai", "hook", "release", "full"];
+const START_ROUTE_IDS = ["default", "quickstart", "oss", "ai", "hook", "release", "full"];
 const AI_TEST_PROVIDERS = ["codex", "claude", "gemini"];
+const AI_ROOT_FILE_MODES = ["protect", "sidecar", "overwrite"];
+const DEFAULT_WORK_BRANCHES = ["codex/*", "feature/*", "feat/*", "fix/*", "docs/*", "chore/*"];
+const AIGATE_HOOK_MARKER = "AIGate pre-push hook";
 const DEFAULT_SETTINGS = {
   version: 1,
-  language: "en"
+  language: "en",
+  projectType: "auto",
+  hosting: "auto",
+  ciProvider: "auto",
+  packageManager: "auto",
+  distribution: "auto",
+  defaultBranch: "main",
+  targetBranch: "main",
+  branchStrategy: "auto",
+  protectedBranches: [],
+  workBranches: [...DEFAULT_WORK_BRANCHES],
+  requiredChecks: [],
+  qualityCommands: [],
+  aiProviders: [],
+  aiRootFiles: "protect"
 };
 const MAX_SECRET_SCAN_BYTES = 250_000;
 const SECRET_PATTERNS = [
@@ -31,8 +49,14 @@ const SECRET_PATTERNS = [
 const I18N = {
   en: {
     "action.created": "created",
+    "action.deleted": "deleted",
+    "action.missing": "missing",
+    "action.protected": "protected",
     "action.skipped": "skipped",
     "action.updated": "updated",
+    "action.would-create": "would create",
+    "action.would-delete": "would delete",
+    "action.would-update": "would update",
     "branchStrategy.applied": "Applied branch strategy files",
     "branchStrategy.branches": "Branches:",
     "branchStrategy.generated": "Generated branch strategy files",
@@ -44,6 +68,7 @@ const I18N = {
     "check.changedFiles": "Changed files: {count}",
     "check.recommendation": "Recommendation: {recommendation}",
     "check.secretFindings": "Secret findings: {count}",
+    "check.sensitiveRemovals": "Sensitive removals: {count}",
     "check.status": "AIGate check: {status}",
     "common.next": "Next: {next}",
     "common.wrote": "Wrote {path}",
@@ -64,12 +89,22 @@ const I18N = {
     "gitReady.projectScore": "Project score: {score}/100",
     "gitReady.recommendation": "Recommendation: {recommendation}",
     "gitReady.secretFindings": "Secret findings: {count}",
+    "gitReady.sensitiveRemovals": "Sensitive removals: {count}",
     "gitReady.status": "AIGate git-ready: {status}",
     "gitReady.warnings": "Warnings:",
     "gitReady.warningsNone": "Warnings: none",
     "init.complete": "AIGate init complete",
+    "maintenance.cleanTitle": "AIGate clean",
+    "maintenance.forceHint": "Re-run with --force to delete files.",
+    "maintenance.mode": "Mode: {mode}",
+    "maintenance.next": "Next: {next}",
+    "maintenance.outputDir": "Output directory: {path}",
+    "maintenance.resetTitle": "AIGate reset",
+    "maintenance.status": "{title}: {status}",
+    "maintenance.targets": "Targets:",
+    "maintenance.uninstallTitle": "AIGate uninstall",
     "integrate.complete": "AIGate AI integration files",
-    "integrate.next": "Next: review the generated instruction files and run npm run ci.",
+    "integrate.next": "Next: review the generated instruction files and run the listed validation commands.",
     "integrate.providers": "Providers: {providers}",
     "language.label": "Language: {language}",
     "notify.missingWebhook": "Missing webhook environment variable: {env}",
@@ -90,6 +125,7 @@ const I18N = {
     "release.nextSteps": "Next steps:",
     "release.package": "Package: {packageName}",
     "release.registryNotChecked": "npm registry: not checked (use --npm)",
+    "release.registryNotApplicable": "npm registry: not applicable ({reason})",
     "release.registryNotPublished": "npm registry: {packageName}@{version} not published",
     "release.registryPublished": "npm registry: published {packageName}@{version}",
     "release.registryFailed": "npm registry: lookup failed ({error})",
@@ -97,7 +133,9 @@ const I18N = {
     "release.version": "Version: {version}",
     "settings.complete": "AIGate setup complete",
     "settings.file": "Settings file: {path}",
+    "settings.profile": "Project profile: type={type}, hosting={hosting}, ci={ciProvider}, package manager={packageManager}",
     "settings.title": "AIGate settings",
+    "settings.workflow": "Workflow: distribution={distribution}, target={targetBranch}, work branches={workBranches}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}, root AI files={aiRootFiles}",
     "trends.unknownAction": "Unknown trends action: {action}",
     "unknownCommand": "Unknown command: {command}",
     "runHelp": "Run `aigate --help` for available commands.",
@@ -108,8 +146,14 @@ const I18N = {
   },
   ko: {
     "action.created": "생성",
+    "action.deleted": "삭제",
+    "action.missing": "없음",
+    "action.protected": "보호됨",
     "action.skipped": "건너뜀",
     "action.updated": "갱신",
+    "action.would-create": "생성 예정",
+    "action.would-delete": "삭제 예정",
+    "action.would-update": "갱신 예정",
     "branchStrategy.applied": "브랜치 전략 파일 적용 완료",
     "branchStrategy.branches": "브랜치:",
     "branchStrategy.generated": "브랜치 전략 파일 생성 완료",
@@ -121,6 +165,7 @@ const I18N = {
     "check.changedFiles": "변경 파일: {count}",
     "check.recommendation": "권장 사항: {recommendation}",
     "check.secretFindings": "민감 정보 탐지: {count}",
+    "check.sensitiveRemovals": "민감 파일 제거: {count}",
     "check.status": "AIGate 검사: {status}",
     "common.next": "다음 단계: {next}",
     "common.wrote": "{path} 파일을 작성했습니다",
@@ -141,12 +186,22 @@ const I18N = {
     "gitReady.projectScore": "프로젝트 점수: {score}/100",
     "gitReady.recommendation": "권장 사항: {recommendation}",
     "gitReady.secretFindings": "민감 정보 탐지: {count}",
+    "gitReady.sensitiveRemovals": "민감 파일 제거: {count}",
     "gitReady.status": "AIGate 준비 검사: {status}",
     "gitReady.warnings": "주의 사항:",
     "gitReady.warningsNone": "주의 사항: 없음",
     "init.complete": "AIGate 초기화 완료",
+    "maintenance.cleanTitle": "AIGate clean",
+    "maintenance.forceHint": "파일을 삭제하려면 --force로 다시 실행하세요.",
+    "maintenance.mode": "모드: {mode}",
+    "maintenance.next": "다음 단계: {next}",
+    "maintenance.outputDir": "출력 디렉터리: {path}",
+    "maintenance.resetTitle": "AIGate reset",
+    "maintenance.status": "{title}: {status}",
+    "maintenance.targets": "대상:",
+    "maintenance.uninstallTitle": "AIGate uninstall",
     "integrate.complete": "AIGate AI 연동 파일 생성",
-    "integrate.next": "다음 단계: 생성된 지침 파일을 검토하고 npm run ci를 실행하세요.",
+    "integrate.next": "다음 단계: 생성된 지침 파일을 검토하고 적힌 검증 명령을 실행하세요.",
     "integrate.providers": "대상: {providers}",
     "language.label": "언어: {language}",
     "notify.missingWebhook": "웹훅 환경 변수가 없습니다: {env}",
@@ -167,6 +222,7 @@ const I18N = {
     "release.nextSteps": "다음 단계:",
     "release.package": "패키지: {packageName}",
     "release.registryNotChecked": "npm 레지스트리: 확인 안 함 (--npm 사용)",
+    "release.registryNotApplicable": "npm 레지스트리: 해당 없음 ({reason})",
     "release.registryNotPublished": "npm 레지스트리: {packageName}@{version} 미배포",
     "release.registryPublished": "npm 레지스트리: {packageName}@{version} 배포됨",
     "release.registryFailed": "npm 레지스트리: 조회 실패 ({error})",
@@ -174,7 +230,9 @@ const I18N = {
     "release.version": "버전: {version}",
     "settings.complete": "AIGate 설정 완료",
     "settings.file": "설정 파일: {path}",
+    "settings.profile": "프로젝트 프로필: 유형={type}, 호스팅={hosting}, CI={ciProvider}, 패키지 매니저={packageManager}",
     "settings.title": "AIGate 설정",
+    "settings.workflow": "워크플로: 배포={distribution}, 대상={targetBranch}, 작업 브랜치={workBranches}, 체크={requiredChecks}, 명령={qualityCommands}, AI={aiProviders}, 루트 AI 파일={aiRootFiles}",
     "trends.unknownAction": "알 수 없는 추세 작업: {action}",
     "unknownCommand": "알 수 없는 명령어: {command}",
     "runHelp": "사용 가능한 명령어는 `aigate --help`로 확인하세요.",
@@ -185,8 +243,14 @@ const I18N = {
   },
   ja: {
     "action.created": "作成",
+    "action.deleted": "削除",
+    "action.missing": "なし",
+    "action.protected": "保護",
     "action.skipped": "スキップ",
     "action.updated": "更新",
+    "action.would-create": "作成予定",
+    "action.would-delete": "削除予定",
+    "action.would-update": "更新予定",
     "branchStrategy.applied": "ブランチ戦略ファイルを適用しました",
     "branchStrategy.branches": "ブランチ:",
     "branchStrategy.generated": "ブランチ戦略ファイルを生成しました",
@@ -198,6 +262,7 @@ const I18N = {
     "check.changedFiles": "変更ファイル: {count}",
     "check.recommendation": "推奨事項: {recommendation}",
     "check.secretFindings": "機密情報検出: {count}",
+    "check.sensitiveRemovals": "機密ファイル削除: {count}",
     "check.status": "AIGate チェック: {status}",
     "common.next": "次の手順: {next}",
     "common.wrote": "{path} を書き込みました",
@@ -218,12 +283,22 @@ const I18N = {
     "gitReady.projectScore": "プロジェクトスコア: {score}/100",
     "gitReady.recommendation": "推奨事項: {recommendation}",
     "gitReady.secretFindings": "機密情報検出: {count}",
+    "gitReady.sensitiveRemovals": "機密ファイル削除: {count}",
     "gitReady.status": "AIGate 準備チェック: {status}",
     "gitReady.warnings": "警告:",
     "gitReady.warningsNone": "警告: なし",
     "init.complete": "AIGate 初期化完了",
+    "maintenance.cleanTitle": "AIGate clean",
+    "maintenance.forceHint": "ファイルを削除するには --force で再実行してください。",
+    "maintenance.mode": "モード: {mode}",
+    "maintenance.next": "次の手順: {next}",
+    "maintenance.outputDir": "出力ディレクトリ: {path}",
+    "maintenance.resetTitle": "AIGate reset",
+    "maintenance.status": "{title}: {status}",
+    "maintenance.targets": "対象:",
+    "maintenance.uninstallTitle": "AIGate uninstall",
     "integrate.complete": "AIGate AI 連携ファイル",
-    "integrate.next": "次の手順: 生成された指示ファイルを確認し、npm run ci を実行してください。",
+    "integrate.next": "次の手順: 生成された指示ファイルを確認し、記載された検証コマンドを実行してください。",
     "integrate.providers": "対象: {providers}",
     "language.label": "言語: {language}",
     "notify.missingWebhook": "Webhook 環境変数がありません: {env}",
@@ -244,6 +319,7 @@ const I18N = {
     "release.nextSteps": "次の手順:",
     "release.package": "パッケージ: {packageName}",
     "release.registryNotChecked": "npm レジストリ: 未確認 (--npm を使用)",
+    "release.registryNotApplicable": "npm レジストリ: 対象外 ({reason})",
     "release.registryNotPublished": "npm レジストリ: {packageName}@{version} は未公開",
     "release.registryPublished": "npm レジストリ: {packageName}@{version} は公開済み",
     "release.registryFailed": "npm レジストリ: 照会失敗 ({error})",
@@ -251,7 +327,9 @@ const I18N = {
     "release.version": "バージョン: {version}",
     "settings.complete": "AIGate 設定完了",
     "settings.file": "設定ファイル: {path}",
+    "settings.profile": "プロジェクトプロファイル: 種別={type}, hosting={hosting}, CI={ciProvider}, package manager={packageManager}",
     "settings.title": "AIGate 設定",
+    "settings.workflow": "ワークフロー: distribution={distribution}, target={targetBranch}, 作業ブランチ={workBranches}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}, ルートAIファイル={aiRootFiles}",
     "trends.unknownAction": "不明なトレンドアクション: {action}",
     "unknownCommand": "不明なコマンド: {command}",
     "runHelp": "利用可能なコマンドは `aigate --help` で確認してください。",
@@ -262,8 +340,14 @@ const I18N = {
   },
   zh: {
     "action.created": "已创建",
+    "action.deleted": "已删除",
+    "action.missing": "不存在",
+    "action.protected": "受保护",
     "action.skipped": "已跳过",
     "action.updated": "已更新",
+    "action.would-create": "将创建",
+    "action.would-delete": "将删除",
+    "action.would-update": "将更新",
     "branchStrategy.applied": "已应用分支策略文件",
     "branchStrategy.branches": "分支:",
     "branchStrategy.generated": "已生成分支策略文件",
@@ -275,6 +359,7 @@ const I18N = {
     "check.changedFiles": "变更文件: {count}",
     "check.recommendation": "建议: {recommendation}",
     "check.secretFindings": "敏感信息发现: {count}",
+    "check.sensitiveRemovals": "敏感文件移除: {count}",
     "check.status": "AIGate 检查: {status}",
     "common.next": "下一步: {next}",
     "common.wrote": "已写入 {path}",
@@ -295,12 +380,22 @@ const I18N = {
     "gitReady.projectScore": "项目分数: {score}/100",
     "gitReady.recommendation": "建议: {recommendation}",
     "gitReady.secretFindings": "敏感信息发现: {count}",
+    "gitReady.sensitiveRemovals": "敏感文件移除: {count}",
     "gitReady.status": "AIGate 就绪检查: {status}",
     "gitReady.warnings": "警告:",
     "gitReady.warningsNone": "警告: 无",
     "init.complete": "AIGate 初始化完成",
+    "maintenance.cleanTitle": "AIGate clean",
+    "maintenance.forceHint": "要删除文件，请使用 --force 重新运行。",
+    "maintenance.mode": "模式: {mode}",
+    "maintenance.next": "下一步: {next}",
+    "maintenance.outputDir": "输出目录: {path}",
+    "maintenance.resetTitle": "AIGate reset",
+    "maintenance.status": "{title}: {status}",
+    "maintenance.targets": "目标:",
+    "maintenance.uninstallTitle": "AIGate uninstall",
     "integrate.complete": "AIGate AI 集成文件",
-    "integrate.next": "下一步: 检查生成的说明文件并运行 npm run ci。",
+    "integrate.next": "下一步: 检查生成的说明文件并运行其中列出的验证命令。",
     "integrate.providers": "目标: {providers}",
     "language.label": "语言: {language}",
     "notify.missingWebhook": "缺少 webhook 环境变量: {env}",
@@ -321,6 +416,7 @@ const I18N = {
     "release.nextSteps": "下一步:",
     "release.package": "包: {packageName}",
     "release.registryNotChecked": "npm 注册表: 未检查 (使用 --npm)",
+    "release.registryNotApplicable": "npm 注册表: 不适用 ({reason})",
     "release.registryNotPublished": "npm 注册表: {packageName}@{version} 尚未发布",
     "release.registryPublished": "npm 注册表: {packageName}@{version} 已发布",
     "release.registryFailed": "npm 注册表: 查询失败 ({error})",
@@ -328,7 +424,9 @@ const I18N = {
     "release.version": "版本: {version}",
     "settings.complete": "AIGate 设置完成",
     "settings.file": "设置文件: {path}",
+    "settings.profile": "项目配置: 类型={type}, 托管={hosting}, CI={ciProvider}, 包管理器={packageManager}",
     "settings.title": "AIGate 设置",
+    "settings.workflow": "工作流: distribution={distribution}, target={targetBranch}, 工作分支={workBranches}, 检查={requiredChecks}, 命令={qualityCommands}, AI={aiProviders}, 根 AI 文件={aiRootFiles}",
     "trends.unknownAction": "未知趋势操作: {action}",
     "unknownCommand": "未知命令: {command}",
     "runHelp": "运行 `aigate --help` 查看可用命令。",
@@ -350,6 +448,7 @@ const STATUS_LABELS = {
   en: {
     ACTION_REQUIRED: "ACTION_REQUIRED",
     BLOCK: "BLOCK",
+    NA: "N/A",
     PASS: "PASS",
     READY: "READY",
     RELEASED: "RELEASED",
@@ -359,6 +458,7 @@ const STATUS_LABELS = {
   ko: {
     ACTION_REQUIRED: "조치 필요",
     BLOCK: "차단",
+    NA: "해당 없음",
     PASS: "통과",
     READY: "준비 완료",
     RELEASED: "배포 완료",
@@ -368,6 +468,7 @@ const STATUS_LABELS = {
   ja: {
     ACTION_REQUIRED: "対応が必要",
     BLOCK: "ブロック",
+    NA: "対象外",
     PASS: "通過",
     READY: "準備完了",
     RELEASED: "公開済み",
@@ -377,6 +478,7 @@ const STATUS_LABELS = {
   zh: {
     ACTION_REQUIRED: "需要处理",
     BLOCK: "阻塞",
+    NA: "不适用",
     PASS: "通过",
     READY: "就绪",
     RELEASED: "已发布",
@@ -390,9 +492,13 @@ const RECOMMENDATION_TRANSLATIONS = {
     "No local changes detected.": "로컬 변경사항이 없습니다.",
     "Run AIGate inside a Git repository.": "AIGate를 Git 저장소 안에서 실행하세요.",
     "Review possible secret-bearing files before commit or push.": "커밋 또는 푸시 전에 민감 정보 포함 가능성이 있는 파일을 검토하세요.",
+    "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "민감 파일 제거를 커밋하고, 이미 이력에 노출된 자격 증명은 회전하세요.",
+    "Commit sensitive file removals and rotate credentials that were exposed in Git history.": "민감 파일 제거를 커밋하고, Git 이력에 노출된 자격 증명은 회전하세요.",
+    "Commit sensitive file removals; no Git history exposure was detected.": "민감 파일 제거를 커밋하세요. Git 이력 노출은 감지되지 않았습니다.",
+    "Complete missing foundations that match this private app profile.": "이 private 앱 프로필에 맞는 부족한 기반 항목을 보완하세요.",
+    "Run AIGate test, commit focused changes, push the branch, and open a pull request.": "AIGate test를 실행하고, 범위가 명확한 커밋을 만든 뒤 브랜치를 푸시하고 PR을 여세요.",
     "Open a focused branch and pull request after tests pass.": "테스트 통과 후 범위가 명확한 브랜치와 PR을 여세요.",
     "Resolve blockers before committing, pushing, or opening a pull request.": "커밋, 푸시, PR 생성 전에 차단 사유를 해결하세요.",
-    "Run npm test, commit focused changes, push the branch, and open a pull request.": "npm test를 실행하고, 범위가 명확한 변경을 커밋한 뒤 브랜치를 푸시하고 PR을 여세요.",
     "Repository foundations are ready for the next MVP slice.": "저장소 기반이 다음 MVP 단계를 진행할 준비가 됐습니다.",
     "Complete the missing repository foundations before public release.": "공개 릴리스 전에 부족한 저장소 기반 항목을 보완하세요."
   },
@@ -400,9 +506,13 @@ const RECOMMENDATION_TRANSLATIONS = {
     "No local changes detected.": "ローカル変更はありません。",
     "Run AIGate inside a Git repository.": "AIGate は Git リポジトリ内で実行してください。",
     "Review possible secret-bearing files before commit or push.": "コミットまたはプッシュ前に機密情報を含む可能性があるファイルを確認してください。",
+    "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "機密ファイル削除をコミットし、すでに履歴に露出した認証情報はローテーションしてください。",
+    "Commit sensitive file removals and rotate credentials that were exposed in Git history.": "機密ファイル削除をコミットし、Git 履歴に露出した認証情報はローテーションしてください。",
+    "Commit sensitive file removals; no Git history exposure was detected.": "機密ファイル削除をコミットしてください。Git 履歴への露出は検出されていません。",
+    "Complete missing foundations that match this private app profile.": "この private app profile に合う不足基盤項目を補完してください。",
+    "Run AIGate test, commit focused changes, push the branch, and open a pull request.": "AIGate test を実行し、焦点を絞ったコミットを作成してブランチを push し、PR を開いてください。",
     "Open a focused branch and pull request after tests pass.": "テスト通過後、範囲を絞ったブランチと PR を作成してください。",
     "Resolve blockers before committing, pushing, or opening a pull request.": "コミット、プッシュ、PR 作成の前にブロッカーを解消してください。",
-    "Run npm test, commit focused changes, push the branch, and open a pull request.": "npm test を実行し、範囲を絞ってコミットし、ブランチをプッシュして PR を作成してください。",
     "Repository foundations are ready for the next MVP slice.": "リポジトリ基盤は次の MVP スライスに進める状態です。",
     "Complete the missing repository foundations before public release.": "公開リリース前に不足しているリポジトリ基盤を整備してください。"
   },
@@ -410,9 +520,13 @@ const RECOMMENDATION_TRANSLATIONS = {
     "No local changes detected.": "未检测到本地变更。",
     "Run AIGate inside a Git repository.": "请在 Git 仓库内运行 AIGate。",
     "Review possible secret-bearing files before commit or push.": "提交或推送前，请检查可能包含敏感信息的文件。",
+    "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "提交敏感文件移除；如果凭据已进入历史记录，请轮换它们。",
+    "Commit sensitive file removals and rotate credentials that were exposed in Git history.": "提交敏感文件移除，并轮换已暴露在 Git 历史中的凭据。",
+    "Commit sensitive file removals; no Git history exposure was detected.": "提交敏感文件移除；未检测到 Git 历史暴露。",
+    "Complete missing foundations that match this private app profile.": "补齐符合此 private app 配置的缺失基础项。",
+    "Run AIGate test, commit focused changes, push the branch, and open a pull request.": "运行 AIGate test，提交聚焦变更，推送分支并打开 PR。",
     "Open a focused branch and pull request after tests pass.": "测试通过后，创建范围清晰的分支和 PR。",
     "Resolve blockers before committing, pushing, or opening a pull request.": "提交、推送或创建 PR 前，请先解决阻塞原因。",
-    "Run npm test, commit focused changes, push the branch, and open a pull request.": "运行 npm test，提交聚焦的变更，推送分支并创建 PR。",
     "Repository foundations are ready for the next MVP slice.": "仓库基础已经可以进入下一个 MVP 阶段。",
     "Complete the missing repository foundations before public release.": "公开发布前，请补齐缺失的仓库基础项。"
   }
@@ -437,6 +551,7 @@ const BRANCH_USE_TRANSLATIONS = {
     "optional integration branch for larger releases": "큰 릴리스를 위한 선택적 통합 브랜치",
     "planned release stabilization": "계획된 릴리스 안정화",
     "protected stable source of truth": "보호된 안정 기준 브랜치",
+    "merge request target branch": "merge request 대상 브랜치",
     "release stabilization": "릴리스 안정화"
   },
   ja: {
@@ -457,6 +572,7 @@ const BRANCH_USE_TRANSLATIONS = {
     "optional integration branch for larger releases": "大きなリリース向けの任意統合ブランチ",
     "planned release stabilization": "計画的なリリース安定化",
     "protected stable source of truth": "保護された安定基準ブランチ",
+    "merge request target branch": "merge request 対象ブランチ",
     "release stabilization": "リリース安定化"
   },
   zh: {
@@ -477,6 +593,7 @@ const BRANCH_USE_TRANSLATIONS = {
     "optional integration branch for larger releases": "大型发布的可选集成分支",
     "planned release stabilization": "计划内发布稳定",
     "protected stable source of truth": "受保护的稳定基准分支",
+    "merge request target branch": "merge request 目标分支",
     "release stabilization": "发布稳定"
   }
 };
@@ -484,20 +601,32 @@ const BRANCH_USE_TRANSLATIONS = {
 const BRANCH_REASON_TRANSLATIONS = {
   ko: {
     "AIGate needs fast public contribution flow": "AIGate에는 빠른 공개 기여 흐름이 필요합니다",
+    "repository needs a clear contribution flow": "저장소에는 명확한 기여 흐름이 필요합니다",
+    "private app workflow benefits from focused merge requests": "private 앱 워크플로에는 범위가 명확한 merge request가 효과적입니다",
+    "package releases may need channel control for stable and prerelease versions": "패키지 릴리스에는 stable 및 prerelease 버전 채널 제어가 필요할 수 있습니다",
     "npm channel control for latest, next, beta, and canary releases": "latest, next, beta, canary 릴리스를 위한 npm 채널 제어가 필요합니다",
     "CI-backed pull request protection is already present": "CI 기반 PR 보호가 이미 준비되어 있습니다",
+    "CI-backed merge protection is already present": "CI 기반 merge 보호가 이미 준비되어 있습니다",
     "release documentation and package metadata exist": "릴리스 문서와 패키지 메타데이터가 존재합니다"
   },
   ja: {
     "AIGate needs fast public contribution flow": "AIGate には高速な公開コントリビューションフローが必要です",
+    "repository needs a clear contribution flow": "リポジトリには明確な貢献フローが必要です",
+    "private app workflow benefits from focused merge requests": "private app ワークフローには焦点を絞った merge request が有効です",
+    "package releases may need channel control for stable and prerelease versions": "パッケージリリースには stable と prerelease のチャンネル制御が必要になる場合があります",
     "npm channel control for latest, next, beta, and canary releases": "latest、next、beta、canary リリース向けの npm チャンネル制御が必要です",
     "CI-backed pull request protection is already present": "CI による PR 保護がすでにあります",
+    "CI-backed merge protection is already present": "CI による merge 保護がすでにあります",
     "release documentation and package metadata exist": "リリース文書とパッケージメタデータがあります"
   },
   zh: {
     "AIGate needs fast public contribution flow": "AIGate 需要快速的公开贡献流程",
+    "repository needs a clear contribution flow": "仓库需要清晰的贡献流程",
+    "private app workflow benefits from focused merge requests": "private app 工作流适合使用范围聚焦的 merge request",
+    "package releases may need channel control for stable and prerelease versions": "包发布可能需要为 stable 和 prerelease 版本控制频道",
     "npm channel control for latest, next, beta, and canary releases": "需要为 latest、next、beta、canary 发布控制 npm 频道",
     "CI-backed pull request protection is already present": "已经具备基于 CI 的 PR 保护",
+    "CI-backed merge protection is already present": "已经具备基于 CI 的 merge 保护",
     "release documentation and package metadata exist": "已经存在发布文档和包元数据"
   }
 };
@@ -529,16 +658,16 @@ const STRATEGY_COMPARISON_TRANSLATIONS = {
     "Adds process overhead for small or fast-moving teams.": "작거나 빠르게 움직이는 팀에는 프로세스 부담이 늘어납니다.",
     "Long-lived develop branches can hide integration risk.": "오래 유지되는 develop 브랜치가 통합 위험을 숨길 수 있습니다.",
     "Protect main and require AIGate checks before merge.": "main을 보호하고 병합 전에 AIGate 검사를 필수로 둡니다.",
-    "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "집중된 작업에는 feature/*, fix/*, docs/*, chore/*, codex/*를 사용합니다.",
+    "Use feature/*, feat/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "집중된 작업에는 feature/*, feat/*, fix/*, docs/*, chore/*, codex/*를 사용합니다.",
     "Publish npm releases from main tags and use dist-tags for channels.": "main 태그에서 npm 릴리스를 배포하고 채널에는 dist-tag를 사용합니다.",
     "Keep pull requests small enough to merge quickly into main.": "PR을 main에 빠르게 병합할 수 있을 만큼 작게 유지합니다.",
     "Add short/* only for changes that will merge within a day.": "하루 안에 병합될 변경에만 short/*를 사용합니다.",
     "Use release/* only when a production hardening window is unavoidable.": "프로덕션 안정화 기간이 불가피할 때만 release/*를 사용합니다.",
     "Keep main stable and use develop only for planned integration.": "main은 안정적으로 유지하고 develop은 계획된 통합에만 사용합니다.",
-    "Use feature/* and codex/* branches for focused work.": "집중된 작업에는 feature/*와 codex/* 브랜치를 사용합니다.",
+    "Use feature/*, feat/*, and codex/* branches for focused work.": "집중된 작업에는 feature/*, feat/*, codex/* 브랜치를 사용합니다.",
     "Create release/* branches for stabilization and hotfix/* for urgent fixes.": "안정화에는 release/*, 긴급 수정에는 hotfix/* 브랜치를 만듭니다.",
     "Create develop as the next-release integration branch.": "develop을 다음 릴리스 통합 브랜치로 만듭니다.",
-    "Route feature/* and codex/* branches into develop.": "feature/*와 codex/* 브랜치는 develop으로 병합합니다.",
+    "Route feature/*, feat/*, and codex/* branches into develop.": "feature/*, feat/*, codex/* 브랜치는 develop으로 병합합니다.",
     "Cut release/* from develop, then merge release and hotfix work back to main.": "develop에서 release/*를 만들고, 릴리스와 핫픽스 작업은 main으로 다시 병합합니다.",
     "Use main branch protection, required AIGate checks, and tag-driven npm release channels.": "main 브랜치 보호, 필수 AIGate 검사, 태그 기반 npm 릴리스 채널을 사용합니다.",
     "Use strict main protection, fast required checks, and short-lived branch age limits.": "엄격한 main 보호, 빠른 필수 검사, 짧은 브랜치 유지 기간 제한을 사용합니다.",
@@ -571,16 +700,16 @@ const STRATEGY_COMPARISON_TRANSLATIONS = {
     "Adds process overhead for small or fast-moving teams.": "小規模または高速に動くチームにはプロセス負荷が増えます。",
     "Long-lived develop branches can hide integration risk.": "長期間残る develop ブランチは統合リスクを隠すことがあります。",
     "Protect main and require AIGate checks before merge.": "main を保護し、マージ前に AIGate チェックを必須にします。",
-    "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "集中した作業には feature/*、fix/*、docs/*、chore/*、codex/* を使います。",
+    "Use feature/*, feat/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "集中した作業には feature/*、feat/*、fix/*、docs/*、chore/*、codex/* を使います。",
     "Publish npm releases from main tags and use dist-tags for channels.": "main のタグから npm リリースを公開し、チャンネルには dist-tag を使います。",
     "Keep pull requests small enough to merge quickly into main.": "PR は main へ素早くマージできる大きさに保ちます。",
     "Add short/* only for changes that will merge within a day.": "1 日以内にマージする変更にだけ short/* を使います。",
     "Use release/* only when a production hardening window is unavoidable.": "本番安定化期間が避けられない場合だけ release/* を使います。",
     "Keep main stable and use develop only for planned integration.": "main は安定させ、develop は計画的な統合にだけ使います。",
-    "Use feature/* and codex/* branches for focused work.": "集中した作業には feature/* と codex/* ブランチを使います。",
+    "Use feature/*, feat/*, and codex/* branches for focused work.": "集中した作業には feature/*、feat/*、codex/* ブランチを使います。",
     "Create release/* branches for stabilization and hotfix/* for urgent fixes.": "安定化には release/*、緊急修正には hotfix/* ブランチを作成します。",
     "Create develop as the next-release integration branch.": "develop を次回リリースの統合ブランチとして作成します。",
-    "Route feature/* and codex/* branches into develop.": "feature/* と codex/* ブランチは develop に統合します。",
+    "Route feature/*, feat/*, and codex/* branches into develop.": "feature/*、feat/*、codex/* ブランチは develop に統合します。",
     "Cut release/* from develop, then merge release and hotfix work back to main.": "develop から release/* を切り、リリースとホットフィックス作業を main に戻します。",
     "Use main branch protection, required AIGate checks, and tag-driven npm release channels.": "main ブランチ保護、必須 AIGate チェック、タグ駆動の npm リリースチャンネルを使います。",
     "Use strict main protection, fast required checks, and short-lived branch age limits.": "厳格な main 保護、速い必須チェック、短命ブランチの期間制限を使います。",
@@ -613,16 +742,16 @@ const STRATEGY_COMPARISON_TRANSLATIONS = {
     "Adds process overhead for small or fast-moving teams.": "会给小团队或快速推进的团队增加流程成本。",
     "Long-lived develop branches can hide integration risk.": "长期存在的 develop 分支可能隐藏集成风险。",
     "Protect main and require AIGate checks before merge.": "保护 main，并在合并前要求 AIGate 检查。",
-    "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "聚焦工作使用 feature/*、fix/*、docs/*、chore/* 和 codex/*。",
+    "Use feature/*, feat/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "聚焦工作使用 feature/*、feat/*、fix/*、docs/*、chore/* 和 codex/*。",
     "Publish npm releases from main tags and use dist-tags for channels.": "从 main 标签发布 npm，并使用 dist-tag 管理频道。",
     "Keep pull requests small enough to merge quickly into main.": "保持 PR 足够小，以便快速合并到 main。",
     "Add short/* only for changes that will merge within a day.": "仅对一天内会合并的变更使用 short/*。",
     "Use release/* only when a production hardening window is unavoidable.": "只有无法避免生产加固窗口时才使用 release/*。",
     "Keep main stable and use develop only for planned integration.": "保持 main 稳定，仅将 develop 用于计划内集成。",
-    "Use feature/* and codex/* branches for focused work.": "聚焦工作使用 feature/* 和 codex/* 分支。",
+    "Use feature/*, feat/*, and codex/* branches for focused work.": "聚焦工作使用 feature/*、feat/* 和 codex/* 分支。",
     "Create release/* branches for stabilization and hotfix/* for urgent fixes.": "稳定期创建 release/*，紧急修复创建 hotfix/*。",
     "Create develop as the next-release integration branch.": "将 develop 创建为下一版本集成分支。",
-    "Route feature/* and codex/* branches into develop.": "将 feature/* 和 codex/* 分支合入 develop。",
+    "Route feature/*, feat/*, and codex/* branches into develop.": "将 feature/*、feat/* 和 codex/* 分支合入 develop。",
     "Cut release/* from develop, then merge release and hotfix work back to main.": "从 develop 切出 release/*，再将发布和热修复工作合回 main。",
     "Use main branch protection, required AIGate checks, and tag-driven npm release channels.": "使用 main 分支保护、必需 AIGate 检查和标签驱动的 npm 发布频道。",
     "Use strict main protection, fast required checks, and short-lived branch age limits.": "使用严格 main 保护、快速必需检查和短生命周期分支限制。",
@@ -711,6 +840,8 @@ const REPORT_LABELS = {
     riskScore: "Risk score",
     secretFindings: "Secret Findings",
     secretFindingsCount: "Secret findings",
+    sensitiveRemovals: "Sensitive Removals",
+    sensitiveRemovalsCount: "Sensitive removals",
     status: "Status",
     changedFiles: "Changed files",
     branch: "Branch",
@@ -735,6 +866,8 @@ const REPORT_LABELS = {
     riskScore: "위험 점수",
     secretFindings: "민감 정보 탐지",
     secretFindingsCount: "민감 정보 탐지",
+    sensitiveRemovals: "민감 파일 제거",
+    sensitiveRemovalsCount: "민감 파일 제거",
     status: "상태",
     changedFiles: "변경 파일",
     branch: "브랜치",
@@ -759,6 +892,8 @@ const REPORT_LABELS = {
     riskScore: "リスクスコア",
     secretFindings: "機密情報検出",
     secretFindingsCount: "機密情報検出",
+    sensitiveRemovals: "機密ファイル削除",
+    sensitiveRemovalsCount: "機密ファイル削除",
     status: "状態",
     changedFiles: "変更ファイル",
     branch: "ブランチ",
@@ -783,6 +918,8 @@ const REPORT_LABELS = {
     riskScore: "风险分数",
     secretFindings: "敏感信息发现",
     secretFindingsCount: "敏感信息发现",
+    sensitiveRemovals: "敏感文件移除",
+    sensitiveRemovalsCount: "敏感文件移除",
     status: "状态",
     changedFiles: "变更文件",
     branch: "分支",
@@ -829,6 +966,7 @@ const REPORT_TYPE_TRANSLATIONS = {
 const REPORT_ACTION_TRANSLATIONS = {
   ko: {
     "Remove or rotate suspected secrets before commit or push.": "커밋 또는 푸시 전에 의심되는 민감 정보를 제거하거나 교체하세요.",
+    "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "민감 파일 제거를 커밋하고, 이미 이력에 노출된 자격 증명은 회전하세요.",
     "Split large changes into smaller pull requests.": "큰 변경은 더 작은 PR로 나누세요.",
     "Complete missing repository foundation checks.": "부족한 저장소 기반 점검 항목을 보완하세요.",
     "Include validation commands and release impact in the pull request body.": "PR 본문에 검증 명령과 릴리스 영향을 포함하세요.",
@@ -837,6 +975,7 @@ const REPORT_ACTION_TRANSLATIONS = {
   },
   ja: {
     "Remove or rotate suspected secrets before commit or push.": "コミットまたはプッシュ前に疑わしい機密情報を削除またはローテーションしてください。",
+    "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "機密ファイル削除をコミットし、すでに履歴に露出した認証情報はローテーションしてください。",
     "Split large changes into smaller pull requests.": "大きな変更は小さな PR に分割してください。",
     "Complete missing repository foundation checks.": "不足しているリポジトリ基盤チェックを整備してください。",
     "Include validation commands and release impact in the pull request body.": "PR 本文に検証コマンドとリリース影響を含めてください。",
@@ -845,6 +984,7 @@ const REPORT_ACTION_TRANSLATIONS = {
   },
   zh: {
     "Remove or rotate suspected secrets before commit or push.": "提交或推送前，请移除或轮换疑似敏感信息。",
+    "Commit sensitive file removals and rotate exposed credentials if they were already in history.": "提交敏感文件移除；如果凭据已进入历史记录，请轮换它们。",
     "Split large changes into smaller pull requests.": "将大型变更拆分为更小的 PR。",
     "Complete missing repository foundation checks.": "补齐缺失的仓库基础检查项。",
     "Include validation commands and release impact in the pull request body.": "在 PR 正文中包含验证命令和发布影响。",
@@ -888,6 +1028,10 @@ const HELP_CONTENT = {
     optionsTitle: "Options",
     commands: [
       ["init", "Create starter AIGate project configuration."],
+      ["reset", "Reset AIGate config, settings, and report folders."],
+      ["clean", "Delete generated AIGate reports and local state."],
+      ["uninstall", "Remove AIGate config, state, and owned hooks."],
+      ["delete", "Alias for `aigate clean`."],
       ["check", "Summarize local Git readiness."],
       ["git-ready", "Run the before-push readiness gate."],
       ["push", "Run AIGate checks, then run git push."],
@@ -900,6 +1044,8 @@ const HELP_CONTENT = {
       ["install-hook", "Install AIGate Git hooks."],
       ["test", "Run Git readiness and the detected project test command."],
       ["aitest", "Create an AI remediation prompt, and optionally run an AI agent."],
+      ["ai report", "Explain current problems, strengths, direction, and AI handoff steps."],
+      ["ai-report", "Alias for `aigate ai report`."],
       ["setup", "Configure AIGate project settings."],
       ["settings", "Show current AIGate settings."],
       ["integrate <provider>", "Generate Codex/Gemini/Claude assistant integration files."],
@@ -942,12 +1088,31 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "Environment variable name for webhook notifications."],
       ["--linear-team-id <id>", "Linear team id for issue creation."],
       ["--jira-project-key <key>", "Jira project key for issue creation."],
-      ["--route <name>", "Start route: quickstart, ai, hook, release, or full."],
+      ["--route <name>", "Start route: default, quickstart, oss, ai, hook, release, or full."],
+      ["--ask-steps", "Ask whether to run each start step."],
+      ["--steps <ids>", "Run only selected start step ids, comma-separated."],
+      ["--project-type <auto|app|package>", "Override auto-detected project type for evaluation and release checks."],
+      ["--hosting <auto|github|gitlab|other>", "Override repository hosting provider."],
+      ["--ci-provider <auto|github|gitlab|other>", "Override CI provider used by repository checks."],
+      ["--package-manager <auto|npm|pnpm|yarn|bun>", "Override package manager detection."],
+      ["--distribution <auto|none|npm>", "Set release distribution mode for generated config."],
+      ["--target-branch <branch>", "Set the PR/MR target branch for generated AI instructions."],
+      ["--protected-branches <list>", "Set protected branches, comma-separated."],
+      ["--work-branches <list>", "Set allowed work branch patterns, comma-separated."],
+      ["--required-checks <list>", "Set required CI/check names, comma-separated."],
+      ["--quality-command <shell>", "Set the primary local quality command."],
+      ["--providers <list>", "Set default AI integration providers, comma-separated."],
+      ["--ai-root-files <protect|sidecar|overwrite>", "Set how integrate handles root AGENTS/GEMINI/CLAUDE files."],
+      ["--branch-strategy <name>", "Pin branch strategy: github-flow, gitlab-flow, trunk, hybrid, or git-flow."],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, or all."],
       ["--script <name>", "npm script name for aigate test or aitest."],
       ["--command <shell>", "Custom shell command for aigate test or aitest."],
-      ["--agent-command <shell>", "Custom AI agent command for aitest --apply."],
+      ["--agent-command <shell>", "Custom AI agent command for aitest or ai report --apply."],
+      ["--prompt-output <path>", "Write the AI report handoff prompt to a custom path."],
       ["--pre-push", "Install or target the pre-push Git hook."],
+      ["--include-ai-files", "Also target generated AGENTS/GEMINI/CLAUDE files for uninstall."],
+      ["--overwrite-ai-files", "Allow integrate --force to overwrite existing root AGENTS/GEMINI/CLAUDE files."],
+      ["--github-files", "Also target generated GitHub helper templates during clean."],
       ["--language <en|ko|ja|zh>", "Select output language."],
       ["--output-dir <path>", "Select integration output directory."],
       ["--force", "Overwrite generated integration files."],
@@ -964,6 +1129,10 @@ const HELP_CONTENT = {
     optionsTitle: "옵션",
     commands: [
       ["init", "AIGate 프로젝트 기본 설정을 생성합니다."],
+      ["reset", "AIGate 설정, settings, 리포트 폴더를 초기화합니다."],
+      ["clean", "생성된 AIGate 리포트와 로컬 상태를 삭제합니다."],
+      ["uninstall", "AIGate 설정, 상태, 소유 hook을 제거합니다."],
+      ["delete", "`aigate clean` 별칭입니다."],
       ["check", "로컬 Git 준비 상태를 요약합니다."],
       ["git-ready", "푸시 전 준비 게이트를 실행합니다."],
       ["push", "AIGate 검사 후 git push를 실행합니다."],
@@ -976,6 +1145,8 @@ const HELP_CONTENT = {
       ["install-hook", "AIGate Git hook을 설치합니다."],
       ["test", "Git 준비 상태와 감지된 프로젝트 테스트 명령을 실행합니다."],
       ["aitest", "AI 수정 프롬프트를 만들고, 선택하면 AI 에이전트를 실행합니다."],
+      ["ai report", "현재 문제점, 잘된 점, 방향성, AI 전달 단계를 설명합니다."],
+      ["ai-report", "`aigate ai report` 별칭입니다."],
       ["setup", "AIGate 프로젝트 설정을 구성합니다."],
       ["settings", "현재 AIGate 설정을 표시합니다."],
       ["integrate <provider>", "Codex/Gemini/Claude 어시스턴트 연동 파일을 생성합니다."],
@@ -1018,12 +1189,31 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "webhook 알림에 사용할 환경 변수 이름입니다."],
       ["--linear-team-id <id>", "Linear 이슈 생성용 팀 ID입니다."],
       ["--jira-project-key <key>", "Jira 이슈 생성용 프로젝트 키입니다."],
-      ["--route <name>", "시작 루트입니다: quickstart, ai, hook, release, full."],
+      ["--route <name>", "시작 루트입니다: default, quickstart, oss, ai, hook, release, full."],
+      ["--ask-steps", "start 단계마다 실행 여부를 묻습니다."],
+      ["--steps <ids>", "쉼표로 구분한 start 단계 id만 실행합니다."],
+      ["--project-type <auto|app|package>", "평가와 릴리스 검사에 사용할 프로젝트 유형을 지정합니다."],
+      ["--hosting <auto|github|gitlab|other>", "저장소 호스팅 제공자를 지정합니다."],
+      ["--ci-provider <auto|github|gitlab|other>", "저장소 점검에 사용할 CI 제공자를 지정합니다."],
+      ["--package-manager <auto|npm|pnpm|yarn|bun>", "패키지 매니저 감지를 지정합니다."],
+      ["--distribution <auto|none|npm>", "생성 설정의 배포 방식을 지정합니다."],
+      ["--target-branch <branch>", "생성 AI 지침의 PR/MR 대상 브랜치를 지정합니다."],
+      ["--protected-branches <list>", "보호 브랜치를 쉼표로 지정합니다."],
+      ["--work-branches <list>", "허용할 작업 브랜치 패턴을 쉼표로 지정합니다."],
+      ["--required-checks <list>", "필수 CI/check 이름을 쉼표로 지정합니다."],
+      ["--quality-command <shell>", "기본 로컬 품질 검증 명령을 지정합니다."],
+      ["--providers <list>", "기본 AI 연동 provider를 쉼표로 지정합니다."],
+      ["--ai-root-files <protect|sidecar|overwrite>", "integrate가 루트 AGENTS/GEMINI/CLAUDE 파일을 다루는 방식을 지정합니다."],
+      ["--branch-strategy <name>", "브랜치 전략을 고정합니다: github-flow, gitlab-flow, trunk, hybrid, git-flow."],
       ["--provider <name>", "AI 제공자입니다: auto, codex, claude, gemini, all."],
       ["--script <name>", "aigate test 또는 aitest에서 사용할 npm script 이름입니다."],
       ["--command <shell>", "aigate test 또는 aitest에서 사용할 사용자 지정 shell 명령입니다."],
-      ["--agent-command <shell>", "aitest --apply에서 사용할 사용자 지정 AI 에이전트 명령입니다."],
+      ["--agent-command <shell>", "aitest 또는 ai report --apply에서 사용할 사용자 지정 AI 에이전트 명령입니다."],
+      ["--prompt-output <path>", "AI report 전달 프롬프트를 지정한 경로에 저장합니다."],
       ["--pre-push", "pre-push Git hook을 설치하거나 대상으로 지정합니다."],
+      ["--include-ai-files", "uninstall에서 생성된 AGENTS/GEMINI/CLAUDE 파일도 대상으로 포함합니다."],
+      ["--overwrite-ai-files", "integrate --force가 기존 루트 AGENTS/GEMINI/CLAUDE 파일을 덮어쓸 수 있게 합니다."],
+      ["--github-files", "clean에서 생성된 GitHub 보조 템플릿도 대상으로 포함합니다."],
       ["--language <en|ko|ja|zh>", "출력 언어를 선택합니다."],
       ["--output-dir <path>", "연동 파일 출력 디렉터리를 선택합니다."],
       ["--force", "생성된 연동 파일을 덮어씁니다."],
@@ -1040,6 +1230,10 @@ const HELP_CONTENT = {
     optionsTitle: "オプション",
     commands: [
       ["init", "AIGate プロジェクトの初期設定を作成します。"],
+      ["reset", "AIGate 設定、settings、レポートフォルダを初期化します。"],
+      ["clean", "生成済み AIGate レポートとローカル状態を削除します。"],
+      ["uninstall", "AIGate 設定、状態、所有 hook を削除します。"],
+      ["delete", "`aigate clean` のエイリアスです。"],
       ["check", "ローカル Git 準備状態を要約します。"],
       ["git-ready", "プッシュ前の準備ゲートを実行します。"],
       ["push", "AIGate チェック後に git push を実行します。"],
@@ -1052,6 +1246,8 @@ const HELP_CONTENT = {
       ["install-hook", "AIGate Git hook をインストールします。"],
       ["test", "Git 準備状態と検出したプロジェクト test コマンドを実行します。"],
       ["aitest", "AI 修正プロンプトを作成し、必要なら AI エージェントを実行します。"],
+      ["ai report", "現在の問題、良い点、方向性、AI 引き継ぎ手順を説明します。"],
+      ["ai-report", "`aigate ai report` のエイリアスです。"],
       ["setup", "AIGate プロジェクト設定を構成します。"],
       ["settings", "現在の AIGate 設定を表示します。"],
       ["integrate <provider>", "Codex/Gemini/Claude アシスタント連携ファイルを生成します。"],
@@ -1094,12 +1290,31 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "webhook 通知に使う環境変数名です。"],
       ["--linear-team-id <id>", "Linear issue 作成用 team ID です。"],
       ["--jira-project-key <key>", "Jira issue 作成用 project key です。"],
-      ["--route <name>", "開始ルート: quickstart, ai, hook, release, full。"],
+      ["--route <name>", "開始ルート: default, quickstart, oss, ai, hook, release, full。"],
+      ["--ask-steps", "start の各手順を実行するか確認します。"],
+      ["--steps <ids>", "カンマ区切りの start 手順 id だけを実行します。"],
+      ["--project-type <auto|app|package>", "評価とリリースチェックに使うプロジェクト種別を指定します。"],
+      ["--hosting <auto|github|gitlab|other>", "リポジトリ hosting provider を指定します。"],
+      ["--ci-provider <auto|github|gitlab|other>", "リポジトリチェックで使う CI provider を指定します。"],
+      ["--package-manager <auto|npm|pnpm|yarn|bun>", "package manager 検出を指定します。"],
+      ["--distribution <auto|none|npm>", "生成設定の distribution mode を指定します。"],
+      ["--target-branch <branch>", "生成 AI 指示の PR/MR 対象ブランチを指定します。"],
+      ["--protected-branches <list>", "保護ブランチをカンマ区切りで指定します。"],
+      ["--work-branches <list>", "許可する作業ブランチパターンをカンマ区切りで指定します。"],
+      ["--required-checks <list>", "必須 CI/check 名をカンマ区切りで指定します。"],
+      ["--quality-command <shell>", "主要なローカル品質チェックコマンドを指定します。"],
+      ["--providers <list>", "デフォルト AI 連携 provider をカンマ区切りで指定します。"],
+      ["--ai-root-files <protect|sidecar|overwrite>", "integrate が root の AGENTS/GEMINI/CLAUDE ファイルを扱う方法を指定します。"],
+      ["--branch-strategy <name>", "ブランチ戦略を固定します: github-flow, gitlab-flow, trunk, hybrid, git-flow。"],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
       ["--script <name>", "aigate test または aitest で使う npm script 名です。"],
       ["--command <shell>", "aigate test または aitest で使うカスタム shell コマンドです。"],
-      ["--agent-command <shell>", "aitest --apply で使うカスタム AI エージェントコマンドです。"],
+      ["--agent-command <shell>", "aitest または ai report --apply で使うカスタム AI エージェントコマンドです。"],
+      ["--prompt-output <path>", "AI report 引き継ぎプロンプトを指定パスへ保存します。"],
       ["--pre-push", "pre-push Git hook をインストールまたは対象にします。"],
+      ["--include-ai-files", "uninstall で生成済み AGENTS/GEMINI/CLAUDE ファイルも対象にします。"],
+      ["--overwrite-ai-files", "integrate --force が既存 root AGENTS/GEMINI/CLAUDE files を上書きできるようにします。"],
+      ["--github-files", "clean で生成済み GitHub helper template も対象にします。"],
       ["--language <en|ko|ja|zh>", "出力言語を選択します。"],
       ["--output-dir <path>", "連携ファイルの出力ディレクトリを選択します。"],
       ["--force", "生成済み連携ファイルを上書きします。"],
@@ -1116,6 +1331,10 @@ const HELP_CONTENT = {
     optionsTitle: "选项",
     commands: [
       ["init", "创建 AIGate 项目初始配置。"],
+      ["reset", "重置 AIGate 配置、settings 和报告目录。"],
+      ["clean", "删除生成的 AIGate 报告和本地状态。"],
+      ["uninstall", "移除 AIGate 配置、状态和自有 hook。"],
+      ["delete", "`aigate clean` 的别名。"],
       ["check", "汇总本地 Git 就绪状态。"],
       ["git-ready", "运行推送前的就绪关卡。"],
       ["push", "运行 AIGate 检查后执行 git push。"],
@@ -1128,6 +1347,8 @@ const HELP_CONTENT = {
       ["install-hook", "安装 AIGate Git hook。"],
       ["test", "运行 Git 就绪检查和检测到的项目测试命令。"],
       ["aitest", "创建 AI 修复提示，并可选择运行 AI agent。"],
+      ["ai report", "说明当前问题、做得好的部分、方向和 AI 交接步骤。"],
+      ["ai-report", "`aigate ai report` 的别名。"],
       ["setup", "配置 AIGate 项目设置。"],
       ["settings", "显示当前 AIGate 设置。"],
       ["integrate <provider>", "生成 Codex/Gemini/Claude 助手集成文件。"],
@@ -1170,12 +1391,31 @@ const HELP_CONTENT = {
       ["--webhook-env <name>", "webhook 通知使用的环境变量名。"],
       ["--linear-team-id <id>", "创建 Linear issue 的 team ID。"],
       ["--jira-project-key <key>", "创建 Jira issue 的 project key。"],
-      ["--route <name>", "启动路由: quickstart, ai, hook, release, full。"],
+      ["--route <name>", "启动路由: default, quickstart, oss, ai, hook, release, full。"],
+      ["--ask-steps", "逐步询问是否运行每个 start 步骤。"],
+      ["--steps <ids>", "仅运行逗号分隔的 start 步骤 id。"],
+      ["--project-type <auto|app|package>", "指定评估和发布检查使用的项目类型。"],
+      ["--hosting <auto|github|gitlab|other>", "指定仓库托管服务。"],
+      ["--ci-provider <auto|github|gitlab|other>", "指定仓库检查使用的 CI 服务。"],
+      ["--package-manager <auto|npm|pnpm|yarn|bun>", "指定包管理器检测结果。"],
+      ["--distribution <auto|none|npm>", "设置生成配置的发布模式。"],
+      ["--target-branch <branch>", "设置生成 AI 指令中的 PR/MR 目标分支。"],
+      ["--protected-branches <list>", "用逗号指定受保护分支。"],
+      ["--work-branches <list>", "用逗号指定允许的工作分支模式。"],
+      ["--required-checks <list>", "用逗号指定必需 CI/check 名称。"],
+      ["--quality-command <shell>", "设置主要本地质量检查命令。"],
+      ["--providers <list>", "用逗号指定默认 AI 集成 provider。"],
+      ["--ai-root-files <protect|sidecar|overwrite>", "设置 integrate 如何处理根目录 AGENTS/GEMINI/CLAUDE 文件。"],
+      ["--branch-strategy <name>", "固定分支策略: github-flow, gitlab-flow, trunk, hybrid, git-flow。"],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
       ["--script <name>", "aigate test 或 aitest 使用的 npm script 名称。"],
       ["--command <shell>", "aigate test 或 aitest 使用的自定义 shell 命令。"],
-      ["--agent-command <shell>", "aitest --apply 使用的自定义 AI agent 命令。"],
+      ["--agent-command <shell>", "aitest 或 ai report --apply 使用的自定义 AI agent 命令。"],
+      ["--prompt-output <path>", "将 AI report 交接提示写入指定路径。"],
       ["--pre-push", "安装或指定 pre-push Git hook。"],
+      ["--include-ai-files", "uninstall 时也包含生成的 AGENTS/GEMINI/CLAUDE 文件。"],
+      ["--overwrite-ai-files", "允许 integrate --force 覆盖已有 root AGENTS/GEMINI/CLAUDE 文件。"],
+      ["--github-files", "clean 时也包含生成的 GitHub helper 模板。"],
       ["--language <en|ko|ja|zh>", "选择输出语言。"],
       ["--output-dir <path>", "选择集成输出目录。"],
       ["--force", "覆盖已生成的集成文件。"],
@@ -1298,12 +1538,13 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "Branch strategy is documented": "브랜치 전략 문서화",
     "Git upload workflow is documented": "Git 업로드 워크플로 문서화",
     "Pull request template exists": "PR 템플릿 존재",
+    "Merge request template exists": "MR 템플릿 존재",
     "CODEOWNERS exists": "CODEOWNERS 존재",
     "Contribution guide exists": "기여 가이드 존재",
     "Issue templates exist": "Issue 템플릿 존재",
     "AI assistant instructions exist": "AI 어시스턴트 지침 존재",
     "Test directory exists": "테스트 디렉터리 존재",
-    "npm test script exists": "npm test 스크립트 존재",
+    "Project test command exists": "프로젝트 테스트 명령 존재",
     "CI gate script exists": "CI 게이트 스크립트 존재",
     "CI workflow exists": "CI 워크플로 존재",
     "Release workflow exists": "릴리스 워크플로 존재",
@@ -1324,12 +1565,13 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "Branch strategy is documented": "ブランチ戦略が文書化済み",
     "Git upload workflow is documented": "Git アップロードワークフローが文書化済み",
     "Pull request template exists": "PR テンプレートが存在",
+    "Merge request template exists": "MR テンプレートが存在",
     "CODEOWNERS exists": "CODEOWNERS が存在",
     "Contribution guide exists": "コントリビューションガイドが存在",
     "Issue templates exist": "Issue テンプレートが存在",
     "AI assistant instructions exist": "AI アシスタント指示が存在",
     "Test directory exists": "テストディレクトリが存在",
-    "npm test script exists": "npm test スクリプトが存在",
+    "Project test command exists": "プロジェクトテストコマンドが存在",
     "CI gate script exists": "CI ゲートスクリプトが存在",
     "CI workflow exists": "CI ワークフローが存在",
     "Release workflow exists": "リリースワークフローが存在",
@@ -1350,12 +1592,13 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "Branch strategy is documented": "分支策略已文档化",
     "Git upload workflow is documented": "Git 上传工作流已文档化",
     "Pull request template exists": "PR 模板存在",
+    "Merge request template exists": "MR 模板存在",
     "CODEOWNERS exists": "CODEOWNERS 存在",
     "Contribution guide exists": "贡献指南存在",
     "Issue templates exist": "Issue 模板存在",
     "AI assistant instructions exist": "AI 助手指令存在",
     "Test directory exists": "测试目录存在",
-    "npm test script exists": "npm test 脚本存在",
+    "Project test command exists": "项目测试命令存在",
     "CI gate script exists": "CI 关卡脚本存在",
     "CI workflow exists": "CI 工作流存在",
     "Release workflow exists": "发布工作流存在",
@@ -1530,12 +1773,51 @@ function statusLabel(status, language) {
   return STATUS_LABELS[language]?.[status] ?? STATUS_LABELS.en[status] ?? status;
 }
 
+function checkStatus(check) {
+  if (check.applicable === false) {
+    return "NA";
+  }
+
+  return check.pass ? "PASS" : "TODO";
+}
+
+function checkNeedsAction(check) {
+  if (!check) {
+    return false;
+  }
+
+  return check.applicable !== false && !check.pass;
+}
+
+function checkPassed(check) {
+  if (!check) {
+    return false;
+  }
+
+  return check.applicable !== false && check.pass;
+}
+
+function evaluationHasPassedCheck(evaluation, names) {
+  return evaluation.checks.some((check) => names.includes(check.name) && checkPassed(check));
+}
+
+function formatCheckLine(check, translateName, language) {
+  const reason = check.status === "NA" && check.reason
+    ? ` (${translateNotApplicableReason(check.reason, language)})`
+    : "";
+  return `- ${statusLabel(check.status ?? checkStatus(check), language)}: ${translateName(check.name, language)}${reason}`;
+}
+
 function languageName(language) {
   return LANGUAGE_NAMES[language] ?? language;
 }
 
 const commands = {
   init: commandInit,
+  reset: commandReset,
+  clean: commandClean,
+  uninstall: commandUninstall,
+  delete: commandClean,
   check: commandCheck,
   "git-ready": commandGitReady,
   push: commandPush,
@@ -1548,6 +1830,8 @@ const commands = {
   "install-hook": (args) => commandInstallHook(args, commandContext()),
   test: commandTest,
   aitest: commandAiTest,
+  ai: commandAi,
+  "ai-report": commandAiReport,
   setup: commandSetup,
   settings: commandSettings,
   integrate: commandIntegrate,
@@ -1573,13 +1857,15 @@ function commandContext() {
     git,
     parseOptions,
     quoteArgs,
+    readAigateConfig,
     readJsonFile,
     renderPullRequestTemplateDraft,
     renderReport,
     resolveLanguage,
     statusLabel,
     t,
-    unsupportedLanguage
+    unsupportedLanguage,
+    version: VERSION
   };
 }
 
@@ -1644,10 +1930,11 @@ function commandInit(args) {
 
   const packageJson = readJsonFile("package.json");
   const outputDir = options.outputDir ?? ".";
+  const profile = detectProjectProfile(packageJson, options);
   const files = [
     {
       path: options.config ?? join(outputDir, ".aigate.yml"),
-      content: renderDefaultConfig(packageJson)
+      content: renderDefaultConfig(packageJson, options)
     },
     {
       path: join(outputDir, ".aigate", "reports", ".gitkeep"),
@@ -1666,10 +1953,108 @@ function commandInit(args) {
   const lines = [
     t(language, "init.complete"),
     ...results.map((result) => `- ${translateIntegrationAction(result.action, language)}: ${result.path}`),
-    t(language, "common.next", { next: "aigate evaluate-project && aigate branch-strategy --github" })
+    t(language, "common.next", { next: profile.hosting === "github" ? "aigate evaluate-project && aigate branch-strategy --github" : "aigate evaluate-project && aigate branch-strategy" })
   ];
 
   return lines.join("\n");
+}
+
+function commandReset(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const outputDir = options.outputDir ?? ".";
+  const packageJson = readJsonFile("package.json");
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    language
+  };
+  const files = [
+    {
+      path: options.config ?? join(outputDir, ".aigate.yml"),
+      content: renderDefaultConfig(packageJson, options)
+    },
+    {
+      path: scopedSettingsPath(outputDir),
+      content: `${JSON.stringify(settings, null, 2)}\n`
+    },
+    {
+      path: join(outputDir, ".aigate", "reports", ".gitkeep"),
+      content: ""
+    }
+  ];
+  const targets = options.dryRun
+    ? previewProjectFiles(files)
+    : writeProjectFiles(files, true);
+  const result = {
+    command: "reset",
+    status: options.dryRun ? "DRY_RUN" : "DONE",
+    mode: options.dryRun ? "dry-run" : "apply",
+    outputDir,
+    targets,
+    next: "aigate doctor"
+  };
+
+  if (options.format === "json") {
+    return JSON.stringify(result, null, 2);
+  }
+
+  return renderMaintenanceResult(result, language);
+}
+
+function commandClean(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const outputDir = options.outputDir ?? ".";
+  const previewOnly = Boolean(options.dryRun || !options.force);
+  const targets = applyDeleteTargets(buildCleanTargets(outputDir, options), previewOnly);
+  const result = {
+    command: "clean",
+    status: previewOnly ? "DRY_RUN" : targets.some((target) => target.action === "protected") ? "WARN" : "DONE",
+    mode: previewOnly ? "dry-run" : "apply",
+    outputDir,
+    targets,
+    next: previewOnly ? "aigate clean --force" : "aigate doctor"
+  };
+
+  if (options.format === "json") {
+    return JSON.stringify(result, null, 2);
+  }
+
+  return renderMaintenanceResult(result, language);
+}
+
+function commandUninstall(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const outputDir = options.outputDir ?? ".";
+  const previewOnly = Boolean(options.dryRun || !options.force);
+  const targets = applyDeleteTargets(buildUninstallTargets(outputDir, options), previewOnly);
+  const result = {
+    command: "uninstall",
+    status: previewOnly ? "DRY_RUN" : targets.some((target) => target.action === "protected") ? "WARN" : "DONE",
+    mode: previewOnly ? "dry-run" : "apply",
+    outputDir,
+    targets,
+    next: previewOnly ? "aigate uninstall --force" : "aigate doctor"
+  };
+
+  if (options.format === "json") {
+    return JSON.stringify(result, null, 2);
+  }
+
+  return renderMaintenanceResult(result, language);
 }
 
 function commandCheck(args) {
@@ -1687,10 +2072,13 @@ function commandCheck(args) {
     changedFiles: analysis.paths.length,
     changedPaths: analysis.paths,
     secretFindings: analysis.secretFindings,
+    sensitiveRemovals: analysis.sensitiveRemovals,
     tracked: status.insideGitRepository,
     recommendation: analysis.secretFindings.length
       ? "Review possible secret-bearing files before commit or push."
-      : status.recommendation
+      : analysis.sensitiveRemovals.length
+        ? "Commit sensitive file removals and rotate exposed credentials if they were already in history."
+        : status.recommendation
   };
 
   if (options.format === "json") {
@@ -1702,6 +2090,7 @@ function commandCheck(args) {
     t(language, "check.branch", { branch: result.branch }),
     t(language, "check.changedFiles", { count: result.changedFiles }),
     t(language, "check.secretFindings", { count: result.secretFindings.length }),
+    t(language, "check.sensitiveRemovals", { count: result.sensitiveRemovals.length }),
     t(language, "check.recommendation", { recommendation: translateRecommendation(result.recommendation, language) })
   ].join("\n");
 }
@@ -1713,7 +2102,7 @@ function commandGitReady(args) {
     return unsupportedLanguage(options.language);
   }
 
-  const result = buildGitReadyResult();
+  const result = buildGitReadyResult(options);
   const lines = [formatGitReadyResult(result, options, language)];
 
   if (result.blockers.length && options.format !== "json") {
@@ -1844,7 +2233,7 @@ function commandPrCheck(args) {
     return unsupportedLanguage(options.language);
   }
   const format = options.format ?? "markdown";
-  const report = buildReport("pr");
+  const report = buildReport("pr", options);
   const output = renderReport(report, format, language);
 
   if (options.output) {
@@ -1881,10 +2270,31 @@ async function commandStart(args) {
     return renderStartError("unknown-provider", language, { provider: options.provider });
   }
 
+  let selectedStepIds = parseStartStepSelection(options.steps);
+  if (!selectedStepIds && shouldPromptStartSteps(route, options)) {
+    const previewSteps = buildStartStepCalls(route, provider, language, {
+      force: Boolean(options.force),
+      outputDir: options.outputDir ?? ".",
+      owner: options.owner,
+      projectType: options.projectType,
+      hosting: options.hosting,
+      ciProvider: options.ciProvider,
+      packageManager: options.packageManager
+    });
+    selectedStepIds = await promptStartStepChoices(previewSteps, language);
+  }
+
   const result = executeStartRoute(route, {
     dryRun: Boolean(options.dryRun),
     force: Boolean(options.force),
-    provider
+    outputDir: options.outputDir ?? ".",
+    owner: options.owner,
+    projectType: options.projectType,
+    hosting: options.hosting,
+    ciProvider: options.ciProvider,
+    packageManager: options.packageManager,
+    provider,
+    selectedStepIds
   }, language);
 
   if (result.status === "BLOCK") {
@@ -1927,11 +2337,16 @@ function commandTest(args) {
   return renderTestReport(result, language);
 }
 
-function commandAiTest(args) {
+async function commandAiTest(args) {
   const options = parseOptions(args);
   const language = resolveLanguage(options);
   if (!language) {
     return unsupportedLanguage(options.language);
+  }
+
+  if (isMissingOptionValue(options.provider)) {
+    process.exitCode = 1;
+    return renderAiTestError("missing-provider", language);
   }
 
   const provider = resolveAiTestProvider(options.provider ?? "auto");
@@ -1970,7 +2385,20 @@ function commandAiTest(args) {
         stderr: translateAiTestText("agentNotFound", language, { provider: provider.name })
       };
     } else {
-      result.agent = runAgentCommand(agentCommand, prompt);
+      emitAiApplyProgress("start", language, {
+        provider: provider.name,
+        promptPath,
+        command: agentCommand.display,
+        stream: options.format !== "json"
+      });
+      result.agent = await runAgentCommand(agentCommand, prompt, {
+        stream: options.format !== "json"
+      });
+      emitAiApplyProgress("finish", language, {
+        exitCode: result.agent.exitCode,
+        durationMs: result.agent.durationMs,
+        stream: options.format !== "json"
+      });
       result.applied = result.agent.exitCode === 0;
       result.status = result.applied ? "AI_APPLIED" : "BLOCK";
     }
@@ -1987,10 +2415,123 @@ function commandAiTest(args) {
   return renderAiTestResult(result, language);
 }
 
+function commandAi(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const action = firstPositionalArg(args) ?? "report";
+  if (action !== "report") {
+    process.exitCode = 1;
+    return renderAiReportError("unknown-action", language, { action });
+  }
+
+  return commandAiReport(args);
+}
+
+async function commandAiReport(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  if (isMissingOptionValue(options.provider)) {
+    process.exitCode = 1;
+    return renderAiReportError("missing-provider", language);
+  }
+
+  const provider = resolveAiTestProvider(options.provider ?? "auto");
+  if (!provider) {
+    process.exitCode = 1;
+    return renderAiReportError("unknown-provider", language, { provider: options.provider });
+  }
+
+  const report = buildAiProjectReport(options, language);
+  report.ai = {
+    provider: provider.name,
+    providerInstalled: provider.installed,
+    applied: false,
+    promptPath: null,
+    agent: null
+  };
+
+  if (options.apply) {
+    const promptPath = options.promptOutput ?? join(".aigate", "reports", "ai-report-prompt.md");
+    mkdirSync(dirname(promptPath), { recursive: true });
+    writeFileSync(promptPath, `${report.prompt}\n`, "utf8");
+    report.ai.promptPath = promptPath;
+
+    const agentCommand = resolveAgentCommand(provider, options, report.prompt);
+    if (!agentCommand) {
+      report.status = "BLOCK";
+      report.ai.agent = {
+        status: "SKIPPED",
+        command: null,
+        exitCode: 1,
+        stdout: "",
+        stderr: translateAiTestText("agentNotFound", language, { provider: provider.name })
+      };
+    } else {
+      emitAiApplyProgress("start", language, {
+        provider: provider.name,
+        promptPath,
+        command: agentCommand.display,
+        stream: options.format !== "json"
+      });
+      report.ai.agent = await runAgentCommand(agentCommand, report.prompt, {
+        stream: options.format !== "json"
+      });
+      emitAiApplyProgress("finish", language, {
+        exitCode: report.ai.agent.exitCode,
+        durationMs: report.ai.agent.durationMs,
+        stream: options.format !== "json"
+      });
+      report.ai.applied = report.ai.agent.exitCode === 0;
+      report.status = report.ai.applied ? "AI_APPLIED" : "BLOCK";
+    }
+  }
+
+  const output = options.format === "json"
+    ? JSON.stringify(report, null, 2)
+    : renderAiProjectReport(report, language);
+
+  if (report.status === "BLOCK") {
+    process.exitCode = 1;
+  }
+
+  if (options.output) {
+    mkdirSync(dirname(options.output), { recursive: true });
+    writeFileSync(options.output, `${output}\n`, "utf8");
+    return t(language, "common.wrote", { path: options.output });
+  }
+
+  return output;
+}
+
 function commandSetup(args) {
   const options = parseOptions(args);
-  const currentSettings = readSettings();
+  const currentSettings = normalizeSettings(readSettings());
   const language = normalizeLanguage(options.language ?? currentSettings.language ?? DEFAULT_SETTINGS.language);
+  const projectType = settingValue(options.projectType, currentSettings.projectType, normalizeProjectType, "auto");
+  const hosting = settingValue(options.hosting, currentSettings.hosting, normalizeHosting, "auto");
+  const ciProvider = settingValue(options.ciProvider, currentSettings.ciProvider, normalizeCiProvider, "auto");
+  const packageManager = settingValue(options.packageManager, currentSettings.packageManager, normalizePackageManager, "auto");
+  const distribution = settingValue(options.distribution, currentSettings.distribution, normalizeDistribution, "auto");
+  const defaultBranch = branchSettingValue(options.defaultBranch, currentSettings.defaultBranch, "main");
+  const targetBranch = branchSettingValue(options.targetBranch ?? options.base, currentSettings.targetBranch, defaultBranch);
+  const branchStrategy = settingValue(options.branchStrategy, currentSettings.branchStrategy, normalizeBranchStrategySetting, "auto");
+  const protectedBranches = listSettingValue(options.protectedBranches ?? options.protectedBranch, currentSettings.protectedBranches);
+  const workBranches = listSettingValue(options.workBranches ?? options.workBranch, currentSettings.workBranches);
+  const requiredChecks = listSettingValue(options.requiredChecks ?? options.requiredCheck, currentSettings.requiredChecks);
+  const qualityCommands = listSettingValue(options.qualityCommands ?? options.qualityCommand, currentSettings.qualityCommands);
+  const aiProviders = integrationProviderListSetting(
+    options.aiProviders ?? options.providers ?? options.provider,
+    currentSettings.aiProviders
+  );
+  const aiRootFiles = aiRootFilesSettingValue(options.aiRootFiles ?? options.rootAiFiles, currentSettings.aiRootFiles);
 
   if (!language) {
     return unsupportedLanguage(options.language);
@@ -1999,7 +2540,21 @@ function commandSetup(args) {
   const settings = {
     ...DEFAULT_SETTINGS,
     ...currentSettings,
-    language
+    language,
+    projectType,
+    hosting,
+    ciProvider,
+    packageManager,
+    distribution,
+    defaultBranch,
+    targetBranch,
+    branchStrategy,
+    protectedBranches,
+    workBranches,
+    requiredChecks,
+    qualityCommands,
+    aiProviders,
+    aiRootFiles
   };
 
   writeSettings(settings);
@@ -2015,16 +2570,15 @@ function commandSetup(args) {
   return [
     t(language, "settings.complete"),
     t(language, "settings.file", { path: getSettingsPath() }),
-    t(language, "language.label", { language: languageName(language) })
+    t(language, "language.label", { language: languageName(language) }),
+    t(language, "settings.profile", settings),
+    t(language, "settings.workflow", settingsSummary(settings))
   ].join("\n");
 }
 
 function commandSettings(args) {
   const options = parseOptions(args);
-  const settings = {
-    ...DEFAULT_SETTINGS,
-    ...readSettings()
-  };
+  const settings = normalizeSettings(readSettings());
   const language = resolveLanguage(options);
   if (!language) {
     return unsupportedLanguage(options.language);
@@ -2041,13 +2595,16 @@ function commandSettings(args) {
   return [
     t(language, "settings.title"),
     t(language, "settings.file", { path: getSettingsPath() }),
-    t(language, "language.label", { language: languageName(settings.language) })
+    t(language, "language.label", { language: languageName(settings.language) }),
+    t(language, "settings.profile", settings),
+    t(language, "settings.workflow", settingsSummary(settings))
   ].join("\n");
 }
 
 function commandIntegrate(args) {
   const options = parseOptions(args);
-  const providerArg = firstPositionalArg(args) ?? "all";
+  const settings = normalizeSettings(readSettings());
+  const providerArg = firstPositionalArg(args) ?? (settings.aiProviders.length ? settings.aiProviders.join(",") : "all");
   const providers = resolveIntegrationProviders(providerArg);
   const language = resolveLanguage(options);
   if (!language) {
@@ -2063,15 +2620,23 @@ function commandIntegrate(args) {
   }
 
   const outputDir = options.outputDir ?? ".";
-  const manifest = buildIntegrationManifest(providers);
-  const files = buildIntegrationFiles(providers, outputDir, manifest, language);
-  const results = writeIntegrationFiles(files, Boolean(options.force));
+  const packageJson = readJsonFile("package.json");
+  const profile = detectProjectProfile(packageJson, options);
+  const manifest = buildIntegrationManifest(providers, profile, packageJson, options);
+  const aiRootFiles = options.overwriteAiFiles
+    ? "overwrite"
+    : aiRootFilesSettingValue(options.aiRootFiles ?? options.rootAiFiles, settings.aiRootFiles);
+  const files = buildIntegrationFiles(providers, outputDir, manifest, language, { aiRootFiles });
+  const results = writeIntegrationFiles(files, Boolean(options.force), {
+    overwriteProtected: Boolean(options.overwriteAiFiles || options.writeRootAiFiles || aiRootFiles === "overwrite")
+  });
 
   if (options.format === "json") {
     return JSON.stringify({
       command: "integrate",
       providers,
       outputDir,
+      aiRootFiles,
       files: results
     }, null, 2);
   }
@@ -2081,6 +2646,42 @@ function commandIntegrate(args) {
     t(language, "integrate.providers", { providers: providers.join(", ") }),
     ...results.map((result) => `- ${translateIntegrationAction(result.action, language)}: ${result.path}`),
     t(language, "integrate.next")
+  ].join("\n");
+}
+
+function commandRepositoryStarterFiles(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const outputDir = options.outputDir ?? ".";
+  const owner = normalizeCodeownersOwner(options.owner);
+  const packageJson = readJsonFile("package.json");
+  const profile = detectProjectProfile(packageJson, options);
+  const files = buildRepositoryStarterFiles(outputDir, language, packageJson, owner, profile);
+  const results = writeProjectFiles(files, Boolean(options.force), {
+    overwriteProtected: Boolean(options.overwriteAiFiles || options.writeRootAiFiles)
+  });
+
+  if (options.format === "json") {
+    return JSON.stringify({
+      command: "repo-files",
+      outputDir,
+      owner,
+      hosting: profile.hosting,
+      files: results
+    }, null, 2);
+  }
+
+  const labels = repositoryStarterLabels(language);
+  return [
+    labels.complete,
+    `${labels.outputDir}: ${outputDir}`,
+    `${labels.owner}: ${owner}`,
+    ...results.map((result) => `- ${translateIntegrationAction(result.action, language)}: ${result.path}`),
+    t(language, "common.next", { next: "aigate ai report && aigate pr-check" })
   ].join("\n");
 }
 
@@ -2104,6 +2705,18 @@ function normalizeStartProvider(provider) {
   }
 
   return resolveIntegrationProviders(normalized) ? normalized : null;
+}
+
+function shouldPromptStartSteps(route, options) {
+  if (options.format || options.dryRun || options.steps) {
+    return false;
+  }
+
+  if (!process.stdin.isTTY || !process.stdout.isTTY) {
+    return false;
+  }
+
+  return route === "default" || Boolean(options.askSteps);
 }
 
 async function promptStartRoute(language) {
@@ -2183,12 +2796,94 @@ async function promptStartRoute(language) {
   });
 }
 
+async function promptStartStepChoices(steps, language) {
+  const labels = automationLabels(language);
+  const selectedIds = [];
+  process.stdout.write(`\n${labels.startStepPrompt}\n${labels.startStepPromptHint}\n\n`);
+
+  for (const step of steps) {
+    const answer = await promptStartYesNo(`${labels.startStepQuestion} ${step.title} (${step.command})`, true);
+    if (answer) {
+      selectedIds.push(step.id);
+    }
+  }
+
+  process.stdout.write("\n");
+  return selectedIds;
+}
+
+function promptStartYesNo(question, defaultValue = true) {
+  const suffix = defaultValue ? " [Y/n] " : " [y/N] ";
+  return new Promise((resolve) => {
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    rl.question(`${question}${suffix}`, (answer) => {
+      rl.close();
+      const normalized = String(answer ?? "").trim().toLowerCase();
+      if (!normalized) {
+        resolve(defaultValue);
+        return;
+      }
+
+      resolve(["y", "yes", "예", "네", "ㅇ", "はい", "是"].includes(normalized));
+    });
+  });
+}
+
 function executeStartRoute(routeId, options, language) {
-  const route = startRouteDefinitions(language).find((item) => item.id === routeId);
-  const stepCalls = buildStartStepCalls(routeId, options.provider, language, options.force);
+  const profile = detectProjectProfile(readJsonFile("package.json"), options);
+  const route = startRouteDefinitions(language, profile).find((item) => item.id === routeId);
+  const stepCalls = buildStartStepCalls(routeId, options.provider, language, {
+    force: options.force,
+    outputDir: options.outputDir ?? ".",
+    owner: options.owner,
+    projectType: options.projectType,
+    hosting: options.hosting,
+    ciProvider: options.ciProvider,
+    packageManager: options.packageManager
+  });
+  const selectedStepIds = options.selectedStepIds ? new Set(options.selectedStepIds) : null;
+  const unknownStepIds = selectedStepIds
+    ? [...selectedStepIds].filter((id) => !stepCalls.some((step) => step.id === id))
+    : [];
+
+  if (unknownStepIds.length) {
+    return {
+      command: "start",
+      status: "BLOCK",
+      mode: options.dryRun ? "dry-run" : "apply",
+      route: routeId,
+      title: route?.title ?? routeId,
+      outputDir: options.outputDir ?? ".",
+      owner: normalizeCodeownersOwner(options.owner),
+      provider: options.provider,
+      steps: [],
+      next: [],
+      error: renderStartError("unknown-step", language, {
+        step: unknownStepIds.join(", "),
+        supportedSteps: stepCalls.map((step) => step.id).join(", ")
+      })
+    };
+  }
+
   const steps = [];
 
   for (const step of stepCalls) {
+    if (selectedStepIds && !selectedStepIds.has(step.id)) {
+      steps.push({
+        id: step.id,
+        title: step.title,
+        command: step.command,
+        status: "SKIPPED",
+        exitCode: 0,
+        output: ""
+      });
+      continue;
+    }
+
     if (options.dryRun) {
       steps.push({
         id: step.id,
@@ -2216,28 +2911,49 @@ function executeStartRoute(routeId, options, language) {
     mode: options.dryRun ? "dry-run" : "apply",
     route: routeId,
     title: route?.title ?? routeId,
+    outputDir: options.outputDir ?? ".",
+    owner: normalizeCodeownersOwner(options.owner),
     provider: options.provider,
+    selectedSteps: selectedStepIds ? [...selectedStepIds] : "all",
     steps,
     next: route?.next ?? []
   };
 }
 
-function buildStartStepCalls(routeId, provider, language, force) {
+function buildStartStepCalls(routeId, provider, language, options = {}) {
+  const force = Boolean(options.force);
+  const outputDir = options.outputDir ?? ".";
+  const owner = normalizeCodeownersOwner(options.owner);
   const baseArgs = ["--language", language];
+  const profileArgs = projectProfileOptionArgs(options);
+  const outputArgs = outputDir === "." ? [] : ["--output-dir", outputDir];
+  const ownerArgs = owner ? ["--owner", owner] : [];
   const forceArgs = force ? ["--force"] : [];
   const integrationProvider = provider ?? "all";
+  const outputDirText = outputDir === "." ? "" : ` --output-dir ${quoteArgs([outputDir])[0]}`;
+  const ownerText = owner ? ` --owner ${quoteArgs([owner])[0]}` : "";
+  const profileText = profileArgs.length ? ` ${quoteArgs(profileArgs).join(" ")}` : "";
+  const profile = detectProjectProfile(readJsonFile("package.json"), options);
+  const branchArgs = profile.hosting === "github" ? ["--github", ...baseArgs, ...profileArgs] : [...baseArgs, ...profileArgs];
+  const branchCommand = `${profile.hosting === "github" ? "aigate branch-strategy --github" : "aigate branch-strategy"}${profileText}`;
   const steps = {
     init: {
       id: "init",
       title: automationLabels(language).startStepInit,
-      command: `aigate init${force ? " --force" : ""}`,
-      run: () => commandInit([...baseArgs, ...forceArgs])
+      command: `aigate init${outputDirText}${profileText}${force ? " --force" : ""}`,
+      run: () => commandInit([...baseArgs, ...profileArgs, ...outputArgs, ...forceArgs])
     },
     integrate: {
       id: "integrate",
       title: automationLabels(language).startStepIntegrate,
-      command: `aigate integrate ${integrationProvider}${force ? " --force" : ""}`,
-      run: () => commandIntegrate([integrationProvider, ...baseArgs, ...forceArgs])
+      command: `aigate integrate ${integrationProvider}${outputDirText}${force ? " --force" : ""}`,
+      run: () => commandIntegrate([integrationProvider, ...baseArgs, ...outputArgs, ...forceArgs])
+    },
+    repoFiles: {
+      id: "repo-files",
+      title: automationLabels(language).startStepRepoFiles,
+      command: `aigate start --route oss${outputDirText}${ownerText}${profileText}${force ? " --force" : ""}`,
+      run: () => commandRepositoryStarterFiles([...baseArgs, ...profileArgs, ...outputArgs, ...ownerArgs, ...forceArgs])
     },
     hook: {
       id: "hook",
@@ -2261,22 +2977,30 @@ function buildStartStepCalls(routeId, provider, language, force) {
       id: "release-check",
       title: automationLabels(language).startStepRelease,
       command: "aigate release-check",
-      run: () => commandReleaseCheck(baseArgs)
+      run: () => commandReleaseCheck([...baseArgs, ...profileArgs])
+    },
+    aiReport: {
+      id: "ai-report",
+      title: automationLabels(language).startStepAiReport,
+      command: "aigate ai report",
+      run: () => commandAiReport([...baseArgs, ...profileArgs])
     },
     branch: {
       id: "branch-strategy",
       title: automationLabels(language).startStepBranch,
-      command: "aigate branch-strategy --github",
-      run: () => commandBranchStrategy(["--github", ...baseArgs])
+      command: branchCommand,
+      run: () => commandBranchStrategy(branchArgs)
     }
   };
 
   return {
+    default: [steps.init, steps.repoFiles, steps.integrate, steps.hook, steps.doctor, steps.aiReport, steps.branch],
     quickstart: [steps.init, steps.doctor, steps.demo],
+    oss: [steps.init, steps.repoFiles, steps.doctor, steps.branch],
     ai: [steps.init, steps.integrate, steps.doctor],
     hook: [steps.init, steps.hook, steps.doctor],
     release: [steps.release, steps.branch],
-    full: [steps.init, steps.integrate, steps.hook, steps.doctor, steps.release]
+    full: [steps.init, steps.integrate, steps.repoFiles, steps.hook, steps.doctor, steps.release]
   }[routeId] ?? [steps.init, steps.doctor];
 }
 
@@ -2311,10 +3035,15 @@ function runStartStep(step) {
 
 function renderStartResult(result, language) {
   const labels = automationLabels(language);
+  if (result.error) {
+    return result.error;
+  }
+
   return [
     `${labels.startTitle}: ${automationStatus(result.status, language)}`,
     `${labels.route}: ${result.title}`,
     `${labels.mode}: ${translateAutomationMode(result.mode, language)}`,
+    `${labels.outputDir}: ${result.outputDir}`,
     `${labels.provider}: ${result.provider}`,
     "",
     `${labels.steps}:`,
@@ -2334,7 +3063,28 @@ function renderStartError(kind, language, values = {}) {
     return `${labels.error}: ${labels.unknownProvider} ${values.provider}\n${labels.supportedProviders}: all, codex, gemini, claude`;
   }
 
+  if (kind === "unknown-step") {
+    return `${labels.error}: ${labels.unknownStep} ${values.step}\n${labels.supportedSteps}: ${values.supportedSteps}`;
+  }
+
   return `${labels.error}: ${labels.unknownRoute} ${values.route}\n${labels.supportedRoutes}: ${START_ROUTE_IDS.join(", ")}`;
+}
+
+function parseStartStepSelection(value) {
+  if (value === undefined || value === null || value === false) {
+    return null;
+  }
+
+  const text = String(value).trim();
+  if (!text || text === "all") {
+    return null;
+  }
+
+  if (text === "none") {
+    return [];
+  }
+
+  return text.split(/[\s,]+/).map((item) => item.trim()).filter(Boolean);
 }
 
 function summarizeStepOutput(output, language) {
@@ -2346,9 +3096,22 @@ function summarizeStepOutput(output, language) {
   return text.split(/\r?\n/).find((line) => line.trim())?.trim() ?? automationLabels(language).none;
 }
 
-function startRouteDefinitions(language) {
+function startRouteDefinitions(language, profile = {}) {
   const labels = automationLabels(language);
+  const setupNext = profile.hosting === "gitlab"
+    ? "Review .gitlab templates and commit only useful files"
+    : "aigate github setup --dry-run";
   return [
+    {
+      id: "default",
+      title: labels.routeDefault,
+      description: labels.routeDefaultDescription,
+      next: [
+        "aigate ai report",
+        "aigate test",
+        "aigate git-ready"
+      ]
+    },
     {
       id: "quickstart",
       title: labels.routeQuickstart,
@@ -2356,6 +3119,16 @@ function startRouteDefinitions(language) {
       next: [
         "aigate test",
         "aigate aitest"
+      ]
+    },
+    {
+      id: "oss",
+      title: labels.routeOss,
+      description: labels.routeOssDescription,
+      next: [
+        "aigate ai report",
+        setupNext,
+        "aigate pr-check"
       ]
     },
     {
@@ -2425,31 +3198,26 @@ function buildAigateTestResult(options) {
 
 function resolveProjectTestCommand(options) {
   if (options.command) {
-    return {
-      source: "custom-command",
-      display: String(options.command),
-      executable: String(options.command),
-      args: [],
-      shell: true
-    };
+    return customShellCommand(options.command, "custom-command");
   }
 
   const packageJson = readJsonFile("package.json");
-  const scripts = packageJson.scripts ?? {};
-  const script = options.script
-    ?? (scripts.ci ? "ci" : scripts["test:ci"] ? "test:ci" : scripts.test ? "test" : null);
-
-  if (!script) {
-    return null;
+  const profile = detectProjectProfile(packageJson, options);
+  const workflow = resolveWorkflowSettings(options, profile, packageJson);
+  if (!options.script && workflow.qualityCommands.length) {
+    return customShellCommand(workflow.qualityCommands[0], "configured-quality-command");
   }
 
+  return discoverProjectTestCommand(packageJson, profile, options.script);
+}
+
+function customShellCommand(command, source = "custom-command") {
   return {
-    source: "npm-script",
-    script,
-    display: script === "test" ? "npm test" : `npm run ${script}`,
-    executable: "npm",
-    args: script === "test" ? ["test"] : ["run", script],
-    shell: false
+    source,
+    display: String(command),
+    executable: String(command),
+    args: [],
+    shell: true
   };
 }
 
@@ -2485,8 +3253,8 @@ function buildTestNextSteps(status, testCommand) {
 
   if (status === "WARN") {
     return [
-      "Add a package.json test, test:ci, or ci script.",
-      "Run aigate test --command \"npm test\" when the command exists."
+      "Add a package.json test, test:ci, or ci script in the root or a workspace package.",
+      "Run aigate test --command \"<your test command>\" when the command is custom."
     ];
   }
 
@@ -2605,27 +3373,171 @@ function resolveAgentCommand(provider, options, prompt) {
   };
 }
 
-function runAgentCommand(command, prompt) {
-  const startedAt = Date.now();
-  const result = spawnSync(command.executable, command.args, {
-    cwd: process.cwd(),
-    encoding: "utf8",
-    env: process.env,
-    input: command.input ?? prompt,
-    maxBuffer: 4 * 1024 * 1024,
-    shell: Boolean(command.shell),
-    timeout: 10 * 60 * 1000
-  });
-  const exitCode = result.status ?? (result.error ? 1 : 0);
+function isMissingOptionValue(value) {
+  return value === true || value === "";
+}
 
+async function runAgentCommand(command, prompt, options = {}) {
+  const startedAt = Date.now();
+  const timeoutMs = 10 * 60 * 1000;
+  const stream = Boolean(options.stream);
+
+  return new Promise((resolve) => {
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    let timedOut = false;
+    const child = spawn(command.executable, command.args, {
+      cwd: process.cwd(),
+      env: process.env,
+      shell: Boolean(command.shell),
+      stdio: ["pipe", "pipe", "pipe"]
+    });
+
+    const finish = (exitCode, extraStderr = "") => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      clearTimeout(timer);
+      const finalExitCode = typeof exitCode === "number" ? exitCode : 1;
+      if (extraStderr) {
+        stderr += extraStderr;
+      }
+      resolve({
+        status: finalExitCode === 0 ? "DONE" : "FAILED",
+        command: command.display,
+        exitCode: finalExitCode,
+        durationMs: Date.now() - startedAt,
+        stdout: truncateOutput(stdout),
+        stderr: truncateOutput(stderr)
+      });
+    };
+
+    const timer = setTimeout(() => {
+      timedOut = true;
+      child.kill("SIGTERM");
+    }, timeoutMs);
+
+    child.stdout.on("data", (chunk) => {
+      const text = chunk.toString();
+      stdout += text;
+      if (stream) {
+        process.stderr.write(text);
+      }
+    });
+
+    child.stderr.on("data", (chunk) => {
+      const text = chunk.toString();
+      stderr += text;
+      if (stream) {
+        process.stderr.write(text);
+      }
+    });
+
+    child.stdin.on("error", () => {
+      // Some AI CLIs can exit before reading stdin after printing an immediate error.
+    });
+
+    child.on("error", (error) => {
+      finish(1, error?.message ? `${error.message}\n` : "");
+    });
+
+    child.on("close", (code, signal) => {
+      if (timedOut) {
+        finish(1, `AI agent timed out after ${timeoutMs}ms.\n`);
+        return;
+      }
+      const exitCode = code ?? (signal ? 1 : 0);
+      finish(exitCode);
+    });
+
+    const input = command.input ?? prompt;
+    if (input) {
+      child.stdin.write(input);
+    }
+    child.stdin.end();
+  });
+}
+
+function emitAiApplyProgress(kind, language, values = {}) {
+  if (!values.stream) {
+    return;
+  }
+
+  const labels = aiApplyProgressLabels(language);
+  if (kind === "start") {
+    process.stderr.write([
+      `${labels.title}: ${labels.start}`,
+      `- ${labels.provider}: ${values.provider}`,
+      `- ${labels.prompt}: ${values.promptPath}`,
+      `- ${labels.command}: ${values.command}`,
+      `- ${labels.output}: ${labels.streaming}`,
+      ""
+    ].join("\n"));
+    return;
+  }
+
+  process.stderr.write([
+    "",
+    `${labels.title}: ${labels.finish}`,
+    `- ${labels.exitCode}: ${values.exitCode}`,
+    `- ${labels.duration}: ${values.durationMs}ms`,
+    ""
+  ].join("\n"));
+}
+
+function aiApplyProgressLabels(language = "en") {
   return {
-    status: exitCode === 0 ? "DONE" : "FAILED",
-    command: command.display,
-    exitCode,
-    durationMs: Date.now() - startedAt,
-    stdout: truncateOutput(result.stdout ?? ""),
-    stderr: truncateOutput(result.stderr ?? result.error?.message ?? "")
-  };
+    en: {
+      command: "Command",
+      duration: "Duration",
+      exitCode: "Exit code",
+      finish: "agent finished",
+      output: "Agent output",
+      prompt: "Prompt",
+      provider: "Provider",
+      start: "running agent",
+      streaming: "streaming below",
+      title: "AIGate AI apply"
+    },
+    ko: {
+      command: "명령",
+      duration: "소요 시간",
+      exitCode: "종료 코드",
+      finish: "에이전트 실행 완료",
+      output: "에이전트 출력",
+      prompt: "프롬프트",
+      provider: "제공자",
+      start: "에이전트 실행 중",
+      streaming: "아래에 실시간 표시",
+      title: "AIGate AI 적용"
+    },
+    ja: {
+      command: "コマンド",
+      duration: "所要時間",
+      exitCode: "終了コード",
+      finish: "エージェント実行完了",
+      output: "エージェント出力",
+      prompt: "プロンプト",
+      provider: "Provider",
+      start: "エージェント実行中",
+      streaming: "下にリアルタイム表示",
+      title: "AIGate AI 適用"
+    },
+    zh: {
+      command: "命令",
+      duration: "耗时",
+      exitCode: "退出码",
+      finish: "agent 执行完成",
+      output: "Agent 输出",
+      prompt: "提示",
+      provider: "Provider",
+      start: "正在运行 agent",
+      streaming: "在下方实时显示",
+      title: "AIGate AI 应用"
+    }
+  }[language] ?? aiApplyProgressLabels("en");
 }
 
 function renderAiTestPrompt(testResult, provider, language) {
@@ -2713,10 +3625,14 @@ function renderAiTestResult(result, language) {
     lines.push(
       `${labels.agent}: ${automationStatus(result.agent.status, language)}`,
       `${labels.command}: ${result.agent.command ?? labels.notDetected}`,
-      `${labels.exitCode}: ${result.agent.exitCode}`
+      `${labels.exitCode}: ${result.agent.exitCode}`,
+      `${labels.duration}: ${result.agent.durationMs}ms`
     );
+    if (result.agent.stdout.trim()) {
+      lines.push("", `${labels.stdout}:`, result.agent.stdout.trim());
+    }
     if (result.agent.stderr.trim()) {
-      lines.push(`${labels.stderr}:`, result.agent.stderr.trim());
+      lines.push("", `${labels.stderr}:`, result.agent.stderr.trim());
     }
   }
 
@@ -2726,6 +3642,10 @@ function renderAiTestResult(result, language) {
 
 function renderAiTestError(kind, language, values = {}) {
   const labels = automationLabels(language);
+  if (kind === "missing-provider") {
+    return `${labels.error}: ${labels.missingProvider}\n${labels.supportedProviders}: auto, codex, claude, gemini`;
+  }
+
   if (kind === "unknown-provider") {
     return `${labels.error}: ${labels.unknownProvider} ${values.provider}\n${labels.supportedProviders}: auto, codex, claude, gemini`;
   }
@@ -2761,34 +3681,45 @@ function automationLabels(language) {
       error: "Error",
       exitCode: "Exit code",
       gitGate: "Git gate",
+      missingProvider: "--provider requires a value.",
       mode: "Mode",
       next: "Next",
       none: "none",
       notDetected: "not detected",
       output: "Output",
+      outputDir: "Output directory",
       projectCommand: "Project command",
       prompt: "Prompt",
       provider: "Provider",
       report: "Report",
       route: "Route",
+      routeDefault: "Default setup",
+      routeDefaultDescription: "Review recommended steps and run only what you need.",
       routeAi: "AI agent setup",
       routeAiDescription: "Create Codex, Gemini, and Claude instruction files.",
       routeFull: "Full project guard",
       routeFullDescription: "Set config, AI files, pre-push guard, and release checks.",
       routeHook: "Pre-push guard",
       routeHookDescription: "Install the guarded git push path.",
+      routeOss: "Open source setup",
+      routeOssDescription: "Create README, contribution docs, issue templates, PR template, and CODEOWNERS.",
       routeQuickstart: "Quick setup",
       routeQuickstartDescription: "Create config, run doctor, and show the demo.",
       routeRelease: "Release readiness",
       routeReleaseDescription: "Check package metadata and branch policy.",
       startPrompt: "Choose an AIGate start route",
       startPromptHint: "Use arrow keys and press Enter.",
+      startStepAiReport: "Create AI project report",
       startStepBranch: "Recommend branch strategy",
       startStepDemo: "Show guided demo",
       startStepDoctor: "Run doctor",
       startStepHook: "Install pre-push hook",
       startStepInit: "Create AIGate config",
       startStepIntegrate: "Create AI integration files",
+      startStepPrompt: "Choose default setup steps",
+      startStepPromptHint: "Press Enter to run a step, or type n to skip it.",
+      startStepQuestion: "Run this step?",
+      startStepRepoFiles: "Create repository starter files",
       startStepRelease: "Check release readiness",
       startTitle: "AIGate start",
       steps: "Steps",
@@ -2797,9 +3728,11 @@ function automationLabels(language) {
       summary: "Summary",
       supportedProviders: "Supported providers",
       supportedRoutes: "Supported routes",
+      supportedSteps: "Supported steps",
       testTitle: "AIGate test",
       unknownProvider: "Unknown AI provider:",
-      unknownRoute: "Unknown start route:"
+      unknownRoute: "Unknown start route:",
+      unknownStep: "Unknown start step:"
     },
     ko: {
       agent: "에이전트",
@@ -2810,34 +3743,45 @@ function automationLabels(language) {
       error: "오류",
       exitCode: "종료 코드",
       gitGate: "Git 게이트",
+      missingProvider: "--provider 값이 필요합니다.",
       mode: "모드",
       next: "다음 단계",
       none: "없음",
       notDetected: "감지되지 않음",
       output: "출력",
+      outputDir: "출력 디렉터리",
       projectCommand: "프로젝트 명령",
       prompt: "프롬프트",
       provider: "제공자",
       report: "리포트",
       route: "루트",
+      routeDefault: "기본 설정",
+      routeDefaultDescription: "추천 단계를 확인하며 필요한 것만 실행합니다.",
       routeAi: "AI 에이전트 설정",
       routeAiDescription: "Codex, Gemini, Claude 지침 파일을 생성합니다.",
       routeFull: "전체 프로젝트 보호",
       routeFullDescription: "설정, AI 파일, pre-push 보호, 릴리스 검사를 구성합니다.",
       routeHook: "pre-push 보호",
       routeHookDescription: "보호된 git push 경로를 설치합니다.",
+      routeOss: "오픈소스 설정",
+      routeOssDescription: "README, 기여 문서, 이슈 템플릿, PR 템플릿, CODEOWNERS를 생성합니다.",
       routeQuickstart: "빠른 설정",
       routeQuickstartDescription: "설정을 만들고 doctor와 demo를 실행합니다.",
       routeRelease: "릴리스 준비",
       routeReleaseDescription: "패키지 메타데이터와 브랜치 정책을 점검합니다.",
       startPrompt: "AIGate 시작 루트를 선택하세요",
       startPromptHint: "화살표 키로 이동하고 Enter를 누르세요.",
+      startStepAiReport: "AI 프로젝트 리포트 생성",
       startStepBranch: "브랜치 전략 추천",
       startStepDemo: "안내형 데모 표시",
       startStepDoctor: "doctor 실행",
       startStepHook: "pre-push hook 설치",
       startStepInit: "AIGate 설정 생성",
       startStepIntegrate: "AI 연동 파일 생성",
+      startStepPrompt: "기본 설정 단계를 선택하세요",
+      startStepPromptHint: "Enter는 실행, n은 건너뜀입니다.",
+      startStepQuestion: "이 단계를 실행할까요?",
+      startStepRepoFiles: "저장소 시작 파일 생성",
       startStepRelease: "릴리스 준비 검사",
       startTitle: "AIGate start",
       steps: "단계",
@@ -2846,9 +3790,11 @@ function automationLabels(language) {
       summary: "요약",
       supportedProviders: "지원 제공자",
       supportedRoutes: "지원 루트",
+      supportedSteps: "지원 단계",
       testTitle: "AIGate test",
       unknownProvider: "알 수 없는 AI 제공자:",
-      unknownRoute: "알 수 없는 시작 루트:"
+      unknownRoute: "알 수 없는 시작 루트:",
+      unknownStep: "알 수 없는 start 단계:"
     },
     ja: {
       agent: "エージェント",
@@ -2859,34 +3805,45 @@ function automationLabels(language) {
       error: "エラー",
       exitCode: "終了コード",
       gitGate: "Git ゲート",
+      missingProvider: "--provider には値が必要です。",
       mode: "モード",
       next: "次の手順",
       none: "なし",
       notDetected: "未検出",
       output: "出力",
+      outputDir: "出力ディレクトリ",
       projectCommand: "プロジェクトコマンド",
       prompt: "プロンプト",
       provider: "Provider",
       report: "レポート",
       route: "ルート",
+      routeDefault: "デフォルト設定",
+      routeDefaultDescription: "推奨手順を確認し、必要なものだけ実行します。",
       routeAi: "AI エージェント設定",
       routeAiDescription: "Codex、Gemini、Claude の指示ファイルを作成します。",
       routeFull: "フルプロジェクトガード",
       routeFullDescription: "設定、AI ファイル、pre-push ガード、リリースチェックを構成します。",
       routeHook: "pre-push ガード",
       routeHookDescription: "保護された git push 経路をインストールします。",
+      routeOss: "オープンソース設定",
+      routeOssDescription: "README、貢献文書、issue テンプレート、PR テンプレート、CODEOWNERS を作成します。",
       routeQuickstart: "クイック設定",
       routeQuickstartDescription: "設定を作成し、doctor と demo を実行します。",
       routeRelease: "リリース準備",
       routeReleaseDescription: "パッケージメタデータとブランチポリシーを確認します。",
       startPrompt: "AIGate 開始ルートを選択してください",
       startPromptHint: "矢印キーで移動し Enter を押してください。",
+      startStepAiReport: "AI プロジェクトレポートを作成",
       startStepBranch: "ブランチ戦略を推薦",
       startStepDemo: "ガイド付きデモを表示",
       startStepDoctor: "doctor を実行",
       startStepHook: "pre-push hook をインストール",
       startStepInit: "AIGate 設定を作成",
       startStepIntegrate: "AI 連携ファイルを作成",
+      startStepPrompt: "デフォルト設定の手順を選択してください",
+      startStepPromptHint: "Enter で実行、n でスキップします。",
+      startStepQuestion: "この手順を実行しますか?",
+      startStepRepoFiles: "リポジトリ初期ファイルを作成",
       startStepRelease: "リリース準備を確認",
       startTitle: "AIGate start",
       steps: "手順",
@@ -2895,9 +3852,11 @@ function automationLabels(language) {
       summary: "要約",
       supportedProviders: "対応 provider",
       supportedRoutes: "対応ルート",
+      supportedSteps: "対応手順",
       testTitle: "AIGate test",
       unknownProvider: "不明な AI provider:",
-      unknownRoute: "不明な開始ルート:"
+      unknownRoute: "不明な開始ルート:",
+      unknownStep: "不明な start 手順:"
     },
     zh: {
       agent: "Agent",
@@ -2908,34 +3867,45 @@ function automationLabels(language) {
       error: "错误",
       exitCode: "退出码",
       gitGate: "Git 关卡",
+      missingProvider: "--provider 需要一个值。",
       mode: "模式",
       next: "下一步",
       none: "无",
       notDetected: "未检测到",
       output: "输出",
+      outputDir: "输出目录",
       projectCommand: "项目命令",
       prompt: "提示",
       provider: "Provider",
       report: "报告",
       route: "路由",
+      routeDefault: "默认设置",
+      routeDefaultDescription: "检查推荐步骤，并只运行需要的部分。",
       routeAi: "AI agent 设置",
       routeAiDescription: "创建 Codex、Gemini 和 Claude 指令文件。",
       routeFull: "完整项目守护",
       routeFullDescription: "配置设置、AI 文件、pre-push 守护和发布检查。",
       routeHook: "pre-push 守护",
       routeHookDescription: "安装受保护的 git push 路径。",
+      routeOss: "开源设置",
+      routeOssDescription: "创建 README、贡献文档、issue 模板、PR 模板和 CODEOWNERS。",
       routeQuickstart: "快速设置",
       routeQuickstartDescription: "创建配置，运行 doctor 并显示 demo。",
       routeRelease: "发布就绪",
       routeReleaseDescription: "检查包元数据和分支策略。",
       startPrompt: "选择 AIGate 启动路由",
       startPromptHint: "使用方向键移动并按 Enter。",
+      startStepAiReport: "创建 AI 项目报告",
       startStepBranch: "推荐分支策略",
       startStepDemo: "显示引导 demo",
       startStepDoctor: "运行 doctor",
       startStepHook: "安装 pre-push hook",
       startStepInit: "创建 AIGate 配置",
       startStepIntegrate: "创建 AI 集成文件",
+      startStepPrompt: "选择默认设置步骤",
+      startStepPromptHint: "按 Enter 运行步骤，输入 n 跳过。",
+      startStepQuestion: "运行此步骤吗?",
+      startStepRepoFiles: "创建仓库起始文件",
       startStepRelease: "检查发布就绪状态",
       startTitle: "AIGate start",
       steps: "步骤",
@@ -2944,9 +3914,11 @@ function automationLabels(language) {
       summary: "摘要",
       supportedProviders: "支持的 provider",
       supportedRoutes: "支持的路由",
+      supportedSteps: "支持的步骤",
       testTitle: "AIGate test",
       unknownProvider: "未知 AI provider:",
-      unknownRoute: "未知启动路由:"
+      unknownRoute: "未知启动路由:",
+      unknownStep: "未知 start 步骤:"
     }
   }[language] ?? automationLabels("en");
 }
@@ -3032,12 +4004,14 @@ function translateAutomationStep(step, language) {
     ko: {
       "AI remediation prompt was written.": "AI 수정 프롬프트를 작성했습니다.",
       "Add a package.json test, test:ci, or ci script.": "package.json에 test, test:ci 또는 ci script를 추가하세요.",
+      "Add a package.json test, test:ci, or ci script in the root or a workspace package.": "루트 또는 워크스페이스 package.json에 test, test:ci 또는 ci script를 추가하세요.",
       "Resolve AIGate git-ready blockers first.": "먼저 AIGate git-ready 차단 사유를 해결하세요.",
       "Review the AI agent output.": "AI 에이전트 출력을 검토하세요.",
       "Run aigate aitest after blockers are fixed.": "차단 사유를 해결한 뒤 aigate aitest를 실행하세요.",
       "Run aigate aitest to generate an AI remediation prompt.": "AI 수정 프롬프트를 만들려면 aigate aitest를 실행하세요.",
       "Run aigate git-ready": "aigate git-ready를 실행하세요.",
       "Run aigate push -u origin <branch> when ready.": "준비되면 aigate push -u origin <branch>를 실행하세요.",
+      "Run aigate test --command \"<your test command>\" when the command is custom.": "사용자 지정 명령이라면 aigate test --command \"<테스트 명령>\"을 실행하세요.",
       "Run aigate test --command \"npm test\" when the command exists.": "명령이 준비되면 aigate test --command \"npm test\"를 실행하세요.",
       "Run aigate test again after the agent finishes.": "에이전트가 끝나면 aigate test를 다시 실행하세요.",
       "Tests already pass.": "테스트가 이미 통과했습니다.",
@@ -3047,12 +4021,14 @@ function translateAutomationStep(step, language) {
     ja: {
       "AI remediation prompt was written.": "AI 修正プロンプトを書き込みました。",
       "Add a package.json test, test:ci, or ci script.": "package.json に test、test:ci、または ci script を追加してください。",
+      "Add a package.json test, test:ci, or ci script in the root or a workspace package.": "ルートまたはワークスペース package.json に test、test:ci、または ci script を追加してください。",
       "Resolve AIGate git-ready blockers first.": "先に AIGate git-ready の blocker を解消してください。",
       "Review the AI agent output.": "AI エージェントの出力を確認してください。",
       "Run aigate aitest after blockers are fixed.": "blocker 解消後に aigate aitest を実行してください。",
       "Run aigate aitest to generate an AI remediation prompt.": "AI 修正プロンプトを生成するには aigate aitest を実行してください。",
       "Run aigate git-ready": "aigate git-ready を実行してください。",
       "Run aigate push -u origin <branch> when ready.": "準備できたら aigate push -u origin <branch> を実行してください。",
+      "Run aigate test --command \"<your test command>\" when the command is custom.": "カスタムコマンドの場合は aigate test --command \"<test command>\" を実行してください。",
       "Run aigate test --command \"npm test\" when the command exists.": "コマンドが用意できたら aigate test --command \"npm test\" を実行してください。",
       "Run aigate test again after the agent finishes.": "エージェント完了後に aigate test を再実行してください。",
       "Tests already pass.": "テストはすでに通過しています。",
@@ -3062,12 +4038,14 @@ function translateAutomationStep(step, language) {
     zh: {
       "AI remediation prompt was written.": "已写入 AI 修复提示。",
       "Add a package.json test, test:ci, or ci script.": "在 package.json 中添加 test、test:ci 或 ci script。",
+      "Add a package.json test, test:ci, or ci script in the root or a workspace package.": "在根目录或工作区 package.json 中添加 test、test:ci 或 ci script。",
       "Resolve AIGate git-ready blockers first.": "先解决 AIGate git-ready blockers。",
       "Review the AI agent output.": "检查 AI agent 输出。",
       "Run aigate aitest after blockers are fixed.": "blockers 修复后运行 aigate aitest。",
       "Run aigate aitest to generate an AI remediation prompt.": "运行 aigate aitest 生成 AI 修复提示。",
       "Run aigate git-ready": "运行 aigate git-ready。",
       "Run aigate push -u origin <branch> when ready.": "准备好后运行 aigate push -u origin <branch>。",
+      "Run aigate test --command \"<your test command>\" when the command is custom.": "如果使用自定义命令，请运行 aigate test --command \"<test command>\"。",
       "Run aigate test --command \"npm test\" when the command exists.": "命令可用后运行 aigate test --command \"npm test\"。",
       "Run aigate test again after the agent finishes.": "agent 完成后再次运行 aigate test。",
       "Tests already pass.": "测试已经通过。",
@@ -3100,9 +4078,9 @@ function translateAiTestText(key, language, values = {}) {
   ));
 }
 
-function buildGitReadyResult() {
+function buildGitReadyResult(options = {}) {
   const status = buildGitStatus();
-  const evaluation = buildEvaluation();
+  const evaluation = buildEvaluation(options);
   const analysis = buildChangeAnalysis();
   const blockers = [];
   const warnings = [];
@@ -3119,6 +4097,10 @@ function buildGitReadyResult() {
     blockers.push(`${analysis.secretFindings.length} possible secret finding(s) detected in changed files.`);
   }
 
+  if (analysis.sensitiveRemovals.length) {
+    warnings.push(sensitiveRemovalWarning(analysis.sensitiveRemovals));
+  }
+
   if (evaluation.score < 80) {
     warnings.push(`Project foundation score is ${evaluation.score}/100; recommended minimum is 80.`);
   }
@@ -3131,12 +4113,22 @@ function buildGitReadyResult() {
     changedPaths: analysis.paths,
     projectScore: evaluation.score,
     secretFindings: analysis.secretFindings,
+    sensitiveRemovals: analysis.sensitiveRemovals,
     blockers,
     warnings,
     recommendation: blockers.length
       ? "Resolve blockers before committing, pushing, or opening a pull request."
-      : "Run npm test, commit focused changes, push the branch, and open a pull request."
+      : "Run AIGate test, commit focused changes, push the branch, and open a pull request."
   };
+}
+
+function sensitiveRemovalWarning(sensitiveRemovals) {
+  const exposedCount = sensitiveRemovals.filter((finding) => finding.exposedInHistory).length;
+  if (exposedCount) {
+    return `${sensitiveRemovals.length} sensitive file removal(s) detected; ${exposedCount} had Git history exposure, so commit the removal and rotate exposed credentials.`;
+  }
+
+  return `${sensitiveRemovals.length} sensitive file removal(s) detected; commit the removal. No Git history exposure was detected.`;
 }
 
 function formatGitReadyResult(result, options, language = "en") {
@@ -3153,6 +4145,7 @@ function formatGitReadyResult(result, options, language = "en") {
     t(language, "gitReady.branch", { branch: result.branch }),
     t(language, "gitReady.changedFiles", { count: result.changedFiles }),
     t(language, "gitReady.secretFindings", { count: result.secretFindings.length }),
+    t(language, "gitReady.sensitiveRemovals", { count: result.sensitiveRemovals.length }),
     t(language, "gitReady.projectScore", { score: result.projectScore }),
     result.blockers.length ? t(language, "gitReady.blockers") : t(language, "gitReady.blockersNone"),
     ...result.blockers.map((blocker) => `- ${translateBlocker(blocker, language)}`),
@@ -3170,7 +4163,7 @@ function commandReport(args) {
   }
   const format = options.format ?? "markdown";
   const type = options.type ?? "local";
-  const report = buildReport(type);
+  const report = buildReport(type, options);
   const output = renderReport(report, format, language);
 
   if (options.output) {
@@ -3188,7 +4181,13 @@ function commandEvaluateProject(args) {
   if (!language) {
     return unsupportedLanguage(options.language);
   }
-  const evaluation = buildEvaluation({ deep: Boolean(options.deep) });
+  const evaluation = buildEvaluation({
+    deep: Boolean(options.deep),
+    projectType: options.projectType,
+    hosting: options.hosting,
+    ciProvider: options.ciProvider,
+    packageManager: options.packageManager
+  });
 
   if (options.report) {
     const format = options.format ?? "markdown";
@@ -3207,10 +4206,7 @@ function commandEvaluateProject(args) {
     return JSON.stringify(evaluation, null, 2);
   }
 
-  const rows = evaluation.checks.map((check) => {
-    const mark = statusLabel(check.pass ? "PASS" : "TODO", language);
-    return `- ${mark}: ${translateEvaluationCheckName(check.name, language)}`;
-  });
+  const rows = evaluation.checks.map((check) => formatCheckLine(check, translateEvaluationCheckName, language));
   const categoryRows = evaluation.categories.map((category) => (
     `- ${translateEvaluationCategory(category.name, language)}: ${category.score}/${category.weight}`
   ));
@@ -3250,15 +4246,19 @@ function commandReleaseCheck(args) {
   if (!language) {
     return unsupportedLanguage(options.language);
   }
-  const check = buildReleaseCheck({ checkNpm: Boolean(options.npm) });
+  const check = buildReleaseCheck({
+    checkNpm: Boolean(options.npm),
+    projectType: options.projectType,
+    hosting: options.hosting,
+    ciProvider: options.ciProvider,
+    packageManager: options.packageManager
+  });
 
   if (options.format === "json") {
     return JSON.stringify(check, null, 2);
   }
 
-  const rows = check.checks.map((item) => (
-    `- ${statusLabel(item.pass ? "PASS" : "TODO", language)}: ${translateReleaseCheckName(item.name, language)}`
-  ));
+  const rows = check.checks.map((item) => formatCheckLine(item, translateReleaseCheckName, language));
   const registryLine = renderRegistryLine(check.registry, language);
 
   return [
@@ -3302,7 +4302,8 @@ function commandBranchStrategy(args) {
   }
 
   if (options.generate || options.apply) {
-    const files = buildBranchStrategyFiles(strategy, options.outputDir ?? ".", language);
+    const profile = detectProjectProfile(readJsonFile("package.json"), options);
+    const files = buildBranchStrategyFiles(strategy, options.outputDir ?? ".", language, profile);
     const results = writeProjectFiles(files, Boolean(options.force));
 
     if (options.format === "json") {
@@ -3885,37 +4886,81 @@ function defaultWebhookEnv(channel) {
 }
 
 function buildChangeAnalysis() {
-  const paths = getChangedPaths();
+  const entries = getChangedEntries();
+  const paths = entries.map((entry) => entry.path);
   return {
+    entries,
     paths,
-    secretFindings: scanSecrets(paths)
+    secretFindings: scanSecrets(entries),
+    sensitiveRemovals: sensitiveRemovalFindings(entries)
   };
 }
 
 function getChangedPaths() {
-  const outputs = [
-    git(["diff", "--name-only", "HEAD"]),
-    git(["diff", "--name-only", "--cached"]),
-    git(["ls-files", "--others", "--exclude-standard"])
-  ];
-
-  return [...new Set(outputs
-    .flatMap((output) => (output ?? "").split("\n"))
-    .map((path) => path.trim())
-    .filter(Boolean)
-    .filter((path) => !path.startsWith(".git/")))];
+  return getChangedEntries().map((entry) => entry.path);
 }
 
-function scanSecrets(paths) {
+function getChangedEntries() {
+  const outputs = [
+    git(["diff", "--name-status", "HEAD"]),
+    git(["diff", "--name-status", "--cached"])
+  ];
+  const entries = new Map();
+
+  for (const entry of outputs
+    .flatMap((output) => (output ?? "").split("\n"))
+    .map(parseNameStatusEntry)
+    .filter(Boolean)
+    .filter((entry) => !entry.path.startsWith(".git/"))) {
+    addChangeEntry(entries, entry.path, entry.status);
+  }
+
+  for (const path of (git(["ls-files", "--others", "--exclude-standard"]) ?? "")
+    .split("\n")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .filter((item) => !item.startsWith(".git/"))) {
+    addChangeEntry(entries, path, "??");
+  }
+
+  return [...entries.entries()].map(([path, statuses]) => ({
+    path,
+    statuses,
+    action: statuses.every((status) => status.startsWith("D")) ? "deleted" : "active"
+  }));
+}
+
+function parseNameStatusEntry(line) {
+  const parts = line.trim().split(/\t+/).filter(Boolean);
+  if (parts.length < 2) {
+    return null;
+  }
+
+  const status = parts[0];
+  const path = status.startsWith("R") || status.startsWith("C")
+    ? parts[2] ?? parts[1]
+    : parts[1];
+
+  return path ? { status, path } : null;
+}
+
+function addChangeEntry(entries, path, status) {
+  const statuses = entries.get(path) ?? [];
+  statuses.push(status);
+  entries.set(path, statuses);
+}
+
+function scanSecrets(entries) {
   const findings = [];
 
-  for (const filePath of paths) {
+  for (const entry of normalizeChangeEntries(entries)) {
+    const filePath = entry.path;
     const pathFinding = sensitivePathFinding(filePath);
-    if (pathFinding) {
+    if (pathFinding && entry.action !== "deleted") {
       findings.push(pathFinding);
     }
 
-    if (!existsSync(filePath) || !isScannableFile(filePath)) {
+    if (entry.action === "deleted" || !existsSync(filePath) || !isScannableFile(filePath)) {
       continue;
     }
 
@@ -3943,6 +4988,28 @@ function scanSecrets(paths) {
   }
 
   return findings;
+}
+
+function sensitiveRemovalFindings(entries) {
+  return normalizeChangeEntries(entries)
+    .filter((entry) => entry.action === "deleted")
+    .map((entry) => sensitivePathFinding(entry.path))
+    .filter(Boolean)
+    .map((finding) => ({
+      ...finding,
+      disposition: "removed",
+      exposedInHistory: pathExistsInGitHistory(finding.file)
+    }));
+}
+
+function pathExistsInGitHistory(filePath) {
+  return Boolean((git(["log", "--all", "--format=%H", "--", filePath]) ?? "").trim());
+}
+
+function normalizeChangeEntries(entries) {
+  return entries.map((entry) => (
+    typeof entry === "string" ? { path: entry, statuses: ["?"], action: "active" } : entry
+  ));
 }
 
 function sensitivePathFinding(filePath) {
@@ -4006,10 +5073,9 @@ function buildGitStatus() {
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
-  const changedPaths = insideGitRepository ? getChangedPaths() : [];
-  const highRisk = [...changedFiles, ...changedPaths].some((line) => (
-    /(\.env|secret|token|private[_-]?key)/i.test(line) || isSensitiveAuthStatePath(line)
-  ));
+  const changedEntries = insideGitRepository ? getChangedEntries() : [];
+  const changedPaths = changedEntries.map((entry) => entry.path);
+  const highRisk = changedEntries.some((entry) => entry.action !== "deleted" && isHighRiskPath(entry.path));
 
   let recommendation = "No local changes detected.";
   if (!insideGitRepository) {
@@ -4024,38 +5090,79 @@ function buildGitStatus() {
     insideGitRepository,
     branch,
     changedFiles,
+    changedEntries,
     riskLevel: highRisk ? "high" : changedFiles.length ? "medium" : "low",
     recommendation
   };
 }
 
+function isHighRiskPath(filePath) {
+  return /(\.env|secret|token|private[_-]?key)/i.test(filePath) || isSensitiveAuthStatePath(filePath);
+}
+
 function buildEvaluation(options = {}) {
   const packageJson = readJsonFile("package.json");
+  const profile = detectProjectProfile(packageJson, options);
+  const githubOnlyReason = "GitHub-specific check is not required for this repository profile.";
+  const publicOnlyReason = "Public repository governance check is not required for a private app profile.";
+  const packageOnlyReason = "Package release check is not required for an app profile.";
+  const check = (category, name, pass, checkOptions = {}) => makeCheck(category, name, pass, checkOptions);
+  const reviewTemplateCheckName = profile.hosting === "gitlab" ? "Merge request template exists" : "Pull request template exists";
   const checks = [
-    { category: "git_workflow", name: "AIGate configuration exists", pass: existsSync(".aigate.yml") },
-    { category: "git_workflow", name: "Branch strategy is documented", pass: existsSync(join("docs", "branch-strategy.md")) },
-    { category: "git_workflow", name: "Git upload workflow is documented", pass: existsSync(join("docs", "git-upload-workflow.md")) },
-    { category: "git_workflow", name: "Pull request template exists", pass: existsSync(join(".github", "pull_request_template.md")) },
-    { category: "git_workflow", name: "CODEOWNERS exists", pass: existsSync(join(".github", "CODEOWNERS")) },
-    { category: "pr_quality", name: "Contribution guide exists", pass: existsSync("CONTRIBUTING.md") },
-    { category: "pr_quality", name: "Issue templates exist", pass: existsSync(join(".github", "ISSUE_TEMPLATE")) },
-    { category: "pr_quality", name: "AI assistant instructions exist", pass: existsSync("AGENTS.md") && existsSync("GEMINI.md") },
-    { category: "testing", name: "Test directory exists", pass: existsSync("test") },
-    { category: "testing", name: "npm test script exists", pass: Boolean(packageJson.scripts?.test) },
-    { category: "testing", name: "CI gate script exists", pass: Boolean(packageJson.scripts?.ci || packageJson.scripts?.["git:ready"]) },
-    { category: "ci_cd", name: "CI workflow exists", pass: existsSync(join(".github", "workflows", "ci.yml")) },
-    { category: "ci_cd", name: "Release workflow exists", pass: existsSync(join(".github", "workflows", "release.yml")) },
-    { category: "ci_cd", name: "Dependabot exists", pass: existsSync(join(".github", "dependabot.yml")) },
-    { category: "security", name: "Security policy exists", pass: existsSync("SECURITY.md") },
-    { category: "security", name: "Security scanning is documented", pass: existsSync(join("docs", "security-scanning.md")) },
-    { category: "security", name: "OpenSSF Scorecard workflow exists", pass: existsSync(join(".github", "workflows", "scorecard.yml")) },
-    { category: "documentation", name: "README exists", pass: existsSync("README.md") },
-    { category: "documentation", name: "License exists", pass: existsSync("LICENSE") },
-    { category: "documentation", name: "Changelog exists", pass: existsSync("CHANGELOG.md") },
-    { category: "documentation", name: "Roadmap exists", pass: existsSync(join("docs", "roadmap.md")) },
-    { category: "maintainability", name: "Package metadata exists", pass: existsSync("package.json") },
-    { category: "maintainability", name: "Support policy exists", pass: existsSync("SUPPORT.md") },
-    { category: "maintainability", name: "Governance exists", pass: existsSync("GOVERNANCE.md") }
+    check("git_workflow", "AIGate configuration exists", existsSync(".aigate.yml")),
+    check("git_workflow", "Branch strategy is documented", existsSync(join("docs", "branch-strategy.md"))),
+    check("git_workflow", "Git upload workflow is documented", existsSync(join("docs", "git-upload-workflow.md"))),
+    check("git_workflow", reviewTemplateCheckName, hasPullRequestTemplate(profile)),
+    check("git_workflow", "CODEOWNERS exists", hasCodeowners()),
+    check("pr_quality", "Contribution guide exists", existsSync("CONTRIBUTING.md"), {
+      applicable: profile.visibility !== "private" || existsSync("CONTRIBUTING.md"),
+      reason: publicOnlyReason
+    }),
+    check("pr_quality", "Issue templates exist", hasIssueTemplates(profile), {
+      applicable: profile.visibility !== "private" || hasIssueTemplates(profile),
+      reason: publicOnlyReason
+    }),
+    check("pr_quality", "AI assistant instructions exist", hasAiAssistantInstructions()),
+    check("testing", "Test directory exists", hasTestDirectory()),
+    check("testing", "Project test command exists", hasTestScript(packageJson)),
+    check("testing", "CI gate script exists", hasCiGateScript(packageJson)),
+    check("ci_cd", "CI workflow exists", hasCiWorkflow(profile)),
+    check("ci_cd", "Release workflow exists", hasReleaseWorkflow(profile), {
+      applicable: profile.kind === "package" || hasReleaseWorkflow(profile),
+      reason: packageOnlyReason
+    }),
+    check("ci_cd", "Dependabot exists", existsSync(join(".github", "dependabot.yml")), {
+      applicable: profile.hosting === "github" || existsSync(join(".github", "dependabot.yml")),
+      reason: githubOnlyReason
+    }),
+    check("security", "Security policy exists", existsSync("SECURITY.md")),
+    check("security", "Security scanning is documented", hasSecurityScanningDocumentation()),
+    check("security", "OpenSSF Scorecard workflow exists", existsSync(join(".github", "workflows", "scorecard.yml")), {
+      applicable: (profile.hosting === "github" && profile.visibility !== "private") || existsSync(join(".github", "workflows", "scorecard.yml")),
+      reason: profile.hosting === "github" ? publicOnlyReason : githubOnlyReason
+    }),
+    check("documentation", "README exists", existsSync("README.md")),
+    check("documentation", "License exists", existsSync("LICENSE"), {
+      applicable: profile.visibility !== "private" || existsSync("LICENSE"),
+      reason: publicOnlyReason
+    }),
+    check("documentation", "Changelog exists", existsSync("CHANGELOG.md"), {
+      applicable: profile.kind === "package" || existsSync("CHANGELOG.md"),
+      reason: packageOnlyReason
+    }),
+    check("documentation", "Roadmap exists", existsSync(join("docs", "roadmap.md")), {
+      applicable: profile.visibility !== "private" || existsSync(join("docs", "roadmap.md")),
+      reason: publicOnlyReason
+    }),
+    check("maintainability", "Package metadata exists", existsSync("package.json")),
+    check("maintainability", "Support policy exists", existsSync("SUPPORT.md"), {
+      applicable: profile.visibility !== "private" || existsSync("SUPPORT.md"),
+      reason: publicOnlyReason
+    }),
+    check("maintainability", "Governance exists", existsSync("GOVERNANCE.md"), {
+      applicable: profile.visibility !== "private" || existsSync("GOVERNANCE.md"),
+      reason: publicOnlyReason
+    })
   ];
   const weights = {
     git_workflow: 20,
@@ -4068,23 +5175,30 @@ function buildEvaluation(options = {}) {
   };
   const categories = Object.entries(weights).map(([name, weight]) => {
     const categoryChecks = checks.filter((check) => check.category === name);
-    const passed = categoryChecks.filter((check) => check.pass).length;
+    const applicableChecks = categoryChecks.filter((check) => check.applicable !== false);
+    const passed = applicableChecks.filter((check) => check.pass).length;
+    const total = applicableChecks.length;
     return {
       name,
       weight,
       passed,
-      total: categoryChecks.length,
-      score: Math.round((passed / categoryChecks.length) * weight)
+      total,
+      skipped: categoryChecks.length - total,
+      score: total === 0 ? weight : Math.round((passed / total) * weight)
     };
   });
   const score = categories.reduce((sum, category) => sum + category.score, 0);
   const grade = gradeForScore(score);
+  const privateApp = profile.visibility === "private" && profile.kind === "app";
   const recommendation = score === 100
     ? "Repository foundations are ready for the next MVP slice."
-    : "Complete the missing repository foundations before public release.";
+    : privateApp
+      ? "Complete missing foundations that match this private app profile."
+      : "Complete the missing repository foundations before public release.";
   const evaluation = {
     score,
     grade,
+    profile,
     categories,
     checks,
     recommendation
@@ -4095,6 +5209,798 @@ function buildEvaluation(options = {}) {
   }
 
   return evaluation;
+}
+
+function makeCheck(category, name, pass, options = {}) {
+  const applicable = options.applicable !== false;
+  const check = {
+    category,
+    name,
+    pass: applicable ? Boolean(pass) : false,
+    applicable
+  };
+
+  if (!applicable && options.reason) {
+    check.reason = options.reason;
+  }
+
+  check.status = checkStatus(check);
+  return check;
+}
+
+function detectProjectProfile(packageJson = readJsonFile("package.json"), options = {}) {
+  const profileOptions = resolveProjectProfileOptions(options);
+  const packageManager = normalizePackageManager(profileOptions.packageManager) ?? detectPackageManager(packageJson);
+  const repositoryUrl = String(packageJson.repository?.url ?? packageJson.repository ?? git(["remote", "get-url", "origin"]) ?? "");
+  const hosting = normalizeHosting(profileOptions.hosting) ?? detectHosting(repositoryUrl);
+  const visibility = packageJson.private === true ? "private" : "public";
+  const explicitType = normalizeProjectType(profileOptions.projectType);
+  const explicitCiProvider = normalizeCiProvider(profileOptions.ciProvider);
+  const npmEntrypoint = hasNpmEntrypoint(packageJson);
+  const appSignals = packageJson.private === true ||
+    existsSync("pnpm-workspace.yaml") ||
+    Boolean(packageJson.workspaces) ||
+    existsSync("apps") ||
+    Boolean(packageJson.scripts?.dev || packageJson.scripts?.start);
+  const kind = explicitType ?? (appSignals && !npmEntrypoint ? "app" : "package");
+  const ciProvider = explicitCiProvider ?? (existsSync(".gitlab-ci.yml")
+    ? "gitlab"
+    : existsSync(join(".github", "workflows"))
+      ? "github"
+      : hosting);
+
+  return {
+    kind,
+    visibility,
+    hosting,
+    ciProvider,
+    packageManager,
+    npmEntrypoint,
+    publishableNpmPackage: kind === "package" && packageJson.private !== true,
+    privatePackage: packageJson.private === true
+  };
+}
+
+function resolveProjectProfileOptions(options = {}) {
+  const settings = readSettings();
+  const config = readCurrentAigateConfig(options.config ?? ".aigate.yml");
+  const projectConfig = config.project ?? {};
+
+  return {
+    projectType: options.projectType ?? settings.projectType ?? settings.project?.type ?? projectConfig.type,
+    hosting: options.hosting ?? settings.hosting ?? settings.project?.hosting ?? projectConfig.hosting,
+    ciProvider: options.ciProvider ?? settings.ciProvider ?? settings.project?.ciProvider ?? projectConfig.ciProvider,
+    packageManager: options.packageManager ?? settings.packageManager ?? settings.project?.packageManager ?? projectConfig.packageManager
+  };
+}
+
+function resolveWorkflowSettings(options = {}, profile = {}, packageJson = readJsonFile("package.json")) {
+  const settings = normalizeSettings(readSettings());
+  const config = readCurrentAigateConfig(options.config ?? ".aigate.yml");
+  const projectConfig = config.project ?? {};
+  const branchConfig = config.branchStrategy ?? {};
+  const defaultBranch = branchSettingValue(
+    options.defaultBranch ?? settings.defaultBranch ?? projectConfig.defaultBranch,
+    "main"
+  );
+  const targetBranch = branchSettingValue(
+    options.targetBranch ?? options.base ?? settings.targetBranch ?? projectConfig.targetBranch,
+    defaultBranch
+  );
+  const protectedBranches = listSettingValue(
+    options.protectedBranches ?? options.protectedBranch ?? branchConfig.protectedBranches,
+    settings.protectedBranches
+  );
+  const workBranches = listSettingValue(
+    options.workBranches ?? options.workBranch ?? branchConfig.workBranches,
+    settings.workBranches
+  );
+  const requiredChecks = listSettingValue(options.requiredChecks ?? options.requiredCheck, settings.requiredChecks);
+  const qualityCommands = listSettingValue(options.qualityCommands ?? options.qualityCommand, settings.qualityCommands);
+  const aiProviders = integrationProviderListSetting(
+    options.aiProviders ?? options.providers ?? options.provider,
+    settings.aiProviders
+  );
+  const distribution = settingValue(options.distribution, settings.distribution, normalizeDistribution, "auto");
+  const branchStrategy = settingValue(options.branchStrategy, settings.branchStrategy, normalizeBranchStrategySetting, "auto");
+
+  return {
+    defaultBranch,
+    targetBranch,
+    protectedBranches,
+    workBranches,
+    requiredChecks,
+    qualityCommands,
+    aiProviders,
+    distribution,
+    branchStrategy,
+    profile,
+    packageName: packageJson.name ?? ""
+  };
+}
+
+function readCurrentAigateConfig(filePath = ".aigate.yml") {
+  const config = readAigateConfig(filePath);
+
+  if (isStaleGeneratedAigateConfig(config)) {
+    return {};
+  }
+
+  return config;
+}
+
+function isStaleGeneratedAigateConfig(config = {}) {
+  const generatedVersion = generatedByVersion(config.generatedBy);
+  return Boolean(generatedVersion && generatedVersion !== VERSION);
+}
+
+function generatedByVersion(value) {
+  const match = String(value ?? "").match(/\baigate\s+([0-9][^\s]*)/i);
+  return match?.[1] ?? null;
+}
+
+function normalizeProjectType(value) {
+  const normalized = String(value ?? "auto").trim().toLowerCase();
+  if (!normalized || normalized === "auto") {
+    return null;
+  }
+
+  return ["app", "package"].includes(normalized) ? normalized : null;
+}
+
+function normalizeHosting(value) {
+  const normalized = String(value ?? "auto").trim().toLowerCase();
+  if (!normalized || normalized === "auto") {
+    return null;
+  }
+
+  return ["github", "gitlab", "other", "unknown"].includes(normalized) ? normalized : null;
+}
+
+function normalizeCiProvider(value) {
+  return normalizeHosting(value);
+}
+
+function normalizePackageManager(value) {
+  const normalized = String(value ?? "auto").trim().toLowerCase();
+  if (!normalized || normalized === "auto") {
+    return null;
+  }
+
+  return ["npm", "pnpm", "yarn", "bun", "unknown"].includes(normalized) ? normalized : null;
+}
+
+function settingValue(optionValue, currentValue, normalize, fallback = "auto") {
+  const value = optionValue ?? currentValue ?? fallback;
+  const text = String(value ?? fallback).trim().toLowerCase();
+  if (!text || text === "auto") {
+    return "auto";
+  }
+
+  return normalize(text) ?? fallback;
+}
+
+function normalizeSettings(settings = {}) {
+  return {
+    ...DEFAULT_SETTINGS,
+    ...settings,
+    distribution: normalizeDistribution(settings.distribution) ?? DEFAULT_SETTINGS.distribution,
+    defaultBranch: branchSettingValue(settings.defaultBranch, DEFAULT_SETTINGS.defaultBranch),
+    targetBranch: branchSettingValue(settings.targetBranch, settings.defaultBranch ?? DEFAULT_SETTINGS.targetBranch),
+    branchStrategy: normalizeBranchStrategySetting(settings.branchStrategy) ?? DEFAULT_SETTINGS.branchStrategy,
+    protectedBranches: normalizeListSetting(settings.protectedBranches),
+    workBranches: normalizeListSetting(settings.workBranches).length
+      ? normalizeListSetting(settings.workBranches)
+      : [...DEFAULT_WORK_BRANCHES],
+    requiredChecks: normalizeListSetting(settings.requiredChecks),
+    qualityCommands: normalizeListSetting(settings.qualityCommands),
+    aiProviders: normalizeIntegrationProviderList(settings.aiProviders),
+    aiRootFiles: normalizeAiRootFilesMode(settings.aiRootFiles) ?? DEFAULT_SETTINGS.aiRootFiles
+  };
+}
+
+function settingsSummary(settings = {}) {
+  const normalized = normalizeSettings(settings);
+  return {
+    ...normalized,
+    workBranches: normalized.workBranches.length ? normalized.workBranches.join(", ") : DEFAULT_WORK_BRANCHES.join(", "),
+    requiredChecks: normalized.requiredChecks.length ? normalized.requiredChecks.join(", ") : "auto",
+    qualityCommands: normalized.qualityCommands.length ? normalized.qualityCommands.join(", ") : "auto",
+    aiProviders: normalized.aiProviders.length ? normalized.aiProviders.join(", ") : "all"
+  };
+}
+
+function branchSettingValue(optionValue, currentValue, fallback = "main") {
+  const value = optionValue ?? currentValue ?? fallback;
+  const text = String(value ?? fallback).trim();
+  return text && text.toLowerCase() !== "auto" ? text : fallback;
+}
+
+function listSettingValue(optionValue, currentValue = []) {
+  if (optionValue === undefined || optionValue === null) {
+    return normalizeListSetting(currentValue);
+  }
+
+  return normalizeListSetting(optionValue);
+}
+
+function normalizeListSetting(value) {
+  if (Array.isArray(value)) {
+    return [...new Set(value.map((item) => String(item).trim()).filter(Boolean))];
+  }
+
+  const text = String(value ?? "").trim();
+  if (!text || ["auto", "none", "false", "off"].includes(text.toLowerCase())) {
+    return [];
+  }
+
+  return [...new Set(text.split(/\s*,\s*/).map((item) => item.trim()).filter(Boolean))];
+}
+
+function integrationProviderListSetting(optionValue, currentValue = []) {
+  if (optionValue === undefined || optionValue === null) {
+    return normalizeIntegrationProviderList(currentValue);
+  }
+
+  return normalizeIntegrationProviderList(optionValue);
+}
+
+function aiRootFilesSettingValue(optionValue, currentValue = DEFAULT_SETTINGS.aiRootFiles) {
+  const value = optionValue ?? currentValue ?? DEFAULT_SETTINGS.aiRootFiles;
+  return normalizeAiRootFilesMode(value) ?? DEFAULT_SETTINGS.aiRootFiles;
+}
+
+function normalizeIntegrationProviderList(value) {
+  const providers = normalizeListSetting(value);
+  if (providers.some((provider) => provider.toLowerCase() === "all")) {
+    return [...SUPPORTED_INTEGRATIONS];
+  }
+
+  return [...new Set(providers
+    .map((provider) => provider.toLowerCase())
+    .filter((provider) => SUPPORTED_INTEGRATIONS.includes(provider)))];
+}
+
+function normalizeAiRootFilesMode(value) {
+  const normalized = String(value ?? DEFAULT_SETTINGS.aiRootFiles).trim().toLowerCase().replace(/[_\s]+/g, "-");
+  const aliases = {
+    protected: "protect",
+    keep: "protect",
+    safe: "protect",
+    "sidecar-only": "sidecar",
+    skip: "sidecar",
+    none: "sidecar",
+    off: "sidecar",
+    false: "sidecar",
+    replace: "overwrite",
+    force: "overwrite"
+  };
+  const mode = aliases[normalized] ?? normalized;
+  return AI_ROOT_FILE_MODES.includes(mode) ? mode : null;
+}
+
+function normalizeDistribution(value) {
+  const normalized = String(value ?? "auto").trim().toLowerCase();
+  if (!normalized || normalized === "auto") {
+    return "auto";
+  }
+
+  return ["none", "npm"].includes(normalized) ? normalized : null;
+}
+
+function normalizeBranchStrategySetting(value) {
+  if (value === undefined || value === null) {
+    return "auto";
+  }
+
+  return normalizeBranchStrategyName(value) ?? (String(value).trim().toLowerCase() === "auto" ? "auto" : null);
+}
+
+function normalizeBranchStrategyName(value) {
+  const normalized = String(value ?? "").trim().toLowerCase().replace(/[_\s]+/g, "-");
+  const aliases = {
+    "github-flow": "GitHub Flow with release channels",
+    "github": "GitHub Flow with release channels",
+    "gitlab-flow": "GitLab Flow with merge requests",
+    "gitlab": "GitLab Flow with merge requests",
+    "trunk": "Trunk-Based Development",
+    "trunk-based": "Trunk-Based Development",
+    "trunk-based-development": "Trunk-Based Development",
+    "hybrid": "Hybrid Flow",
+    "hybrid-flow": "Hybrid Flow",
+    "git-flow": "Git Flow",
+    "gitflow": "Git Flow"
+  };
+
+  return aliases[normalized] ?? null;
+}
+
+function projectProfileOptionArgs(options = {}) {
+  const pairs = [
+    ["--project-type", options.projectType],
+    ["--hosting", options.hosting],
+    ["--ci-provider", options.ciProvider],
+    ["--package-manager", options.packageManager]
+  ];
+
+  return pairs.flatMap(([name, value]) => (
+    value === undefined || value === null || value === false ? [] : [name, String(value)]
+  ));
+}
+
+function detectHosting(url) {
+  const value = String(url ?? "").toLowerCase();
+  if (value.includes("github.com")) {
+    return "github";
+  }
+
+  if (value.includes("gitlab")) {
+    return "gitlab";
+  }
+
+  return value ? "other" : "unknown";
+}
+
+function detectPackageManager(packageJson = readJsonFile("package.json")) {
+  const declared = String(packageJson.packageManager ?? "").split("@")[0].trim().toLowerCase();
+  if (["npm", "pnpm", "yarn", "bun"].includes(declared)) {
+    return declared;
+  }
+
+  if (existsSync("pnpm-lock.yaml")) {
+    return "pnpm";
+  }
+
+  if (existsSync("yarn.lock")) {
+    return "yarn";
+  }
+
+  if (existsSync("bun.lockb") || existsSync("bun.lock")) {
+    return "bun";
+  }
+
+  if (existsSync("package-lock.json")) {
+    return "npm";
+  }
+
+  return "unknown";
+}
+
+function pathExistsAny(paths) {
+  return paths.some((path) => existsSync(path));
+}
+
+function hasPullRequestTemplate(profile) {
+  const githubTemplates = [
+    join(".github", "pull_request_template.md"),
+    join(".github", "PULL_REQUEST_TEMPLATE.md"),
+    join(".github", "PULL_REQUEST_TEMPLATE")
+  ];
+  const gitlabTemplates = [
+    join(".gitlab", "merge_request_templates"),
+    join(".gitlab", "merge_request_template.md")
+  ];
+  if (profile.hosting === "gitlab") {
+    return pathExistsAny(gitlabTemplates);
+  }
+
+  if (profile.hosting === "github") {
+    return pathExistsAny(githubTemplates);
+  }
+
+  return pathExistsAny([...githubTemplates, ...gitlabTemplates]);
+}
+
+function hasIssueTemplates(profile) {
+  const githubTemplates = [join(".github", "ISSUE_TEMPLATE")];
+  const gitlabTemplates = [join(".gitlab", "issue_templates")];
+  if (profile.hosting === "gitlab") {
+    return pathExistsAny(gitlabTemplates);
+  }
+
+  if (profile.hosting === "github") {
+    return pathExistsAny(githubTemplates);
+  }
+
+  return pathExistsAny([...githubTemplates, ...gitlabTemplates]);
+}
+
+function hasCodeowners() {
+  return pathExistsAny([
+    join(".github", "CODEOWNERS"),
+    join(".gitlab", "CODEOWNERS"),
+    join("docs", "CODEOWNERS"),
+    "CODEOWNERS"
+  ]);
+}
+
+function hasAiAssistantInstructions() {
+  return pathExistsAny([
+    "AGENTS.md",
+    "GEMINI.md",
+    "CLAUDE.md",
+    join(".aigate", "integrations", "codex.md"),
+    join(".aigate", "integrations", "gemini.md"),
+    join(".aigate", "integrations", "claude.md")
+  ]);
+}
+
+function hasSecurityScanningDocumentation() {
+  if (pathExistsAny([
+    join("docs", "security-scanning.md"),
+    join("docs", "security.md"),
+    join(".gitlab", "security-scanning.md")
+  ])) {
+    return true;
+  }
+
+  return fileMatchesAny("SECURITY.md", [/aigate report --format sarif/i, /\bsarif\b/i, /\bgitleaks\b/i, /detect-secrets/i]) ||
+    fileMatchesAny(".gitlab-ci.yml", [/\bgitleaks\b/i, /detect-secrets/i, /aigate report --format sarif/i, /\bsast\b/i]) ||
+    fileMatchesAny(join(".github", "workflows", "scorecard.yml"), [/scorecard/i]);
+}
+
+function hasTestDirectory() {
+  return pathExistsAny(["test", "tests", "__tests__", join("src", "__tests__"), "playwright"]) ||
+    hasNestedDirectory(["apps", "packages", "services"], ["test", "tests", "__tests__", "playwright"]);
+}
+
+function hasTestScript(packageJson = readJsonFile("package.json")) {
+  return Boolean(discoverProjectTestCommand(packageJson, detectProjectProfile(packageJson)));
+}
+
+function hasCiGateScript(packageJson = readJsonFile("package.json")) {
+  const profile = detectProjectProfile(packageJson);
+  return Boolean(resolveWorkflowSettings({}, profile, packageJson).qualityCommands.length || discoverValidationCommand(packageJson, profile));
+}
+
+function hasNestedDirectory(baseDirs, names) {
+  return baseDirs.some((baseDir) => {
+    if (!existsSync(baseDir)) {
+      return false;
+    }
+
+    try {
+      return readdirSync(baseDir, { withFileTypes: true })
+        .filter((entry) => entry.isDirectory())
+        .some((entry) => names.some((name) => existsSync(join(baseDir, entry.name, name))));
+    } catch {
+      return false;
+    }
+  });
+}
+
+function discoverProjectTestCommand(packageJson = readJsonFile("package.json"), profile = detectProjectProfile(packageJson), requestedScript = null) {
+  const packageManager = profile.packageManager ?? detectPackageManager(packageJson);
+  const rootScripts = packageJson.scripts ?? {};
+  const rootScript = requestedScript ?? selectScriptName(rootScripts, ["ci", "test:ci", "test", "e2e", "test:e2e", "playwright"]);
+
+  if (rootScript && rootScripts[rootScript]) {
+    return packageManagerCommand(packageManager, rootScript, {
+      source: "root-script"
+    });
+  }
+
+  const turboTask = requestedScript ?? detectTurboTask(["test", "e2e", "test:e2e", "playwright"]);
+  if (turboTask && hasTurboRunner(packageJson)) {
+    return turboCommand(packageManager, turboTask);
+  }
+
+  const workspaceScript = requestedScript
+    ? workspacePackagesWithScript(requestedScript)[0]?.script
+    : selectWorkspaceScript(["ci", "test:ci", "test", "e2e", "test:e2e", "playwright"]);
+
+  if (workspaceScript) {
+    return workspaceScriptCommand(packageManager, workspaceScript);
+  }
+
+  return null;
+}
+
+function discoverValidationCommand(packageJson = readJsonFile("package.json"), profile = detectProjectProfile(packageJson)) {
+  const packageManager = profile.packageManager ?? detectPackageManager(packageJson);
+  const rootScripts = packageJson.scripts ?? {};
+  const rootScript = selectScriptName(rootScripts, ["ci", "test:ci", "git:ready", "test", "frontend-test", "e2e", "test:e2e"]);
+
+  if (rootScript) {
+    return packageManagerCommand(packageManager, rootScript, {
+      source: "root-script"
+    });
+  }
+
+  const turboTask = detectTurboTask(["ci", "test", "e2e", "test:e2e"]);
+  if (turboTask && hasTurboRunner(packageJson)) {
+    return turboCommand(packageManager, turboTask);
+  }
+
+  const workspaceScript = selectWorkspaceScript(["ci", "test:ci", "test", "frontend-test", "e2e", "test:e2e"]);
+  return workspaceScript ? workspaceScriptCommand(packageManager, workspaceScript) : null;
+}
+
+function selectScriptName(scripts = {}, preferredNames = []) {
+  for (const name of preferredNames) {
+    if (scripts[name]) {
+      return name;
+    }
+  }
+
+  return Object.keys(scripts).find((name) => name.endsWith(":test") || name.includes("test"));
+}
+
+function detectTurboTask(preferredNames = []) {
+  if (!existsSync("turbo.json")) {
+    return null;
+  }
+
+  const turbo = readJsonFile("turbo.json");
+  const tasks = turbo.tasks ?? turbo.pipeline ?? {};
+  for (const name of preferredNames) {
+    if (tasks[name]) {
+      return name;
+    }
+  }
+
+  return Object.keys(tasks).find((name) => name.endsWith(":test") || name.includes("test")) ?? null;
+}
+
+function hasTurboRunner(packageJson = readJsonFile("package.json")) {
+  return Boolean(
+    hasPackageDependency(packageJson, "turbo") ||
+    existsSync(join("node_modules", ".bin", "turbo")) ||
+    existsSync(join("node_modules", ".bin", "turbo.cmd"))
+  );
+}
+
+function hasPackageDependency(packageJson = {}, dependencyName) {
+  return [
+    packageJson.dependencies,
+    packageJson.devDependencies,
+    packageJson.optionalDependencies,
+    packageJson.peerDependencies
+  ].some((dependencies) => Boolean(dependencies?.[dependencyName]));
+}
+
+function selectWorkspaceScript(preferredNames = []) {
+  const packages = workspacePackages();
+  for (const script of preferredNames) {
+    if (packages.some((workspacePackage) => workspacePackage.scripts[script])) {
+      return script;
+    }
+  }
+
+  return packages.flatMap((workspacePackage) => Object.keys(workspacePackage.scripts))
+    .find((script) => script.endsWith(":test") || script.includes("test")) ?? null;
+}
+
+function workspacePackagesWithScript(script) {
+  return workspacePackages().filter((workspacePackage) => workspacePackage.scripts[script]);
+}
+
+function workspacePackages(packageJson = readJsonFile("package.json")) {
+  const packagePaths = workspacePackageJsonPaths(packageJson);
+  return packagePaths.map((packagePath) => {
+    const workspacePackageJson = readJsonFile(packagePath);
+    return {
+      path: packagePath,
+      packageJson: workspacePackageJson,
+      scripts: workspacePackageJson.scripts ?? {}
+    };
+  }).filter((workspacePackage) => Object.keys(workspacePackage.packageJson).length);
+}
+
+function workspacePackageJsonPaths(packageJson = readJsonFile("package.json")) {
+  const patterns = workspacePatterns(packageJson);
+  const paths = new Set();
+
+  for (const pattern of patterns) {
+    for (const packagePath of expandWorkspacePattern(pattern)) {
+      paths.add(packagePath);
+    }
+  }
+
+  return [...paths].filter((packagePath) => existsSync(packagePath));
+}
+
+function workspacePatterns(packageJson = readJsonFile("package.json")) {
+  const patterns = [];
+  const workspaces = packageJson.workspaces;
+
+  if (Array.isArray(workspaces)) {
+    patterns.push(...workspaces);
+  } else if (Array.isArray(workspaces?.packages)) {
+    patterns.push(...workspaces.packages);
+  }
+
+  if (existsSync("pnpm-workspace.yaml")) {
+    patterns.push(...parsePnpmWorkspacePatterns(readFileSync("pnpm-workspace.yaml", "utf8")));
+  }
+
+  if (existsSync("turbo.json") || existsSync("apps") || existsSync("packages")) {
+    patterns.push("apps/*", "packages/*");
+  }
+
+  return [...new Set(patterns.map(cleanWorkspacePattern).filter(Boolean).filter((pattern) => !pattern.startsWith("!")))];
+}
+
+function parsePnpmWorkspacePatterns(content) {
+  const patterns = [];
+  let inPackages = false;
+
+  for (const rawLine of content.split(/\r?\n/)) {
+    const line = rawLine.replace(/\s+#.*$/, "");
+    if (/^packages:\s*$/.test(line.trim())) {
+      inPackages = true;
+      continue;
+    }
+
+    if (inPackages && /^\S/.test(line) && !/^packages:\s*$/.test(line.trim())) {
+      inPackages = false;
+    }
+
+    const match = inPackages ? line.match(/^\s*-\s*(.+?)\s*$/) : null;
+    if (match) {
+      patterns.push(match[1]);
+    }
+  }
+
+  return patterns;
+}
+
+function cleanWorkspacePattern(pattern) {
+  return String(pattern ?? "")
+    .trim()
+    .replace(/^['"]|['"]$/g, "")
+    .replace(/\/package\.json$/, "")
+    .replace(/\/$/, "");
+}
+
+function expandWorkspacePattern(pattern) {
+  const clean = cleanWorkspacePattern(pattern);
+  if (!clean || clean.includes("**")) {
+    return [];
+  }
+
+  const starIndex = clean.indexOf("*");
+  if (starIndex === -1) {
+    return [join(clean, "package.json")];
+  }
+
+  const base = clean.slice(0, starIndex).replace(/\/$/, "");
+  if (!base || !existsSync(base)) {
+    return [];
+  }
+
+  try {
+    return readdirSync(base, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => join(base, entry.name, "package.json"));
+  } catch {
+    return [];
+  }
+}
+
+function packageManagerCommand(packageManager, script, { source = "package-script" } = {}) {
+  const pm = normalizedPackageManagerForCommand(packageManager);
+  return {
+    source,
+    script,
+    display: packageManagerScriptCommand(pm, script),
+    executable: pm,
+    args: packageManagerScriptArgs(pm, script),
+    shell: false
+  };
+}
+
+function workspaceScriptCommand(packageManager, script) {
+  const pm = normalizedPackageManagerForCommand(packageManager);
+  if (pm === "pnpm") {
+    return {
+      source: "workspace-script",
+      script,
+      display: `pnpm -r run ${script}`,
+      executable: "pnpm",
+      args: ["-r", "run", script],
+      shell: false
+    };
+  }
+
+  if (pm === "yarn") {
+    return {
+      source: "workspace-script",
+      script,
+      display: `yarn workspaces foreach run ${script}`,
+      executable: "yarn",
+      args: ["workspaces", "foreach", "run", script],
+      shell: false
+    };
+  }
+
+  if (pm === "bun") {
+    return {
+      source: "workspace-script",
+      script,
+      display: `bun run --filter '*' ${script}`,
+      executable: "bun",
+      args: ["run", "--filter", "*", script],
+      shell: false
+    };
+  }
+
+  return {
+    source: "workspace-script",
+    script,
+    display: `npm run ${script} --workspaces`,
+    executable: "npm",
+    args: ["run", script, "--workspaces"],
+    shell: false
+  };
+}
+
+function turboCommand(packageManager, task) {
+  const pm = normalizedPackageManagerForCommand(packageManager);
+  if (pm === "npm") {
+    return {
+      source: "turbo-task",
+      script: task,
+      display: `npx turbo run ${task}`,
+      executable: "npx",
+      args: ["turbo", "run", task],
+      shell: false
+    };
+  }
+
+  return {
+    source: "turbo-task",
+    script: task,
+    display: `${pm} turbo run ${task}`,
+    executable: pm,
+    args: ["turbo", "run", task],
+    shell: false
+  };
+}
+
+function packageManagerScriptArgs(packageManager, script) {
+  if (packageManager === "yarn") {
+    return [script];
+  }
+
+  if (script === "test") {
+    return ["test"];
+  }
+
+  return ["run", script];
+}
+
+function normalizedPackageManagerForCommand(packageManager) {
+  return ["npm", "pnpm", "yarn", "bun"].includes(packageManager) ? packageManager : "npm";
+}
+
+function hasCiWorkflow(profile) {
+  if (profile.ciProvider === "gitlab") {
+    return existsSync(".gitlab-ci.yml");
+  }
+
+  if (profile.ciProvider === "github") {
+    return existsSync(join(".github", "workflows", "ci.yml"));
+  }
+
+  return existsSync(join(".github", "workflows", "ci.yml")) || existsSync(".gitlab-ci.yml");
+}
+
+function hasReleaseWorkflow(profile = {}) {
+  if (profile.ciProvider === "github") {
+    return existsSync(join(".github", "workflows", "release.yml"));
+  }
+
+  if (profile.ciProvider !== "gitlab" && existsSync(join(".github", "workflows", "release.yml"))) {
+    return true;
+  }
+
+  if (!existsSync(".gitlab-ci.yml")) {
+    return false;
+  }
+
+  const gitlabCi = readFileSync(".gitlab-ci.yml", "utf8");
+  return /\b(release|publish|deploy)\b/i.test(gitlabCi);
 }
 
 function gradeForScore(score) {
@@ -4145,30 +6051,42 @@ function buildDeepSignals() {
 
 function buildBranchStrategy(options = {}) {
   const packageJson = readJsonFile("package.json");
-  const hasCi = existsSync(join(".github", "workflows", "ci.yml"));
+  const profile = detectProjectProfile(packageJson, options);
+  const workflow = resolveWorkflowSettings(options, profile, packageJson);
+  const hasCi = hasCiWorkflow(profile);
   const hasReleaseDocs = existsSync(join("docs", "roadmap.md"));
+  const hasDevelopWorkflow = hasDevelopWorkflowSignal();
   const branchNames = (git(["branch", "--all", "--format=%(refname:short)"]) ?? "")
     .split("\n")
     .map((branch) => branch.trim())
     .filter(Boolean);
   const teamSize = Number.parseInt(options.teamSize ?? "0", 10) || null;
   const releaseCadence = String(options.release ?? "auto").trim().toLowerCase();
-  const selectedStrategy = selectBranchStrategy({
+  const selectedStrategy = normalizeBranchStrategyName(workflow.branchStrategy) ?? selectBranchStrategy({
     branchNames,
     hasCi,
+    hasDevelopWorkflow: hasDevelopWorkflow || workflow.targetBranch === "develop",
     teamSize,
-    releaseCadence
+    releaseCadence,
+    profile
   });
-  const reasonParts = [
-    "AIGate needs fast public contribution flow",
-    "npm channel control for latest, next, beta, and canary releases"
-  ];
+  const reasonParts = [];
 
-  if (hasCi) {
-    reasonParts.push("CI-backed pull request protection is already present");
+  if (profile.visibility === "private" && profile.kind === "app") {
+    reasonParts.push("private app workflow benefits from focused merge requests");
+  } else {
+    reasonParts.push("repository needs a clear contribution flow");
   }
 
-  if (hasReleaseDocs || packageJson.name) {
+  if (profile.kind === "package" && workflow.distribution !== "none") {
+    reasonParts.push("package releases may need channel control for stable and prerelease versions");
+  }
+
+  if (hasCi) {
+    reasonParts.push("CI-backed merge protection is already present");
+  }
+
+  if (hasReleaseDocs || (profile.kind === "package" && packageJson.name)) {
     reasonParts.push("release documentation and package metadata exist");
   }
 
@@ -4187,15 +6105,17 @@ function buildBranchStrategy(options = {}) {
     signals: {
       packageName: packageJson.name ?? null,
       hasCi,
+      hasDevelopWorkflow: hasDevelopWorkflow || workflow.targetBranch === "develop",
+      targetBranch: workflow.targetBranch,
       hasReleaseDocs,
       teamSize,
       releaseCadence,
       branchCount: branchNames.length,
       changedPaths: getChangedPaths().length
     },
-    branches: branchRulesForStrategy(selectedStrategy),
+    branches: branchRulesForWorkflow(selectedStrategy, workflow.targetBranch, workflow.workBranches),
     githubProtection: [
-      "Require pull request before merging into main.",
+      profile.hosting === "gitlab" ? "Require a merge request before merging into main." : "Require pull request before merging into main.",
       "Do not require mandatory approvals by default; enable reviews per repository policy.",
       "Require the CI test job before merging.",
       "Require conversation resolution.",
@@ -4207,19 +6127,38 @@ function buildBranchStrategy(options = {}) {
       ".aigate/policy-packs/README.md",
       ".aigate/policy-packs/branch-protection.json",
       ".aigate/policy-packs/pr-quality.json",
-      ".aigate/policy-packs/release-channels.json",
+      ...(profile.kind === "package" && workflow.distribution !== "none" ? [".aigate/policy-packs/release-channels.json"] : []),
       ".aigate/policy-packs/ai-collaboration.json",
       "docs/release-process.md",
       "docs/hotfix-process.md",
-      ".github/pull_request_template.aigate.md",
-      ".github/CODEOWNERS.aigate"
+      ...(profile.hosting === "gitlab"
+        ? [".gitlab/merge_request_templates/aigate.md", ".gitlab/CODEOWNERS"]
+        : [".github/pull_request_template.aigate.md", ".github/CODEOWNERS.aigate"])
     ]
   };
 }
 
+function branchRulesForWorkflow(strategyName, targetBranch = "main", workBranches = DEFAULT_WORK_BRANCHES) {
+  const branches = branchRulesForStrategy(strategyName, workBranches);
+  const target = String(targetBranch ?? "").trim();
+  if (!target || target === "main" || branches.some((branch) => branch.name === target)) {
+    return branches;
+  }
+
+  const mainIndex = branches.findIndex((branch) => branch.name === "main");
+  const insertAt = mainIndex >= 0 ? mainIndex + 1 : 0;
+  return [
+    ...branches.slice(0, insertAt),
+    { name: target, use: "merge request target branch" },
+    ...branches.slice(insertAt)
+  ];
+}
+
 function buildBranchStrategyComparison(options = {}, recommendedStrategy = buildBranchStrategy(options)) {
+  const packageJson = readJsonFile("package.json");
+  const profile = detectProjectProfile(packageJson, options);
   const candidates = [
-    "GitHub Flow with release channels",
+    profile.hosting === "gitlab" ? "GitLab Flow with merge requests" : "GitHub Flow with release channels",
     "Trunk-Based Development",
     "Hybrid Flow",
     "Git Flow"
@@ -4288,11 +6227,11 @@ function clampScore(score) {
   return Math.max(45, Math.min(95, score));
 }
 
-function selectBranchStrategy({ branchNames, hasCi, teamSize, releaseCadence }) {
+function selectBranchStrategy({ branchNames, hasCi, hasDevelopWorkflow = false, teamSize, releaseCadence, profile = {} }) {
   const hasDevelop = branchNames.some((branch) => branch === "develop" || branch.endsWith("/develop"));
   const hasReleaseBranches = branchNames.some((branch) => /(^|\/)release\//.test(branch));
 
-  if (hasDevelop || hasReleaseBranches || teamSize >= 12 || ["monthly", "quarterly", "scheduled"].includes(releaseCadence)) {
+  if (hasDevelop || hasDevelopWorkflow || hasReleaseBranches || teamSize >= 12 || ["monthly", "quarterly", "scheduled"].includes(releaseCadence)) {
     return "Git Flow";
   }
 
@@ -4304,17 +6243,27 @@ function selectBranchStrategy({ branchNames, hasCi, teamSize, releaseCadence }) 
     return "Hybrid Flow";
   }
 
-  return "GitHub Flow with release channels";
+  return profile.hosting === "gitlab" ? "GitLab Flow with merge requests" : "GitHub Flow with release channels";
 }
 
-function branchRulesForStrategy(strategyName) {
-  const commonBranches = [
-    { name: "codex/*", use: "AI-assisted implementation branches" },
-    { name: "feature/*", use: "user-facing feature branches" },
-    { name: "fix/*", use: "bug fix branches" },
-    { name: "docs/*", use: "documentation-only branches" },
-    { name: "chore/*", use: "maintenance and tooling branches" }
-  ];
+function hasDevelopWorkflowSignal() {
+  const files = ["CLAUDE.md", "AGENTS.md", "GEMINI.md", ".aigate.yml", join("docs", "branch-strategy.md"), join("docs", "git-upload-workflow.md")];
+  return files.some((filePath) => {
+    if (!existsSync(filePath)) {
+      return false;
+    }
+
+    const content = readFileSync(filePath, "utf8");
+    return /(?:target-branch|target_branch|base|into)\s+develop\b/i.test(content) ||
+      /(?:merge request|pull request|PR|MR).{0,80}\bdevelop\b/i.test(content);
+  });
+}
+
+function branchRulesForStrategy(strategyName, workBranches = DEFAULT_WORK_BRANCHES) {
+  const commonBranches = normalizeListSetting(workBranches).map((branch) => ({
+    name: branch,
+    use: workBranchDescription(branch)
+  }));
 
   if (strategyName === "Git Flow") {
     return [
@@ -4346,6 +6295,15 @@ function branchRulesForStrategy(strategyName) {
     ];
   }
 
+  if (strategyName === "GitLab Flow with merge requests") {
+    return [
+      { name: "main", use: "protected stable source of truth" },
+      ...commonBranches,
+      { name: "release/*", use: "optional release stabilization" },
+      { name: "hotfix/*", use: "urgent stable fixes" }
+    ];
+  }
+
   return [
     { name: "main", use: "protected stable source of truth" },
     ...commonBranches,
@@ -4354,9 +6312,21 @@ function branchRulesForStrategy(strategyName) {
   ];
 }
 
+function workBranchDescription(branch) {
+  return {
+    "codex/*": "AI-assisted implementation branches",
+    "feature/*": "user-facing feature branches",
+    "feat/*": "short feature branches",
+    "fix/*": "bug fix branches",
+    "docs/*": "documentation-only branches",
+    "chore/*": "maintenance and tooling branches"
+  }[branch] ?? "focused work branches";
+}
+
 function strategyBestFor(strategyName) {
   return {
     "GitHub Flow with release channels": "small teams, public OSS projects, and on-demand releases",
+    "GitLab Flow with merge requests": "private apps, GitLab-hosted teams, and merge-request based delivery",
     "Trunk-Based Development": "teams with strong CI, small pull requests, and very frequent releases",
     "Hybrid Flow": "growing teams that need fast feature work plus planned stabilization",
     "Git Flow": "larger teams, scheduled releases, and strict production governance"
@@ -4369,6 +6339,11 @@ function strategyStrengths(strategyName) {
       "Simple branch model for public contributors.",
       "Release channels separate npm latest, next, beta, and canary.",
       "Works well for small teams and fast merges."
+    ],
+    "GitLab Flow with merge requests": [
+      "Fits GitLab merge requests, CODEOWNERS, and pipeline protection.",
+      "Avoids npm and GitHub Actions assumptions for private apps.",
+      "Keeps main protected while allowing focused feature branches."
     ],
     "Trunk-Based Development": [
       "Keeps main close to production at all times.",
@@ -4394,6 +6369,10 @@ function strategyRisks(strategyName) {
       "Can become noisy if large teams queue many changes at once.",
       "Needs disciplined release tagging because there is no develop branch."
     ],
+    "GitLab Flow with merge requests": [
+      "Needs a real GitLab CI pipeline or a clear local gate before merge.",
+      "Release and deployment ownership should be documented separately for apps."
+    ],
     "Trunk-Based Development": [
       "Requires strong automated tests and small pull requests.",
       "Can feel too strict for teams that need long stabilization windows."
@@ -4413,8 +6392,13 @@ function strategyMigrationSteps(strategyName) {
   return {
     "GitHub Flow with release channels": [
       "Protect main and require AIGate checks before merge.",
-      "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.",
+      "Use feature/*, feat/*, fix/*, docs/*, chore/*, and codex/* for focused work.",
       "Publish npm releases from main tags and use dist-tags for channels."
+    ],
+    "GitLab Flow with merge requests": [
+      "Protect main and require merge requests before merge.",
+      "Use feature/*, feat/*, fix/*, docs/*, chore/*, and codex/* for focused work.",
+      "Run GitLab CI or AIGate local gates before merge."
     ],
     "Trunk-Based Development": [
       "Keep pull requests small enough to merge quickly into main.",
@@ -4423,12 +6407,12 @@ function strategyMigrationSteps(strategyName) {
     ],
     "Hybrid Flow": [
       "Keep main stable and use develop only for planned integration.",
-      "Use feature/* and codex/* branches for focused work.",
+      "Use feature/*, feat/*, and codex/* branches for focused work.",
       "Create release/* branches for stabilization and hotfix/* for urgent fixes."
     ],
     "Git Flow": [
       "Create develop as the next-release integration branch.",
-      "Route feature/* and codex/* branches into develop.",
+      "Route feature/*, feat/*, and codex/* branches into develop.",
       "Cut release/* from develop, then merge release and hotfix work back to main."
     ]
   }[strategyName] ?? [];
@@ -4437,6 +6421,7 @@ function strategyMigrationSteps(strategyName) {
 function strategyPolicyFit(strategyName) {
   return {
     "GitHub Flow with release channels": "Use main branch protection, required AIGate checks, and tag-driven npm release channels.",
+    "GitLab Flow with merge requests": "Use protected branches, merge request templates, GitLab CI pipelines, and AIGate local gates.",
     "Trunk-Based Development": "Use strict main protection, fast required checks, and short-lived branch age limits.",
     "Hybrid Flow": "Use main protection, optional develop protection, release/* stabilization rules, and AI collaboration policy packs.",
     "Git Flow": "Use protected main/develop/release/*/hotfix/* rules with explicit release and hotfix ownership."
@@ -4445,6 +6430,7 @@ function strategyPolicyFit(strategyName) {
 
 function buildReleaseCheck(options = {}) {
   const packageJson = readJsonFile("package.json");
+  const profile = detectProjectProfile(packageJson, options);
   const version = packageJson.version ?? "0.0.0";
   const packageName = packageJson.name ?? "";
   const repository = detectRepositorySlug(packageJson);
@@ -4455,39 +6441,89 @@ function buildReleaseCheck(options = {}) {
     .map((tag) => tag.trim())
     .filter(Boolean);
   const hasExpectedTag = tags.includes(expectedTag);
+  const npmPackageRelease = profile.kind === "package";
+  const publicNpmRelease = npmPackageRelease && packageJson.private !== true;
+  const requireReleaseTag = options.requireReleaseTag !== false;
+  const npmOnlyReason = "npm package release check is not required for this repository profile.";
+  const tagOnlyReason = "Release tag check is only required during explicit release readiness checks.";
+  const npmLockReason = `${profile.packageManager} project does not use package-lock.json.`;
+  const githubOnlyReason = "GitHub Trusted Publishing check is not required for this repository hosting provider.";
+  const packageCheck = (name, pass, checkOptions = {}) => makeCheck("release", name, pass, checkOptions);
   const checks = [
-    { name: "package.json exists", pass: existsSync("package.json") },
-    { name: "package-lock.json version matches package.json", pass: readJsonFile("package-lock.json").version === version },
-    { name: "package is not marked private", pass: packageJson.private !== true },
-    { name: "package has a valid npm package name", pass: isValidNpmPackageName(packageName) },
-    { name: "package version is not 0.0.0", pass: version !== "0.0.0" },
-    { name: "package declares npm entrypoint or bin", pass: hasNpmEntrypoint(packageJson) },
-    { name: "publishConfig access is public", pass: packageJson.publishConfig?.access === "public" },
-    { name: "release workflow exists", pass: existsSync(join(".github", "workflows", "release.yml")) },
-    { name: "release workflow uses npm provenance", pass: fileIncludes(join(".github", "workflows", "release.yml"), "--provenance") },
-    { name: "release workflow disables package manager cache", pass: fileIncludes(join(".github", "workflows", "release.yml"), "package-manager-cache: false") },
-    { name: "README documents npm install command", pass: readmeDocumentsNpmInstall(packageName) },
-    { name: "CHANGELOG documents package version", pass: changelogDocumentsVersion(version) },
-    { name: `${expectedTag} tag exists`, pass: hasExpectedTag }
+    packageCheck("package.json exists", existsSync("package.json")),
+    packageCheck("package-lock.json version matches package.json", readJsonFile("package-lock.json").version === version, {
+      applicable: publicNpmRelease && profile.packageManager === "npm",
+      reason: profile.packageManager === "npm" ? npmOnlyReason : npmLockReason
+    }),
+    packageCheck("package is not marked private", packageJson.private !== true, {
+      applicable: npmPackageRelease,
+      reason: npmOnlyReason
+    }),
+    packageCheck("package has a valid npm package name", isValidNpmPackageName(packageName), {
+      applicable: publicNpmRelease,
+      reason: npmOnlyReason
+    }),
+    packageCheck("package version is not 0.0.0", version !== "0.0.0", {
+      applicable: npmPackageRelease,
+      reason: npmOnlyReason
+    }),
+    packageCheck("package declares npm entrypoint or bin", hasNpmEntrypoint(packageJson), {
+      applicable: publicNpmRelease,
+      reason: npmOnlyReason
+    }),
+    packageCheck("publishConfig access is public", packageJson.publishConfig?.access === "public", {
+      applicable: publicNpmRelease,
+      reason: npmOnlyReason
+    }),
+    packageCheck("release workflow exists", hasReleaseWorkflow(profile), {
+      applicable: publicNpmRelease || hasReleaseWorkflow(profile),
+      reason: npmOnlyReason
+    }),
+    packageCheck("release workflow uses npm provenance", fileIncludes(join(".github", "workflows", "release.yml"), "--provenance"), {
+      applicable: publicNpmRelease && profile.hosting === "github",
+      reason: profile.hosting === "github" ? npmOnlyReason : githubOnlyReason
+    }),
+    packageCheck("release workflow disables package manager cache", fileIncludes(join(".github", "workflows", "release.yml"), "package-manager-cache: false"), {
+      applicable: publicNpmRelease && profile.hosting === "github",
+      reason: profile.hosting === "github" ? npmOnlyReason : githubOnlyReason
+    }),
+    packageCheck("README documents npm install command", readmeDocumentsNpmInstall(packageName), {
+      applicable: publicNpmRelease,
+      reason: npmOnlyReason
+    }),
+    packageCheck("CHANGELOG documents package version", changelogDocumentsVersion(version), {
+      applicable: publicNpmRelease,
+      reason: npmOnlyReason
+    }),
+    packageCheck(`${expectedTag} tag exists`, hasExpectedTag, {
+      applicable: publicNpmRelease && requireReleaseTag,
+      reason: publicNpmRelease ? tagOnlyReason : npmOnlyReason
+    })
   ];
-  const registry = options.checkNpm
+  const registry = options.checkNpm && publicNpmRelease
     ? lookupNpmPublication(packageName, version)
-    : { checked: false };
-  const localReady = checks.every((check) => check.pass);
+    : { checked: false, applicable: publicNpmRelease, reason: publicNpmRelease ? undefined : npmOnlyReason };
+  const localReady = checks.every((check) => !checkNeedsAction(check));
   const status = localReady && registry.checked && registry.published
     ? "RELEASED"
     : (localReady ? "READY" : "ACTION_REQUIRED");
   const nextSteps = [];
 
-  if (!hasExpectedTag) {
+  if (!publicNpmRelease) {
+    nextSteps.push("No npm package publication is required for the detected app/private repository profile.");
+  } else if (requireReleaseTag && !hasExpectedTag) {
     if (registry.checked && registry.published) {
       nextSteps.push(`${packageName}@${version} is already on npm; create release tag ${expectedTag} to record the release.`);
     } else if (registry.checked && registry.packageExists) {
       nextSteps.push(`${packageName}@${version} is not on npm yet; create release tag ${expectedTag} to publish with Trusted Publishing.`);
-    } else {
+    } else if (profile.hosting === "github") {
       nextSteps.push(`If ${packageName} is not on npm yet, enable npm account 2FA and create it with: npm publish --access public`);
       nextSteps.push(`Configure trusted publishing after the package exists: npx npm@latest trust github ${packageName} --file release.yml --repo ${repositoryForCommand} --allow-publish --yes`);
       nextSteps.push(`Create release tag ${expectedTag} after npm Trusted Publishing is configured.`);
+    } else {
+      nextSteps.push(`If ${packageName} is not on npm yet, create it with: npm publish --access public`);
+      nextSteps.push("Configure release automation in your CI provider before tagging a release.");
+      nextSteps.push(`Create release tag ${expectedTag} after package publishing is configured.`);
     }
   }
 
@@ -4499,24 +6535,27 @@ function buildReleaseCheck(options = {}) {
     nextSteps.push(`Review npm registry lookup error: ${registry.error}`);
   }
 
-  if (!registry.checked) {
+  if (publicNpmRelease && !registry.checked) {
     nextSteps.push("Run release-check --npm to confirm npm registry publication state.");
   }
 
-  if (!checks.find((check) => check.name === "release workflow uses npm provenance")?.pass) {
+  if (checkNeedsAction(checks.find((check) => check.name === "release workflow uses npm provenance"))) {
     nextSteps.push("Ensure release workflow publishes with npm provenance.");
   }
 
-  if (!checks.find((check) => check.name === "CHANGELOG documents package version")?.pass) {
+  if (checkNeedsAction(checks.find((check) => check.name === "CHANGELOG documents package version"))) {
     nextSteps.push(`Document ${version} in CHANGELOG.md before tagging the release.`);
   }
 
-  nextSteps.push("Run npm run ci before tagging a release.");
-  nextSteps.push("Run npm publish dry-run through the Release workflow_dispatch dry_run input.");
+  if (publicNpmRelease && requireReleaseTag) {
+    nextSteps.push("Run npm run ci before tagging a release.");
+    nextSteps.push("Run npm publish dry-run through the Release workflow_dispatch dry_run input.");
+  }
 
   return {
     command: "release-check",
     status,
+    profile,
     packageName: packageJson.name ?? null,
     version,
     expectedTag,
@@ -4675,6 +6714,12 @@ function lookupNpmPublication(packageName, version) {
 }
 
 function renderRegistryLine(registry, language = "en") {
+  if (registry?.applicable === false) {
+    return t(language, "release.registryNotApplicable", {
+      reason: translateNotApplicableReason(registry.reason, language)
+    });
+  }
+
   if (!registry?.checked) {
     return t(language, "release.registryNotChecked");
   }
@@ -4711,14 +6756,14 @@ function buildAuditReport() {
       message: blocker
     })),
     ...releaseCheck.checks
-      .filter((check) => !check.pass)
+      .filter((check) => checkNeedsAction(check))
       .map((check) => ({
         severity: check.name.includes("tag exists") ? "medium" : "high",
         area: "release",
         message: check.name
       })),
     ...evaluation.checks
-      .filter((check) => !check.pass)
+      .filter((check) => checkNeedsAction(check))
       .map((check) => ({
         severity: "medium",
         area: check.category,
@@ -4765,15 +6810,15 @@ function buildComplianceReport() {
     {
       id: "security-policy",
       title: "Security policy and scanning",
-      pass: evaluation.checks.some((check) => check.name === "Security policy exists" && check.pass) &&
-        evaluation.checks.some((check) => check.name === "Security scanning is documented" && check.pass),
+      pass: evaluation.checks.some((check) => check.name === "Security policy exists" && checkPassed(check)) &&
+        evaluation.checks.some((check) => check.name === "Security scanning is documented" && checkPassed(check)),
       evidence: "SECURITY.md, security scanning docs, and Scorecard workflow"
     },
     {
       id: "change-control",
       title: "Change control",
-      pass: evaluation.checks.some((check) => check.name === "Pull request template exists" && check.pass) &&
-        evaluation.checks.some((check) => check.name === "CODEOWNERS exists" && check.pass),
+      pass: evaluationHasPassedCheck(evaluation, ["Pull request template exists", "Merge request template exists"]) &&
+        evaluation.checks.some((check) => check.name === "CODEOWNERS exists" && checkPassed(check)),
       evidence: "pull request template and CODEOWNERS"
     },
     {
@@ -4806,9 +6851,760 @@ function buildComplianceReport() {
   };
 }
 
-function buildReport(type) {
+function buildAiProjectReport(options = {}, language = "en") {
+  const gitStatus = buildGitStatus();
+  const evaluation = buildEvaluation({
+    deep: true,
+    projectType: options.projectType,
+    hosting: options.hosting,
+    ciProvider: options.ciProvider,
+    packageManager: options.packageManager
+  });
+  const analysis = buildChangeAnalysis();
+  const releaseCheck = buildReleaseCheck({
+    checkNpm: Boolean(options.npm),
+    requireReleaseTag: Boolean(options.npm),
+    projectType: options.projectType,
+    hosting: options.hosting,
+    ciProvider: options.ciProvider,
+    packageManager: options.packageManager
+  });
+  const branchStrategy = buildBranchStrategy(options);
+  const problems = buildAiReportProblems({ gitStatus, evaluation, analysis, releaseCheck }, language);
+  const strengths = buildAiReportStrengths({ evaluation, releaseCheck, branchStrategy }, language);
+  const direction = buildAiReportDirection({ evaluation, releaseCheck, branchStrategy }, language);
+  const suggestedCommands = buildAiReportCommands({ evaluation, releaseCheck }, language);
+  const status = problems.some((problem) => problem.severity === "high")
+    ? "ACTION_REQUIRED"
+    : problems.length
+      ? "WARN"
+      : "PASS";
+  const report = {
+    command: "ai report",
+    generatedAt: new Date().toISOString(),
+    status,
+    branch: gitStatus.branch,
+    changedFiles: analysis.paths.length,
+    secretFindings: analysis.secretFindings.length,
+    sensitiveRemovals: analysis.sensitiveRemovals.length,
+    projectScore: evaluation.score,
+    projectGrade: evaluation.grade,
+    releaseStatus: releaseCheck.status,
+    recommendedStrategy: branchStrategy.name,
+    problems,
+    strengths,
+    direction,
+    suggestedCommands,
+    checks: evaluation.checks,
+    releaseChecks: releaseCheck.checks
+  };
+
+  report.prompt = renderAiProjectReportPrompt(report, language);
+  return report;
+}
+
+function buildAiReportProblems({ gitStatus, evaluation, analysis, releaseCheck }, language = "en") {
+  const problems = [];
+
+  if (!gitStatus.insideGitRepository) {
+    problems.push(aiReportProblem("high", "git", aiReportText("notGitRepo", language), "git init"));
+  }
+
+  if (analysis.secretFindings.length) {
+    problems.push(aiReportProblem(
+      "high",
+      "security",
+      aiReportText("secretFindings", language, { count: analysis.secretFindings.length }),
+      "aigate report --format sarif"
+    ));
+  }
+
+  if (analysis.sensitiveRemovals.length) {
+    const exposedCount = analysis.sensitiveRemovals.filter((finding) => finding.exposedInHistory).length;
+    problems.push(aiReportProblem(
+      "medium",
+      "security",
+      exposedCount
+        ? aiReportText("sensitiveRemovals", language, { count: analysis.sensitiveRemovals.length, exposedCount })
+        : aiReportText("sensitiveRemovalsNoHistory", language, { count: analysis.sensitiveRemovals.length }),
+      "git status"
+    ));
+  }
+
+  if (gitStatus.riskLevel === "high") {
+    problems.push(aiReportProblem("high", "security", aiReportText("highRiskFiles", language), "aigate check"));
+  }
+
+  if (analysis.paths.length > 20) {
+    problems.push(aiReportProblem("medium", "git", aiReportText("largeChange", language, { count: analysis.paths.length }), "aigate pr-check"));
+  }
+
+  for (const check of evaluation.checks.filter((item) => checkNeedsAction(item)).slice(0, 8)) {
+    const severity = ["testing", "ci_cd", "security"].includes(check.category) ? "high" : "medium";
+    problems.push(aiReportProblem(
+      severity,
+      check.category,
+      aiReportText("missingFoundation", language, { check: translateEvaluationCheckName(check.name, language) }),
+      aiReportCommandForEvaluationCheck(check.name)
+    ));
+  }
+
+  for (const check of releaseCheck.checks.filter((item) => checkNeedsAction(item)).slice(0, 5)) {
+    problems.push(aiReportProblem(
+      check.name.includes("tag exists") ? "medium" : "high",
+      "release",
+      aiReportText("releaseCheck", language, { check: translateReleaseCheckName(check.name, language) }),
+      "aigate release-check"
+    ));
+  }
+
+  if (releaseCheck.registry?.applicable !== false && releaseCheck.registry?.checked && releaseCheck.registry.published === false) {
+    problems.push(aiReportProblem(
+      "medium",
+      "release",
+      aiReportText("npmNotPublished", language, {
+        packageName: releaseCheck.packageName,
+        version: releaseCheck.version
+      }),
+      "aigate release-check --npm"
+    ));
+  }
+
+  return dedupeAiReportItems(problems);
+}
+
+function buildAiReportStrengths({ evaluation, releaseCheck, branchStrategy }, language = "en") {
+  const highValueChecks = [
+    "README exists",
+    "License exists",
+    "Changelog exists",
+    "Contribution guide exists",
+    "Issue templates exist",
+    "Pull request template exists",
+    "Merge request template exists",
+    "AI assistant instructions exist",
+    "Test directory exists",
+    "Project test command exists",
+    "CI workflow exists",
+    "Release workflow exists",
+    "Security policy exists",
+    "Security scanning is documented"
+  ];
+  const strengths = evaluation.checks
+    .filter((check) => checkPassed(check) && highValueChecks.includes(check.name))
+    .slice(0, 10)
+    .map((check) => ({
+      area: check.category,
+      message: aiReportText("foundationPass", language, {
+        check: translateEvaluationCheckName(check.name, language)
+      })
+    }));
+
+  if (["READY", "RELEASED"].includes(releaseCheck.status)) {
+    strengths.push({
+      area: "release",
+      message: aiReportText("releaseReady", language)
+    });
+  }
+
+  strengths.push({
+    area: "branch",
+    message: aiReportText("strategyReady", language, {
+      strategy: translateStrategyName(branchStrategy.name, language)
+    })
+  });
+
+  if (!strengths.length) {
+    strengths.push({
+      area: "foundation",
+      message: aiReportText("bootstrapAvailable", language)
+    });
+  }
+
+  return strengths;
+}
+
+function buildAiReportDirection({ evaluation, releaseCheck, branchStrategy }, language = "en") {
+  const privateApp = evaluation.profile?.visibility === "private" && evaluation.profile?.kind === "app";
+  const missingChecks = new Set(evaluation.checks.filter((check) => checkNeedsAction(check)).map((check) => check.name));
+  const direction = [];
+
+  if (evaluation.score < 80) {
+    direction.push(aiReportText(privateApp ? "directionRaiseInternalScore" : "directionRaiseScore", language));
+  }
+
+  if (privateApp && ["README exists", "Pull request template exists", "Merge request template exists", "CODEOWNERS exists"].some((name) => missingChecks.has(name))) {
+    direction.push(aiReportText("directionInternalWorkflow", language));
+  } else if (!privateApp && ["README exists", "Issue templates exist", "Pull request template exists", "Merge request template exists", "Contribution guide exists"].some((name) => missingChecks.has(name))) {
+    direction.push(aiReportText("directionOss", language));
+  }
+
+  if (missingChecks.has("AI assistant instructions exist")) {
+    direction.push(aiReportText("directionAi", language));
+  }
+
+  if (["Project test command exists", "CI workflow exists"].some((name) => missingChecks.has(name))) {
+    direction.push(aiReportText("directionTests", language));
+  }
+
+  if (releaseCheck.status === "ACTION_REQUIRED") {
+    direction.push(aiReportText("directionRelease", language));
+  }
+
+  direction.push(aiReportText("directionStrategy", language, {
+    strategy: translateStrategyName(branchStrategy.name, language)
+  }));
+  direction.push(aiReportText("directionAiPolicy", language));
+
+  return dedupeStrings(direction);
+}
+
+function buildAiReportCommands({ evaluation, releaseCheck }, language = "en") {
+  const privateApp = evaluation.profile?.visibility === "private" && evaluation.profile?.kind === "app";
+  const profileFlags = profileOptionFlags(evaluation.profile);
+  const settings = normalizeSettings(readSettings());
+  const providerArg = settings.aiProviders.length ? settings.aiProviders.join(",") : "all";
+  const missingChecks = new Set(evaluation.checks.filter((check) => checkNeedsAction(check)).map((check) => check.name));
+  const commands = [];
+
+  if (["README exists", "Issue templates exist", "Pull request template exists", "Merge request template exists", "CODEOWNERS exists", "Contribution guide exists", "License exists", "Roadmap exists"].some((name) => missingChecks.has(name))) {
+    const needsOwner = missingChecks.has("CODEOWNERS exists");
+    const internalFilesCommand = `aigate start --route default --steps repo-files${profileFlags}${needsOwner ? " --owner @your-org/team" : ""}`;
+    commands.push(privateApp
+      ? aiReportCommand(internalFilesCommand, aiReportText("commandInternalFiles", language))
+      : aiReportCommand("aigate start --route oss", aiReportText("commandOss", language)));
+  }
+
+  if (missingChecks.has("AI assistant instructions exist")) {
+    commands.push(aiReportCommand(`aigate start --route ai --provider ${providerArg}`, aiReportText("commandAi", language)));
+  }
+
+  commands.push(aiReportCommand("aigate ai report --output .aigate/reports/ai-report.md", aiReportText("commandReport", language)));
+  commands.push(aiReportCommand("aigate test", aiReportText("commandTest", language)));
+  commands.push(aiReportCommand("aigate aitest --provider codex", aiReportText("commandAiTest", language)));
+
+  if (releaseCheck.status === "ACTION_REQUIRED") {
+    commands.push(aiReportCommand("aigate release-check --npm", aiReportText("commandRelease", language)));
+  }
+
+  commands.push(aiReportCommand("aigate git-ready", aiReportText("commandGate", language)));
+  return dedupeAiReportCommands(commands);
+}
+
+function aiReportProblem(severity, area, message, command) {
+  return { severity, area, message, command };
+}
+
+function aiReportCommand(command, reason) {
+  return { command, reason };
+}
+
+function aiReportCommandForEvaluationCheck(name) {
+  const profile = detectProjectProfile();
+  const settings = normalizeSettings(readSettings());
+  const providerArg = settings.aiProviders.length ? settings.aiProviders.join(",") : "all";
+  const profileFlags = profileOptionFlags(profile);
+  const repoFilesCommand = profile.visibility === "private" && profile.kind === "app"
+    ? `aigate start --route default --steps repo-files${profileFlags}`
+    : "aigate start --route oss";
+  const ciCommand = profile.hosting === "gitlab"
+    ? "aigate setup --hosting gitlab --ci-provider gitlab"
+    : "aigate github check --format json";
+  const commands = {
+    "AIGate configuration exists": "aigate init",
+    "Branch strategy is documented": "aigate branch-strategy --apply",
+    "Git upload workflow is documented": repoFilesCommand,
+    "Pull request template exists": repoFilesCommand,
+    "Merge request template exists": repoFilesCommand,
+    "CODEOWNERS exists": `${repoFilesCommand} --owner @your-org/team`,
+    "Contribution guide exists": repoFilesCommand,
+    "Issue templates exist": repoFilesCommand,
+    "AI assistant instructions exist": `aigate start --route ai --provider ${providerArg}`,
+    "Test directory exists": "aigate test",
+    "Project test command exists": "aigate test",
+    "CI gate script exists": "aigate test",
+    "CI workflow exists": ciCommand,
+    "Release workflow exists": "aigate release-check",
+    "Dependabot exists": "aigate ai report",
+    "Security policy exists": repoFilesCommand,
+    "Security scanning is documented": "aigate report --format sarif",
+    "OpenSSF Scorecard workflow exists": "aigate audit-report",
+    "README exists": repoFilesCommand,
+    "License exists": repoFilesCommand,
+    "Changelog exists": repoFilesCommand,
+    "Roadmap exists": repoFilesCommand,
+    "Package metadata exists": "npm init",
+    "Support policy exists": repoFilesCommand,
+    "Governance exists": "aigate audit-report"
+  };
+  return commands[name] ?? "aigate ai report";
+}
+
+function profileOptionFlags(profile = {}) {
+  const flags = [];
+  if (profile.hosting && !["unknown", "auto"].includes(profile.hosting)) {
+    flags.push(`--hosting ${profile.hosting}`);
+  }
+  if (profile.ciProvider && !["unknown", "auto"].includes(profile.ciProvider)) {
+    flags.push(`--ci-provider ${profile.ciProvider}`);
+  }
+  if (profile.kind && !["unknown", "auto"].includes(profile.kind)) {
+    flags.push(`--project-type ${profile.kind}`);
+  }
+  if (profile.packageManager && !["unknown", "auto"].includes(profile.packageManager)) {
+    flags.push(`--package-manager ${profile.packageManager}`);
+  }
+  return flags.length ? ` ${flags.join(" ")}` : "";
+}
+
+function dedupeAiReportItems(items) {
+  const seen = new Set();
+  return items.filter((item) => {
+    const key = `${item.severity}:${item.area}:${item.message}:${item.command}`;
+    if (seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
+function dedupeAiReportCommands(commands) {
+  const seen = new Set();
+  return commands.filter((item) => {
+    if (seen.has(item.command)) {
+      return false;
+    }
+    seen.add(item.command);
+    return true;
+  });
+}
+
+function dedupeStrings(values) {
+  return [...new Set(values)];
+}
+
+function renderAiProjectReport(report, language = "en") {
+  const labels = aiReportLabels(language);
+  const lines = [
+    `# ${labels.title}`,
+    "",
+    `- ${labels.status}: ${automationStatus(report.status, language)}`,
+    `- ${labels.branch}: ${report.branch}`,
+    `- ${labels.changedFiles}: ${report.changedFiles}`,
+    `- ${labels.secretFindings}: ${report.secretFindings}`,
+    `- ${labels.sensitiveRemovals}: ${report.sensitiveRemovals ?? 0}`,
+    `- ${labels.projectScore}: ${report.projectScore}/100 (${report.projectGrade})`,
+    `- ${labels.releaseStatus}: ${automationStatus(report.releaseStatus, language)}`,
+    `- ${labels.recommendedStrategy}: ${translateStrategyName(report.recommendedStrategy, language)}`,
+    "",
+    `## ${labels.problems}`,
+    "",
+    ...(report.problems.length
+      ? report.problems.map((problem) => `- ${severityLabel(problem.severity, language)} ${translateAuditArea(problem.area, language)}: ${problem.message}${problem.command ? ` (${labels.command}: \`${problem.command}\`)` : ""}`)
+      : [`- ${labels.none}`]),
+    "",
+    `## ${labels.strengths}`,
+    "",
+    ...report.strengths.map((strength) => `- ${translateAuditArea(strength.area, language)}: ${strength.message}`),
+    "",
+    `## ${labels.direction}`,
+    "",
+    ...report.direction.map((item) => `- ${item}`),
+    "",
+    `## ${labels.commands}`,
+    "",
+    ...report.suggestedCommands.map((item) => `- \`${item.command}\`: ${item.reason}`),
+    "",
+    `## ${labels.aiHandoff}`,
+    "",
+    `- ${labels.provider}: ${report.ai?.provider ?? "auto"} (${report.ai?.providerInstalled ? labels.installed : labels.notInstalled})`,
+    `- ${labels.applyMode}: ${report.ai?.applied ? labels.yes : labels.no}`
+  ];
+
+  if (report.ai?.promptPath) {
+    lines.push(`- ${labels.prompt}: ${report.ai.promptPath}`);
+  }
+
+  if (report.ai?.agent) {
+    lines.push(
+      `- ${labels.agent}: ${automationStatus(report.ai.agent.exitCode === 0 ? "PASS" : "FAILED", language)}`,
+      `- ${labels.command}: \`${report.ai.agent.command ?? labels.notInstalled}\``,
+      `- ${labels.duration}: ${report.ai.agent.durationMs}ms`,
+      `- ${labels.exitCode}: ${report.ai.agent.exitCode}`
+    );
+    if (report.ai.agent.stdout.trim()) {
+      lines.push("", `### ${labels.stdout}`, "", "```text", report.ai.agent.stdout.trim(), "```");
+    }
+    if (report.ai.agent.stderr.trim()) {
+      lines.push("", `### ${labels.stderr}`, "", "```text", report.ai.agent.stderr.trim(), "```");
+    }
+  } else {
+    lines.push(`- ${labels.next}: ${labels.applyHint}`);
+  }
+
+  return lines.join("\n");
+}
+
+function renderAiProjectReportPrompt(report, language = "en") {
+  const labels = aiReportLabels(language);
+  return [
+    `# ${labels.title}`,
+    "",
+    aiReportText("promptIntro", language),
+    "",
+    `- ${labels.status}: ${automationStatus(report.status, language)}`,
+    `- ${labels.branch}: ${report.branch}`,
+    `- ${labels.projectScore}: ${report.projectScore}/100 (${report.projectGrade})`,
+    `- ${labels.recommendedStrategy}: ${translateStrategyName(report.recommendedStrategy, language)}`,
+    "",
+    `## ${labels.problems}`,
+    "",
+    ...(report.problems.length
+      ? report.problems.map((problem) => `- ${severityLabel(problem.severity, language)} ${translateAuditArea(problem.area, language)}: ${problem.message}`)
+      : [`- ${labels.none}`]),
+    "",
+    `## ${labels.strengths}`,
+    "",
+    ...report.strengths.map((strength) => `- ${translateAuditArea(strength.area, language)}: ${strength.message}`),
+    "",
+    `## ${labels.direction}`,
+    "",
+    ...report.direction.map((item) => `- ${item}`),
+    "",
+    `## ${labels.commands}`,
+    "",
+    ...report.suggestedCommands.map((item) => `- \`${item.command}\`: ${item.reason}`),
+    "",
+    aiReportText("promptRules", language)
+  ].join("\n");
+}
+
+function renderAiReportError(kind, language, values = {}) {
+  const labels = aiReportLabels(language);
+  if (kind === "missing-provider") {
+    return `${labels.error}: ${labels.missingProvider}\n${labels.supportedProviders}: auto, codex, claude, gemini`;
+  }
+
+  if (kind === "unknown-provider") {
+    return `${labels.error}: ${labels.unknownProvider} ${values.provider}\n${labels.supportedProviders}: auto, codex, claude, gemini`;
+  }
+
+  return `${labels.error}: ${labels.unknownAction} ${values.action}\n${labels.supportedActions}: report`;
+}
+
+function aiReportLabels(language = "en") {
+  return {
+    en: {
+      agent: "Agent",
+      aiHandoff: "AI Handoff",
+      applyHint: "Use `aigate ai report --apply --provider codex` only when you want AIGate to run an AI agent.",
+      applyMode: "Applied",
+      branch: "Branch",
+      changedFiles: "Changed files",
+      command: "Command",
+      commands: "Suggested Commands",
+      direction: "Direction",
+      duration: "Duration",
+      error: "Error",
+      exitCode: "Exit code",
+      installed: "installed",
+      missingProvider: "--provider requires a value.",
+      next: "Next",
+      no: "no",
+      none: "No current problem detected by local checks.",
+      notInstalled: "not installed",
+      problems: "Current Problems",
+      projectScore: "Project score",
+      prompt: "Prompt",
+      provider: "Provider",
+      recommendedStrategy: "Recommended strategy",
+      releaseStatus: "Release status",
+      secretFindings: "Secret findings",
+      sensitiveRemovals: "Sensitive removals",
+      status: "Status",
+      strengths: "What Is Working",
+      stderr: "Agent stderr",
+      stdout: "Agent stdout",
+      supportedActions: "Supported AI actions",
+      supportedProviders: "Supported providers",
+      title: "AIGate AI Report",
+      unknownAction: "Unknown AI action:",
+      unknownProvider: "Unknown AI provider:",
+      yes: "yes"
+    },
+    ko: {
+      agent: "에이전트",
+      aiHandoff: "AI 전달",
+      applyHint: "AIGate가 AI 에이전트를 실행하길 원할 때만 `aigate ai report --apply --provider codex`를 사용하세요.",
+      applyMode: "적용 여부",
+      branch: "브랜치",
+      changedFiles: "변경 파일",
+      command: "명령",
+      commands: "추천 명령어",
+      direction: "방향성",
+      duration: "소요 시간",
+      error: "오류",
+      exitCode: "종료 코드",
+      installed: "설치됨",
+      missingProvider: "--provider 값이 필요합니다.",
+      next: "다음 단계",
+      no: "아니오",
+      none: "로컬 검사에서 현재 문제점이 감지되지 않았습니다.",
+      notInstalled: "설치되지 않음",
+      problems: "현재 문제점",
+      projectScore: "프로젝트 점수",
+      prompt: "프롬프트",
+      provider: "제공자",
+      recommendedStrategy: "권장 전략",
+      releaseStatus: "릴리스 상태",
+      secretFindings: "민감 정보 탐지",
+      sensitiveRemovals: "민감 파일 제거",
+      status: "상태",
+      strengths: "잘된 점",
+      stderr: "에이전트 stderr",
+      stdout: "에이전트 stdout",
+      supportedActions: "지원 AI 작업",
+      supportedProviders: "지원 제공자",
+      title: "AIGate AI 리포트",
+      unknownAction: "알 수 없는 AI 작업:",
+      unknownProvider: "알 수 없는 AI 제공자:",
+      yes: "예"
+    },
+    ja: {
+      agent: "エージェント",
+      aiHandoff: "AI 引き継ぎ",
+      applyHint: "AIGate に AI エージェントを実行させたい場合のみ `aigate ai report --apply --provider codex` を使ってください。",
+      applyMode: "適用",
+      branch: "ブランチ",
+      changedFiles: "変更ファイル",
+      command: "コマンド",
+      commands: "推奨コマンド",
+      direction: "方向性",
+      duration: "所要時間",
+      error: "エラー",
+      exitCode: "終了コード",
+      installed: "インストール済み",
+      missingProvider: "--provider には値が必要です。",
+      next: "次の手順",
+      no: "いいえ",
+      none: "ローカルチェックで現在の問題は検出されていません。",
+      notInstalled: "未インストール",
+      problems: "現在の問題",
+      projectScore: "プロジェクトスコア",
+      prompt: "プロンプト",
+      provider: "Provider",
+      recommendedStrategy: "推奨戦略",
+      releaseStatus: "リリース状態",
+      secretFindings: "機密情報検出",
+      sensitiveRemovals: "機密ファイル削除",
+      status: "状態",
+      strengths: "良い点",
+      stderr: "エージェント stderr",
+      stdout: "エージェント stdout",
+      supportedActions: "対応 AI アクション",
+      supportedProviders: "対応 provider",
+      title: "AIGate AI レポート",
+      unknownAction: "不明な AI アクション:",
+      unknownProvider: "不明な AI provider:",
+      yes: "はい"
+    },
+    zh: {
+      agent: "Agent",
+      aiHandoff: "AI 交接",
+      applyHint: "只有在希望 AIGate 运行 AI agent 时才使用 `aigate ai report --apply --provider codex`。",
+      applyMode: "已应用",
+      branch: "分支",
+      changedFiles: "变更文件",
+      command: "命令",
+      commands: "建议命令",
+      direction: "方向",
+      duration: "耗时",
+      error: "错误",
+      exitCode: "退出码",
+      installed: "已安装",
+      missingProvider: "--provider 需要一个值。",
+      next: "下一步",
+      no: "否",
+      none: "本地检查未发现当前问题。",
+      notInstalled: "未安装",
+      problems: "当前问题",
+      projectScore: "项目分数",
+      prompt: "提示",
+      provider: "Provider",
+      recommendedStrategy: "推荐策略",
+      releaseStatus: "发布状态",
+      secretFindings: "敏感信息发现",
+      sensitiveRemovals: "敏感文件移除",
+      status: "状态",
+      strengths: "做得好的部分",
+      stderr: "Agent stderr",
+      stdout: "Agent stdout",
+      supportedActions: "支持的 AI 操作",
+      supportedProviders: "支持的 provider",
+      title: "AIGate AI 报告",
+      unknownAction: "未知 AI 操作:",
+      unknownProvider: "未知 AI provider:",
+      yes: "是"
+    }
+  }[language] ?? aiReportLabels("en");
+}
+
+function severityLabel(severity, language = "en") {
+  return {
+    en: { high: "HIGH", medium: "MEDIUM", low: "LOW" },
+    ko: { high: "높음", medium: "중간", low: "낮음" },
+    ja: { high: "高", medium: "中", low: "低" },
+    zh: { high: "高", medium: "中", low: "低" }
+  }[language]?.[severity] ?? severity;
+}
+
+function aiReportText(key, language = "en", values = {}) {
+  const table = {
+    en: {
+      bootstrapAvailable: "AIGate can bootstrap missing repository foundations with `aigate start --route oss`.",
+      commandAi: "Create AI assistant instructions for Codex, Gemini, and Claude Code.",
+      commandAiTest: "Create a focused AI remediation prompt from failing tests.",
+      commandGate: "Run the final local gate before commit, push, or PR.",
+      commandInternalFiles: "Create internal repository starter files such as the detected MR/PR template and CODEOWNERS.",
+      commandOss: "Create README, issue templates, PR template, CODEOWNERS, and OSS docs.",
+      commandRelease: "Confirm package metadata, tag, workflow, and npm state.",
+      commandReport: "Save this AI report for PRs, handoffs, or release notes.",
+      commandTest: "Run Git readiness and the detected project test command.",
+      directionAi: "Align AI assistants with repository rules so Codex, Gemini, and Claude Code follow the same workflow.",
+      directionAiPolicy: "Keep AI-generated work on focused branches and run `aigate test` or `aigate aitest` before push.",
+      directionInternalWorkflow: "Prepare internal repository workflow files such as README, MR/PR template, and CODEOWNERS for the detected hosting provider.",
+      directionOss: "Open the public contribution funnel with README, issue templates, PR template, CODEOWNERS, and contribution docs.",
+      directionRaiseInternalScore: "Raise the project foundation score against the detected private app profile; do not add public OSS artifacts only for the score.",
+      directionRaiseScore: "Raise the project foundation score to at least 80 before public promotion.",
+      directionRelease: "Finish release-check items before creating a release tag or publishing package changes.",
+      directionStrategy: `Use ${values.strategy ?? "the recommended strategy"} as the branch policy baseline.`,
+      directionTests: "Make test and CI commands easy to run so contributors can validate changes before review.",
+      foundationPass: `${values.check} is present.`,
+      highRiskFiles: "Local changes include file names that may contain secrets or auth state.",
+      largeChange: `The workspace has ${values.count} changed paths; split work if the PR becomes hard to review.`,
+      missingFoundation: `Missing foundation: ${values.check}.`,
+      notGitRepo: "AIGate is not running inside a Git repository.",
+      npmNotPublished: `${values.packageName}@${values.version} is not published to npm yet.`,
+      promptIntro: "Use this brief to improve the repository with focused, minimal changes.",
+      promptRules: "Rules: preserve unrelated user work, do not push directly to main, avoid broad refactors, run validation, and summarize files changed.",
+      releaseCheck: `Release check needs attention: ${values.check}.`,
+      releaseReady: "Release metadata and workflow checks are ready.",
+      secretFindings: `${values.count} possible secret finding(s) were detected.`,
+      sensitiveRemovals: `${values.count} sensitive file removal(s) were detected; ${values.exposedCount ?? values.count} had Git history exposure, so rotate exposed credentials after committing the removal.`,
+      sensitiveRemovalsNoHistory: `${values.count} sensitive file removal(s) were detected; commit the removal. No Git history exposure was detected.`,
+      strategyReady: `Branch strategy recommendation is available: ${values.strategy}.`
+    },
+    ko: {
+      bootstrapAvailable: "`aigate start --route oss`로 부족한 저장소 기반 파일을 만들 수 있습니다.",
+      commandAi: "Codex, Gemini, Claude Code용 AI 어시스턴트 지침을 생성합니다.",
+      commandAiTest: "실패한 테스트를 바탕으로 집중된 AI 수정 프롬프트를 만듭니다.",
+      commandGate: "커밋, 푸시, PR 전에 마지막 로컬 게이트를 실행합니다.",
+      commandInternalFiles: "감지된 호스팅 프로필에 맞는 MR/PR 템플릿과 CODEOWNERS 같은 내부 저장소 시작 파일을 생성합니다.",
+      commandOss: "README, 이슈 템플릿, PR 템플릿, CODEOWNERS, 오픈소스 문서를 생성합니다.",
+      commandRelease: "패키지 메타데이터, 태그, 워크플로, npm 상태를 확인합니다.",
+      commandReport: "이 AI 리포트를 PR, 인수인계, 릴리스 노트용으로 저장합니다.",
+      commandTest: "Git 준비 상태와 감지된 프로젝트 테스트 명령을 실행합니다.",
+      directionAi: "Codex, Gemini, Claude Code가 같은 워크플로를 따르도록 AI 어시스턴트 지침을 맞추세요.",
+      directionAiPolicy: "AI 생성 작업은 집중된 브랜치에서 진행하고 push 전 `aigate test` 또는 `aigate aitest`를 실행하세요.",
+      directionInternalWorkflow: "감지된 호스팅 제공자에 맞게 README, MR/PR 템플릿, CODEOWNERS 같은 내부 저장소 워크플로 파일을 준비하세요.",
+      directionOss: "README, 이슈 템플릿, PR 템플릿, CODEOWNERS, 기여 문서로 공개 기여 흐름을 여세요.",
+      directionRaiseInternalScore: "감지된 private 앱 프로필 기준으로 프로젝트 기반 점수를 올리세요. 점수만 위해 공개 OSS 산출물을 추가하지 마세요.",
+      directionRaiseScore: "공개 홍보 전에 프로젝트 기반 점수를 최소 80 이상으로 올리세요.",
+      directionRelease: "릴리스 태그 생성이나 패키지 변경 배포 전에 release-check 항목을 마무리하세요.",
+      directionStrategy: `${values.strategy ?? "권장 전략"}을 브랜치 정책 기준으로 사용하세요.`,
+      directionTests: "기여자가 리뷰 전 검증할 수 있도록 test와 CI 명령을 쉽게 실행 가능하게 만드세요.",
+      foundationPass: `${values.check} 항목이 준비되어 있습니다.`,
+      highRiskFiles: "로컬 변경사항에 민감 정보나 인증 상태가 들어갈 수 있는 파일명이 있습니다.",
+      largeChange: `현재 변경 경로가 ${values.count}개입니다. PR 리뷰가 어려워지면 작업을 나누세요.`,
+      missingFoundation: `부족한 기반 항목: ${values.check}.`,
+      notGitRepo: "AIGate가 Git 저장소 안에서 실행되고 있지 않습니다.",
+      npmNotPublished: `${values.packageName}@${values.version}은 아직 npm에 배포되지 않았습니다.`,
+      promptIntro: "이 브리프를 사용해 저장소를 작고 집중된 변경으로 개선하세요.",
+      promptRules: "규칙: 관련 없는 사용자 작업은 보존하고, main에 직접 push하지 말고, 큰 리팩터링을 피하고, 검증을 실행한 뒤 변경 파일을 요약하세요.",
+      releaseCheck: `릴리스 검사 조치 필요: ${values.check}.`,
+      releaseReady: "릴리스 메타데이터와 워크플로 검사가 준비되어 있습니다.",
+      secretFindings: `민감 정보 의심 항목 ${values.count}개가 감지됐습니다.`,
+      sensitiveRemovals: `민감 파일 제거 ${values.count}개가 감지됐습니다. 이 중 ${values.exposedCount ?? values.count}개는 Git 이력에 노출됐으니 제거 커밋 후 노출된 자격 증명을 회전하세요.`,
+      sensitiveRemovalsNoHistory: `민감 파일 제거 ${values.count}개가 감지됐습니다. 제거를 커밋하세요. Git 이력 노출은 감지되지 않았습니다.`,
+      strategyReady: `브랜치 전략 추천이 준비되어 있습니다: ${values.strategy}.`
+    },
+    ja: {
+      bootstrapAvailable: "`aigate start --route oss` で不足しているリポジトリ基盤を作成できます。",
+      commandAi: "Codex、Gemini、Claude Code 用の AI アシスタント指示を作成します。",
+      commandAiTest: "失敗したテストから焦点を絞った AI 修正プロンプトを作成します。",
+      commandGate: "コミット、プッシュ、PR 前の最後のローカルゲートを実行します。",
+      commandInternalFiles: "検出された hosting profile に合わせて MR/PR テンプレートや CODEOWNERS などの内部リポジトリ初期ファイルを作成します。",
+      commandOss: "README、issue テンプレート、PR テンプレート、CODEOWNERS、OSS 文書を作成します。",
+      commandRelease: "パッケージメタデータ、タグ、workflow、npm 状態を確認します。",
+      commandReport: "この AI レポートを PR、引き継ぎ、リリースノート用に保存します。",
+      commandTest: "Git 準備状態と検出したプロジェクトテストコマンドを実行します。",
+      directionAi: "Codex、Gemini、Claude Code が同じワークフローに従うよう AI アシスタント指示を揃えます。",
+      directionAiPolicy: "AI 生成作業は焦点を絞ったブランチで進め、push 前に `aigate test` または `aigate aitest` を実行します。",
+      directionInternalWorkflow: "検出された hosting provider に合わせて README、MR/PR template、CODEOWNERS など内部リポジトリのワークフローファイルを準備します。",
+      directionOss: "README、issue テンプレート、PR テンプレート、CODEOWNERS、貢献文書で公開貢献導線を開きます。",
+      directionRaiseInternalScore: "検出された private app profile に対してプロジェクト基盤スコアを上げます。スコアのためだけに公開 OSS 成果物を追加しないでください。",
+      directionRaiseScore: "公開プロモーション前にプロジェクト基盤スコアを 80 以上へ上げます。",
+      directionRelease: "リリースタグ作成やパッケージ変更公開の前に release-check 項目を完了します。",
+      directionStrategy: `${values.strategy ?? "推奨戦略"} をブランチポリシーの基準として使います。`,
+      directionTests: "コントリビューターがレビュー前に検証できるよう test と CI コマンドを実行しやすくします。",
+      foundationPass: `${values.check} が用意されています。`,
+      highRiskFiles: "ローカル変更に機密情報や認証状態を含む可能性があるファイル名があります。",
+      largeChange: `変更パスが ${values.count} 件あります。PR レビューが難しくなる場合は作業を分割してください。`,
+      missingFoundation: `不足している基盤: ${values.check}.`,
+      notGitRepo: "AIGate が Git リポジトリ内で実行されていません。",
+      npmNotPublished: `${values.packageName}@${values.version} はまだ npm に公開されていません。`,
+      promptIntro: "このブリーフを使い、リポジトリを小さく焦点の合った変更で改善してください。",
+      promptRules: "ルール: 無関係なユーザー作業を保持し、main へ直接 push せず、大きなリファクタリングを避け、検証を実行し、変更ファイルを要約してください。",
+      releaseCheck: `リリースチェックで対応が必要: ${values.check}.`,
+      releaseReady: "リリースメタデータと workflow チェックは準備済みです。",
+      secretFindings: `機密情報の疑いがある項目を ${values.count} 件検出しました。`,
+      sensitiveRemovals: `機密ファイル削除を ${values.count} 件検出しました。このうち ${values.exposedCount ?? values.count} 件は Git 履歴に露出しているため、削除コミット後に露出した認証情報をローテーションしてください。`,
+      sensitiveRemovalsNoHistory: `機密ファイル削除を ${values.count} 件検出しました。削除をコミットしてください。Git 履歴への露出は検出されていません。`,
+      strategyReady: `ブランチ戦略推薦があります: ${values.strategy}.`
+    },
+    zh: {
+      bootstrapAvailable: "可以用 `aigate start --route oss` 创建缺失的仓库基础文件。",
+      commandAi: "为 Codex、Gemini 和 Claude Code 创建 AI 助手指令。",
+      commandAiTest: "根据失败测试创建聚焦的 AI 修复提示。",
+      commandGate: "在提交、推送或 PR 前运行最终本地关卡。",
+      commandInternalFiles: "根据检测到的托管配置创建 MR/PR 模板和 CODEOWNERS 等内部仓库起始文件。",
+      commandOss: "创建 README、issue 模板、PR 模板、CODEOWNERS 和开源文档。",
+      commandRelease: "确认包元数据、标签、workflow 和 npm 状态。",
+      commandReport: "保存此 AI 报告，用于 PR、交接或发布说明。",
+      commandTest: "运行 Git 就绪检查和检测到的项目测试命令。",
+      directionAi: "让 Codex、Gemini 和 Claude Code 遵循相同工作流。",
+      directionAiPolicy: "AI 生成的工作应放在聚焦分支，并在 push 前运行 `aigate test` 或 `aigate aitest`。",
+      directionInternalWorkflow: "根据检测到的托管服务准备 README、MR/PR 模板和 CODEOWNERS 等内部仓库工作流文件。",
+      directionOss: "用 README、issue 模板、PR 模板、CODEOWNERS 和贡献文档打开公开贡献入口。",
+      directionRaiseInternalScore: "按检测到的 private app 配置提高项目基础分；不要只为了分数添加公开 OSS 产物。",
+      directionRaiseScore: "公开推广前把项目基础分提高到至少 80。",
+      directionRelease: "创建发布标签或发布包变更前完成 release-check 项。",
+      directionStrategy: `将 ${values.strategy ?? "推荐策略"} 作为分支政策基线。`,
+      directionTests: "让测试和 CI 命令易于运行，方便贡献者在评审前验证。",
+      foundationPass: `${values.check} 已就绪。`,
+      highRiskFiles: "本地变更包含可能带有敏感信息或认证状态的文件名。",
+      largeChange: `当前有 ${values.count} 个变更路径；如果 PR 难以评审，请拆分工作。`,
+      missingFoundation: `缺失基础项: ${values.check}.`,
+      notGitRepo: "AIGate 未在 Git 仓库内运行。",
+      npmNotPublished: `${values.packageName}@${values.version} 尚未发布到 npm。`,
+      promptIntro: "使用此简报，以聚焦且最小的变更改进仓库。",
+      promptRules: "规则: 保留无关用户工作，不要直接 push 到 main，避免大范围重构，运行验证，并总结变更文件。",
+      releaseCheck: `发布检查需要处理: ${values.check}.`,
+      releaseReady: "发布元数据和 workflow 检查已就绪。",
+      secretFindings: `检测到 ${values.count} 个疑似敏感信息项。`,
+      sensitiveRemovals: `检测到 ${values.count} 个敏感文件移除，其中 ${values.exposedCount ?? values.count} 个已暴露在 Git 历史中；提交移除后请轮换暴露的凭据。`,
+      sensitiveRemovalsNoHistory: `检测到 ${values.count} 个敏感文件移除。请提交移除；未检测到 Git 历史暴露。`,
+      strategyReady: `分支策略建议已可用: ${values.strategy}.`
+    }
+  };
+
+  return table[language]?.[key] ?? table.en[key] ?? key;
+}
+
+function buildReport(type, options = {}) {
   const status = buildGitStatus();
-  const evaluation = buildEvaluation();
+  const evaluation = buildEvaluation(options);
   const analysis = buildChangeAnalysis();
   const riskScore = calculateRiskScore(status, evaluation, analysis);
   const reportStatus = analysis.secretFindings.length
@@ -4829,6 +7625,7 @@ function buildReport(type) {
     changedFiles: analysis.paths.length,
     changedPaths: analysis.paths,
     secretFindings: analysis.secretFindings,
+    sensitiveRemovals: analysis.sensitiveRemovals,
     projectScore: evaluation.score,
     projectGrade: evaluation.grade,
     checks: evaluation.checks,
@@ -4836,8 +7633,16 @@ function buildReport(type) {
     recommendedActions: recommendedActionsForReport(status, evaluation, analysis, type),
     recommendation: analysis.secretFindings.length
       ? "Review possible secret-bearing files before commit or push."
-      : status.recommendation
+    : analysis.sensitiveRemovals.length
+        ? sensitiveRemovalRecommendation(analysis.sensitiveRemovals)
+        : status.recommendation
   };
+}
+
+function sensitiveRemovalRecommendation(sensitiveRemovals) {
+  return sensitiveRemovals.some((finding) => finding.exposedInHistory)
+    ? "Commit sensitive file removals and rotate credentials that were exposed in Git history."
+    : "Commit sensitive file removals; no Git history exposure was detected.";
 }
 
 function calculateRiskScore(status, evaluation, analysis) {
@@ -4865,6 +7670,8 @@ function recommendedActionsForReport(status, evaluation, analysis, type) {
 
   if (analysis.secretFindings.length) {
     actions.push("Remove or rotate suspected secrets before commit or push.");
+  } else if (analysis.sensitiveRemovals.length) {
+    actions.push(sensitiveRemovalRecommendation(analysis.sensitiveRemovals));
   }
 
   if (status.changedFiles.length > 20) {
@@ -4918,6 +7725,7 @@ function renderMarkdownReport(report, language = "en") {
     `- ${labels.branch}: ${report.branch}`,
     `- ${labels.changedFiles}: ${report.changedFiles}`,
     `- ${labels.secretFindingsCount}: ${report.secretFindings.length}`,
+    `- ${labels.sensitiveRemovalsCount}: ${report.sensitiveRemovals?.length ?? 0}`,
     `- ${labels.projectScore}: ${report.projectScore}/100 (${report.projectGrade})`,
     `- ${labels.recommendation}: ${translateRecommendation(report.recommendation, language)}`,
     "",
@@ -4929,6 +7737,12 @@ function renderMarkdownReport(report, language = "en") {
     "",
     ...(report.secretFindings.length
       ? report.secretFindings.map((finding) => formatFindingLine(finding, language))
+      : [`- ${labels.none}`]),
+    "",
+    `## ${labels.sensitiveRemovals}`,
+    "",
+    ...(report.sensitiveRemovals?.length
+      ? report.sensitiveRemovals.map((finding) => formatFindingLine(finding, language))
       : [`- ${labels.none}`]),
     "",
     `## ${labels.recommendedActions}`,
@@ -4954,6 +7768,7 @@ function renderMarkdownReport(report, language = "en") {
       "",
       `- ${labels.highRiskFileSignal}: ${report.riskScore >= 65 ? labels.yes : labels.no}`,
       `- ${labels.secretFindingsCount}: ${report.secretFindings.length}`,
+      `- ${labels.sensitiveRemovalsCount}: ${report.sensitiveRemovals?.length ?? 0}`,
       `- ${labels.suggestedVerdict}: ${statusLabel(report.finalVerdict, language)}`
     );
   }
@@ -4977,6 +7792,7 @@ function renderHtmlReport(report, language = "en") {
     `<li>${escapeHtml(labels.branch)}: ${escapeHtml(report.branch)}</li>`,
     `<li>${escapeHtml(labels.changedFiles)}: ${report.changedFiles}</li>`,
     `<li>${escapeHtml(labels.secretFindingsCount)}: ${report.secretFindings.length}</li>`,
+    `<li>${escapeHtml(labels.sensitiveRemovalsCount)}: ${report.sensitiveRemovals?.length ?? 0}</li>`,
     `<li>${escapeHtml(labels.projectScore)}: ${report.projectScore}/100 (${escapeHtml(report.projectGrade)})</li>`,
     `<li>${escapeHtml(labels.recommendation)}: ${escapeHtml(translateRecommendation(report.recommendation, language))}</li>`,
     "</ul>",
@@ -5061,7 +7877,7 @@ function renderProjectEvaluationReport(evaluation, format, language = "en") {
       `<h2>${escapeHtml(labels.checks)}</h2>`,
       "<ul>",
       ...evaluation.checks.map((check) => (
-        `<li>${escapeHtml(statusLabel(check.pass ? "PASS" : "TODO", language))}: ${escapeHtml(translateEvaluationCheckName(check.name, language))}</li>`
+        `<li>${escapeHtml(statusLabel(check.status ?? checkStatus(check), language))}: ${escapeHtml(translateEvaluationCheckName(check.name, language))}</li>`
       )),
       "</ul>",
       `<p>${escapeHtml(labels.recommendation)}: ${escapeHtml(translateRecommendation(evaluation.recommendation, language))}</p>`,
@@ -5083,7 +7899,7 @@ function renderProjectEvaluationReport(evaluation, format, language = "en") {
     "",
     `## ${labels.checks}`,
     "",
-    ...evaluation.checks.map((check) => `- ${statusLabel(check.pass ? "PASS" : "TODO", language)}: ${translateEvaluationCheckName(check.name, language)}`),
+    ...evaluation.checks.map((check) => formatCheckLine(check, translateEvaluationCheckName, language)),
     ...(evaluation.deepSignals
       ? [
           "",
@@ -5387,9 +8203,11 @@ function renderStrategySignals(signals, language = "en") {
   ].join(", ");
 }
 
-function buildBranchStrategyFiles(strategy, outputDir, language = "en") {
-  const policyPacks = buildBranchPolicyPacks(strategy);
-  return [
+function buildBranchStrategyFiles(strategy, outputDir, language = "en", profile = {}) {
+  const policyPacks = buildBranchPolicyPacks(strategy, profile);
+  const packageJson = readJsonFile("package.json");
+  const validationCommands = buildValidationCommands(packageJson, profile);
+  const sharedFiles = [
     {
       path: join(outputDir, ".aigate", "generated-branch-strategy.md"),
       content: `${renderBranchStrategyMarkdown(strategy, language)}\n`
@@ -5407,7 +8225,7 @@ function buildBranchStrategyFiles(strategy, outputDir, language = "en") {
     },
     {
       path: join(outputDir, ".aigate", "policy-packs", "README.md"),
-      content: renderPolicyPackReadme(strategy, policyPacks, language)
+      content: renderPolicyPackReadme(strategy, policyPacks, language, profile, validationCommands)
     },
     ...policyPacks.map((pack) => ({
       path: join(outputDir, pack.path),
@@ -5415,15 +8233,33 @@ function buildBranchStrategyFiles(strategy, outputDir, language = "en") {
     })),
     {
       path: join(outputDir, "docs", "release-process.md"),
-      content: renderReleaseProcess(strategy, language)
+      content: renderReleaseProcess(strategy, language, profile, validationCommands)
     },
     {
       path: join(outputDir, "docs", "hotfix-process.md"),
-      content: renderHotfixProcess(strategy, language)
-    },
+      content: renderHotfixProcess(strategy, language, validationCommands)
+    }
+  ];
+
+  if (profile.hosting === "gitlab") {
+    return [
+      ...sharedFiles,
+      {
+        path: join(outputDir, ".gitlab", "merge_request_templates", "aigate.md"),
+        content: renderPullRequestTemplateDraft(language, validationCommands)
+      },
+      {
+        path: join(outputDir, ".gitlab", "CODEOWNERS"),
+        content: "* @LeeHueeng\n"
+      }
+    ];
+  }
+
+  return [
+    ...sharedFiles,
     {
       path: join(outputDir, ".github", "pull_request_template.aigate.md"),
-      content: renderPullRequestTemplateDraft(language)
+      content: renderPullRequestTemplateDraft(language, validationCommands)
     },
     {
       path: join(outputDir, ".github", "CODEOWNERS.aigate"),
@@ -5432,16 +8268,21 @@ function buildBranchStrategyFiles(strategy, outputDir, language = "en") {
   ];
 }
 
-function buildBranchPolicyPacks(strategy) {
-  return [
+function buildBranchPolicyPacks(strategy, profile = {}) {
+  const packageJson = readJsonFile("package.json");
+  const validationCommands = buildValidationCommands(packageJson, profile);
+  const workflow = resolveWorkflowSettings({}, profile, packageJson);
+  const requiredChecks = requiredChecksForProfile(profile);
+  const protectedBranches = effectiveProtectedBranches(strategy, workflow);
+  const packs = [
     {
       path: ".aigate/policy-packs/branch-protection.json",
       content: {
         version: 1,
         id: "branch-protection",
         strategy: strategy.name,
-        appliesTo: ["main", "develop", "release/*", "hotfix/*"],
-        requiredChecks: ["test (20)", "test (22)", "aigate git-ready"],
+        appliesTo: protectedBranches,
+        requiredChecks,
         rules: [
           {
             id: "pull-request-required",
@@ -5474,7 +8315,7 @@ function buildBranchPolicyPacks(strategy) {
         id: "pr-quality",
         strategy: strategy.name,
         requiredSections: ["Summary", "Risk", "Validation", "Release Impact"],
-        validationCommands: ["npm run ci", "aigate git-ready", "aigate pr-check"],
+        validationCommands: [...validationCommands, "aigate pr-check"],
         riskLabels: ["low-risk", "security-sensitive", "release-impact", "migration"],
         rules: [
           {
@@ -5496,43 +8337,14 @@ function buildBranchPolicyPacks(strategy) {
       }
     },
     {
-      path: ".aigate/policy-packs/release-channels.json",
-      content: {
-        version: 1,
-        id: "release-channels",
-        strategy: strategy.name,
-        stableBranch: "main",
-        tagPattern: "v*.*.*",
-        npmDistTags: {
-          latest: "stable releases",
-          next: "release candidates",
-          beta: "beta validation",
-          canary: "high-frequency experimental builds"
-        },
-        requiredBeforeTag: ["npm run ci", "aigate release-check --npm", "Release workflow dry_run=true"],
-        rules: [
-          {
-            id: "tag-after-ci",
-            severity: "block",
-            description: "Create release tags only after CI and release-check pass."
-          },
-          {
-            id: "document-release",
-            severity: "warn",
-            description: "Keep CHANGELOG and GitHub Release notes aligned with the published package."
-          }
-        ]
-      }
-    },
-    {
       path: ".aigate/policy-packs/ai-collaboration.json",
       content: {
         version: 1,
         id: "ai-collaboration",
         strategy: strategy.name,
-        assistantBranches: ["codex/*", "feature/*", "fix/*", "docs/*", "chore/*"],
+        assistantBranches: workflow.workBranches,
         requiredContext: ["README.md", ".aigate.yml", "docs/branch-strategy.md", "docs/git-upload-workflow.md"],
-        guardCommands: ["aigate git-ready", "npm run ci"],
+        guardCommands: validationCommands,
         rules: [
           {
             id: "no-unreviewed-main-changes",
@@ -5553,10 +8365,67 @@ function buildBranchPolicyPacks(strategy) {
       }
     }
   ];
+
+  if (profile.kind === "package") {
+    packs.splice(2, 0, {
+      path: ".aigate/policy-packs/release-channels.json",
+      content: {
+        version: 1,
+        id: "release-channels",
+        strategy: strategy.name,
+        stableBranch: "main",
+        tagPattern: "v*.*.*",
+        npmDistTags: {
+          latest: "stable releases",
+          next: "release candidates",
+          beta: "beta validation",
+          canary: "high-frequency experimental builds"
+        },
+        requiredBeforeTag: [...validationCommands, "aigate release-check --npm", "Release workflow dry_run=true"],
+        rules: [
+          {
+            id: "tag-after-ci",
+            severity: "block",
+            description: "Create release tags only after CI and release-check pass."
+          },
+          {
+            id: "document-release",
+            severity: "warn",
+            description: "Keep CHANGELOG and release notes aligned with the published package."
+          }
+        ]
+      }
+    });
+  }
+
+  return packs;
 }
 
-function renderPolicyPackReadme(strategy, policyPacks, language = "en") {
+function effectiveProtectedBranches(strategy = {}, workflow = {}) {
+  const configured = normalizeListSetting(workflow.protectedBranches);
+  if (configured.length) {
+    return configured;
+  }
+
+  const branches = (strategy.branches ?? [])
+    .map((branch) => branch.name)
+    .filter((branch) => ["main", "develop"].includes(branch));
+  const targetBranch = String(workflow.targetBranch ?? "").trim();
+  if (targetBranch && !branches.includes(targetBranch)) {
+    branches.push(targetBranch);
+  }
+
+  return [...new Set(branches.length ? branches : ["main"])];
+}
+
+function renderPolicyPackReadme(strategy, policyPacks, language = "en", profile = {}, validationCommands = ["aigate git-ready"]) {
   const files = policyPacks.map((pack) => `- \`${pack.path}\``);
+  const platformLabel = profile.hosting === "gitlab" ? "GitLab" : profile.hosting === "github" ? "GitHub" : "hosting provider";
+  const validationBlock = [
+    "```sh",
+    ...validationCommands,
+    "```"
+  ];
 
   if (language === "ko") {
     return [
@@ -5573,8 +8442,10 @@ function renderPolicyPackReadme(strategy, policyPacks, language = "en") {
       "## 사용 방법",
       "",
       "1. JSON 파일의 규칙을 팀 정책에 맞게 검토합니다.",
-      "2. GitHub branch protection, PR template, release workflow 설정에 반영합니다.",
-      "3. 변경 후 `npm run ci`와 `aigate git-ready`를 실행합니다.",
+      `2. ${platformLabel} branch protection, PR/MR template, CI 설정에 반영합니다.`,
+      "3. 변경 후 아래 검증 명령을 실행합니다.",
+      "",
+      ...validationBlock,
       ""
     ].join("\n");
   }
@@ -5594,8 +8465,10 @@ function renderPolicyPackReadme(strategy, policyPacks, language = "en") {
       "## 使い方",
       "",
       "1. JSON ファイルのルールをチーム方針に合わせて確認します。",
-      "2. GitHub branch protection、PR template、release workflow 設定へ反映します。",
-      "3. 変更後に `npm run ci` と `aigate git-ready` を実行します。",
+      `2. ${platformLabel} branch protection、PR/MR template、CI 設定へ反映します。`,
+      "3. 変更後に次の検証コマンドを実行します。",
+      "",
+      ...validationBlock,
       ""
     ].join("\n");
   }
@@ -5615,8 +8488,10 @@ function renderPolicyPackReadme(strategy, policyPacks, language = "en") {
       "## 使用方式",
       "",
       "1. 按团队政策审查 JSON 文件中的规则。",
-      "2. 应用到 GitHub branch protection、PR template 和 release workflow 设置。",
-      "3. 变更后运行 `npm run ci` 和 `aigate git-ready`。",
+      `2. 应用到 ${platformLabel} branch protection、PR/MR template 和 CI 设置。`,
+      "3. 变更后运行以下验证命令。",
+      "",
+      ...validationBlock,
       ""
     ].join("\n");
   }
@@ -5635,13 +8510,17 @@ function renderPolicyPackReadme(strategy, policyPacks, language = "en") {
     "## How To Use",
     "",
     "1. Review each JSON rule set against your team policy.",
-    "2. Apply matching settings to GitHub branch protection, pull request templates, and release workflows.",
-    "3. Run `npm run ci` and `aigate git-ready` after changes.",
+    `2. Apply matching settings to ${platformLabel} branch protection, PR/MR templates, and CI.`,
+    "3. Run these validation commands after changes.",
+    "",
+    ...validationBlock,
     ""
   ].join("\n");
 }
 
-function renderReleaseProcess(strategy, language = "en") {
+function renderReleaseProcess(strategy, language = "en", profile = {}, validationCommands = ["aigate git-ready"]) {
+  const validation = formatInlineCodeList(validationCommands);
+  const packageRelease = profile.kind === "package";
   if (language === "ko") {
     return [
       "# 릴리스 프로세스",
@@ -5649,10 +8528,12 @@ function renderReleaseProcess(strategy, language = "en") {
       `권장 전략: ${translateStrategyName(strategy.name, language)}`,
       "",
       "1. `main`은 PR을 통해 항상 배포 가능한 상태로 유지합니다.",
-      "2. 릴리스 준비 전에 `npm run ci`와 `aigate git-ready`를 실행합니다.",
+      `2. 릴리스 준비 전에 ${validation}를 실행합니다.`,
       "3. 별도 안정화가 필요할 때만 `release/vX.Y.Z`를 생성합니다.",
       "4. 안정 릴리스는 `vX.Y.Z` 태그로 표시합니다.",
-      "5. npm Trusted Publishing 설정 후 릴리스 워크플로로 npm 패키지를 배포합니다.",
+      packageRelease
+        ? "5. npm Trusted Publishing 설정 후 릴리스 워크플로로 npm 패키지를 배포합니다."
+        : "5. 앱 배포, 운영 공지, 롤백 계획을 팀의 실제 CI/CD에 맞춰 기록합니다.",
       ""
     ].join("\n");
   }
@@ -5664,10 +8545,12 @@ function renderReleaseProcess(strategy, language = "en") {
       `推奨戦略: ${translateStrategyName(strategy.name, language)}`,
       "",
       "1. `main` は PR 経由で常にリリース可能な状態に保ちます。",
-      "2. リリース準備前に `npm run ci` と `aigate git-ready` を実行します。",
+      `2. リリース準備前に ${validation} を実行します。`,
       "3. 個別の安定化が必要な場合のみ `release/vX.Y.Z` を作成します。",
       "4. 安定リリースは `vX.Y.Z` タグで示します。",
-      "5. npm Trusted Publishing 設定後、リリースワークフローで npm パッケージを公開します。",
+      packageRelease
+        ? "5. npm Trusted Publishing 設定後、リリースワークフローで npm パッケージを公開します。"
+        : "5. アプリのデプロイ、運用告知、ロールバック計画を実際の CI/CD に合わせて記録します。",
       ""
     ].join("\n");
   }
@@ -5679,10 +8562,12 @@ function renderReleaseProcess(strategy, language = "en") {
       `推荐策略: ${translateStrategyName(strategy.name, language)}`,
       "",
       "1. 通过 PR 保持 `main` 始终可发布。",
-      "2. 发布准备前运行 `npm run ci` 和 `aigate git-ready`。",
+      `2. 发布准备前运行 ${validation}。`,
       "3. 仅在需要单独稳定时创建 `release/vX.Y.Z`。",
       "4. 稳定发布使用 `vX.Y.Z` 标签。",
-      "5. 配置 npm Trusted Publishing 后，通过发布工作流发布 npm 包。",
+      packageRelease
+        ? "5. 配置 npm Trusted Publishing 后，通过发布工作流发布 npm 包。"
+        : "5. 按团队真实 CI/CD 记录应用部署、运营通知和回滚计划。",
       ""
     ].join("\n");
   }
@@ -5693,15 +8578,18 @@ function renderReleaseProcess(strategy, language = "en") {
     `Recommended strategy: ${strategy.name}`,
     "",
     "1. Keep `main` releasable through pull requests.",
-    "2. Run `npm run ci` and `aigate git-ready` before release preparation.",
+    `2. Run ${validation} before release preparation.`,
     "3. Create `release/vX.Y.Z` only when stabilization needs a separate branch.",
     "4. Tag stable releases as `vX.Y.Z`.",
-    "5. Publish npm packages through the Release workflow after npm Trusted Publishing is configured.",
+    packageRelease
+      ? "5. Publish npm packages through the Release workflow after npm Trusted Publishing is configured."
+      : "5. Record app deployment, operations notes, and rollback steps against the team's real CI/CD.",
     ""
   ].join("\n");
 }
 
-function renderHotfixProcess(strategy, language = "en") {
+function renderHotfixProcess(strategy, language = "en", validationCommands = ["aigate git-ready"]) {
+  const validation = formatInlineCodeList(validationCommands);
   if (language === "ko") {
     return [
       "# Hotfix 프로세스",
@@ -5710,7 +8598,7 @@ function renderHotfixProcess(strategy, language = "en") {
       "",
       "1. `main` 또는 최신 안정 태그에서 `hotfix/<short-description>` 브랜치를 만듭니다.",
       "2. 변경 범위를 최소화하고 집중합니다.",
-      "3. `npm run ci`, `aigate git-ready`, 필요한 회귀 검사를 실행합니다.",
+      `3. ${validation}와 필요한 회귀 검사를 실행합니다.`,
       "4. 롤백 노트를 포함해 `main` 대상 PR을 엽니다.",
       "5. 검사와 리뷰 통과 후 패치 릴리스를 배포합니다.",
       ""
@@ -5725,7 +8613,7 @@ function renderHotfixProcess(strategy, language = "en") {
       "",
       "1. `main` または最新の安定タグから `hotfix/<short-description>` ブランチを作成します。",
       "2. 変更は最小限かつ集中した範囲に保ちます。",
-      "3. `npm run ci`、`aigate git-ready`、必要な回帰確認を実行します。",
+      `3. ${validation} と必要な回帰確認を実行します。`,
       "4. ロールバックメモを含めて `main` 向け PR を作成します。",
       "5. チェックとレビュー通過後にパッチリリースを公開します。",
       ""
@@ -5740,7 +8628,7 @@ function renderHotfixProcess(strategy, language = "en") {
       "",
       "1. 从 `main` 或最新稳定标签创建 `hotfix/<short-description>` 分支。",
       "2. 保持变更最小且聚焦。",
-      "3. 运行 `npm run ci`、`aigate git-ready` 和必要的回归检查。",
+      `3. 运行 ${validation} 和必要的回归检查。`,
       "4. 创建指向 `main` 的 PR，并附上回滚说明。",
       "5. 检查和评审通过后发布补丁版本。",
       ""
@@ -5754,14 +8642,16 @@ function renderHotfixProcess(strategy, language = "en") {
     "",
     "1. Branch from `main` or the latest stable tag with `hotfix/<short-description>`.",
     "2. Keep the change minimal and focused.",
-    "3. Run `npm run ci`, `aigate git-ready`, and a focused regression check.",
+    `3. Run ${validation} and a focused regression check.`,
     "4. Open a pull request into `main` with rollback notes.",
     "5. Publish a patch release after checks and review pass.",
     ""
   ].join("\n");
 }
 
-function renderPullRequestTemplateDraft(language = "en") {
+function renderPullRequestTemplateDraft(language = "en", validationCommands = ["aigate git-ready"]) {
+  const validationChecklist = [...new Set([...validationCommands, "aigate pr-check"])]
+    .map((command) => `- [ ] \`${command}\``);
   if (language === "ko") {
     return [
       "## 요약",
@@ -5776,9 +8666,7 @@ function renderPullRequestTemplateDraft(language = "en") {
       "",
       "## 검증",
       "",
-      "- [ ] `npm run ci`",
-      "- [ ] `aigate git-ready`",
-      "- [ ] `aigate pr-check`",
+      ...validationChecklist,
       "",
       "## 릴리스 영향",
       "",
@@ -5804,9 +8692,7 @@ function renderPullRequestTemplateDraft(language = "en") {
       "",
       "## 検証",
       "",
-      "- [ ] `npm run ci`",
-      "- [ ] `aigate git-ready`",
-      "- [ ] `aigate pr-check`",
+      ...validationChecklist,
       "",
       "## リリース影響",
       "",
@@ -5832,9 +8718,7 @@ function renderPullRequestTemplateDraft(language = "en") {
       "",
       "## 验证",
       "",
-      "- [ ] `npm run ci`",
-      "- [ ] `aigate git-ready`",
-      "- [ ] `aigate pr-check`",
+      ...validationChecklist,
       "",
       "## 发布影响",
       "",
@@ -5859,9 +8743,7 @@ function renderPullRequestTemplateDraft(language = "en") {
     "",
     "## Validation",
     "",
-    "- [ ] `npm run ci`",
-    "- [ ] `aigate git-ready`",
-    "- [ ] `aigate pr-check`",
+    ...validationChecklist,
     "",
     "## Release Impact",
     "",
@@ -5873,40 +8755,695 @@ function renderPullRequestTemplateDraft(language = "en") {
   ].join("\n");
 }
 
+function buildRepositoryStarterFiles(outputDir, language = "en", packageJson = {}, owner = "@maintainers", profile = {}) {
+  const projectName = packageJson.name ?? "my-project";
+  const strategy = buildBranchStrategy({
+    projectType: profile.kind,
+    hosting: profile.hosting,
+    ciProvider: profile.ciProvider,
+    packageManager: profile.packageManager
+  });
+  const validationCommands = buildValidationCommands(packageJson, profile);
+  const sharedFiles = [
+    {
+      path: join(outputDir, "README.md"),
+      content: renderStarterReadme(projectName, language, profile, validationCommands)
+    },
+    {
+      path: join(outputDir, "CONTRIBUTING.md"),
+      content: renderStarterContributing(language, validationCommands)
+    },
+    {
+      path: join(outputDir, "SECURITY.md"),
+      content: renderStarterSecurity(language)
+    },
+    {
+      path: join(outputDir, "SUPPORT.md"),
+      content: renderStarterSupport(language)
+    },
+    {
+      path: join(outputDir, "CHANGELOG.md"),
+      content: renderStarterChangelog(language)
+    },
+    {
+      path: join(outputDir, "docs", "roadmap.md"),
+      content: renderStarterRoadmap(language)
+    },
+    {
+      path: join(outputDir, "docs", "branch-strategy.md"),
+      content: `${renderBranchStrategyMarkdown(strategy, language)}\n`
+    },
+    {
+      path: join(outputDir, "docs", "git-upload-workflow.md"),
+      content: renderStarterGitUploadWorkflow(language)
+    }
+  ];
+
+  if (profile.hosting === "gitlab") {
+    return [
+      ...sharedFiles,
+      {
+        path: join(outputDir, ".gitlab", "issue_templates", "bug.md"),
+        content: renderGitLabIssueTemplate("bug", language)
+      },
+      {
+        path: join(outputDir, ".gitlab", "issue_templates", "feature.md"),
+        content: renderGitLabIssueTemplate("feature", language)
+      },
+      {
+        path: join(outputDir, ".gitlab", "merge_request_templates", "default.md"),
+        content: renderPullRequestTemplateDraft(language, validationCommands)
+      },
+      {
+        path: join(outputDir, ".gitlab", "CODEOWNERS"),
+        content: `* ${owner}\n`
+      }
+    ];
+  }
+
+  return [
+    ...sharedFiles,
+    {
+      path: join(outputDir, ".github", "ISSUE_TEMPLATE", "bug_report.yml"),
+      content: renderIssueTemplate("bug", language)
+    },
+    {
+      path: join(outputDir, ".github", "ISSUE_TEMPLATE", "feature_request.yml"),
+      content: renderIssueTemplate("feature", language)
+    },
+    {
+      path: join(outputDir, ".github", "ISSUE_TEMPLATE", "config.yml"),
+      content: renderIssueTemplateConfig(language)
+    },
+    {
+      path: join(outputDir, ".github", "DISCUSSION_TEMPLATE", "ideas.yml"),
+      content: renderDiscussionIdeasTemplate(language)
+    },
+    {
+      path: join(outputDir, ".github", "pull_request_template.md"),
+      content: renderPullRequestTemplateDraft(language, validationCommands)
+    },
+    {
+      path: join(outputDir, ".github", "CODEOWNERS"),
+      content: `* ${owner}\n`
+    }
+  ];
+}
+
+function normalizeCodeownersOwner(owner) {
+  const value = String(owner ?? "").trim();
+  if (!value) {
+    return "@maintainers";
+  }
+
+  return value.startsWith("@") ? value : `@${value}`;
+}
+
+function repositoryStarterLabels(language = "en") {
+  return {
+    en: {
+      complete: "AIGate open-source starter files",
+      outputDir: "Output directory",
+      owner: "CODEOWNERS owner"
+    },
+    ko: {
+      complete: "AIGate 오픈소스 시작 파일",
+      outputDir: "출력 디렉터리",
+      owner: "CODEOWNERS 소유자"
+    },
+    ja: {
+      complete: "AIGate オープンソース初期ファイル",
+      outputDir: "出力ディレクトリ",
+      owner: "CODEOWNERS オーナー"
+    },
+    zh: {
+      complete: "AIGate 开源起始文件",
+      outputDir: "输出目录",
+      owner: "CODEOWNERS 所有者"
+    }
+  }[language] ?? repositoryStarterLabels("en");
+}
+
+function renderStarterReadme(projectName, language = "en", profile = {}, validationCommands = ["aigate git-ready"]) {
+  const title = projectNameToTitle(projectName);
+  const packageManager = ["npm", "pnpm", "yarn", "bun"].includes(profile.packageManager) ? profile.packageManager : "npm";
+  const installCommand = `${packageManager} install`;
+  if (language === "ko") {
+    return [
+      `# ${title}`,
+      "",
+      "프로젝트의 목적, 핵심 기능, 설치 방법을 여기에 정리하세요.",
+      "",
+      "## 빠른 시작",
+      "",
+      "```sh",
+      installCommand,
+      ...validationCommands,
+      "```",
+      "",
+      "## 개발 워크플로",
+      "",
+      "```sh",
+      "aigate start --route quickstart",
+      "aigate ai report",
+      "aigate test",
+      "aigate git-ready",
+      "```",
+      "",
+      "## 기여",
+      "",
+      "기여 전 `CONTRIBUTING.md`를 읽고 PR에는 검증 명령과 릴리스 영향을 적어주세요.",
+      "",
+      "## 라이선스",
+      "",
+      "라이선스 정보를 `LICENSE`에 추가하세요.",
+      ""
+    ].join("\n");
+  }
+
+  if (language === "ja") {
+    return [
+      `# ${title}`,
+      "",
+      "プロジェクトの目的、主要機能、インストール方法をここにまとめてください。",
+      "",
+      "## クイックスタート",
+      "",
+      "```sh",
+      installCommand,
+      ...validationCommands,
+      "```",
+      "",
+      "## 開発ワークフロー",
+      "",
+      "```sh",
+      "aigate start --route quickstart",
+      "aigate ai report",
+      "aigate test",
+      "aigate git-ready",
+      "```",
+      "",
+      "## コントリビュート",
+      "",
+      "貢献前に `CONTRIBUTING.md` を読み、PR には検証コマンドとリリース影響を記載してください。",
+      "",
+      "## ライセンス",
+      "",
+      "ライセンス情報を `LICENSE` に追加してください。",
+      ""
+    ].join("\n");
+  }
+
+  if (language === "zh") {
+    return [
+      `# ${title}`,
+      "",
+      "在这里说明项目目标、核心功能和安装方式。",
+      "",
+      "## 快速开始",
+      "",
+      "```sh",
+      installCommand,
+      ...validationCommands,
+      "```",
+      "",
+      "## 开发工作流",
+      "",
+      "```sh",
+      "aigate start --route quickstart",
+      "aigate ai report",
+      "aigate test",
+      "aigate git-ready",
+      "```",
+      "",
+      "## 贡献",
+      "",
+      "贡献前请阅读 `CONTRIBUTING.md`，并在 PR 中写明验证命令和发布影响。",
+      "",
+      "## 许可证",
+      "",
+      "请在 `LICENSE` 中补充许可证信息。",
+      ""
+    ].join("\n");
+  }
+
+  return [
+    `# ${title}`,
+    "",
+    "Describe the project purpose, main features, and installation path here.",
+    "",
+    "## Quick Start",
+    "",
+    "```sh",
+    installCommand,
+    ...validationCommands,
+    "```",
+    "",
+    "## Development Workflow",
+    "",
+    "```sh",
+    "aigate start --route quickstart",
+    "aigate ai report",
+    "aigate test",
+    "aigate git-ready",
+    "```",
+    "",
+    "## Contributing",
+    "",
+    "Read `CONTRIBUTING.md` before contributing, and include validation commands and release impact in each pull request.",
+    "",
+    "## License",
+    "",
+    "Add license details in `LICENSE`.",
+    ""
+  ].join("\n");
+}
+
+function renderStarterContributing(language = "en", validationCommands = ["aigate git-ready"]) {
+  if (language === "ko") {
+    return [
+      "# 기여 가이드",
+      "",
+      "1. 이슈를 열어 문제나 제안을 먼저 공유합니다.",
+      "2. `feature/*`, `feat/*`, `fix/*`, `docs/*`, `chore/*`, `codex/*` 브랜치를 사용합니다.",
+      "3. 변경 전후에 아래 명령을 실행합니다.",
+      "",
+      "```sh",
+      "aigate ai report",
+      ...validationCommands,
+      "```",
+      "",
+      "4. PR에는 요약, 검증, 릴리스 영향을 포함합니다.",
+      ""
+    ].join("\n");
+  }
+
+  if (language === "ja") {
+    return [
+      "# コントリビューションガイド",
+      "",
+      "1. まず issue で問題や提案を共有します。",
+      "2. `feature/*`, `feat/*`, `fix/*`, `docs/*`, `chore/*`, `codex/*` ブランチを使います。",
+      "3. 変更前後に次を実行します。",
+      "",
+      "```sh",
+      "aigate ai report",
+      ...validationCommands,
+      "```",
+      "",
+      "4. PR には概要、検証、リリース影響を含めます。",
+      ""
+    ].join("\n");
+  }
+
+  if (language === "zh") {
+    return [
+      "# 贡献指南",
+      "",
+      "1. 先通过 issue 分享问题或建议。",
+      "2. 使用 `feature/*`, `feat/*`, `fix/*`, `docs/*`, `chore/*`, `codex/*` 分支。",
+      "3. 在变更前后运行以下命令。",
+      "",
+      "```sh",
+      "aigate ai report",
+      ...validationCommands,
+      "```",
+      "",
+      "4. PR 中包含摘要、验证和发布影响。",
+      ""
+    ].join("\n");
+  }
+
+  return [
+    "# Contributing",
+    "",
+    "1. Open an issue first for bugs, proposals, or unclear work.",
+    "2. Use `feature/*`, `feat/*`, `fix/*`, `docs/*`, `chore/*`, or `codex/*` branches.",
+    "3. Run these commands before and after changes.",
+    "",
+    "```sh",
+    "aigate ai report",
+    ...validationCommands,
+    "```",
+    "",
+    "4. Include summary, validation, and release impact in each pull request.",
+    ""
+  ].join("\n");
+}
+
+function renderStarterSecurity(language = "en") {
+  if (language === "ko") {
+    return "# 보안 정책\n\n보안 취약점은 공개 이슈 대신 관리자에게 비공개로 제보해주세요.\n\n```sh\naigate report --format sarif\n```\n";
+  }
+
+  if (language === "ja") {
+    return "# セキュリティポリシー\n\nセキュリティ脆弱性は公開 issue ではなく、メンテナーへ非公開で報告してください。\n\n```sh\naigate report --format sarif\n```\n";
+  }
+
+  if (language === "zh") {
+    return "# 安全政策\n\n请不要在公开 issue 中报告安全漏洞，请私下联系维护者。\n\n```sh\naigate report --format sarif\n```\n";
+  }
+
+  return "# Security Policy\n\nPlease report security vulnerabilities privately to the maintainers instead of opening a public issue.\n\n```sh\naigate report --format sarif\n```\n";
+}
+
+function renderStarterSupport(language = "en") {
+  if (language === "ko") {
+    return "# 지원\n\n질문은 Discussions를, 재현 가능한 버그는 Bug report 이슈 템플릿을 사용하세요.\n";
+  }
+
+  if (language === "ja") {
+    return "# サポート\n\n質問は Discussions、再現可能なバグは Bug report issue テンプレートを使用してください。\n";
+  }
+
+  if (language === "zh") {
+    return "# 支持\n\n问题请使用 Discussions，可复现 bug 请使用 Bug report issue 模板。\n";
+  }
+
+  return "# Support\n\nUse Discussions for questions and the Bug report issue template for reproducible bugs.\n";
+}
+
+function renderStarterChangelog(language = "en") {
+  if (language === "ko") {
+    return "# 변경 기록\n\n## 미배포\n\n- 초기 공개 저장소 기반 파일을 추가했습니다.\n";
+  }
+
+  if (language === "ja") {
+    return "# 変更履歴\n\n## 未リリース\n\n- 初期公開リポジトリ基盤ファイルを追加しました。\n";
+  }
+
+  if (language === "zh") {
+    return "# 变更日志\n\n## 未发布\n\n- 添加初始公开仓库基础文件。\n";
+  }
+
+  return "# Changelog\n\n## Unreleased\n\n- Add initial public repository foundation files.\n";
+}
+
+function renderStarterRoadmap(language = "en") {
+  if (language === "ko") {
+    return "# 로드맵\n\n## 진행 중\n\n- 첫 사용자 온보딩 개선\n- 테스트와 릴리스 자동화 강화\n\n## 계획\n\n- 더 많은 예제와 통합 문서\n- 팀 대시보드와 알림 정책\n";
+  }
+
+  if (language === "ja") {
+    return "# ロードマップ\n\n## 進行中\n\n- 初回ユーザーのオンボーディング改善\n- テストとリリース自動化の強化\n\n## 計画\n\n- 追加の例と連携ドキュメント\n- チームダッシュボードと通知ポリシー\n";
+  }
+
+  if (language === "zh") {
+    return "# 路线图\n\n## 进行中\n\n- 改善首次用户引导\n- 强化测试和发布自动化\n\n## 计划\n\n- 更多示例和集成文档\n- 团队仪表盘和通知政策\n";
+  }
+
+  return "# Roadmap\n\n## In Progress\n\n- Improve first-user onboarding\n- Strengthen test and release automation\n\n## Planned\n\n- More examples and integration docs\n- Team dashboards and notification policy\n";
+}
+
+function renderStarterGitUploadWorkflow(language = "en") {
+  if (language === "ko") {
+    return "# Git 업로드 워크플로\n\n```sh\ngit switch -c feature/my-work\naigate ai report\naigate test\naigate git-ready\ngit add <files>\ngit commit -m \"feat: short summary\"\naigate push -u origin feature/my-work\naigate pr-check\n```\n";
+  }
+
+  if (language === "ja") {
+    return "# Git アップロードワークフロー\n\n```sh\ngit switch -c feature/my-work\naigate ai report\naigate test\naigate git-ready\ngit add <files>\ngit commit -m \"feat: short summary\"\naigate push -u origin feature/my-work\naigate pr-check\n```\n";
+  }
+
+  if (language === "zh") {
+    return "# Git 上传工作流\n\n```sh\ngit switch -c feature/my-work\naigate ai report\naigate test\naigate git-ready\ngit add <files>\ngit commit -m \"feat: short summary\"\naigate push -u origin feature/my-work\naigate pr-check\n```\n";
+  }
+
+  return "# Git Upload Workflow\n\n```sh\ngit switch -c feature/my-work\naigate ai report\naigate test\naigate git-ready\ngit add <files>\ngit commit -m \"feat: short summary\"\naigate push -u origin feature/my-work\naigate pr-check\n```\n";
+}
+
+function renderIssueTemplate(type, language = "en") {
+  const labels = issueTemplateLabels(type, language);
+  return [
+    `name: ${quoteYamlScalar(labels.name)}`,
+    `description: ${quoteYamlScalar(labels.description)}`,
+    `title: ${quoteYamlScalar(labels.title)}`,
+    `labels: [${labels.labels.map((label) => quoteYamlScalar(label)).join(", ")}]`,
+    "body:",
+    "  - type: markdown",
+    "    attributes:",
+    `      value: ${quoteYamlScalar(labels.intro)}`,
+    "  - type: textarea",
+    "    id: context",
+    "    attributes:",
+    `      label: ${quoteYamlScalar(labels.context)}`,
+    `      description: ${quoteYamlScalar(labels.contextDescription)}`,
+    "    validations:",
+    "      required: true",
+    "  - type: textarea",
+    "    id: validation",
+    "    attributes:",
+    `      label: ${quoteYamlScalar(labels.validation)}`,
+    `      description: ${quoteYamlScalar(labels.validationDescription)}`,
+    "      value: |",
+    "        aigate ai report",
+    "        aigate test",
+    "        aigate git-ready",
+    "    validations:",
+    "      required: false",
+    ""
+  ].join("\n");
+}
+
+function renderGitLabIssueTemplate(type, language = "en") {
+  const labels = issueTemplateLabels(type, language);
+  return [
+    `# ${labels.name}`,
+    "",
+    labels.intro,
+    "",
+    `## ${labels.context}`,
+    "",
+    "<!-- " + labels.contextDescription + " -->",
+    "",
+    `## ${labels.validation}`,
+    "",
+    "<!-- " + labels.validationDescription + " -->",
+    "",
+    "```sh",
+    "aigate ai report",
+    "aigate test",
+    "aigate git-ready",
+    "```",
+    ""
+  ].join("\n");
+}
+
+function issueTemplateLabels(type, language = "en") {
+  const bug = type === "bug";
+  const table = {
+    en: {
+      name: bug ? "Bug report" : "Feature request",
+      description: bug ? "Report a reproducible problem." : "Suggest a focused improvement.",
+      title: bug ? "[Bug]: " : "[Feature]: ",
+      labels: bug ? ["bug", "needs-triage"] : ["enhancement", "needs-triage"],
+      intro: bug ? "Thanks for reporting a reproducible problem." : "Thanks for proposing an improvement.",
+      context: bug ? "What happened?" : "What should change?",
+      contextDescription: bug ? "Include reproduction steps, expected behavior, and actual behavior." : "Describe the user need and the smallest useful change.",
+      validation: "Validation",
+      validationDescription: "Paste relevant AIGate or test output."
+    },
+    ko: {
+      name: bug ? "버그 제보" : "기능 제안",
+      description: bug ? "재현 가능한 문제를 제보합니다." : "집중된 개선 사항을 제안합니다.",
+      title: bug ? "[버그]: " : "[기능]: ",
+      labels: bug ? ["bug", "needs-triage"] : ["enhancement", "needs-triage"],
+      intro: bug ? "재현 가능한 문제를 알려주셔서 감사합니다." : "개선 제안을 남겨주셔서 감사합니다.",
+      context: bug ? "무슨 일이 있었나요?" : "무엇이 바뀌어야 하나요?",
+      contextDescription: bug ? "재현 단계, 기대 동작, 실제 동작을 적어주세요." : "사용자 필요와 가장 작은 유용한 변경을 설명해주세요.",
+      validation: "검증",
+      validationDescription: "관련 AIGate 또는 테스트 출력을 붙여주세요."
+    },
+    ja: {
+      name: bug ? "バグ報告" : "機能提案",
+      description: bug ? "再現可能な問題を報告します。" : "焦点を絞った改善を提案します。",
+      title: bug ? "[Bug]: " : "[Feature]: ",
+      labels: bug ? ["bug", "needs-triage"] : ["enhancement", "needs-triage"],
+      intro: bug ? "再現可能な問題の報告ありがとうございます。" : "改善提案ありがとうございます。",
+      context: bug ? "何が起きましたか?" : "何を変更すべきですか?",
+      contextDescription: bug ? "再現手順、期待動作、実際の動作を書いてください。" : "ユーザーの必要性と最小の有用な変更を説明してください。",
+      validation: "検証",
+      validationDescription: "関連する AIGate またはテスト出力を貼ってください。"
+    },
+    zh: {
+      name: bug ? "Bug 报告" : "功能建议",
+      description: bug ? "报告可复现的问题。" : "建议聚焦的改进。",
+      title: bug ? "[Bug]: " : "[Feature]: ",
+      labels: bug ? ["bug", "needs-triage"] : ["enhancement", "needs-triage"],
+      intro: bug ? "感谢你报告可复现的问题。" : "感谢你提出改进建议。",
+      context: bug ? "发生了什么?" : "应该改变什么?",
+      contextDescription: bug ? "请写出复现步骤、预期行为和实际行为。" : "请描述用户需求和最小可用改动。",
+      validation: "验证",
+      validationDescription: "粘贴相关 AIGate 或测试输出。"
+    }
+  };
+  return table[language] ?? table.en;
+}
+
+function renderIssueTemplateConfig(language = "en") {
+  const links = {
+    en: ["Ask a question", "Use Discussions for questions and design ideas."],
+    ko: ["질문하기", "질문과 설계 아이디어는 Discussions를 사용하세요."],
+    ja: ["質問する", "質問や設計アイデアは Discussions を使用してください。"],
+    zh: ["提问", "问题和设计想法请使用 Discussions。"]
+  }[language] ?? ["Ask a question", "Use Discussions for questions and design ideas."];
+
+  return [
+    "blank_issues_enabled: false",
+    "contact_links:",
+    "  - name: " + quoteYamlScalar(links[0]),
+    "    url: https://github.com/<owner>/<repo>/discussions",
+    "    about: " + quoteYamlScalar(links[1]),
+    ""
+  ].join("\n");
+}
+
+function renderDiscussionIdeasTemplate(language = "en") {
+  const labels = {
+    en: ["Idea", "Share an idea or direction.", "[Idea]: ", "What is the idea?", "What problem does it solve?"],
+    ko: ["아이디어", "아이디어나 방향성을 공유합니다.", "[아이디어]: ", "아이디어는 무엇인가요?", "어떤 문제를 해결하나요?"],
+    ja: ["アイデア", "アイデアや方向性を共有します。", "[Idea]: ", "アイデアは何ですか?", "どの問題を解決しますか?"],
+    zh: ["想法", "分享想法或方向。", "[Idea]: ", "这个想法是什么?", "它解决什么问题?"]
+  }[language] ?? ["Idea", "Share an idea or direction.", "[Idea]: ", "What is the idea?", "What problem does it solve?"];
+
+  return [
+    `title: ${quoteYamlScalar(labels[2])}`,
+    `labels: [${quoteYamlScalar("idea")}]`,
+    "body:",
+    "  - type: markdown",
+    "    attributes:",
+    `      value: ${quoteYamlScalar(labels[1])}`,
+    "  - type: textarea",
+    "    id: idea",
+    "    attributes:",
+    `      label: ${quoteYamlScalar(labels[3])}`,
+    "    validations:",
+    "      required: true",
+    "  - type: textarea",
+    "    id: problem",
+    "    attributes:",
+    `      label: ${quoteYamlScalar(labels[4])}`,
+    ""
+  ].join("\n");
+}
+
+function projectNameToTitle(projectName) {
+  return String(projectName || "my-project")
+    .replace(/^@[^/]+\//, "")
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ") || "My Project";
+}
+
+function projectDisplayName(projectName) {
+  const rawName = String(projectName ?? "").trim();
+  if (["@aigate/cli", "aigate-cli"].includes(rawName)) {
+    return "AIGate";
+  }
+
+  return projectNameToTitle(rawName || "my-project");
+}
+
 function resolveIntegrationProviders(providerArg) {
-  const provider = String(providerArg).trim().toLowerCase();
-  if (provider === "all") {
+  const providers = normalizeListSetting(providerArg).map((provider) => provider.toLowerCase());
+  if (!providers.length || providers.includes("all")) {
     return [...SUPPORTED_INTEGRATIONS];
   }
 
-  if (SUPPORTED_INTEGRATIONS.includes(provider)) {
-    return [provider];
+  if (providers.every((provider) => SUPPORTED_INTEGRATIONS.includes(provider))) {
+    return [...new Set(providers)];
   }
 
   return null;
 }
 
-function buildIntegrationManifest(providers) {
+function buildIntegrationManifest(providers, profile = {}, packageJson = readJsonFile("package.json"), options = {}) {
+  const workflow = resolveWorkflowSettings(options, profile, packageJson);
+  const validationCommands = buildValidationCommands(packageJson, profile, options);
+  const branchStrategy = buildBranchStrategy({
+    projectType: profile.kind,
+    hosting: profile.hosting,
+    ciProvider: profile.ciProvider,
+    packageManager: profile.packageManager,
+    branchStrategy: workflow.branchStrategy,
+    targetBranch: workflow.targetBranch
+  });
   return {
     version: 1,
     generatedBy: `aigate ${VERSION}`,
+    project: {
+      name: projectDisplayName(packageJson.name ?? "my-project"),
+      packageName: packageJson.name ?? ""
+    },
+    profile: {
+      type: profile.kind ?? "unknown",
+      hosting: profile.hosting ?? "unknown",
+      ciProvider: profile.ciProvider ?? "unknown",
+      packageManager: profile.packageManager ?? "unknown"
+    },
+    workflow: {
+      defaultBranch: workflow.defaultBranch,
+      targetBranch: workflow.targetBranch,
+      protectedBranches: effectiveProtectedBranches(branchStrategy, workflow),
+      workBranches: workflow.workBranches,
+      distribution: workflow.distribution
+    },
     providers,
-    requiredCommands: [
-      "npm run ci",
+    requiredCommands: [...new Set([
+      ...validationCommands,
       "aigate test",
-      "aigate git-ready",
       "aigate aitest",
       "aigate push --dry-run origin <branch>"
-    ],
-    branchStrategy: "GitHub Flow with release channels",
-    requiredChecks: [
-      "test (20)",
-      "test (22)"
-    ]
+    ])],
+    validationCommands,
+    branchStrategy: branchStrategy.name,
+    requiredChecks: requiredChecksForProfile(profile, options)
   };
 }
 
-function buildIntegrationFiles(providers, outputDir, manifest, language = "en") {
+function buildValidationCommands(packageJson = readJsonFile("package.json"), profile = detectProjectProfile(packageJson), options = {}) {
+  const workflow = resolveWorkflowSettings(options, profile, packageJson);
+  if (workflow.qualityCommands.length) {
+    return [...new Set([...workflow.qualityCommands, "aigate git-ready"])];
+  }
+
+  const commands = [];
+  const validationCommand = discoverValidationCommand(packageJson, profile);
+  if (validationCommand) {
+    commands.push(validationCommand.display);
+  }
+  commands.push("aigate git-ready");
+  return [...new Set(commands)];
+}
+
+function packageManagerScriptCommand(packageManager, script) {
+  const pm = ["npm", "pnpm", "yarn", "bun"].includes(packageManager) ? packageManager : "npm";
+  if (script === "test") {
+    return `${pm} test`;
+  }
+
+  return pm === "yarn" ? `yarn ${script}` : `${pm} run ${script}`;
+}
+
+function requiredChecksForProfile(profile = {}, options = {}) {
+  const workflow = resolveWorkflowSettings(options, profile);
+  if (workflow.requiredChecks.length) {
+    return [...new Set(workflow.requiredChecks)];
+  }
+
+  if (profile.ciProvider === "gitlab" || profile.hosting === "gitlab") {
+    return ["GitLab CI pipeline", "aigate git-ready"];
+  }
+
+  if (profile.ciProvider === "github" || profile.hosting === "github") {
+    return ["GitHub CI workflow", "aigate git-ready"];
+  }
+
+  return ["CI pipeline", "aigate git-ready"];
+}
+
+function buildIntegrationFiles(providers, outputDir, manifest, language = "en", options = {}) {
+  const writeRootAiFiles = aiRootFilesSettingValue(options.aiRootFiles) !== "sidecar";
   const files = [
     {
       path: join(outputDir, ".aigate", "integrations.json"),
@@ -5914,45 +9451,54 @@ function buildIntegrationFiles(providers, outputDir, manifest, language = "en") 
     },
     {
       path: join(outputDir, ".aigate", "integrations", "README.md"),
-      content: renderIntegrationReadme(providers, language)
+      content: renderIntegrationReadme(providers, manifest, language)
     }
   ];
 
   if (providers.includes("codex")) {
+    if (writeRootAiFiles) {
+      files.push({
+        path: join(outputDir, "AGENTS.md"),
+        content: renderCodexInstructions(language, manifest),
+        protectExistingUnlessAigateOwned: true
+      });
+    }
     files.push(
       {
-        path: join(outputDir, "AGENTS.md"),
-        content: renderCodexInstructions(language)
-      },
-      {
         path: join(outputDir, ".aigate", "integrations", "codex.md"),
-        content: renderProviderInstructions("Codex", language)
+        content: renderProviderInstructions("Codex", language, manifest)
       }
     );
   }
 
   if (providers.includes("gemini")) {
+    if (writeRootAiFiles) {
+      files.push({
+        path: join(outputDir, "GEMINI.md"),
+        content: renderGeminiInstructions(language, manifest),
+        protectExistingUnlessAigateOwned: true
+      });
+    }
     files.push(
       {
-        path: join(outputDir, "GEMINI.md"),
-        content: renderGeminiInstructions(language)
-      },
-      {
         path: join(outputDir, ".aigate", "integrations", "gemini.md"),
-        content: renderProviderInstructions("Gemini", language)
+        content: renderProviderInstructions("Gemini", language, manifest)
       }
     );
   }
 
   if (providers.includes("claude")) {
+    if (writeRootAiFiles) {
+      files.push({
+        path: join(outputDir, "CLAUDE.md"),
+        content: renderClaudeInstructions(language, manifest),
+        protectExistingUnlessAigateOwned: true
+      });
+    }
     files.push(
       {
-        path: join(outputDir, "CLAUDE.md"),
-        content: renderClaudeInstructions(language)
-      },
-      {
         path: join(outputDir, ".aigate", "integrations", "claude.md"),
-        content: renderProviderInstructions("Claude Code", language)
+        content: renderProviderInstructions("Claude Code", language, manifest)
       }
     );
   }
@@ -5960,16 +9506,30 @@ function buildIntegrationFiles(providers, outputDir, manifest, language = "en") 
   return files;
 }
 
-function writeIntegrationFiles(files, force) {
+function writeIntegrationFiles(files, force, options = {}) {
   return files.map((file) => {
-    if (existsSync(file.path) && !force) {
+    const exists = existsSync(file.path);
+    if (
+      exists &&
+      force &&
+      file.protectExistingUnlessAigateOwned &&
+      !options.overwriteProtected &&
+      !isAigateOwnedRootAiFile(file.path)
+    ) {
+      return {
+        path: file.path,
+        action: "protected"
+      };
+    }
+
+    if (exists && !force) {
       return {
         path: file.path,
         action: "skipped"
       };
     }
 
-    const action = existsSync(file.path) ? "updated" : "created";
+    const action = exists ? "updated" : "created";
     mkdirSync(dirname(file.path), { recursive: true });
     writeFileSync(file.path, file.content, "utf8");
 
@@ -5980,7 +9540,8 @@ function writeIntegrationFiles(files, force) {
   });
 }
 
-function renderIntegrationReadme(providers, language = "en") {
+function renderIntegrationReadme(providers, manifest, language = "en") {
+  const validationCommands = manifest.validationCommands ?? ["aigate git-ready"];
   if (language === "ko") {
     return [
       "# AIGate AI 연동",
@@ -5994,9 +9555,7 @@ function renderIntegrationReadme(providers, language = "en") {
       "필수 로컬 검사:",
       "",
       "```sh",
-      "npm run ci",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "테스트가 실패하면 `aigate aitest`로 AI 수정 프롬프트를 생성하세요.",
@@ -6018,9 +9577,7 @@ function renderIntegrationReadme(providers, language = "en") {
       "必須ローカルチェック:",
       "",
       "```sh",
-      "npm run ci",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "テストが失敗したら `aigate aitest` で AI 修正プロンプトを生成してください。",
@@ -6042,9 +9599,7 @@ function renderIntegrationReadme(providers, language = "en") {
       "必需本地检查:",
       "",
       "```sh",
-      "npm run ci",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "如果测试失败，请运行 `aigate aitest` 生成 AI 修复提示。",
@@ -6065,9 +9620,7 @@ function renderIntegrationReadme(providers, language = "en") {
     "Required local checks:",
     "",
     "```sh",
-    "npm run ci",
-    "aigate test",
-    "aigate git-ready",
+    ...validationCommands,
     "```",
     "",
     "If tests fail, run `aigate aitest` to generate an AI remediation prompt.",
@@ -6076,43 +9629,43 @@ function renderIntegrationReadme(providers, language = "en") {
   ].join("\n") + "\n";
 }
 
-function renderCodexInstructions(language = "en") {
+function renderCodexInstructions(language = "en", manifest = {}) {
   return [
     language === "ko" ? "# AIGate Codex 지침" : language === "ja" ? "# AIGate Codex 指示" : language === "zh" ? "# AIGate Codex 指令" : "# AIGate Codex Instructions",
     "",
     providerIntro("Codex", language),
     "",
-    ...renderSharedAssistantInstructions(language)
+    ...renderSharedAssistantInstructions(language, manifest)
   ].join("\n") + "\n";
 }
 
-function renderGeminiInstructions(language = "en") {
+function renderGeminiInstructions(language = "en", manifest = {}) {
   return [
     language === "ko" ? "# AIGate Gemini 지침" : language === "ja" ? "# AIGate Gemini 指示" : language === "zh" ? "# AIGate Gemini 指令" : "# AIGate Gemini Instructions",
     "",
     providerIntro("Gemini", language),
     "",
-    ...renderSharedAssistantInstructions(language)
+    ...renderSharedAssistantInstructions(language, manifest)
   ].join("\n") + "\n";
 }
 
-function renderClaudeInstructions(language = "en") {
+function renderClaudeInstructions(language = "en", manifest = {}) {
   return [
     language === "ko" ? "# AIGate Claude Code 지침" : language === "ja" ? "# AIGate Claude Code 指示" : language === "zh" ? "# AIGate Claude Code 指令" : "# AIGate Claude Code Instructions",
     "",
     providerIntro("Claude Code", language),
     "",
-    ...renderSharedAssistantInstructions(language)
+    ...renderSharedAssistantInstructions(language, manifest)
   ].join("\n") + "\n";
 }
 
-function renderProviderInstructions(providerName, language = "en") {
+function renderProviderInstructions(providerName, language = "en", manifest = {}) {
   return [
     language === "ko" ? `# ${providerName} 연동` : language === "ja" ? `# ${providerName} 連携` : language === "zh" ? `# ${providerName} 集成` : `# ${providerName} Integration`,
     "",
     providerGuideIntro(providerName, language),
     "",
-    ...renderSharedAssistantInstructions(language)
+    ...renderSharedAssistantInstructions(language, manifest)
   ].join("\n") + "\n";
 }
 
@@ -6132,14 +9685,23 @@ function providerGuideIntro(providerName, language) {
   }[language] ?? `AIGate generated this ${providerName} integration guide so the assistant can follow the same Git workflow as maintainers.`;
 }
 
-function renderSharedAssistantInstructions(language = "en") {
+function formatInlineCodeList(items) {
+  return items.map((item) => `\`${item}\``).join(", ");
+}
+
+function renderSharedAssistantInstructions(language = "en", manifest = {}) {
+  const validationCommands = manifest.validationCommands ?? ["aigate git-ready"];
+  const requiredChecks = manifest.requiredChecks ?? ["aigate git-ready"];
+  const defaultBranch = manifest.workflow?.defaultBranch ?? "main";
+  const targetBranch = manifest.workflow?.targetBranch ?? defaultBranch;
+  const projectName = manifest.project?.name ?? projectDisplayName(manifest.project?.packageName ?? manifest.packageName ?? "my-project");
   if (language === "ko") {
     return [
       "## 저장소 컨텍스트",
       "",
-      "- 제품: AIGate AI Git 워크플로 보호 CLI.",
-      "- 기본 브랜치: `main`.",
-      "- 변경은 작업 브랜치를 사용하고 `main`에 직접 푸시하지 않습니다.",
+      `- 제품: ${projectName}.`,
+      `- 기본 브랜치: \`${defaultBranch}\`.`,
+      `- 변경은 작업 브랜치를 사용하고 \`${targetBranch}\`에 직접 푸시하지 않습니다.`,
       "- Conventional Commit 메시지로 범위가 명확한 커밋을 선호합니다.",
       "",
       "## 편집 전",
@@ -6153,9 +9715,7 @@ function renderSharedAssistantInstructions(language = "en") {
       "제안, 푸시, 병합 전에 다음 명령을 실행합니다:",
       "",
       "```sh",
-      "npm run ci",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "테스트가 실패하면 `aigate aitest`로 AI 수정 프롬프트를 생성하고, 명시적으로 허용된 경우에만 `aigate aitest --apply --provider <provider>`를 실행합니다.",
@@ -6176,9 +9736,9 @@ function renderSharedAssistantInstructions(language = "en") {
       "",
       "## PR 규칙",
       "",
-      "- 대상은 `main`입니다.",
+      `- 대상은 \`${targetBranch}\`입니다.`,
       "- 요약, 이유, 검증, 릴리스 영향을 포함합니다.",
-      "- 필수 검사: `test (20)`, `test (22)`.",
+      `- 필수 검사: ${formatInlineCodeList(requiredChecks)}.`,
       "- 저장소의 현재 review 정책을 따르고 대화를 해결한 뒤 병합합니다."
     ];
   }
@@ -6187,9 +9747,9 @@ function renderSharedAssistantInstructions(language = "en") {
     return [
       "## リポジトリコンテキスト",
       "",
-      "- 製品: AIGate AI Git ワークフロー保護 CLI.",
-      "- デフォルトブランチ: `main`.",
-      "- 変更には作業ブランチを使い、`main` へ直接プッシュしません。",
+      `- 製品: ${projectName}.`,
+      `- デフォルトブランチ: \`${defaultBranch}\`.`,
+      `- 変更には作業ブランチを使い、\`${targetBranch}\` へ直接プッシュしません。`,
       "- Conventional Commit メッセージで範囲を絞ったコミットを推奨します。",
       "",
       "## 編集前",
@@ -6203,9 +9763,7 @@ function renderSharedAssistantInstructions(language = "en") {
       "提案、プッシュ、マージ前に次のコマンドを実行します:",
       "",
       "```sh",
-      "npm run ci",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "テストが失敗した場合は `aigate aitest` で AI 修正プロンプトを生成し、明示的に許可された場合のみ `aigate aitest --apply --provider <provider>` を実行します。",
@@ -6226,9 +9784,9 @@ function renderSharedAssistantInstructions(language = "en") {
       "",
       "## PR ルール",
       "",
-      "- 対象は `main` です。",
+      `- 対象は \`${targetBranch}\` です。`,
       "- 概要、理由、検証、リリース影響を含めます。",
-      "- 必須チェック: `test (20)`, `test (22)`.",
+      `- 必須チェック: ${formatInlineCodeList(requiredChecks)}.`,
       "- リポジトリの現在の review policy に従い、会話を解決してからマージします。"
     ];
   }
@@ -6237,9 +9795,9 @@ function renderSharedAssistantInstructions(language = "en") {
     return [
       "## 仓库上下文",
       "",
-      "- 产品: AIGate AI Git 工作流守护 CLI.",
-      "- 默认分支: `main`.",
-      "- 使用工作分支进行变更，不要直接推送到 `main`。",
+      `- 产品: ${projectName}.`,
+      `- 默认分支: \`${defaultBranch}\`.`,
+      `- 使用工作分支进行变更，不要直接推送到 \`${targetBranch}\`。`,
       "- 优先使用 Conventional Commit，并保持提交范围清晰。",
       "",
       "## 编辑前",
@@ -6253,9 +9811,7 @@ function renderSharedAssistantInstructions(language = "en") {
       "在提议、推送或合并前运行以下命令:",
       "",
       "```sh",
-      "npm run ci",
-      "aigate test",
-      "aigate git-ready",
+      ...validationCommands,
       "```",
       "",
       "如果测试失败，请用 `aigate aitest` 生成 AI 修复提示；只有在明确允许时才运行 `aigate aitest --apply --provider <provider>`。",
@@ -6276,9 +9832,9 @@ function renderSharedAssistantInstructions(language = "en") {
       "",
       "## PR 规则",
       "",
-      "- 目标分支是 `main`。",
+      `- 目标分支是 \`${targetBranch}\`。`,
       "- 包含摘要、原因、验证和发布影响。",
-      "- 必需检查: `test (20)`, `test (22)`。",
+      `- 必需检查: ${formatInlineCodeList(requiredChecks)}。`,
       "- 遵循仓库当前 review policy，并在解决对话后再合并。"
     ];
   }
@@ -6286,9 +9842,9 @@ function renderSharedAssistantInstructions(language = "en") {
   return [
     "## Repository Context",
     "",
-    "- Product: AIGate AI Git Workflow Guard CLI.",
-    "- Default branch: `main`.",
-    "- Use feature branches for changes; do not push directly to `main`.",
+    `- Product: ${projectName}.`,
+    `- Default branch: \`${defaultBranch}\`.`,
+    `- Use feature branches for changes; do not push directly to \`${targetBranch}\`.`,
     "- Prefer focused commits with Conventional Commit messages.",
     "",
     "## Before Editing",
@@ -6302,9 +9858,7 @@ function renderSharedAssistantInstructions(language = "en") {
     "Run these commands before proposing, pushing, or merging changes:",
     "",
     "```sh",
-    "npm run ci",
-    "aigate test",
-    "aigate git-ready",
+    ...validationCommands,
     "```",
     "",
     "If tests fail, run `aigate aitest` to generate an AI remediation prompt; only run `aigate aitest --apply --provider <provider>` when explicitly allowed.",
@@ -6325,22 +9879,19 @@ function renderSharedAssistantInstructions(language = "en") {
     "",
     "## Pull Request Rules",
     "",
-    "- Target `main`.",
+    `- Target \`${targetBranch}\`.`,
     "- Include summary, why, validation, and release impact.",
-    "- Required checks: `test (20)` and `test (22)`.",
+    `- Required checks: ${formatInlineCodeList(requiredChecks)}.`,
     "- Follow the repository's current review policy and resolve conversations before merge."
   ];
 }
 
-function renderDefaultConfig(packageJson) {
+function renderDefaultConfig(packageJson, options = {}) {
   const projectName = packageJson.name ?? "my-project";
-  return [
-    "version: 1",
-    "",
-    "project:",
-    `  name: ${quoteYamlScalar(projectName)}`,
-    `  package: ${quoteYamlScalar(packageJson.name ?? "")}`,
-    "  defaultBranch: main",
+  const profile = detectProjectProfile(packageJson, options);
+  const workflow = resolveWorkflowSettings(options, profile, packageJson);
+  const shouldRenderNpmDistribution = workflow.distribution === "npm" || (workflow.distribution === "auto" && profile.kind === "package");
+  const distributionLines = shouldRenderNpmDistribution ? [
     "",
     "distribution:",
     "  primaryRegistry: npm",
@@ -6349,7 +9900,27 @@ function renderDefaultConfig(packageJson) {
     "    stable: latest",
     "    candidate: next",
     "    beta: beta",
-    "    experimental: canary",
+    "    experimental: canary"
+  ] : [];
+  const validationCommands = buildValidationCommands(packageJson, profile, options);
+  const strategy = buildBranchStrategy(options);
+  const protectedBranches = effectiveProtectedBranches(strategy, workflow);
+  const requiredChecks = requiredChecksForProfile(profile, options);
+  const aiProviders = workflow.aiProviders.length ? workflow.aiProviders : [...SUPPORTED_INTEGRATIONS];
+  return [
+    `version: ${CONFIG_SCHEMA_VERSION}`,
+    `generatedBy: aigate ${VERSION}`,
+    "",
+    "project:",
+    `  name: ${quoteYamlScalar(projectName)}`,
+    `  package: ${quoteYamlScalar(packageJson.name ?? "")}`,
+    `  defaultBranch: ${quoteYamlScalar(workflow.defaultBranch)}`,
+    `  targetBranch: ${quoteYamlScalar(workflow.targetBranch)}`,
+    `  type: ${profile.kind}`,
+    `  hosting: ${profile.hosting}`,
+    `  ciProvider: ${profile.ciProvider}`,
+    `  packageManager: ${profile.packageManager}`,
+    ...distributionLines,
     "",
     "reports:",
     "  defaultFormat: markdown",
@@ -6370,35 +9941,51 @@ function renderDefaultConfig(packageJson) {
     "      - slack",
     "",
     "branchStrategy:",
-    "  default: auto",
+    `  default: ${quoteYamlScalar(workflow.branchStrategy)}`,
     "  protectedBranches:",
-    "    - main",
+    ...protectedBranches.map((branch) => `    - ${branch}`),
     "  workBranches:",
-    "    - feature/*",
-    "    - fix/*",
-    "    - docs/*",
-    "    - chore/*",
+    ...workflow.workBranches.map((branch) => `    - ${branch}`),
+    "",
+    "aiIntegrations:",
+    "  providers:",
+    ...aiProviders.map((provider) => `    - ${provider}`),
+    "  requiredChecks:",
+    ...requiredChecks.map((check) => `    - ${check}`),
     "",
     "qualityGates:",
     "  beforePush:",
     "    minimumProjectScore: 80",
     "    commands:",
-    "      - npm run ci",
-    "      - aigate git-ready",
+    ...validationCommands.map((command) => `      - ${command}`),
     ""
   ].join("\n");
 }
 
-function writeProjectFiles(files, force) {
+function writeProjectFiles(files, force, options = {}) {
   return files.map((file) => {
-    if (existsSync(file.path) && !force) {
+    const exists = existsSync(file.path);
+    if (
+      exists &&
+      force &&
+      file.protectExistingUnlessAigateOwned &&
+      !options.overwriteProtected &&
+      !isAigateOwnedRootAiFile(file.path)
+    ) {
+      return {
+        path: file.path,
+        action: "protected"
+      };
+    }
+
+    if (exists && !force) {
       return {
         path: file.path,
         action: "skipped"
       };
     }
 
-    const action = existsSync(file.path) ? "updated" : "created";
+    const action = exists ? "updated" : "created";
     mkdirSync(dirname(file.path), { recursive: true });
     writeFileSync(file.path, file.content, "utf8");
 
@@ -6407,6 +9994,177 @@ function writeProjectFiles(files, force) {
       action
     };
   });
+}
+
+function isAigateOwnedRootAiFile(filePath) {
+  if (!existsSync(filePath)) {
+    return false;
+  }
+
+  const fileName = filePath.split(/[\\/]/).pop();
+  if (!["AGENTS.md", "GEMINI.md", "CLAUDE.md"].includes(fileName)) {
+    return false;
+  }
+
+  const content = readFileSync(filePath, "utf8");
+  return /^# AIGate (Codex|Gemini|Claude Code)(?:\s|$)/m.test(content);
+}
+
+function previewProjectFiles(files) {
+  return files.map((file) => ({
+    path: file.path,
+    action: existsSync(file.path) ? "would-update" : "would-create"
+  }));
+}
+
+function buildCleanTargets(outputDir, options = {}) {
+  const targets = [
+    deleteTarget(join(outputDir, ".aigate", "reports")),
+    deleteTarget(join(outputDir, ".aigate", "generated-branch-strategy.md")),
+    deleteTarget(join(outputDir, ".aigate", "branch-strategy-policy.json")),
+    deleteTarget(join(outputDir, ".aigate", "branch-strategy-policy-pack.json")),
+    deleteTarget(join(outputDir, ".aigate", "reports", "ai-test.md")),
+    deleteTarget(join(outputDir, ".aigate", "reports", "ai-report.md"))
+  ];
+
+  if (options.githubFiles) {
+    targets.push(
+      deleteTarget(join(outputDir, ".github", "ISSUE_TEMPLATE")),
+      deleteTarget(join(outputDir, ".github", "DISCUSSION_TEMPLATE")),
+      deleteTarget(join(outputDir, ".github", "pull_request_template.md")),
+      deleteTarget(join(outputDir, ".github", "pull_request_template.aigate.md")),
+      deleteTarget(join(outputDir, ".github", "CODEOWNERS")),
+      deleteTarget(join(outputDir, ".github", "CODEOWNERS.aigate"))
+    );
+  }
+
+  return targets;
+}
+
+function buildUninstallTargets(outputDir, options = {}) {
+  const targets = [
+    deleteTarget(options.config ?? join(outputDir, ".aigate.yml")),
+    deleteTarget(join(outputDir, ".aigate")),
+    deleteTarget(join(outputDir, ".github", "pull_request_template.aigate.md")),
+    deleteTarget(join(outputDir, ".github", "CODEOWNERS.aigate"))
+  ];
+  const hookPath = resolveAigateHookPath();
+  if (hookPath) {
+    targets.push(deleteTarget(hookPath, { marker: AIGATE_HOOK_MARKER }));
+  }
+
+  if (options.includeAiFiles) {
+    targets.push(
+      deleteTarget(join(outputDir, "AGENTS.md"), { marker: "AIGate" }),
+      deleteTarget(join(outputDir, "GEMINI.md"), { marker: "AIGate" }),
+      deleteTarget(join(outputDir, "CLAUDE.md"), { marker: "AIGate" })
+    );
+  }
+
+  return targets;
+}
+
+function deleteTarget(path, options = {}) {
+  return {
+    path,
+    marker: options.marker
+  };
+}
+
+function applyDeleteTargets(targets, previewOnly) {
+  return targets.map((target) => {
+    if (!existsSync(target.path)) {
+      return {
+        path: target.path,
+        action: "missing"
+      };
+    }
+
+    if (target.marker && !safeFileIncludes(target.path, target.marker)) {
+      return {
+        path: target.path,
+        action: "protected"
+      };
+    }
+
+    if (previewOnly) {
+      return {
+        path: target.path,
+        action: "would-delete"
+      };
+    }
+
+    rmSync(target.path, { recursive: true, force: true });
+    return {
+      path: target.path,
+      action: "deleted"
+    };
+  });
+}
+
+function safeFileIncludes(path, marker) {
+  try {
+    const stat = statSync(path);
+    if (!stat.isFile()) {
+      return false;
+    }
+
+    return readFileSync(path, "utf8").includes(marker);
+  } catch {
+    return false;
+  }
+}
+
+function resolveAigateHookPath() {
+  const gitRoot = git(["rev-parse", "--show-toplevel"]);
+  if (!gitRoot) {
+    return null;
+  }
+
+  const hookPath = git(["rev-parse", "--git-path", "hooks/pre-push"]);
+  if (!hookPath) {
+    return join(gitRoot, ".git", "hooks", "pre-push");
+  }
+
+  return isAbsolute(hookPath) ? hookPath : join(gitRoot, hookPath);
+}
+
+function scopedSettingsPath(outputDir) {
+  const settingsPath = getSettingsPath();
+  if (process.env.AIGATE_SETTINGS_PATH || isAbsolute(settingsPath)) {
+    return settingsPath;
+  }
+
+  return outputDir === "." ? settingsPath : join(outputDir, settingsPath);
+}
+
+function renderMaintenanceResult(result, language) {
+  const title = maintenanceTitle(result.command, language);
+  const lines = [
+    t(language, "maintenance.status", { title, status: automationStatus(result.status, language) }),
+    t(language, "maintenance.mode", { mode: translateAutomationMode(result.mode, language) }),
+    t(language, "maintenance.outputDir", { path: result.outputDir }),
+    "",
+    t(language, "maintenance.targets"),
+    ...result.targets.map((target) => `- ${translateIntegrationAction(target.action, language)}: ${target.path}`),
+    "",
+    t(language, "maintenance.next", { next: result.next })
+  ];
+
+  if (result.mode === "dry-run" && (result.command === "clean" || result.command === "uninstall")) {
+    lines.push(t(language, "maintenance.forceHint"));
+  }
+
+  return lines.join("\n");
+}
+
+function maintenanceTitle(command, language) {
+  const key = command === "reset"
+    ? "maintenance.resetTitle"
+    : command === "uninstall"
+      ? "maintenance.uninstallTitle"
+      : "maintenance.cleanTitle";
+  return t(language, key);
 }
 
 function readPackageVersion() {
@@ -6438,12 +10196,105 @@ function readJsonFile(filePath) {
   }
 }
 
+function readAigateConfig(filePath = ".aigate.yml") {
+  if (!existsSync(filePath)) {
+    return {};
+  }
+
+  const config = {};
+  let section = null;
+  let listKey = null;
+
+  for (const rawLine of readFileSync(filePath, "utf8").split(/\r?\n/)) {
+    const line = rawLine.replace(/\s+#.*$/, "");
+    if (!line.trim()) {
+      continue;
+    }
+
+    const topLevelValueMatch = line.match(/^([A-Za-z0-9_-]+):\s*(.*?)\s*$/);
+    if (topLevelValueMatch && topLevelValueMatch[2] !== "") {
+      section = null;
+      listKey = null;
+      config[topLevelValueMatch[1]] = parseYamlScalar(topLevelValueMatch[2]);
+      continue;
+    }
+
+    const sectionMatch = line.match(/^([A-Za-z0-9_-]+):\s*$/);
+    if (sectionMatch) {
+      section = sectionMatch[1];
+      listKey = null;
+      config[section] ??= {};
+      continue;
+    }
+
+    const listItemMatch = line.match(/^\s{4}-\s*(.*?)\s*$/);
+    if (listItemMatch && section && listKey) {
+      config[section][listKey] ??= [];
+      if (Array.isArray(config[section][listKey])) {
+        config[section][listKey].push(parseYamlScalar(listItemMatch[1]));
+      }
+      continue;
+    }
+
+    const valueMatch = line.match(/^\s{2}([A-Za-z0-9_-]+):\s*(.*?)\s*$/);
+    if (!valueMatch || !section) {
+      continue;
+    }
+
+    config[section] ??= {};
+    if (valueMatch[2] === "") {
+      listKey = valueMatch[1];
+      config[section][listKey] = [];
+      continue;
+    }
+
+    listKey = null;
+    config[section][valueMatch[1]] = parseYamlScalar(valueMatch[2]);
+  }
+
+  return config;
+}
+
+function parseYamlScalar(value) {
+  const text = String(value ?? "").trim();
+  if (!text) {
+    return "";
+  }
+
+  if ((text.startsWith("\"") && text.endsWith("\"")) || (text.startsWith("'") && text.endsWith("'"))) {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text.slice(1, -1);
+    }
+  }
+
+  if (text === "true") {
+    return true;
+  }
+
+  if (text === "false") {
+    return false;
+  }
+
+  return text;
+}
+
 function fileIncludes(filePath, pattern) {
   if (!existsSync(filePath)) {
     return false;
   }
 
   return readFileSync(filePath, "utf8").includes(pattern);
+}
+
+function fileMatchesAny(filePath, patterns) {
+  if (!existsSync(filePath)) {
+    return false;
+  }
+
+  const content = readFileSync(filePath, "utf8");
+  return patterns.some((pattern) => pattern.test(content));
 }
 
 function writeSettings(settings) {
@@ -6508,6 +10359,60 @@ function translateRecommendation(recommendation, language) {
   return RECOMMENDATION_TRANSLATIONS[language]?.[recommendation] ?? recommendation;
 }
 
+function translateNotApplicableReason(reason, language) {
+  if (!reason || language === "en") {
+    return reason ?? "";
+  }
+
+  const exact = {
+    "GitHub-specific check is not required for this repository profile.": {
+      ko: "이 저장소 프로필에는 GitHub 전용 점검이 필요하지 않습니다.",
+      ja: "このリポジトリプロファイルでは GitHub 専用チェックは不要です。",
+      zh: "此仓库配置不需要 GitHub 专用检查。"
+    },
+    "Public repository governance check is not required for a private app profile.": {
+      ko: "private 앱 프로필에는 공개 저장소 거버넌스 점검이 필요하지 않습니다.",
+      ja: "private app プロファイルでは公開リポジトリ向けガバナンスチェックは不要です。",
+      zh: "private app 配置不需要公开仓库治理检查。"
+    },
+    "Package release check is not required for an app profile.": {
+      ko: "app 프로필에는 패키지 릴리스 점검이 필요하지 않습니다.",
+      ja: "app プロファイルではパッケージリリースチェックは不要です。",
+      zh: "app 配置不需要包发布检查。"
+    },
+    "npm package release check is not required for this repository profile.": {
+      ko: "이 저장소 프로필에는 npm 패키지 배포 점검이 필요하지 않습니다.",
+      ja: "このリポジトリプロファイルでは npm パッケージ公開チェックは不要です。",
+      zh: "此仓库配置不需要 npm 包发布检查。"
+    },
+    "Release tag check is only required during explicit release readiness checks.": {
+      ko: "릴리스 태그 점검은 명시적인 릴리스 준비 검사에서만 필요합니다.",
+      ja: "リリースタグチェックは明示的なリリース準備チェック時のみ必要です。",
+      zh: "发布标签检查仅在显式发布就绪检查中需要。"
+    },
+    "GitHub Trusted Publishing check is not required for this repository hosting provider.": {
+      ko: "이 호스팅 제공자에는 GitHub Trusted Publishing 점검이 필요하지 않습니다.",
+      ja: "このホスティングでは GitHub Trusted Publishing チェックは不要です。",
+      zh: "此托管服务不需要 GitHub Trusted Publishing 检查。"
+    }
+  };
+
+  if (exact[reason]?.[language]) {
+    return exact[reason][language];
+  }
+
+  const lockMatch = reason.match(/^(.+) project does not use package-lock\.json\.$/);
+  if (lockMatch) {
+    return {
+      ko: `${lockMatch[1]} 프로젝트는 package-lock.json을 사용하지 않습니다.`,
+      ja: `${lockMatch[1]} プロジェクトは package-lock.json を使用しません。`,
+      zh: `${lockMatch[1]} 项目不使用 package-lock.json。`
+    }[language] ?? reason;
+  }
+
+  return reason;
+}
+
 function translateWarning(warning, language) {
   if (language === "en") {
     return warning;
@@ -6519,6 +10424,33 @@ function translateWarning(warning, language) {
       ko: `프로젝트 기반 점수는 ${scoreMatch[1]}/100이며 권장 기준은 80입니다.`,
       ja: `プロジェクト基盤スコアは ${scoreMatch[1]}/100 で、推奨基準は 80 です。`,
       zh: `项目基础分为 ${scoreMatch[1]}/100，建议最低为 80。`
+    }[language] ?? warning;
+  }
+
+  const removalMatch = warning.match(/^(\d+) sensitive file removal\(s\) detected; commit the removal and rotate credentials if they were already exposed\.$/);
+  if (removalMatch) {
+    return {
+      ko: `민감 파일 제거 ${removalMatch[1]}개가 감지됐습니다. 제거를 커밋하고 이미 노출된 자격 증명은 회전하세요.`,
+      ja: `機密ファイル削除を ${removalMatch[1]} 件検出しました。削除をコミットし、すでに露出した認証情報はローテーションしてください。`,
+      zh: `检测到 ${removalMatch[1]} 个敏感文件移除。请提交移除，并轮换已经暴露的凭据。`
+    }[language] ?? warning;
+  }
+
+  const exposedRemovalMatch = warning.match(/^(\d+) sensitive file removal\(s\) detected; (\d+) had Git history exposure, so commit the removal and rotate exposed credentials\.$/);
+  if (exposedRemovalMatch) {
+    return {
+      ko: `민감 파일 제거 ${exposedRemovalMatch[1]}개가 감지됐습니다. 이 중 ${exposedRemovalMatch[2]}개는 Git 이력에 노출됐으니 제거를 커밋하고 노출된 자격 증명을 회전하세요.`,
+      ja: `機密ファイル削除を ${exposedRemovalMatch[1]} 件検出しました。このうち ${exposedRemovalMatch[2]} 件は Git 履歴に露出しているため、削除をコミットし、露出した認証情報をローテーションしてください。`,
+      zh: `检测到 ${exposedRemovalMatch[1]} 个敏感文件移除，其中 ${exposedRemovalMatch[2]} 个已暴露在 Git 历史中；请提交移除并轮换暴露的凭据。`
+    }[language] ?? warning;
+  }
+
+  const unexposedRemovalMatch = warning.match(/^(\d+) sensitive file removal\(s\) detected; commit the removal\. No Git history exposure was detected\.$/);
+  if (unexposedRemovalMatch) {
+    return {
+      ko: `민감 파일 제거 ${unexposedRemovalMatch[1]}개가 감지됐습니다. 제거를 커밋하세요. Git 이력 노출은 감지되지 않았습니다.`,
+      ja: `機密ファイル削除を ${unexposedRemovalMatch[1]} 件検出しました。削除をコミットしてください。Git 履歴への露出は検出されていません。`,
+      zh: `检测到 ${unexposedRemovalMatch[1]} 个敏感文件移除。请提交移除；未检测到 Git 历史暴露。`
     }[language] ?? warning;
   }
 
@@ -6709,6 +10641,18 @@ function translateAuditArea(area, language) {
     return { ko: "릴리스", ja: "リリース", zh: "发布" }[language] ?? area;
   }
 
+  if (area === "git") {
+    return { ko: "Git", ja: "Git", zh: "Git" }[language] ?? area;
+  }
+
+  if (area === "branch") {
+    return { ko: "브랜치", ja: "ブランチ", zh: "分支" }[language] ?? area;
+  }
+
+  if (area === "foundation") {
+    return { ko: "기반", ja: "基盤", zh: "基础" }[language] ?? area;
+  }
+
   return translateEvaluationCategory(area, language);
 }
 
@@ -6774,18 +10718,21 @@ function translateStrategyName(name, language) {
       "Git Flow": "Git Flow",
       "Trunk-Based Development": "Trunk 기반 개발",
       "Hybrid Flow": "Hybrid Flow",
+      "GitLab Flow with merge requests": "merge request 기반 GitLab Flow",
       "GitHub Flow with release channels": "릴리스 채널을 포함한 GitHub Flow"
     },
     ja: {
       "Git Flow": "Git Flow",
       "Trunk-Based Development": "Trunk-Based Development",
       "Hybrid Flow": "Hybrid Flow",
+      "GitLab Flow with merge requests": "merge request ベースの GitLab Flow",
       "GitHub Flow with release channels": "リリースチャンネル付き GitHub Flow"
     },
     zh: {
       "Git Flow": "Git Flow",
       "Trunk-Based Development": "基于 Trunk 的开发",
       "Hybrid Flow": "混合 Flow",
+      "GitLab Flow with merge requests": "基于 merge request 的 GitLab Flow",
       "GitHub Flow with release channels": "带发布频道的 GitHub Flow"
     }
   }[language]?.[name] ?? name;
@@ -6932,6 +10879,15 @@ function translateReleaseNextStep(step, language) {
     }[language] ?? step;
   }
 
+  match = step.match(/^If (.+) is not on npm yet, create it with: (.+)$/);
+  if (match) {
+    return {
+      ko: `${match[1]}가 아직 npm에 없다면 다음 명령으로 생성하세요: ${match[2]}`,
+      ja: `${match[1]} がまだ npm にない場合は、次のコマンドで作成してください: ${match[2]}`,
+      zh: `如果 ${match[1]} 尚未在 npm 上，请用以下命令创建: ${match[2]}`
+    }[language] ?? step;
+  }
+
   match = step.match(/^Configure trusted publishing after the package exists: (.+)$/);
   if (match) {
     return {
@@ -6979,18 +10935,24 @@ function translateReleaseNextStep(step, language) {
 
   return {
     ko: {
+      "No npm package publication is required for the detected app/private repository profile.": "감지된 app/private 저장소 프로필에는 npm 패키지 배포가 필요하지 않습니다.",
+      "Configure release automation in your CI provider before tagging a release.": "릴리스 태그 생성 전에 사용 중인 CI 제공자에서 릴리스 자동화를 설정하세요.",
       "Run release-check --npm to confirm npm registry publication state.": "npm 레지스트리 배포 상태를 확인하려면 release-check --npm을 실행하세요.",
       "Ensure release workflow publishes with npm provenance.": "릴리스 워크플로가 npm provenance로 배포하는지 확인하세요.",
       "Run npm run ci before tagging a release.": "릴리스 태그 생성 전에 npm run ci를 실행하세요.",
       "Run npm publish dry-run through the Release workflow_dispatch dry_run input.": "릴리스 workflow_dispatch dry_run 입력으로 npm publish dry-run을 실행하세요."
     },
     ja: {
+      "No npm package publication is required for the detected app/private repository profile.": "検出された app/private リポジトリプロファイルでは npm パッケージ公開は不要です。",
+      "Configure release automation in your CI provider before tagging a release.": "リリースタグを作成する前に、利用中の CI でリリース自動化を設定してください。",
       "Run release-check --npm to confirm npm registry publication state.": "npm レジストリの公開状態を確認するには release-check --npm を実行してください。",
       "Ensure release workflow publishes with npm provenance.": "リリースワークフローが npm provenance 付きで公開することを確認してください。",
       "Run npm run ci before tagging a release.": "リリースタグを作成する前に npm run ci を実行してください。",
       "Run npm publish dry-run through the Release workflow_dispatch dry_run input.": "リリース workflow_dispatch の dry_run 入力で npm publish dry-run を実行してください。"
     },
     zh: {
+      "No npm package publication is required for the detected app/private repository profile.": "检测到的 app/private 仓库配置不需要 npm 包发布。",
+      "Configure release automation in your CI provider before tagging a release.": "创建发布标签前，请在当前 CI 服务中配置发布自动化。",
       "Run release-check --npm to confirm npm registry publication state.": "运行 release-check --npm 确认 npm 注册表发布状态。",
       "Ensure release workflow publishes with npm provenance.": "确保发布工作流使用 npm provenance 发布。",
       "Run npm run ci before tagging a release.": "创建发布标签前运行 npm run ci。",
@@ -7006,13 +10968,33 @@ function stripAigatePushOptions(args) {
     const arg = args[index];
     if (
       arg === "--dry-run" ||
+      arg === "--github-files" ||
       arg === "--no-verify" ||
+      arg === "--overwrite-ai-files" ||
       arg.startsWith("--dry-run=") ||
+      arg.startsWith("--github-files=") ||
       arg.startsWith("--no-verify=") ||
+      arg.startsWith("--overwrite-ai-files=") ||
       arg.startsWith("--notify-channel=") ||
       arg.startsWith("--webhook-env=") ||
       arg.startsWith("--webhook-url=") ||
       arg.startsWith("--issue-type=") ||
+      arg.startsWith("--hosting=") ||
+      arg.startsWith("--ci-provider=") ||
+      arg.startsWith("--package-manager=") ||
+      arg.startsWith("--project-type=") ||
+      arg.startsWith("--distribution=") ||
+      arg.startsWith("--target-branch=") ||
+      arg.startsWith("--protected-branches=") ||
+      arg.startsWith("--work-branches=") ||
+      arg.startsWith("--work-branch=") ||
+      arg.startsWith("--required-checks=") ||
+      arg.startsWith("--quality-command=") ||
+      arg.startsWith("--providers=") ||
+      arg.startsWith("--ai-providers=") ||
+      arg.startsWith("--ai-root-files=") ||
+      arg.startsWith("--root-ai-files=") ||
+      arg.startsWith("--branch-strategy=") ||
       arg.startsWith("--jira-api-token=") ||
       arg.startsWith("--jira-base-url=") ||
       arg.startsWith("--jira-email=") ||
@@ -7032,6 +11014,22 @@ function stripAigatePushOptions(args) {
       arg === "--webhook-env" ||
       arg === "--webhook-url" ||
       arg === "--issue-type" ||
+      arg === "--hosting" ||
+      arg === "--ci-provider" ||
+      arg === "--package-manager" ||
+      arg === "--project-type" ||
+      arg === "--distribution" ||
+      arg === "--target-branch" ||
+      arg === "--protected-branches" ||
+      arg === "--work-branches" ||
+      arg === "--work-branch" ||
+      arg === "--required-checks" ||
+      arg === "--quality-command" ||
+      arg === "--providers" ||
+      arg === "--ai-providers" ||
+      arg === "--ai-root-files" ||
+      arg === "--root-ai-files" ||
+      arg === "--branch-strategy" ||
       arg === "--jira-api-token" ||
       arg === "--jira-base-url" ||
       arg === "--jira-email" ||
@@ -7060,8 +11058,13 @@ function firstPositionalArg(args) {
   const optionsWithValues = new Set([
     "--base",
     "--body",
+    "--ai-providers",
+    "--ai-root-files",
+    "--branch-strategy",
     "--channel",
+    "--ci-provider",
     "--config",
+    "--distribution",
     "--event",
     "--format",
     "--history",
@@ -7079,14 +11082,30 @@ function firstPositionalArg(args) {
     "--output",
     "--output-dir",
     "--owner",
+    "--hosting",
+    "--package-manager",
+    "--protected-branches",
+    "--protected-branch",
+    "--work-branches",
+    "--work-branch",
+    "--prompt-output",
     "--pr",
+    "--providers",
+    "--root-ai-files",
+    "--quality-command",
+    "--quality-commands",
     "--release",
+    "--required-check",
+    "--required-checks",
     "--route",
+    "--steps",
     "--provider",
+    "--project-type",
     "--script",
     "--command",
     "--agent-command",
     "--team-size",
+    "--target-branch",
     "--details-url",
     "--timeout",
     "--title",

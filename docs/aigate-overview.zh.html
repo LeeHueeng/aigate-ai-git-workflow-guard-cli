@@ -122,7 +122,7 @@ p { color: var(--muted); margin: 0; }
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 16px;
 }
-.panel, .install-panel, .command-group, .feature {
+.panel, .install-panel, .command-group, .feature, .use-case {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -195,6 +195,25 @@ code {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.25;
+}
+.use-case-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.use-case {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  gap: 18px;
+  padding: 20px;
+  align-items: start;
+}
+.use-case > div:last-child {
+  grid-column: 1 / -1;
+}
+.use-case pre {
+  padding: 14px;
+  font-size: 0.86rem;
 }
 .command-groups {
   display: grid;
@@ -273,9 +292,10 @@ footer p + p { margin-top: 6px; }
     grid-template-columns: 1fr;
     display: grid;
   }
-  .summary-grid, .command-groups, .feature-grid {
+  .summary-grid, .command-groups, .feature-grid, .use-case-grid, .use-case {
     grid-template-columns: 1fr;
   }
+  .use-case > div:last-child { grid-column: auto; }
   h1 { font-size: 2.4rem; }
   .hero { padding-bottom: 42px; }
 }
@@ -290,7 +310,7 @@ footer p + p { margin-top: 6px; }
     <p class="eyebrow">开源 AI Git Workflow Guard CLI</p>
     <h1>AIGate 运维说明</h1>
     <p class="subtitle">这份 HTML 文档说明 AIGate 的运行流程、全部命令、当前已实现能力以及未来规划。</p>
-    <div class="badges"><span>npm 已发布</span><span>Trusted Publishing</span><span>GitHub Release</span><span>CLI v0.1.5</span></div>
+    <div class="badges"><span>npm 已发布</span><span>Trusted Publishing</span><span>GitHub Release</span><span>CLI v0.1.6</span></div>
   </header>
 
   <main>
@@ -337,7 +357,7 @@ npx aigate-cli check</code></pre>
     <foreignObject x="72" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
         <strong>启动路由</strong>
-        <span>用 aigate start 选择设置路径</span>
+        <span>用 aigate start 选择默认设置步骤</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -357,7 +377,7 @@ npx aigate-cli check</code></pre>
     <foreignObject x="520" y="64" width="134" height="94">
       <div xmlns="http://www.w3.org/1999/xhtml" class="svg-label">
         <strong>测试自动化</strong>
-        <span>aigate test 运行 Git gate 和 npm script</span>
+        <span>aigate test 运行 Git gate，并检测 turbo runner 后运行 workspace tests</span>
       </div>
     </foreignObject>
   </g><g class="svg-box green">
@@ -455,6 +475,130 @@ npx aigate-cli check</code></pre>
   </div>
     </section>
 
+    <section class="section" id="use-cases">
+      <div class="section-heading">
+        <p class="kicker">流程</p>
+        <h2>按场景使用示例</h2>
+        <p>AIGate 不是所有时刻都运行同一个命令的工具，而是根据仓库状态和风险等级选择短流程的工具。</p>
+      </div>
+      <div class="use-case-grid">
+    <article class="use-case">
+      <div>
+        <p class="kicker">场景</p>
+        <h3>首次接入仓库</h3>
+      </div>
+      <div>
+        <p class="kicker">流程</p>
+        <p>选择默认设置路径，然后逐步补齐文档、AI 指令和 hook。</p>
+      </div>
+      <div>
+        <p class="kicker">命令示例</p>
+        <pre><code>aigate start --route default --ask-steps
+aigate doctor
+aigate install-hook --pre-push</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">场景</p>
+        <h3>AI agent 修改了很多文件后</h3>
+      </div>
+      <div>
+        <p class="kicker">流程</p>
+        <p>先检查变更文件和 secret 风险，再把失败测试转成 AI 修复提示。</p>
+      </div>
+      <div>
+        <p class="kicker">命令示例</p>
+        <pre><code>aigate check
+aigate test
+aigate aitest</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">场景</p>
+        <h3>创建 PR 前</h3>
+      </div>
+      <div>
+        <p class="kicker">流程</p>
+        <p>通过本地 gate，用受保护 wrapper push，并生成给评审者看的上下文。</p>
+      </div>
+      <div>
+        <p class="kicker">命令示例</p>
+        <pre><code>aigate git-ready
+aigate push -u origin feature/my-work
+aigate pr-check</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">场景</p>
+        <h3>private GitLab monorepo</h3>
+      </div>
+      <div>
+        <p class="kicker">流程</p>
+        <p>固定 profile，检测 turbo runner 后自动回退到 workspace tests，并把 GitHub/npm 包检查排除在 app 评分外。</p>
+      </div>
+      <div>
+        <p class="kicker">命令示例</p>
+        <pre><code>aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm
+aigate setup --ai-root-files sidecar
+aigate integrate claude --force
+aigate clean --github-files --force
+aigate test
+aigate evaluate-project</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">场景</p>
+        <h3>开源发布准备</h3>
+      </div>
+      <div>
+        <p class="kicker">流程</p>
+        <p>创建公开贡献文件，并检查仓库基础分。</p>
+      </div>
+      <div>
+        <p class="kicker">命令示例</p>
+        <pre><code>aigate start --route oss --owner @team
+aigate evaluate-project --deep --report
+aigate github setup --dry-run</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">场景</p>
+        <h3>发布前后</h3>
+      </div>
+      <div>
+        <p class="kicker">流程</p>
+        <p>检查 tag/npm 就绪状态，运行 CI，并在发布后记录健康趋势。</p>
+      </div>
+      <div>
+        <p class="kicker">命令示例</p>
+        <pre><code>aigate release-check --npm
+npm run ci
+aigate trends record</code></pre>
+      </div>
+    </article>
+    <article class="use-case">
+      <div>
+        <p class="kicker">场景</p>
+        <h3>清理或移除本地 AIGate 状态</h3>
+      </div>
+      <div>
+        <p class="kicker">流程</p>
+        <p>先预览删除目标，确认无误后才使用 --force 执行。</p>
+      </div>
+      <div>
+        <p class="kicker">命令示例</p>
+        <pre><code>aigate clean
+aigate clean --force
+aigate uninstall --force</code></pre>
+      </div>
+    </article></div>
+    </section>
+
     <section class="section" id="release">
       <div class="section-heading">
         <p class="kicker">发布</p>
@@ -541,7 +685,7 @@ npx aigate-cli check</code></pre>
       </div>
       <div class="command-groups"><article class="command-group group-0">
       <h3>设置</h3>
-      <div><span>start</span><span>init</span><span>setup</span><span>settings</span><span>integrate</span></div>
+      <div><span>start</span><span>start --route default</span><span>start --route oss</span><span>init</span><span>reset</span><span>setup</span><span>settings</span><span>integrate</span></div>
     </article><article class="command-group group-1">
       <h3>首次运行</h3>
       <div><span>doctor</span><span>demo</span><span>install-hook</span></div>
@@ -549,9 +693,12 @@ npx aigate-cli check</code></pre>
       <h3>保护门禁</h3>
       <div><span>check</span><span>test</span><span>aitest</span><span>git-ready</span><span>push</span><span>pr</span></div>
     </article><article class="command-group group-3">
-      <h3>报告</h3>
-      <div><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
+      <h3>维护</h3>
+      <div><span>clean</span><span>uninstall</span><span>delete</span></div>
     </article><article class="command-group group-4">
+      <h3>报告</h3>
+      <div><span>ai report</span><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
+    </article><article class="command-group group-5">
       <h3>发布</h3>
       <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>branch-strategy --compare</span><span>notify</span></div>
     </article></div>
@@ -578,6 +725,18 @@ npx aigate-cli check</code></pre>
     <td>用方向键或 --route 运行引导式项目设置路由。</td>
     <td>在项目中启用 AIGate 时</td>
   </tr><tr>
+    <td><code>aigate start --route default --ask-steps</code></td>
+    <td>逐步询问是否运行推荐设置步骤。</td>
+    <td>首次设置时想只选择必要步骤</td>
+  </tr><tr>
+    <td><code>aigate start --route default --steps init,repo-files</code></td>
+    <td>只运行指定的设置步骤 ID，其余跳过。</td>
+    <td>可重复 onboarding 或文档化设置</td>
+  </tr><tr>
+    <td><code>aigate start --route oss --owner @team</code></td>
+    <td>创建 README、贡献文档、issue 模板、PR 模板和 CODEOWNERS。</td>
+    <td>打开公开贡献路径时</td>
+  </tr><tr>
     <td><code>aigate start --route ai --provider all</code></td>
     <td>创建 AIGate 配置和 Codex/Gemini/Claude 指令文件。</td>
     <td>一次性对齐 AI assistant 规则时</td>
@@ -586,9 +745,29 @@ npx aigate-cli check</code></pre>
     <td>创建基础配置和报告目录。</td>
     <td>在新项目中启用 AIGate</td>
   </tr><tr>
+    <td><code>aigate reset</code></td>
+    <td>重新写入 AIGate 配置、settings 和报告占位文件。</td>
+    <td>把本地设置恢复到初始状态</td>
+  </tr><tr>
+    <td><code>aigate clean --force</code></td>
+    <td>删除生成的 AIGate 报告和本地状态。</td>
+    <td>清空报告和 generated state</td>
+  </tr><tr>
+    <td><code>aigate clean --github-files --force</code></td>
+    <td>当仓库实际运行在 GitLab 上时，删除残留的 GitHub 辅助模板。</td>
+    <td>清理 GitLab 项目中的旧 GitHub 生成物</td>
+  </tr><tr>
+    <td><code>aigate uninstall --force</code></td>
+    <td>移除 AIGate 配置、.aigate 目录和 AIGate 自有 hook。</td>
+    <td>从项目中移除 AIGate</td>
+  </tr><tr>
     <td><code>aigate setup --language &lt;en|ko|ja|zh&gt;</code></td>
     <td>保存 CLI 输出语言。</td>
     <td>统一团队输出语言</td>
+  </tr><tr>
+    <td><code>aigate setup --hosting gitlab --ci-provider gitlab</code></td>
+    <td>保存 GitLab 项目配置。</td>
+    <td>不适合 GitHub 假设的内部 GitLab app</td>
   </tr><tr>
     <td><code>aigate settings</code></td>
     <td>显示当前 AIGate 设置。</td>
@@ -607,19 +786,27 @@ npx aigate-cli check</code></pre>
     <td>在本地阻止有风险的 push</td>
   </tr><tr>
     <td><code>aigate check</code></td>
-    <td>汇总变更文件和 secret 风险。</td>
+    <td>汇总变更文件、实际 secret finding 和敏感文件移除状态。</td>
     <td>轻量提交前检查</td>
   </tr><tr>
     <td><code>aigate test</code></td>
-    <td>运行 Git readiness 和检测到的 npm test/ci script。</td>
+    <td>运行 Git readiness，并检测 root script、turbo task、pnpm workspace 或 workspace package tests。没有 turbo runner 时会自动回退到 workspace script。</td>
     <td>提交前确认真实测试结果</td>
+  </tr><tr>
+    <td><code>aigate ai report</code></td>
+    <td>汇总当前问题、做得好的部分、方向和 AI 交接提示。</td>
+    <td>让 AI 改进项目之前</td>
+  </tr><tr>
+    <td><code>aigate ai report --apply --provider codex</code></td>
+    <td>把 AI 项目简报交给 AI CLI，实时显示 agent 输出，并在报告中保留 stdout/stderr。</td>
+    <td>明确允许 AI 自动化时</td>
   </tr><tr>
     <td><code>aigate aitest</code></td>
     <td>根据失败测试写入 AI 修复提示。</td>
     <td>把失败交给 AI agent 处理时</td>
   </tr><tr>
     <td><code>aigate aitest --apply --provider codex</code></td>
-    <td>调用 Codex CLI 执行修复工作。</td>
+    <td>调用 AI CLI，并显示执行日志、退出码、stdout 和 stderr。</td>
     <td>明确允许 AI 自动修复时</td>
   </tr><tr>
     <td><code>aigate git-ready</code></td>
@@ -698,12 +885,16 @@ npx aigate-cli check</code></pre>
     <td>生成 Codex、Gemini、Claude Code 集成文件。</td>
     <td>让 AI assistant 保持一致规则</td>
   </tr><tr>
+    <td><code>aigate setup --ai-root-files sidecar</code></td>
+    <td>保存 root AI 文件处理方式，让 integrate 只写入 .aigate/integrations/*。</td>
+    <td>保护项目自有 AGENTS/GEMINI/CLAUDE 文件</td>
+  </tr><tr>
     <td><code>aigate release-check</code></td>
     <td>检查包、workflow 和 tag 准备状态。</td>
     <td>创建发布 tag 前</td>
   </tr><tr>
     <td><code>aigate release-check --npm</code></td>
-    <td>检查该版本是否存在于 npm。</td>
+    <td>检测仓库配置，检查 npm registry/GitHub/GitLab/package manager 状态，并排除不适用于 app 的 npm/package version gate。</td>
     <td>自动发布前后</td>
   </tr><tr>
     <td><code>aigate audit-report</code></td>
@@ -730,10 +921,15 @@ npx aigate-cli check</code></pre>
       <div>
         <p class="kicker">Git</p>
         <h2>分支与交付流程</h2>
-        <p>main 是受保护的稳定分支。工作在 codex/*、feature/*、fix/*、docs/*、chore/* 分支上完成，并通过 PR 合并。release/* 和 hotfix/* 用于发布稳定和紧急修复。</p>
+        <p>main 是受保护的稳定分支。工作在 codex/*、feature/*、feat/*、fix/*、docs/*、chore/* 分支上完成，并通过 PR 合并。release/* 和 hotfix/* 用于发布稳定和紧急修复。</p>
       </div>
       <pre><code>npm install -g aigate-cli
 aigate setup --language zh
+aigate ai report
+aigate start --route default --ask-steps
+aigate start --route oss --dry-run
+aigate reset --dry-run
+aigate clean
 aigate start --route ai --provider all
 git switch -c feature/my-change
 aigate doctor
@@ -759,7 +955,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">功能</p>
         <h2>当前已实现功能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">通过 aigate start 提供引导式启动路由</div><div class="feature done">通过 aigate test 提供项目测试自动化</div><div class="feature done">通过 aigate aitest 提供 AI 修复提示和可选 agent 执行</div><div class="feature done">通过 doctor、demo、install-hook 提供首次运行体验</div><div class="feature done">pre-push Git hook 安装</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">GitHub PR comment 和 GitHub Checks summary payload</div><div class="feature done">PR 模板和 CODEOWNERS 引导式设置</div><div class="feature done">可复用的公开 GitHub Action</div><div class="feature done">项目状态趋势历史</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">合规报告和本地 HTML 健康仪表盘</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐、提案比较和政策包生成</div><div class="feature done">Codex/Gemini/Claude Code 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow 和 Homebrew formula draft</div></div>
+      <div class="feature-grid"><div class="feature done">公开 npm 包 aigate-cli 和 npx 运行</div><div class="feature done">基于 Git 变更和 untracked 文件的 readiness check</div><div class="feature done">通过 aigate start 提供引导式启动路由</div><div class="feature done">通过 aigate start --route default 提供逐步默认设置</div><div class="feature done">通过 aigate reset、clean、uninstall 提供重置和删除命令</div><div class="feature done">通过 aigate start --route oss 生成开源起始文件</div><div class="feature done">通过 aigate test 提供检测 turbo runner 的 root/workspace 项目测试自动化</div><div class="feature done">pnpm-workspace.yaml、package.json workspaces、apps/*、packages/* test detection 和自动回退</div><div class="feature done">通过 aigate ai report 提供 AI 项目状态简报</div><div class="feature done">通过 aigate aitest 提供 AI 修复提示、实时 agent 日志和可选 agent 执行</div><div class="feature done">通过 doctor、demo、install-hook 提供首次运行体验</div><div class="feature done">通过 doctor 提供 generatedBy 版本漂移警告，并在 gate 执行时忽略过期 profile</div><div class="feature done">pre-push Git hook 安装</div><div class="feature done">secret 模式检测和 SARIF 输出</div><div class="feature done">git-ready、受保护 push、受保护 PR 创建</div><div class="feature done">GitHub PR comment 和 GitHub Checks summary payload</div><div class="feature done">PR 模板和 CODEOWNERS 引导式设置</div><div class="feature done">可复用的公开 GitHub Action</div><div class="feature done">项目状态趋势历史</div><div class="feature done">自动检测并固定 private app、GitLab、pnpm、develop 目标和 Claude 优先团队的 profile 与 workflow 设置</div><div class="feature done">doctor、AI 指令和 branch strategy 政策包中的 GitHub/GitLab profile 一致性</div><div class="feature done">根目录 AI 指令文件的保护、仅 sidecar、覆盖策略设置</div><div class="feature done">面向 GitLab 仓库的 GitHub 辅助生成物显式清理</div><div class="feature done">Markdown、HTML、JSON、SARIF 报告</div><div class="feature done">合规报告和本地 HTML 健康仪表盘</div><div class="feature done">项目分数和 deep Git signal 评估</div><div class="feature done">分支策略推荐、提案比较和政策包生成</div><div class="feature done">Codex/Gemini/Claude Code 集成文件生成</div><div class="feature done">韩语/英语/日语/中文 CLI 设置</div><div class="feature done">release-check 和识别 app 配置的 release-check --npm</div><div class="feature done">基于 Trusted Publishing 的 npm 自动发布</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 运维</div><div class="feature done">终端、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow 和 Homebrew formula draft</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -773,7 +969,7 @@ aigate release-check --npm</code></pre>
 
   <footer>
     <p>本文档说明 AIGate 公开发布后的运行状态。</p>
-    <p>Generated 2026-07-02. Package version 0.1.5.</p>
+    <p>Generated 2026-07-02. Package version 0.1.6.</p>
   </footer>
 </body>
 </html>

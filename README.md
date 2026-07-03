@@ -34,9 +34,11 @@ Run it without installing:
 
 ```sh
 npx -y aigate-cli check
+npx -y aigate-cli start --route default --dry-run
 npx -y aigate-cli start --route quickstart --dry-run
 npx -y aigate-cli doctor
 npx -y aigate-cli test
+npx -y aigate-cli ai report
 npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
@@ -47,8 +49,15 @@ Or install it globally:
 ```sh
 npm install -g aigate-cli
 aigate start
+aigate start --route default --ask-steps
+aigate start --route default --steps init,repo-files
+aigate start --route oss --dry-run
+aigate reset --dry-run
+aigate clean
+aigate uninstall
 aigate check
 aigate test
+aigate ai report
 aigate aitest
 aigate git-ready
 aigate install-hook --pre-push
@@ -75,11 +84,22 @@ Secret findings: 0
 Project score: 92/100
 Blockers: none
 Warnings: none
-Recommendation: Run npm test, commit focused changes, push the branch, and open a pull request.
+Recommendation: Run AIGate test, commit focused changes, push the branch, and open a pull request.
 ```
 
 AIGate is useful when AI coding assistants move quickly and you need one
 repeatable local gate before `git push` or PR creation.
+
+## Scenario Playbooks
+
+| Situation | Process | Commands |
+| --- | --- | --- |
+| New repository adoption | Create the default AIGate files step by step, then install the pre-push guard. | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
+| AI changed a lot of files | Inspect changed paths, run tests, and turn failures into a focused AI repair prompt. | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
+| PR is almost ready | Pass the gate, push through AIGate, and produce reviewer context. | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
+| Private GitLab monorepo | Pin the profile, run workspace tests with turbo-aware fallback, and keep GitHub/npm package gates out of app scores. | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
+| Open source launch | Generate public contribution files and check repository foundations. | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
+| Release week | Verify npm and tag readiness, run CI, and record the trend. | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
 
 ## Works Today
 
@@ -87,8 +107,16 @@ repeatable local gate before `git push` or PR creation.
 | --- | --- |
 | Local Git readiness check | `aigate check` |
 | Guided setup router | `aigate start` |
+| Default setup with yes/no step choices | `aigate start --route default --ask-steps` |
+| Deterministic setup step selection | `aigate start --route default --steps init,repo-files` |
+| Reset AIGate config and settings | `aigate reset` |
+| Delete generated local reports and state | `aigate clean --force` |
+| Remove AIGate config, local state, and owned hook | `aigate uninstall --force` |
+| Open source starter README, issue templates, and contribution files | `aigate start --route oss` |
 | Project test runner | `aigate test` |
+| Turbo-aware fallback plus pnpm, yarn, bun, and workspace test detection | `aigate test` |
 | AI remediation prompt and optional agent run | `aigate aitest` |
+| AI project health report with problems, strengths, direction, and handoff prompt | `aigate ai report` |
 | First-run diagnostics | `aigate doctor` |
 | Guided CLI demo | `aigate demo` |
 | Pre-push safety gate | `aigate git-ready` |
@@ -105,6 +133,7 @@ repeatable local gate before `git push` or PR creation.
 | Compliance control report | `aigate compliance-report` |
 | Local HTML health dashboard | `aigate dashboard` |
 | Project health trend history | `aigate trends record` |
+| Auto and pinned profiles for private apps, GitLab, and pnpm | `aigate setup --hosting gitlab` |
 | Branch strategy policy packs | `aigate branch-strategy --apply` |
 | Branch strategy proposal comparison | `aigate branch-strategy --compare` |
 | Release readiness check | `aigate release-check --npm` |
@@ -128,7 +157,12 @@ with Husky, Lefthook, pre-commit, and Gitleaks.
 
 ```sh
 git switch -c feature/my-work
+aigate ai report
+aigate start --route default --ask-steps
+aigate start --route oss --dry-run
 aigate start --route ai --provider all
+aigate reset --dry-run
+aigate clean
 aigate doctor
 aigate install-hook --pre-push
 aigate test
@@ -165,7 +199,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.5
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
         with:
           command: git-ready
           language: en
@@ -181,7 +215,7 @@ Marketplace listing:
 - Action name: `AIGate AI Git Workflow Guard CLI`
 - Primary category: `Code quality`
 - Secondary category: `Security`
-- Release title: `AIGate AI Git Workflow Guard CLI v0.1.5`
+- Release title: `AIGate AI Git Workflow Guard CLI v0.1.6`
 
 ## AI Agent Integration
 
@@ -189,6 +223,8 @@ Generate repository instructions for Codex, Gemini, and Claude Code:
 
 ```sh
 aigate integrate all
+aigate ai report
+aigate ai report --apply --provider codex
 aigate aitest --provider codex
 aigate aitest --apply --provider codex
 ```
@@ -198,6 +234,14 @@ This creates `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`, and
 and guarded push workflow as human contributors. `aigate aitest` writes
 `.aigate/reports/ai-test.md`; `--apply` is the explicit switch that lets AIGate
 invoke Codex, Claude, Gemini, or a custom `--agent-command`.
+
+`aigate ai report` combines the current Git state, repository foundation score,
+release readiness, branch strategy, and AI handoff guidance. It does not edit
+files by default. Add `--apply --provider codex|claude|gemini` only when you
+want AIGate to run the selected AI CLI with the generated project brief.
+
+When `--apply` runs, AIGate shows the prompt path, provider, agent command, and
+live agent output in the terminal, then captures stdout/stderr in the report.
 
 ## Output Languages
 
