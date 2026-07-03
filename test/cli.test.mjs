@@ -877,6 +877,8 @@ test("generates profile-aware GitLab AI integration files", () => {
   assert.equal(manifest.profile.hosting, "gitlab");
   assert.equal(manifest.profile.ciProvider, "gitlab");
   assert.equal(manifest.profile.packageManager, "pnpm");
+  assert.equal(manifest.project.name, "Admin Root Monorepo");
+  assert.equal(manifest.project.packageName, "admin-root-monorepo");
   assert.ok(manifest.validationCommands.includes("pnpm run ci"));
   assert.ok(manifest.requiredChecks.includes("GitLab CI pipeline"));
   assert.equal(manifest.validationCommands.includes("npm run ci"), false);
@@ -885,9 +887,10 @@ test("generates profile-aware GitLab AI integration files", () => {
   const agents = readFileSync(join(projectDir, "AGENTS.md"), "utf8");
   const codexSidecar = readFileSync(join(projectDir, ".aigate", "integrations", "codex.md"), "utf8");
   assert.equal(agents, "# Agents\n");
+  assert.match(codexSidecar, /Product: Admin Root Monorepo/);
   assert.match(codexSidecar, /pnpm run ci/);
   assert.match(codexSidecar, /GitLab CI pipeline/);
-  assert.doesNotMatch(codexSidecar, /test \(20\)|`npm run ci`/);
+  assert.doesNotMatch(codexSidecar, /AIGate AI Git Workflow Guard CLI|test \(20\)|`npm run ci`/);
 });
 
 test("generates Claude Code integration instructions", () => {
@@ -916,7 +919,7 @@ test("generates localized integration instructions", () => {
 
   const agents = readFileSync(join(outputDir, "AGENTS.md"), "utf8");
   assert.match(agents, /# AIGate Codex 지침/);
-  assert.match(agents, /AI Git 워크플로 보호 CLI/);
+  assert.match(agents, /제품: AIGate/);
   assert.match(agents, /제안, 푸시, 병합 전에/);
   assert.match(agents, /필수 검사:/);
   assert.doesNotMatch(agents, /Before Editing/);

@@ -26,6 +26,8 @@ All notable changes to AIGate are documented here.
 - Updated AI report and usage guidance so missing GitLab MR templates and
   CODEOWNERS point to a ready `aigate start --route default --steps repo-files`
   command with an owner placeholder.
+- Fixed generated AI instruction files so repository context uses the detected
+  project name instead of a hard-coded AIGate product description.
 - Updated usage and HTML overview docs in English, Korean, Japanese, and
   Chinese for stale generated profile behavior.
 

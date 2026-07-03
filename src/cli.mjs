@@ -9335,6 +9335,15 @@ function projectNameToTitle(projectName) {
     .join(" ") || "My Project";
 }
 
+function projectDisplayName(projectName) {
+  const rawName = String(projectName ?? "").trim();
+  if (["@aigate/cli", "aigate-cli"].includes(rawName)) {
+    return "AIGate";
+  }
+
+  return projectNameToTitle(rawName || "my-project");
+}
+
 function resolveIntegrationProviders(providerArg) {
   const providers = normalizeListSetting(providerArg).map((provider) => provider.toLowerCase());
   if (!providers.length || providers.includes("all")) {
@@ -9362,6 +9371,10 @@ function buildIntegrationManifest(providers, profile = {}, packageJson = readJso
   return {
     version: 1,
     generatedBy: `aigate ${VERSION}`,
+    project: {
+      name: projectDisplayName(packageJson.name ?? "my-project"),
+      packageName: packageJson.name ?? ""
+    },
     profile: {
       type: profile.kind ?? "unknown",
       hosting: profile.hosting ?? "unknown",
@@ -9681,11 +9694,12 @@ function renderSharedAssistantInstructions(language = "en", manifest = {}) {
   const requiredChecks = manifest.requiredChecks ?? ["aigate git-ready"];
   const defaultBranch = manifest.workflow?.defaultBranch ?? "main";
   const targetBranch = manifest.workflow?.targetBranch ?? defaultBranch;
+  const projectName = manifest.project?.name ?? projectDisplayName(manifest.project?.packageName ?? manifest.packageName ?? "my-project");
   if (language === "ko") {
     return [
       "## 저장소 컨텍스트",
       "",
-      "- 제품: AIGate AI Git 워크플로 보호 CLI.",
+      `- 제품: ${projectName}.`,
       `- 기본 브랜치: \`${defaultBranch}\`.`,
       `- 변경은 작업 브랜치를 사용하고 \`${targetBranch}\`에 직접 푸시하지 않습니다.`,
       "- Conventional Commit 메시지로 범위가 명확한 커밋을 선호합니다.",
@@ -9733,7 +9747,7 @@ function renderSharedAssistantInstructions(language = "en", manifest = {}) {
     return [
       "## リポジトリコンテキスト",
       "",
-      "- 製品: AIGate AI Git ワークフロー保護 CLI.",
+      `- 製品: ${projectName}.`,
       `- デフォルトブランチ: \`${defaultBranch}\`.`,
       `- 変更には作業ブランチを使い、\`${targetBranch}\` へ直接プッシュしません。`,
       "- Conventional Commit メッセージで範囲を絞ったコミットを推奨します。",
@@ -9781,7 +9795,7 @@ function renderSharedAssistantInstructions(language = "en", manifest = {}) {
     return [
       "## 仓库上下文",
       "",
-      "- 产品: AIGate AI Git 工作流守护 CLI.",
+      `- 产品: ${projectName}.`,
       `- 默认分支: \`${defaultBranch}\`.`,
       `- 使用工作分支进行变更，不要直接推送到 \`${targetBranch}\`。`,
       "- 优先使用 Conventional Commit，并保持提交范围清晰。",
@@ -9828,7 +9842,7 @@ function renderSharedAssistantInstructions(language = "en", manifest = {}) {
   return [
     "## Repository Context",
     "",
-    "- Product: AIGate AI Git Workflow Guard CLI.",
+    `- Product: ${projectName}.`,
     `- Default branch: \`${defaultBranch}\`.`,
     `- Use feature branches for changes; do not push directly to \`${targetBranch}\`.`,
     "- Prefer focused commits with Conventional Commit messages.",
