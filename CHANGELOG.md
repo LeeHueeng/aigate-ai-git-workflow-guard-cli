@@ -4,6 +4,23 @@ All notable changes to AIGate are documented here.
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.1.6 - 2026-07-03
+
+- Added `aigate ai report` and `aigate ai-report` to summarize current
+  problems, strengths, direction, suggested commands, release readiness, branch
+  strategy, and AI handoff guidance.
+- Added optional `aigate ai report --apply --provider <codex|claude|gemini>`
+  execution for explicit AI agent handoff.
+- Added the `aigate start --route oss` guided route for open-source starter
+  README, contribution docs, issue templates, PR template, CODEOWNERS, and
+  starter operations docs.
+- Added the `aigate start --route default` setup flow with step-by-step
+  yes/no prompts through `--ask-steps` and deterministic step selection through
+  `--steps init,repo-files`.
+- Added `aigate reset`, `aigate clean`, `aigate uninstall`, and the `delete`
+  alias for safe setup reset and generated-state removal.
 - Ignores stale generated `.aigate.yml` profile values during scoring and gates
   while keeping `doctor` warnings and explicit regeneration guidance.
 - Added workflow settings for private GitLab/pnpm teams, including distribution
@@ -28,26 +45,9 @@ All notable changes to AIGate are documented here.
   command with an owner placeholder.
 - Fixed generated AI instruction files so repository context uses the detected
   project name instead of a hard-coded AIGate product description.
-- Updated usage and HTML overview docs in English, Korean, Japanese, and
-  Chinese for stale generated profile behavior.
-
-## 0.1.6 - 2026-07-02
-
-- Added `aigate ai report` and `aigate ai-report` to summarize current
-  problems, strengths, direction, suggested commands, release readiness, branch
-  strategy, and AI handoff guidance.
-- Added optional `aigate ai report --apply --provider <codex|claude|gemini>`
-  execution for explicit AI agent handoff.
-- Added the `aigate start --route oss` guided route for open-source starter
-  README, contribution docs, issue templates, PR template, CODEOWNERS, and
-  starter operations docs.
-- Added the `aigate start --route default` setup flow with step-by-step
-  yes/no prompts through `--ask-steps` and deterministic step selection through
-  `--steps init,repo-files`.
-- Added `aigate reset`, `aigate clean`, `aigate uninstall`, and the `delete`
-  alias for safe setup reset and generated-state removal.
 - Updated multilingual README, usage, AI integration, and generated HTML docs
-  for the AI report and open-source starter flow.
+  for the AI report, open-source starter flow, and stale generated profile
+  behavior.
 
 ## 0.1.5 - 2026-07-02
 

@@ -2,7 +2,7 @@ class AigateCli < Formula
   desc "Pre-push Git safety CLI for AI-assisted coding"
   homepage "https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli"
   url "https://registry.npmjs.org/aigate-cli/-/aigate-cli-0.1.6.tgz"
-  sha256 "7f86e496a113bdf40b9117696908029b751c97f264d9a69c3f508607cfa906bf"
+  sha256 "bb2d73875923d7ba20640036fc87e7357ad92c4d94e2c5876692854df15f93f1"
   license "MIT"
 
   depends_on "node"
