@@ -105,7 +105,7 @@ aigate install-hook --pre-push
 | 初めてリポジトリに導入する | デフォルト設定を選び、必要なファイルだけ作成して診断を確認します。 | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
 | AI エージェントが多数のファイルを変更した後 | 変更ファイルと secret リスクを先に確認し、失敗したテストは AI 修正プロンプトに渡します。 | `aigate check` -> `aigate test` -> `aigate aitest` |
 | PR を開く直前 | ローカル gate を通し、guarded push の後に reviewer 向けサマリーを生成します。 | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
-| private GitLab monorepo | profile を固定し、workspace test を検出して実行し、GitHub 専用の score noise を避けます。 | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
+| private GitLab monorepo | profile を固定し、GitLab MR/CODEOWNERS ワークフローファイルを作成して、GitHub 専用の score noise を避けます。 | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate start --route default --steps repo-files --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm --owner @team` -> `aigate evaluate-project` |
 | オープンソース公開準備 | 公開貢献ファイルを作成し、リポジトリ基盤スコアを確認します。 | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
 | リリース前後 | tag と npm readiness を確認し、CI 後に状態トレンドを記録します。 | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
 | ローカル状態を整理または削除する | 削除対象を先にプレビューし、内容が正しいときだけ適用します。 | `aigate clean` -> `aigate clean --force` -> `aigate uninstall --force` |

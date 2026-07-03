@@ -103,7 +103,7 @@ aigate install-hook --pre-push
 | 首次接入仓库 | 选择默认设置，只创建需要的文件，然后确认诊断结果。 | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
 | AI agent 修改了很多文件后 | 先检查 changed files 和 secret 风险，再把失败测试交给 AI 修复提示。 | `aigate check` -> `aigate test` -> `aigate aitest` |
 | 打开 PR 之前 | 通过本地 gate，经 guarded push 推送，再生成 reviewer 摘要。 | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
-| private GitLab monorepo | 固定 profile，检测并运行 workspace tests，避免 GitHub 专用评分噪音。 | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
+| private GitLab monorepo | 固定 profile，创建 GitLab MR/CODEOWNERS 工作流文件，并避免 GitHub 专用评分噪音。 | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate start --route default --steps repo-files --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm --owner @team` -> `aigate evaluate-project` |
 | 准备开源发布 | 生成公开贡献文件，并检查仓库基础评分。 | `aigate start --route oss --owner @team` -> `aigate evaluate-project --deep --report` -> `aigate github setup --dry-run` |
 | 发布前后 | 检查 tag 和 npm readiness，运行 CI 后记录状态趋势。 | `aigate release-check --npm` -> `npm run ci` -> `aigate trends record` |
 | 清理或移除本地 AIGate 状态 | 先预览删除目标，确认无误后再应用。 | `aigate clean` -> `aigate clean --force` -> `aigate uninstall --force` |

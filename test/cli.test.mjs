@@ -1407,7 +1407,8 @@ test("keeps AI report guidance aligned with private GitLab app profiles", () => 
 
   assert.equal(result.status, 0);
   assert.match(result.stdout, /private 앱 프로필/);
-  assert.match(result.stdout, /aigate start --route default --steps repo-files --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm/);
+  assert.match(result.stdout, /aigate start --route default --steps repo-files --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm --owner @your-org\/team/);
+  assert.match(result.stdout, /MR\/PR 템플릿과 CODEOWNERS/);
   assert.match(result.stdout, /점수만 위해 공개 OSS 산출물을 추가하지 마세요/);
   assert.doesNotMatch(result.stdout, /공개 홍보 전/);
   assert.doesNotMatch(result.stdout, /aigate start --route oss/);

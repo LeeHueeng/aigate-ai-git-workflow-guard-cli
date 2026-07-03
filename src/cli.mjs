@@ -7067,9 +7067,11 @@ function buildAiReportCommands({ evaluation, releaseCheck }, language = "en") {
   const missingChecks = new Set(evaluation.checks.filter((check) => checkNeedsAction(check)).map((check) => check.name));
   const commands = [];
 
-  if (["README exists", "Issue templates exist", "Pull request template exists", "Merge request template exists", "Contribution guide exists", "License exists", "Roadmap exists"].some((name) => missingChecks.has(name))) {
+  if (["README exists", "Issue templates exist", "Pull request template exists", "Merge request template exists", "CODEOWNERS exists", "Contribution guide exists", "License exists", "Roadmap exists"].some((name) => missingChecks.has(name))) {
+    const needsOwner = missingChecks.has("CODEOWNERS exists");
+    const internalFilesCommand = `aigate start --route default --steps repo-files${profileFlags}${needsOwner ? " --owner @your-org/team" : ""}`;
     commands.push(privateApp
-      ? aiReportCommand(`aigate start --route default --steps repo-files${profileFlags}`, aiReportText("commandInternalFiles", language))
+      ? aiReportCommand(internalFilesCommand, aiReportText("commandInternalFiles", language))
       : aiReportCommand("aigate start --route oss", aiReportText("commandOss", language)));
   }
 
@@ -7464,7 +7466,7 @@ function aiReportText(key, language = "en", values = {}) {
       commandAi: "Create AI assistant instructions for Codex, Gemini, and Claude Code.",
       commandAiTest: "Create a focused AI remediation prompt from failing tests.",
       commandGate: "Run the final local gate before commit, push, or PR.",
-      commandInternalFiles: "Create internal repository starter files for the detected hosting profile.",
+      commandInternalFiles: "Create internal repository starter files such as the detected MR/PR template and CODEOWNERS.",
       commandOss: "Create README, issue templates, PR template, CODEOWNERS, and OSS docs.",
       commandRelease: "Confirm package metadata, tag, workflow, and npm state.",
       commandReport: "Save this AI report for PRs, handoffs, or release notes.",
@@ -7498,7 +7500,7 @@ function aiReportText(key, language = "en", values = {}) {
       commandAi: "Codex, Gemini, Claude Code용 AI 어시스턴트 지침을 생성합니다.",
       commandAiTest: "실패한 테스트를 바탕으로 집중된 AI 수정 프롬프트를 만듭니다.",
       commandGate: "커밋, 푸시, PR 전에 마지막 로컬 게이트를 실행합니다.",
-      commandInternalFiles: "감지된 호스팅 프로필에 맞는 내부 저장소 시작 파일을 생성합니다.",
+      commandInternalFiles: "감지된 호스팅 프로필에 맞는 MR/PR 템플릿과 CODEOWNERS 같은 내부 저장소 시작 파일을 생성합니다.",
       commandOss: "README, 이슈 템플릿, PR 템플릿, CODEOWNERS, 오픈소스 문서를 생성합니다.",
       commandRelease: "패키지 메타데이터, 태그, 워크플로, npm 상태를 확인합니다.",
       commandReport: "이 AI 리포트를 PR, 인수인계, 릴리스 노트용으로 저장합니다.",
@@ -7532,7 +7534,7 @@ function aiReportText(key, language = "en", values = {}) {
       commandAi: "Codex、Gemini、Claude Code 用の AI アシスタント指示を作成します。",
       commandAiTest: "失敗したテストから焦点を絞った AI 修正プロンプトを作成します。",
       commandGate: "コミット、プッシュ、PR 前の最後のローカルゲートを実行します。",
-      commandInternalFiles: "検出された hosting profile に合わせた内部リポジトリ初期ファイルを作成します。",
+      commandInternalFiles: "検出された hosting profile に合わせて MR/PR テンプレートや CODEOWNERS などの内部リポジトリ初期ファイルを作成します。",
       commandOss: "README、issue テンプレート、PR テンプレート、CODEOWNERS、OSS 文書を作成します。",
       commandRelease: "パッケージメタデータ、タグ、workflow、npm 状態を確認します。",
       commandReport: "この AI レポートを PR、引き継ぎ、リリースノート用に保存します。",
@@ -7566,7 +7568,7 @@ function aiReportText(key, language = "en", values = {}) {
       commandAi: "为 Codex、Gemini 和 Claude Code 创建 AI 助手指令。",
       commandAiTest: "根据失败测试创建聚焦的 AI 修复提示。",
       commandGate: "在提交、推送或 PR 前运行最终本地关卡。",
-      commandInternalFiles: "根据检测到的托管配置创建内部仓库起始文件。",
+      commandInternalFiles: "根据检测到的托管配置创建 MR/PR 模板和 CODEOWNERS 等内部仓库起始文件。",
       commandOss: "创建 README、issue 模板、PR 模板、CODEOWNERS 和开源文档。",
       commandRelease: "确认包元数据、标签、workflow 和 npm 状态。",
       commandReport: "保存此 AI 报告，用于 PR、交接或发布说明。",

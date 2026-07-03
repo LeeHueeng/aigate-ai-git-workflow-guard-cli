@@ -23,6 +23,9 @@ All notable changes to AIGate are documented here.
 - Treats `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`, or generated
   `.aigate/integrations/*` files as valid AI assistant instructions instead of
   requiring a Codex-style root `AGENTS.md`.
+- Updated AI report and usage guidance so missing GitLab MR templates and
+  CODEOWNERS point to a ready `aigate start --route default --steps repo-files`
+  command with an owner placeholder.
 - Updated usage and HTML overview docs in English, Korean, Japanese, and
   Chinese for stale generated profile behavior.
 
