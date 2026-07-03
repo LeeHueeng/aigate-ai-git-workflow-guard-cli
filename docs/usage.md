@@ -42,6 +42,7 @@ aigate setup \
   --distribution none \
   --target-branch develop \
   --protected-branches main,develop \
+  --work-branches "codex/*,feature/*,feat/*,fix/*,docs/*,chore/*" \
   --required-checks "build,deploy,aigate git-ready" \
   --quality-command "pnpm lint && pnpm build" \
   --providers claude \
@@ -51,8 +52,9 @@ aigate integrate --force
 ```
 
 Those settings remove npm publication assumptions, use the configured GitLab
-check names, keep AI instructions pointed at `develop`, and make `aigate test`
-use the configured quality command when no explicit `--command` is passed.
+check names, accept both `feature/*` and `feat/*` work branches, keep AI
+instructions pointed at `develop`, and make `aigate test` use the configured
+quality command when no explicit `--command` is passed.
 
 ## First Run In A Repository
 

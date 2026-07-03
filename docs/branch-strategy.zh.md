@@ -27,6 +27,7 @@ dist-tag 来支持 package publish。
 | --- | --- |
 | `codex/*` | AI-assisted implementation 或 repository maintenance |
 | `feature/*` | user-facing feature |
+| `feat/*` | 许多团队使用的短 feature branch alias |
 | `fix/*` | bug fix |
 | `docs/*` | documentation-only changes |
 | `chore/*` | tooling, metadata, release, maintenance |

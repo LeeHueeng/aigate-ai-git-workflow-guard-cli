@@ -13,6 +13,7 @@ git switch -c feature/<short-name>
 Use one of these prefixes:
 
 - `feature/*` for new user-facing behavior.
+- `feat/*` for teams that prefer the shorter feature prefix.
 - `fix/*` for bug fixes.
 - `docs/*` for documentation.
 - `chore/*` for maintenance.

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, unlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -731,6 +731,7 @@ test("configures team workflow settings for private GitLab pnpm apps", () => {
   assert.equal(settings.distribution, "none");
   assert.equal(settings.targetBranch, "develop");
   assert.deepEqual(settings.protectedBranches, ["main", "develop"]);
+  assert.ok(settings.workBranches.includes("feat/*"));
   assert.deepEqual(settings.requiredChecks, ["build", "deploy", "aigate git-ready"]);
   assert.deepEqual(settings.qualityCommands, ["pnpm lint && pnpm build"]);
   assert.deepEqual(settings.aiProviders, ["claude"]);
@@ -745,6 +746,7 @@ test("configures team workflow settings for private GitLab pnpm apps", () => {
   assert.match(config, /default: "Git Flow"/);
   assert.match(config, /    - main/);
   assert.match(config, /    - develop/);
+  assert.match(config, /    - feat\/\*/);
   assert.match(config, /    - claude/);
   assert.match(config, /    - build/);
   assert.match(config, /    - deploy/);
@@ -763,6 +765,7 @@ test("configures team workflow settings for private GitLab pnpm apps", () => {
   assert.equal(output.files.find((file) => file.path.endsWith("CLAUDE.md"))?.action, "protected");
   assert.deepEqual(manifest.providers, ["claude"]);
   assert.equal(manifest.workflow.targetBranch, "develop");
+  assert.ok(manifest.workflow.workBranches.includes("feat/*"));
   assert.equal(manifest.workflow.distribution, "none");
   assert.deepEqual(manifest.requiredChecks, ["build", "deploy", "aigate git-ready"]);
   assert.ok(manifest.validationCommands.includes("pnpm lint && pnpm build"));
@@ -797,6 +800,32 @@ test("configures root AI file handling from settings", () => {
   assert.equal(output.files.some((file) => file.path.endsWith("CLAUDE.md")), false);
   assert.equal(existsSync(join(outputDir, "CLAUDE.md")), false);
   assert.ok(existsSync(join(outputDir, ".aigate", "integrations", "claude.md")));
+});
+
+test("configures work branch patterns from settings and config", () => {
+  const outputDir = createOutputDir();
+  const settingsPath = createSettingsPath();
+
+  const setup = run([
+    "setup",
+    "--work-branches",
+    "feat/*,fix/*,codex/*",
+    "--format",
+    "json"
+  ], { cwd: outputDir, settingsPath });
+  assert.equal(setup.status, 0);
+  assert.deepEqual(JSON.parse(setup.stdout).settings.workBranches, ["feat/*", "fix/*", "codex/*"]);
+
+  const init = run(["init", "--force", "--format", "json"], { cwd: outputDir, settingsPath });
+  assert.equal(init.status, 0);
+  const config = readFileSync(join(outputDir, ".aigate.yml"), "utf8");
+  assert.match(config, /workBranches:\n    - feat\/\*\n    - fix\/\*\n    - codex\/\*/);
+
+  const strategy = run(["branch-strategy", "--format", "json"], { cwd: outputDir, settingsPath });
+  assert.equal(strategy.status, 0);
+  const output = JSON.parse(strategy.stdout);
+  assert.ok(output.branches.some((branch) => branch.name === "feat/*"));
+  assert.equal(output.branches.some((branch) => branch.name === "feature/*"), false);
 });
 
 test("rejects unsupported language", () => {
@@ -1777,10 +1806,29 @@ test("adapts project evaluation for private GitLab pnpm apps", () => {
   assert.equal(output.profile.packageManager, "pnpm");
   assert.ok(output.score >= 90);
   assert.equal(output.checks.find((check) => check.name === "CI workflow exists")?.pass, true);
-  assert.equal(output.checks.find((check) => check.name === "Pull request template exists")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "Merge request template exists")?.pass, true);
   assert.equal(output.checks.find((check) => check.name === "Dependabot exists")?.status, "NA");
   assert.equal(output.checks.find((check) => check.name === "OpenSSF Scorecard workflow exists")?.status, "NA");
   assert.equal(output.checks.find((check) => check.name === "License exists")?.status, "NA");
+});
+
+test("scores GitLab MR templates and security policy scanning docs without GitHub files", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  writeFileSync(join(projectDir, "SECURITY.md"), "# Security\n\n```sh\naigate report --format sarif\n```\n", "utf8");
+  rmSync(join(projectDir, "docs", "security-scanning.md"));
+  rmSync(join(projectDir, "CODEOWNERS"));
+  writeFileSync(join(projectDir, ".gitlab", "CODEOWNERS"), "* @company/admin\n", "utf8");
+
+  const result = run(["evaluate-project", "--format", "json"], { cwd: projectDir });
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+
+  assert.equal(output.profile.hosting, "gitlab");
+  assert.equal(output.checks.find((check) => check.name === "Merge request template exists")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "Pull request template exists"), undefined);
+  assert.equal(output.checks.find((check) => check.name === "CODEOWNERS exists")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "Security scanning is documented")?.pass, true);
+  assert.ok(output.score >= 90);
 });
 
 test("scores pnpm turbo workspace tests as a project test command", () => {
@@ -1871,7 +1919,7 @@ test("honors GitLab profile config over GitHub helper files", () => {
   assert.equal(output.profile.ciProvider, "gitlab");
   assert.equal(output.profile.packageManager, "pnpm");
   assert.equal(output.checks.find((check) => check.name === "CI workflow exists")?.pass, false);
-  assert.equal(output.checks.find((check) => check.name === "Pull request template exists")?.pass, false);
+  assert.equal(output.checks.find((check) => check.name === "Merge request template exists")?.pass, false);
   assert.equal(output.checks.find((check) => check.name === "Issue templates exist")?.pass, false);
 });
 
@@ -2042,7 +2090,7 @@ test("compares branch strategy proposals", () => {
     "Git Flow"
   ]));
   assert.ok(output.comparison.proposals[0].score > output.comparison.proposals.at(-1).score);
-  assert.ok(output.comparison.proposals[0].migration.includes("Use feature/* and codex/* branches for focused work."));
+  assert.ok(output.comparison.proposals[0].migration.includes("Use feature/*, feat/*, and codex/* branches for focused work."));
 
   const localized = run(["branch-strategy", "--compare", "--team-size", "14", "--release", "monthly", "--language", "ko"]);
   assert.equal(localized.status, 0);
@@ -2108,6 +2156,7 @@ test("generates branch strategy policy drafts", () => {
 
   const aiCollaboration = JSON.parse(readFileSync(join(outputDir, ".aigate", "policy-packs", "ai-collaboration.json"), "utf8"));
   assert.ok(aiCollaboration.assistantBranches.includes("codex/*"));
+  assert.ok(aiCollaboration.assistantBranches.includes("feat/*"));
 });
 
 test("generates GitLab app branch policy drafts without npm release channel assumptions", () => {

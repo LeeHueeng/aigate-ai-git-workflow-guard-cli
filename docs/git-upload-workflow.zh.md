@@ -15,6 +15,7 @@ git switch -c feature/<short-name>
 Prefix:
 
 - `feature/*`: new user-facing behavior
+- `feat/*`: 适合偏好短 feature prefix 的团队
 - `fix/*`: bug fix
 - `docs/*`: documentation
 - `chore/*`: maintenance

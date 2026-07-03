@@ -15,6 +15,11 @@ All notable changes to AIGate are documented here.
   persist whether root AI instruction files are protected, skipped, or replaced.
 - Added `aigate clean --github-files --force` for removing generated GitHub
   helper templates from GitLab repositories.
+- Added `aigate setup --work-branches <list>` and default `feat/*` support so
+  teams that use short feature prefixes are not penalized by branch scoring.
+- Aligned GitLab project scoring with merge request templates, `.gitlab`
+  CODEOWNERS, and existing security scan documentation in `SECURITY.md` or
+  GitLab CI.
 - Updated usage and HTML overview docs in English, Korean, Japanese, and
   Chinese for stale generated profile behavior.
 

@@ -42,6 +42,7 @@ aigate setup \
   --distribution none \
   --target-branch develop \
   --protected-branches main,develop \
+  --work-branches "codex/*,feature/*,feat/*,fix/*,docs/*,chore/*" \
   --required-checks "build,deploy,aigate git-ready" \
   --quality-command "pnpm lint && pnpm build" \
   --providers claude \
@@ -50,8 +51,9 @@ aigate init --force
 aigate integrate --force
 ```
 
-この設定により npm publish の前提を外し、実際の GitLab check 名を使い、AI
-指示の対象 branch を `develop` に合わせます。明示的な `--command` がない場合、
+この設定により npm publish の前提を外し、実際の GitLab check 名を使い、
+`feature/*` と `feat/*` の両方を作業ブランチとして許可します。AI 指示の
+対象 branch は `develop` に合わせます。明示的な `--command` がない場合、
 `aigate test` は設定された quality command を既定で実行します。
 
 ## リポジトリでの初回実行

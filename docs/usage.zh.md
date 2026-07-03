@@ -41,6 +41,7 @@ aigate setup \
   --distribution none \
   --target-branch develop \
   --protected-branches main,develop \
+  --work-branches "codex/*,feature/*,feat/*,fix/*,docs/*,chore/*" \
   --required-checks "build,deploy,aigate git-ready" \
   --quality-command "pnpm lint && pnpm build" \
   --providers claude \
@@ -49,9 +50,9 @@ aigate init --force
 aigate integrate --force
 ```
 
-这些设置会移除 npm 发布假设，使用实际 GitLab check 名称，将 AI 指令的目标分支
-设为 `develop`。没有显式传入 `--command` 时，`aigate test` 会默认运行设置的
-quality command。
+这些设置会移除 npm 发布假设，使用实际 GitLab check 名称，同时允许
+`feature/*` 和 `feat/*` 工作分支。AI 指令的目标分支设为 `develop`。没有显式
+传入 `--command` 时，`aigate test` 会默认运行设置的 quality command。
 
 ## 在仓库中首次运行
 

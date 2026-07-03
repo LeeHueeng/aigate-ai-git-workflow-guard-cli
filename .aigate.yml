@@ -91,6 +91,7 @@ branchStrategy:
   workBranches:
     - codex/*
     - feature/*
+    - feat/*
     - fix/*
     - docs/*
     - chore/*

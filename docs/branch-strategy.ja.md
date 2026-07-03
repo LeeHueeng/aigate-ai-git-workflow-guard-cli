@@ -27,6 +27,7 @@ release branch と npm dist-tag 戦略を組み合わせます。
 | --- | --- |
 | `codex/*` | AI-assisted implementation または repository maintenance |
 | `feature/*` | user-facing feature |
+| `feat/*` | 多くのチームが使う短い feature branch alias |
 | `fix/*` | bug fix |
 | `docs/*` | documentation-only changes |
 | `chore/*` | tooling, metadata, release, maintenance |

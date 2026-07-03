@@ -15,6 +15,7 @@ git switch -c feature/<short-name>
 Prefix:
 
 - `feature/*`: 새 user-facing behavior
+- `feat/*`: 짧은 feature prefix를 선호하는 팀용
 - `fix/*`: bug fix
 - `docs/*`: documentation
 - `chore/*`: maintenance

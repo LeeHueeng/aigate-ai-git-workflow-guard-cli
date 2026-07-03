@@ -17,6 +17,7 @@ const SUPPORTED_INTEGRATIONS = ["codex", "gemini", "claude"];
 const START_ROUTE_IDS = ["default", "quickstart", "oss", "ai", "hook", "release", "full"];
 const AI_TEST_PROVIDERS = ["codex", "claude", "gemini"];
 const AI_ROOT_FILE_MODES = ["protect", "sidecar", "overwrite"];
+const DEFAULT_WORK_BRANCHES = ["codex/*", "feature/*", "feat/*", "fix/*", "docs/*", "chore/*"];
 const AIGATE_HOOK_MARKER = "AIGate pre-push hook";
 const DEFAULT_SETTINGS = {
   version: 1,
@@ -30,6 +31,7 @@ const DEFAULT_SETTINGS = {
   targetBranch: "main",
   branchStrategy: "auto",
   protectedBranches: [],
+  workBranches: [...DEFAULT_WORK_BRANCHES],
   requiredChecks: [],
   qualityCommands: [],
   aiProviders: [],
@@ -133,7 +135,7 @@ const I18N = {
     "settings.file": "Settings file: {path}",
     "settings.profile": "Project profile: type={type}, hosting={hosting}, ci={ciProvider}, package manager={packageManager}",
     "settings.title": "AIGate settings",
-    "settings.workflow": "Workflow: distribution={distribution}, target={targetBranch}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}, root AI files={aiRootFiles}",
+    "settings.workflow": "Workflow: distribution={distribution}, target={targetBranch}, work branches={workBranches}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}, root AI files={aiRootFiles}",
     "trends.unknownAction": "Unknown trends action: {action}",
     "unknownCommand": "Unknown command: {command}",
     "runHelp": "Run `aigate --help` for available commands.",
@@ -230,7 +232,7 @@ const I18N = {
     "settings.file": "설정 파일: {path}",
     "settings.profile": "프로젝트 프로필: 유형={type}, 호스팅={hosting}, CI={ciProvider}, 패키지 매니저={packageManager}",
     "settings.title": "AIGate 설정",
-    "settings.workflow": "워크플로: 배포={distribution}, 대상={targetBranch}, 체크={requiredChecks}, 명령={qualityCommands}, AI={aiProviders}, 루트 AI 파일={aiRootFiles}",
+    "settings.workflow": "워크플로: 배포={distribution}, 대상={targetBranch}, 작업 브랜치={workBranches}, 체크={requiredChecks}, 명령={qualityCommands}, AI={aiProviders}, 루트 AI 파일={aiRootFiles}",
     "trends.unknownAction": "알 수 없는 추세 작업: {action}",
     "unknownCommand": "알 수 없는 명령어: {command}",
     "runHelp": "사용 가능한 명령어는 `aigate --help`로 확인하세요.",
@@ -327,7 +329,7 @@ const I18N = {
     "settings.file": "設定ファイル: {path}",
     "settings.profile": "プロジェクトプロファイル: 種別={type}, hosting={hosting}, CI={ciProvider}, package manager={packageManager}",
     "settings.title": "AIGate 設定",
-    "settings.workflow": "ワークフロー: distribution={distribution}, target={targetBranch}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}, ルートAIファイル={aiRootFiles}",
+    "settings.workflow": "ワークフロー: distribution={distribution}, target={targetBranch}, 作業ブランチ={workBranches}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}, ルートAIファイル={aiRootFiles}",
     "trends.unknownAction": "不明なトレンドアクション: {action}",
     "unknownCommand": "不明なコマンド: {command}",
     "runHelp": "利用可能なコマンドは `aigate --help` で確認してください。",
@@ -424,7 +426,7 @@ const I18N = {
     "settings.file": "设置文件: {path}",
     "settings.profile": "项目配置: 类型={type}, 托管={hosting}, CI={ciProvider}, 包管理器={packageManager}",
     "settings.title": "AIGate 设置",
-    "settings.workflow": "工作流: distribution={distribution}, target={targetBranch}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}, 根 AI 文件={aiRootFiles}",
+    "settings.workflow": "工作流: distribution={distribution}, target={targetBranch}, 工作分支={workBranches}, 检查={requiredChecks}, 命令={qualityCommands}, AI={aiProviders}, 根 AI 文件={aiRootFiles}",
     "trends.unknownAction": "未知趋势操作: {action}",
     "unknownCommand": "未知命令: {command}",
     "runHelp": "运行 `aigate --help` 查看可用命令。",
@@ -656,16 +658,16 @@ const STRATEGY_COMPARISON_TRANSLATIONS = {
     "Adds process overhead for small or fast-moving teams.": "작거나 빠르게 움직이는 팀에는 프로세스 부담이 늘어납니다.",
     "Long-lived develop branches can hide integration risk.": "오래 유지되는 develop 브랜치가 통합 위험을 숨길 수 있습니다.",
     "Protect main and require AIGate checks before merge.": "main을 보호하고 병합 전에 AIGate 검사를 필수로 둡니다.",
-    "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "집중된 작업에는 feature/*, fix/*, docs/*, chore/*, codex/*를 사용합니다.",
+    "Use feature/*, feat/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "집중된 작업에는 feature/*, feat/*, fix/*, docs/*, chore/*, codex/*를 사용합니다.",
     "Publish npm releases from main tags and use dist-tags for channels.": "main 태그에서 npm 릴리스를 배포하고 채널에는 dist-tag를 사용합니다.",
     "Keep pull requests small enough to merge quickly into main.": "PR을 main에 빠르게 병합할 수 있을 만큼 작게 유지합니다.",
     "Add short/* only for changes that will merge within a day.": "하루 안에 병합될 변경에만 short/*를 사용합니다.",
     "Use release/* only when a production hardening window is unavoidable.": "프로덕션 안정화 기간이 불가피할 때만 release/*를 사용합니다.",
     "Keep main stable and use develop only for planned integration.": "main은 안정적으로 유지하고 develop은 계획된 통합에만 사용합니다.",
-    "Use feature/* and codex/* branches for focused work.": "집중된 작업에는 feature/*와 codex/* 브랜치를 사용합니다.",
+    "Use feature/*, feat/*, and codex/* branches for focused work.": "집중된 작업에는 feature/*, feat/*, codex/* 브랜치를 사용합니다.",
     "Create release/* branches for stabilization and hotfix/* for urgent fixes.": "안정화에는 release/*, 긴급 수정에는 hotfix/* 브랜치를 만듭니다.",
     "Create develop as the next-release integration branch.": "develop을 다음 릴리스 통합 브랜치로 만듭니다.",
-    "Route feature/* and codex/* branches into develop.": "feature/*와 codex/* 브랜치는 develop으로 병합합니다.",
+    "Route feature/*, feat/*, and codex/* branches into develop.": "feature/*, feat/*, codex/* 브랜치는 develop으로 병합합니다.",
     "Cut release/* from develop, then merge release and hotfix work back to main.": "develop에서 release/*를 만들고, 릴리스와 핫픽스 작업은 main으로 다시 병합합니다.",
     "Use main branch protection, required AIGate checks, and tag-driven npm release channels.": "main 브랜치 보호, 필수 AIGate 검사, 태그 기반 npm 릴리스 채널을 사용합니다.",
     "Use strict main protection, fast required checks, and short-lived branch age limits.": "엄격한 main 보호, 빠른 필수 검사, 짧은 브랜치 유지 기간 제한을 사용합니다.",
@@ -698,16 +700,16 @@ const STRATEGY_COMPARISON_TRANSLATIONS = {
     "Adds process overhead for small or fast-moving teams.": "小規模または高速に動くチームにはプロセス負荷が増えます。",
     "Long-lived develop branches can hide integration risk.": "長期間残る develop ブランチは統合リスクを隠すことがあります。",
     "Protect main and require AIGate checks before merge.": "main を保護し、マージ前に AIGate チェックを必須にします。",
-    "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "集中した作業には feature/*、fix/*、docs/*、chore/*、codex/* を使います。",
+    "Use feature/*, feat/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "集中した作業には feature/*、feat/*、fix/*、docs/*、chore/*、codex/* を使います。",
     "Publish npm releases from main tags and use dist-tags for channels.": "main のタグから npm リリースを公開し、チャンネルには dist-tag を使います。",
     "Keep pull requests small enough to merge quickly into main.": "PR は main へ素早くマージできる大きさに保ちます。",
     "Add short/* only for changes that will merge within a day.": "1 日以内にマージする変更にだけ short/* を使います。",
     "Use release/* only when a production hardening window is unavoidable.": "本番安定化期間が避けられない場合だけ release/* を使います。",
     "Keep main stable and use develop only for planned integration.": "main は安定させ、develop は計画的な統合にだけ使います。",
-    "Use feature/* and codex/* branches for focused work.": "集中した作業には feature/* と codex/* ブランチを使います。",
+    "Use feature/*, feat/*, and codex/* branches for focused work.": "集中した作業には feature/*、feat/*、codex/* ブランチを使います。",
     "Create release/* branches for stabilization and hotfix/* for urgent fixes.": "安定化には release/*、緊急修正には hotfix/* ブランチを作成します。",
     "Create develop as the next-release integration branch.": "develop を次回リリースの統合ブランチとして作成します。",
-    "Route feature/* and codex/* branches into develop.": "feature/* と codex/* ブランチは develop に統合します。",
+    "Route feature/*, feat/*, and codex/* branches into develop.": "feature/*、feat/*、codex/* ブランチは develop に統合します。",
     "Cut release/* from develop, then merge release and hotfix work back to main.": "develop から release/* を切り、リリースとホットフィックス作業を main に戻します。",
     "Use main branch protection, required AIGate checks, and tag-driven npm release channels.": "main ブランチ保護、必須 AIGate チェック、タグ駆動の npm リリースチャンネルを使います。",
     "Use strict main protection, fast required checks, and short-lived branch age limits.": "厳格な main 保護、速い必須チェック、短命ブランチの期間制限を使います。",
@@ -740,16 +742,16 @@ const STRATEGY_COMPARISON_TRANSLATIONS = {
     "Adds process overhead for small or fast-moving teams.": "会给小团队或快速推进的团队增加流程成本。",
     "Long-lived develop branches can hide integration risk.": "长期存在的 develop 分支可能隐藏集成风险。",
     "Protect main and require AIGate checks before merge.": "保护 main，并在合并前要求 AIGate 检查。",
-    "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "聚焦工作使用 feature/*、fix/*、docs/*、chore/* 和 codex/*。",
+    "Use feature/*, feat/*, fix/*, docs/*, chore/*, and codex/* for focused work.": "聚焦工作使用 feature/*、feat/*、fix/*、docs/*、chore/* 和 codex/*。",
     "Publish npm releases from main tags and use dist-tags for channels.": "从 main 标签发布 npm，并使用 dist-tag 管理频道。",
     "Keep pull requests small enough to merge quickly into main.": "保持 PR 足够小，以便快速合并到 main。",
     "Add short/* only for changes that will merge within a day.": "仅对一天内会合并的变更使用 short/*。",
     "Use release/* only when a production hardening window is unavoidable.": "只有无法避免生产加固窗口时才使用 release/*。",
     "Keep main stable and use develop only for planned integration.": "保持 main 稳定，仅将 develop 用于计划内集成。",
-    "Use feature/* and codex/* branches for focused work.": "聚焦工作使用 feature/* 和 codex/* 分支。",
+    "Use feature/*, feat/*, and codex/* branches for focused work.": "聚焦工作使用 feature/*、feat/* 和 codex/* 分支。",
     "Create release/* branches for stabilization and hotfix/* for urgent fixes.": "稳定期创建 release/*，紧急修复创建 hotfix/*。",
     "Create develop as the next-release integration branch.": "将 develop 创建为下一版本集成分支。",
-    "Route feature/* and codex/* branches into develop.": "将 feature/* 和 codex/* 分支合入 develop。",
+    "Route feature/*, feat/*, and codex/* branches into develop.": "将 feature/*、feat/* 和 codex/* 分支合入 develop。",
     "Cut release/* from develop, then merge release and hotfix work back to main.": "从 develop 切出 release/*，再将发布和热修复工作合回 main。",
     "Use main branch protection, required AIGate checks, and tag-driven npm release channels.": "使用 main 分支保护、必需 AIGate 检查和标签驱动的 npm 发布频道。",
     "Use strict main protection, fast required checks, and short-lived branch age limits.": "使用严格 main 保护、快速必需检查和短生命周期分支限制。",
@@ -1096,6 +1098,7 @@ const HELP_CONTENT = {
       ["--distribution <auto|none|npm>", "Set release distribution mode for generated config."],
       ["--target-branch <branch>", "Set the PR/MR target branch for generated AI instructions."],
       ["--protected-branches <list>", "Set protected branches, comma-separated."],
+      ["--work-branches <list>", "Set allowed work branch patterns, comma-separated."],
       ["--required-checks <list>", "Set required CI/check names, comma-separated."],
       ["--quality-command <shell>", "Set the primary local quality command."],
       ["--providers <list>", "Set default AI integration providers, comma-separated."],
@@ -1196,6 +1199,7 @@ const HELP_CONTENT = {
       ["--distribution <auto|none|npm>", "생성 설정의 배포 방식을 지정합니다."],
       ["--target-branch <branch>", "생성 AI 지침의 PR/MR 대상 브랜치를 지정합니다."],
       ["--protected-branches <list>", "보호 브랜치를 쉼표로 지정합니다."],
+      ["--work-branches <list>", "허용할 작업 브랜치 패턴을 쉼표로 지정합니다."],
       ["--required-checks <list>", "필수 CI/check 이름을 쉼표로 지정합니다."],
       ["--quality-command <shell>", "기본 로컬 품질 검증 명령을 지정합니다."],
       ["--providers <list>", "기본 AI 연동 provider를 쉼표로 지정합니다."],
@@ -1296,6 +1300,7 @@ const HELP_CONTENT = {
       ["--distribution <auto|none|npm>", "生成設定の distribution mode を指定します。"],
       ["--target-branch <branch>", "生成 AI 指示の PR/MR 対象ブランチを指定します。"],
       ["--protected-branches <list>", "保護ブランチをカンマ区切りで指定します。"],
+      ["--work-branches <list>", "許可する作業ブランチパターンをカンマ区切りで指定します。"],
       ["--required-checks <list>", "必須 CI/check 名をカンマ区切りで指定します。"],
       ["--quality-command <shell>", "主要なローカル品質チェックコマンドを指定します。"],
       ["--providers <list>", "デフォルト AI 連携 provider をカンマ区切りで指定します。"],
@@ -1396,6 +1401,7 @@ const HELP_CONTENT = {
       ["--distribution <auto|none|npm>", "设置生成配置的发布模式。"],
       ["--target-branch <branch>", "设置生成 AI 指令中的 PR/MR 目标分支。"],
       ["--protected-branches <list>", "用逗号指定受保护分支。"],
+      ["--work-branches <list>", "用逗号指定允许的工作分支模式。"],
       ["--required-checks <list>", "用逗号指定必需 CI/check 名称。"],
       ["--quality-command <shell>", "设置主要本地质量检查命令。"],
       ["--providers <list>", "用逗号指定默认 AI 集成 provider。"],
@@ -1532,6 +1538,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "Branch strategy is documented": "브랜치 전략 문서화",
     "Git upload workflow is documented": "Git 업로드 워크플로 문서화",
     "Pull request template exists": "PR 템플릿 존재",
+    "Merge request template exists": "MR 템플릿 존재",
     "CODEOWNERS exists": "CODEOWNERS 존재",
     "Contribution guide exists": "기여 가이드 존재",
     "Issue templates exist": "Issue 템플릿 존재",
@@ -1558,6 +1565,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "Branch strategy is documented": "ブランチ戦略が文書化済み",
     "Git upload workflow is documented": "Git アップロードワークフローが文書化済み",
     "Pull request template exists": "PR テンプレートが存在",
+    "Merge request template exists": "MR テンプレートが存在",
     "CODEOWNERS exists": "CODEOWNERS が存在",
     "Contribution guide exists": "コントリビューションガイドが存在",
     "Issue templates exist": "Issue テンプレートが存在",
@@ -1584,6 +1592,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "Branch strategy is documented": "分支策略已文档化",
     "Git upload workflow is documented": "Git 上传工作流已文档化",
     "Pull request template exists": "PR 模板存在",
+    "Merge request template exists": "MR 模板存在",
     "CODEOWNERS exists": "CODEOWNERS 存在",
     "Contribution guide exists": "贡献指南存在",
     "Issue templates exist": "Issue 模板存在",
@@ -1786,6 +1795,10 @@ function checkPassed(check) {
   }
 
   return check.applicable !== false && check.pass;
+}
+
+function evaluationHasPassedCheck(evaluation, names) {
+  return evaluation.checks.some((check) => names.includes(check.name) && checkPassed(check));
 }
 
 function formatCheckLine(check, translateName, language) {
@@ -2511,6 +2524,7 @@ function commandSetup(args) {
   const targetBranch = branchSettingValue(options.targetBranch ?? options.base, currentSettings.targetBranch, defaultBranch);
   const branchStrategy = settingValue(options.branchStrategy, currentSettings.branchStrategy, normalizeBranchStrategySetting, "auto");
   const protectedBranches = listSettingValue(options.protectedBranches ?? options.protectedBranch, currentSettings.protectedBranches);
+  const workBranches = listSettingValue(options.workBranches ?? options.workBranch, currentSettings.workBranches);
   const requiredChecks = listSettingValue(options.requiredChecks ?? options.requiredCheck, currentSettings.requiredChecks);
   const qualityCommands = listSettingValue(options.qualityCommands ?? options.qualityCommand, currentSettings.qualityCommands);
   const aiProviders = integrationProviderListSetting(
@@ -2536,6 +2550,7 @@ function commandSetup(args) {
     targetBranch,
     branchStrategy,
     protectedBranches,
+    workBranches,
     requiredChecks,
     qualityCommands,
     aiProviders,
@@ -5092,11 +5107,12 @@ function buildEvaluation(options = {}) {
   const publicOnlyReason = "Public repository governance check is not required for a private app profile.";
   const packageOnlyReason = "Package release check is not required for an app profile.";
   const check = (category, name, pass, checkOptions = {}) => makeCheck(category, name, pass, checkOptions);
+  const reviewTemplateCheckName = profile.hosting === "gitlab" ? "Merge request template exists" : "Pull request template exists";
   const checks = [
     check("git_workflow", "AIGate configuration exists", existsSync(".aigate.yml")),
     check("git_workflow", "Branch strategy is documented", existsSync(join("docs", "branch-strategy.md"))),
     check("git_workflow", "Git upload workflow is documented", existsSync(join("docs", "git-upload-workflow.md"))),
-    check("git_workflow", "Pull request template exists", hasPullRequestTemplate(profile)),
+    check("git_workflow", reviewTemplateCheckName, hasPullRequestTemplate(profile)),
     check("git_workflow", "CODEOWNERS exists", hasCodeowners()),
     check("pr_quality", "Contribution guide exists", existsSync("CONTRIBUTING.md"), {
       applicable: profile.visibility !== "private" || existsSync("CONTRIBUTING.md"),
@@ -5120,7 +5136,7 @@ function buildEvaluation(options = {}) {
       reason: githubOnlyReason
     }),
     check("security", "Security policy exists", existsSync("SECURITY.md")),
-    check("security", "Security scanning is documented", existsSync(join("docs", "security-scanning.md"))),
+    check("security", "Security scanning is documented", hasSecurityScanningDocumentation()),
     check("security", "OpenSSF Scorecard workflow exists", existsSync(join(".github", "workflows", "scorecard.yml")), {
       applicable: (profile.hosting === "github" && profile.visibility !== "private") || existsSync(join(".github", "workflows", "scorecard.yml")),
       reason: profile.hosting === "github" ? publicOnlyReason : githubOnlyReason
@@ -5275,6 +5291,10 @@ function resolveWorkflowSettings(options = {}, profile = {}, packageJson = readJ
     options.protectedBranches ?? options.protectedBranch ?? branchConfig.protectedBranches,
     settings.protectedBranches
   );
+  const workBranches = listSettingValue(
+    options.workBranches ?? options.workBranch ?? branchConfig.workBranches,
+    settings.workBranches
+  );
   const requiredChecks = listSettingValue(options.requiredChecks ?? options.requiredCheck, settings.requiredChecks);
   const qualityCommands = listSettingValue(options.qualityCommands ?? options.qualityCommand, settings.qualityCommands);
   const aiProviders = integrationProviderListSetting(
@@ -5288,6 +5308,7 @@ function resolveWorkflowSettings(options = {}, profile = {}, packageJson = readJ
     defaultBranch,
     targetBranch,
     protectedBranches,
+    workBranches,
     requiredChecks,
     qualityCommands,
     aiProviders,
@@ -5368,6 +5389,9 @@ function normalizeSettings(settings = {}) {
     targetBranch: branchSettingValue(settings.targetBranch, settings.defaultBranch ?? DEFAULT_SETTINGS.targetBranch),
     branchStrategy: normalizeBranchStrategySetting(settings.branchStrategy) ?? DEFAULT_SETTINGS.branchStrategy,
     protectedBranches: normalizeListSetting(settings.protectedBranches),
+    workBranches: normalizeListSetting(settings.workBranches).length
+      ? normalizeListSetting(settings.workBranches)
+      : [...DEFAULT_WORK_BRANCHES],
     requiredChecks: normalizeListSetting(settings.requiredChecks),
     qualityCommands: normalizeListSetting(settings.qualityCommands),
     aiProviders: normalizeIntegrationProviderList(settings.aiProviders),
@@ -5379,6 +5403,7 @@ function settingsSummary(settings = {}) {
   const normalized = normalizeSettings(settings);
   return {
     ...normalized,
+    workBranches: normalized.workBranches.length ? normalized.workBranches.join(", ") : DEFAULT_WORK_BRANCHES.join(", "),
     requiredChecks: normalized.requiredChecks.length ? normalized.requiredChecks.join(", ") : "auto",
     qualityCommands: normalized.qualityCommands.length ? normalized.qualityCommands.join(", ") : "auto",
     aiProviders: normalized.aiProviders.length ? normalized.aiProviders.join(", ") : "all"
@@ -5587,6 +5612,20 @@ function hasCodeowners() {
     join("docs", "CODEOWNERS"),
     "CODEOWNERS"
   ]);
+}
+
+function hasSecurityScanningDocumentation() {
+  if (pathExistsAny([
+    join("docs", "security-scanning.md"),
+    join("docs", "security.md"),
+    join(".gitlab", "security-scanning.md")
+  ])) {
+    return true;
+  }
+
+  return fileMatchesAny("SECURITY.md", [/aigate report --format sarif/i, /\bsarif\b/i, /\bgitleaks\b/i, /detect-secrets/i]) ||
+    fileMatchesAny(".gitlab-ci.yml", [/\bgitleaks\b/i, /detect-secrets/i, /aigate report --format sarif/i, /\bsast\b/i]) ||
+    fileMatchesAny(join(".github", "workflows", "scorecard.yml"), [/scorecard/i]);
 }
 
 function hasTestDirectory() {
@@ -6063,7 +6102,7 @@ function buildBranchStrategy(options = {}) {
       branchCount: branchNames.length,
       changedPaths: getChangedPaths().length
     },
-    branches: branchRulesForWorkflow(selectedStrategy, workflow.targetBranch),
+    branches: branchRulesForWorkflow(selectedStrategy, workflow.targetBranch, workflow.workBranches),
     githubProtection: [
       profile.hosting === "gitlab" ? "Require a merge request before merging into main." : "Require pull request before merging into main.",
       "Do not require mandatory approvals by default; enable reviews per repository policy.",
@@ -6088,8 +6127,8 @@ function buildBranchStrategy(options = {}) {
   };
 }
 
-function branchRulesForWorkflow(strategyName, targetBranch = "main") {
-  const branches = branchRulesForStrategy(strategyName);
+function branchRulesForWorkflow(strategyName, targetBranch = "main", workBranches = DEFAULT_WORK_BRANCHES) {
+  const branches = branchRulesForStrategy(strategyName, workBranches);
   const target = String(targetBranch ?? "").trim();
   if (!target || target === "main" || branches.some((branch) => branch.name === target)) {
     return branches;
@@ -6209,14 +6248,11 @@ function hasDevelopWorkflowSignal() {
   });
 }
 
-function branchRulesForStrategy(strategyName) {
-  const commonBranches = [
-    { name: "codex/*", use: "AI-assisted implementation branches" },
-    { name: "feature/*", use: "user-facing feature branches" },
-    { name: "fix/*", use: "bug fix branches" },
-    { name: "docs/*", use: "documentation-only branches" },
-    { name: "chore/*", use: "maintenance and tooling branches" }
-  ];
+function branchRulesForStrategy(strategyName, workBranches = DEFAULT_WORK_BRANCHES) {
+  const commonBranches = normalizeListSetting(workBranches).map((branch) => ({
+    name: branch,
+    use: workBranchDescription(branch)
+  }));
 
   if (strategyName === "Git Flow") {
     return [
@@ -6263,6 +6299,17 @@ function branchRulesForStrategy(strategyName) {
     { name: "release/*", use: "release stabilization" },
     { name: "hotfix/*", use: "urgent stable fixes" }
   ];
+}
+
+function workBranchDescription(branch) {
+  return {
+    "codex/*": "AI-assisted implementation branches",
+    "feature/*": "user-facing feature branches",
+    "feat/*": "short feature branches",
+    "fix/*": "bug fix branches",
+    "docs/*": "documentation-only branches",
+    "chore/*": "maintenance and tooling branches"
+  }[branch] ?? "focused work branches";
 }
 
 function strategyBestFor(strategyName) {
@@ -6334,12 +6381,12 @@ function strategyMigrationSteps(strategyName) {
   return {
     "GitHub Flow with release channels": [
       "Protect main and require AIGate checks before merge.",
-      "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.",
+      "Use feature/*, feat/*, fix/*, docs/*, chore/*, and codex/* for focused work.",
       "Publish npm releases from main tags and use dist-tags for channels."
     ],
     "GitLab Flow with merge requests": [
       "Protect main and require merge requests before merge.",
-      "Use feature/*, fix/*, docs/*, chore/*, and codex/* for focused work.",
+      "Use feature/*, feat/*, fix/*, docs/*, chore/*, and codex/* for focused work.",
       "Run GitLab CI or AIGate local gates before merge."
     ],
     "Trunk-Based Development": [
@@ -6349,12 +6396,12 @@ function strategyMigrationSteps(strategyName) {
     ],
     "Hybrid Flow": [
       "Keep main stable and use develop only for planned integration.",
-      "Use feature/* and codex/* branches for focused work.",
+      "Use feature/*, feat/*, and codex/* branches for focused work.",
       "Create release/* branches for stabilization and hotfix/* for urgent fixes."
     ],
     "Git Flow": [
       "Create develop as the next-release integration branch.",
-      "Route feature/* and codex/* branches into develop.",
+      "Route feature/*, feat/*, and codex/* branches into develop.",
       "Cut release/* from develop, then merge release and hotfix work back to main."
     ]
   }[strategyName] ?? [];
@@ -6759,7 +6806,7 @@ function buildComplianceReport() {
     {
       id: "change-control",
       title: "Change control",
-      pass: evaluation.checks.some((check) => check.name === "Pull request template exists" && checkPassed(check)) &&
+      pass: evaluationHasPassedCheck(evaluation, ["Pull request template exists", "Merge request template exists"]) &&
         evaluation.checks.some((check) => check.name === "CODEOWNERS exists" && checkPassed(check)),
       evidence: "pull request template and CODEOWNERS"
     },
@@ -6923,6 +6970,7 @@ function buildAiReportStrengths({ evaluation, releaseCheck, branchStrategy }, la
     "Contribution guide exists",
     "Issue templates exist",
     "Pull request template exists",
+    "Merge request template exists",
     "AI assistant instructions exist",
     "Test directory exists",
     "Project test command exists",
@@ -6974,9 +7022,9 @@ function buildAiReportDirection({ evaluation, releaseCheck, branchStrategy }, la
     direction.push(aiReportText(privateApp ? "directionRaiseInternalScore" : "directionRaiseScore", language));
   }
 
-  if (privateApp && ["README exists", "Pull request template exists", "CODEOWNERS exists"].some((name) => missingChecks.has(name))) {
+  if (privateApp && ["README exists", "Pull request template exists", "Merge request template exists", "CODEOWNERS exists"].some((name) => missingChecks.has(name))) {
     direction.push(aiReportText("directionInternalWorkflow", language));
-  } else if (!privateApp && ["README exists", "Issue templates exist", "Pull request template exists", "Contribution guide exists"].some((name) => missingChecks.has(name))) {
+  } else if (!privateApp && ["README exists", "Issue templates exist", "Pull request template exists", "Merge request template exists", "Contribution guide exists"].some((name) => missingChecks.has(name))) {
     direction.push(aiReportText("directionOss", language));
   }
 
@@ -7008,7 +7056,7 @@ function buildAiReportCommands({ evaluation, releaseCheck }, language = "en") {
   const missingChecks = new Set(evaluation.checks.filter((check) => checkNeedsAction(check)).map((check) => check.name));
   const commands = [];
 
-  if (["README exists", "Issue templates exist", "Pull request template exists", "Contribution guide exists", "License exists", "Roadmap exists"].some((name) => missingChecks.has(name))) {
+  if (["README exists", "Issue templates exist", "Pull request template exists", "Merge request template exists", "Contribution guide exists", "License exists", "Roadmap exists"].some((name) => missingChecks.has(name))) {
     commands.push(privateApp
       ? aiReportCommand(`aigate start --route default --steps repo-files${profileFlags}`, aiReportText("commandInternalFiles", language))
       : aiReportCommand("aigate start --route oss", aiReportText("commandOss", language)));
@@ -7054,6 +7102,7 @@ function aiReportCommandForEvaluationCheck(name) {
     "Branch strategy is documented": "aigate branch-strategy --apply",
     "Git upload workflow is documented": repoFilesCommand,
     "Pull request template exists": repoFilesCommand,
+    "Merge request template exists": repoFilesCommand,
     "CODEOWNERS exists": `${repoFilesCommand} --owner @your-org/team`,
     "Contribution guide exists": repoFilesCommand,
     "Issue templates exist": repoFilesCommand,
@@ -8280,7 +8329,7 @@ function buildBranchPolicyPacks(strategy, profile = {}) {
         version: 1,
         id: "ai-collaboration",
         strategy: strategy.name,
-        assistantBranches: ["codex/*", "feature/*", "fix/*", "docs/*", "chore/*"],
+        assistantBranches: workflow.workBranches,
         requiredContext: ["README.md", ".aigate.yml", "docs/branch-strategy.md", "docs/git-upload-workflow.md"],
         guardCommands: validationCommands,
         rules: [
@@ -8963,7 +9012,7 @@ function renderStarterContributing(language = "en", validationCommands = ["aigat
       "# 기여 가이드",
       "",
       "1. 이슈를 열어 문제나 제안을 먼저 공유합니다.",
-      "2. `feature/*`, `fix/*`, `docs/*`, `chore/*`, `codex/*` 브랜치를 사용합니다.",
+      "2. `feature/*`, `feat/*`, `fix/*`, `docs/*`, `chore/*`, `codex/*` 브랜치를 사용합니다.",
       "3. 변경 전후에 아래 명령을 실행합니다.",
       "",
       "```sh",
@@ -8981,7 +9030,7 @@ function renderStarterContributing(language = "en", validationCommands = ["aigat
       "# コントリビューションガイド",
       "",
       "1. まず issue で問題や提案を共有します。",
-      "2. `feature/*`, `fix/*`, `docs/*`, `chore/*`, `codex/*` ブランチを使います。",
+      "2. `feature/*`, `feat/*`, `fix/*`, `docs/*`, `chore/*`, `codex/*` ブランチを使います。",
       "3. 変更前後に次を実行します。",
       "",
       "```sh",
@@ -8999,7 +9048,7 @@ function renderStarterContributing(language = "en", validationCommands = ["aigat
       "# 贡献指南",
       "",
       "1. 先通过 issue 分享问题或建议。",
-      "2. 使用 `feature/*`, `fix/*`, `docs/*`, `chore/*`, `codex/*` 分支。",
+      "2. 使用 `feature/*`, `feat/*`, `fix/*`, `docs/*`, `chore/*`, `codex/*` 分支。",
       "3. 在变更前后运行以下命令。",
       "",
       "```sh",
@@ -9016,7 +9065,7 @@ function renderStarterContributing(language = "en", validationCommands = ["aigat
     "# Contributing",
     "",
     "1. Open an issue first for bugs, proposals, or unclear work.",
-    "2. Use `feature/*`, `fix/*`, `docs/*`, `chore/*`, or `codex/*` branches.",
+    "2. Use `feature/*`, `feat/*`, `fix/*`, `docs/*`, `chore/*`, or `codex/*` branches.",
     "3. Run these commands before and after changes.",
     "",
     "```sh",
@@ -9310,6 +9359,7 @@ function buildIntegrationManifest(providers, profile = {}, packageJson = readJso
       defaultBranch: workflow.defaultBranch,
       targetBranch: workflow.targetBranch,
       protectedBranches: effectiveProtectedBranches(branchStrategy, workflow),
+      workBranches: workflow.workBranches,
       distribution: workflow.distribution
     },
     providers,
@@ -9868,10 +9918,7 @@ function renderDefaultConfig(packageJson, options = {}) {
     "  protectedBranches:",
     ...protectedBranches.map((branch) => `    - ${branch}`),
     "  workBranches:",
-    "    - feature/*",
-    "    - fix/*",
-    "    - docs/*",
-    "    - chore/*",
+    ...workflow.workBranches.map((branch) => `    - ${branch}`),
     "",
     "aiIntegrations:",
     "  providers:",
@@ -10129,6 +10176,7 @@ function readAigateConfig(filePath = ".aigate.yml") {
 
   const config = {};
   let section = null;
+  let listKey = null;
 
   for (const rawLine of readFileSync(filePath, "utf8").split(/\r?\n/)) {
     const line = rawLine.replace(/\s+#.*$/, "");
@@ -10139,6 +10187,7 @@ function readAigateConfig(filePath = ".aigate.yml") {
     const topLevelValueMatch = line.match(/^([A-Za-z0-9_-]+):\s*(.*?)\s*$/);
     if (topLevelValueMatch && topLevelValueMatch[2] !== "") {
       section = null;
+      listKey = null;
       config[topLevelValueMatch[1]] = parseYamlScalar(topLevelValueMatch[2]);
       continue;
     }
@@ -10146,7 +10195,17 @@ function readAigateConfig(filePath = ".aigate.yml") {
     const sectionMatch = line.match(/^([A-Za-z0-9_-]+):\s*$/);
     if (sectionMatch) {
       section = sectionMatch[1];
+      listKey = null;
       config[section] ??= {};
+      continue;
+    }
+
+    const listItemMatch = line.match(/^\s{4}-\s*(.*?)\s*$/);
+    if (listItemMatch && section && listKey) {
+      config[section][listKey] ??= [];
+      if (Array.isArray(config[section][listKey])) {
+        config[section][listKey].push(parseYamlScalar(listItemMatch[1]));
+      }
       continue;
     }
 
@@ -10156,6 +10215,13 @@ function readAigateConfig(filePath = ".aigate.yml") {
     }
 
     config[section] ??= {};
+    if (valueMatch[2] === "") {
+      listKey = valueMatch[1];
+      config[section][listKey] = [];
+      continue;
+    }
+
+    listKey = null;
     config[section][valueMatch[1]] = parseYamlScalar(valueMatch[2]);
   }
 
@@ -10193,6 +10259,15 @@ function fileIncludes(filePath, pattern) {
   }
 
   return readFileSync(filePath, "utf8").includes(pattern);
+}
+
+function fileMatchesAny(filePath, patterns) {
+  if (!existsSync(filePath)) {
+    return false;
+  }
+
+  const content = readFileSync(filePath, "utf8");
+  return patterns.some((pattern) => pattern.test(content));
 }
 
 function writeSettings(settings) {
@@ -10884,6 +10959,8 @@ function stripAigatePushOptions(args) {
       arg.startsWith("--distribution=") ||
       arg.startsWith("--target-branch=") ||
       arg.startsWith("--protected-branches=") ||
+      arg.startsWith("--work-branches=") ||
+      arg.startsWith("--work-branch=") ||
       arg.startsWith("--required-checks=") ||
       arg.startsWith("--quality-command=") ||
       arg.startsWith("--providers=") ||
@@ -10917,6 +10994,8 @@ function stripAigatePushOptions(args) {
       arg === "--distribution" ||
       arg === "--target-branch" ||
       arg === "--protected-branches" ||
+      arg === "--work-branches" ||
+      arg === "--work-branch" ||
       arg === "--required-checks" ||
       arg === "--quality-command" ||
       arg === "--providers" ||
@@ -10980,6 +11059,8 @@ function firstPositionalArg(args) {
     "--package-manager",
     "--protected-branches",
     "--protected-branch",
+    "--work-branches",
+    "--work-branch",
     "--prompt-output",
     "--pr",
     "--providers",

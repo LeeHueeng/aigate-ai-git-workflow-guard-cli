@@ -42,6 +42,7 @@ aigate setup \
   --distribution none \
   --target-branch develop \
   --protected-branches main,develop \
+  --work-branches "codex/*,feature/*,feat/*,fix/*,docs/*,chore/*" \
   --required-checks "build,deploy,aigate git-ready" \
   --quality-command "pnpm lint && pnpm build" \
   --providers claude \
@@ -50,9 +51,10 @@ aigate init --force
 aigate integrate --force
 ```
 
-이 설정은 npm 배포 가정을 제거하고, 실제 GitLab check 이름을 사용하며, AI 지침의
-대상 브랜치를 `develop`으로 맞춥니다. `aigate test`도 명시적인 `--command`가
-없으면 설정된 quality command를 기본으로 실행합니다.
+이 설정은 npm 배포 가정을 제거하고, 실제 GitLab check 이름을 사용하며,
+`feature/*`와 `feat/*` 작업 브랜치를 모두 허용합니다. AI 지침의 대상 브랜치는
+`develop`으로 맞추고, `aigate test`도 명시적인 `--command`가 없으면 설정된
+quality command를 기본으로 실행합니다.
 
 ## 저장소에서 첫 실행
 

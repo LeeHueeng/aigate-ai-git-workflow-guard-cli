@@ -25,6 +25,7 @@ release branches and npm dist-tags for package publication.
 | --- | --- |
 | `codex/*` | AI-assisted implementation or repository maintenance. |
 | `feature/*` | User-facing feature work. |
+| `feat/*` | Short feature branch alias used by many teams. |
 | `fix/*` | Bug fixes. |
 | `docs/*` | Documentation-only changes. |
 | `chore/*` | Tooling, metadata, release, or maintenance changes. |
