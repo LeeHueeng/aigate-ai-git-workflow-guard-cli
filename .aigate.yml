@@ -2,7 +2,7 @@ version: 1
 
 project:
   name: AIGate
-  package: "@aigate/cli"
+  package: "aigate-cli"
   defaultBranch: main
   type: package
   hosting: github
@@ -27,7 +27,7 @@ commercialization:
 
 distribution:
   primaryRegistry: npm
-  packageName: "@aigate/cli"
+  packageName: "aigate-cli"
   releaseChannels:
     stable: latest
     candidate: next
@@ -72,13 +72,16 @@ aiIntegrations:
   providers:
     - codex
     - gemini
+    - claude
   generatedFiles:
     - AGENTS.md
     - GEMINI.md
+    - CLAUDE.md
     - .aigate/integrations.json
     - .aigate/integrations/README.md
     - .aigate/integrations/codex.md
     - .aigate/integrations/gemini.md
+    - .aigate/integrations/claude.md
   requiredCommands:
     - npm run ci
     - aigate git-ready
