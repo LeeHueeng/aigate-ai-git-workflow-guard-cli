@@ -26,6 +26,9 @@
 | JSON output example | [en](examples/json-output.md) | [ko](examples/json-output.ko.md) | [ja](examples/json-output.ja.md) | [zh](examples/json-output.zh.md) |
 | Windows smoke test | [en](examples/windows-smoke-test.md) | [ko](examples/windows-smoke-test.ko.md) | [ja](examples/windows-smoke-test.ja.md) | [zh](examples/windows-smoke-test.zh.md) |
 
-可视化 HTML 运维说明可在本地打开:
+可视化 HTML 运维说明将通过 GitHub Pages 发布:
+<https://leehueeng.github.io/aigate-ai-git-workflow-guard-cli/>
+
+各语言 HTML 页面:
 [ko](aigate-overview.ko.html), [en](aigate-overview.en.html),
 [ja](aigate-overview.ja.html), [zh](aigate-overview.zh.html).

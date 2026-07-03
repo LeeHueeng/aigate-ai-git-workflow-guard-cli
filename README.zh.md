@@ -4,6 +4,8 @@
 
 [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [中文](README.zh.md)
 
+HTML overview: <https://leehueeng.github.io/aigate-ai-git-workflow-guard-cli/>
+
 AIGate 是面向 AI 辅助开发的 zero-config pre-push safety CLI。它会在变更进入
 remote branch 或 PR review 之前，检查 changed files、secret 风险、仓库准备度、
 PR 风险和 branch strategy。

@@ -4,6 +4,8 @@ AI が生成した危険な Git 変更を push 前に止める CLI です。
 
 [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [中文](README.zh.md)
 
+HTML overview: <https://leehueeng.github.io/aigate-ai-git-workflow-guard-cli/>
+
 AIGate は、AI コーディング支援を使う開発者向けの zero-config
 pre-push safety CLI です。変更ファイル、secret リスク、リポジトリの
 準備状況、PR リスク、ブランチ戦略を、remote branch や PR review に

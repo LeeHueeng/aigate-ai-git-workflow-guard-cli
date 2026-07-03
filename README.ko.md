@@ -4,6 +4,8 @@
 
 [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [中文](README.zh.md)
 
+HTML 개요: <https://leehueeng.github.io/aigate-ai-git-workflow-guard-cli/>
+
 AIGate는 AI 코딩 도구와 함께 개발할 때 로컬 변경 파일, secret 위험,
 저장소 준비 상태, PR 위험도, 브랜치 전략을 `git push` 전에 확인하는
 zero-config pre-push safety CLI입니다.

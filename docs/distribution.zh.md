@@ -14,6 +14,7 @@ AIGate 通过 npm、GHCR Docker image、Homebrew tap 和可复用 GitHub Action
 | Docker/GHCR | `ghcr.io/leehueeng/aigate-cli:0.1.6` 和 `latest` 已发布 |
 | Homebrew | `brew install LeeHueeng/tap/aigate-cli` |
 | GitHub Action | 可通过 `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` 使用，Marketplace 展示需在 release 页面手动确认 |
+| GitHub Pages | <https://leehueeng.github.io/aigate-ai-git-workflow-guard-cli/> |
 
 ## npm
 
