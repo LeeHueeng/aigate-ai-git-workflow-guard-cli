@@ -234,6 +234,10 @@ aigate integrate all --output-dir . --force
 AI 指令文件即使使用 `--force` 也会被保护。只有确实要替换时才使用
 `--overwrite-ai-files`。
 
+项目评估会接受根目录 `AGENTS.md`、`GEMINI.md`、`CLAUDE.md`，或已生成的
+`.aigate/integrations/*` 指令文件。因此只使用 Claude 的团队不需要为了分数额外添加
+`AGENTS.md`。
+
 团队策略可以保存到设置中:
 
 ```sh

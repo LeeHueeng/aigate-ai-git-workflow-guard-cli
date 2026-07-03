@@ -244,6 +244,10 @@ when the existing file is AIGate-owned. Existing project-owned AI files are
 protected even with `--force`; use `--overwrite-ai-files` only when you really
 want to replace them.
 
+Project evaluation accepts any root `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`, or
+generated `.aigate/integrations/*` instruction file, so Claude-only teams do
+not need to add `AGENTS.md` just for scoring.
+
 Persist the policy with settings:
 
 ```sh

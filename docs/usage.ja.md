@@ -242,6 +242,10 @@ aigate integrate all --output-dir . --force
 `--force` でも保護されます。本当に置き換える場合のみ `--overwrite-ai-files` を
 使ってください。
 
+プロジェクト評価では、root の `AGENTS.md`、`GEMINI.md`、`CLAUDE.md`、または生成済み
+`.aigate/integrations/*` 指示ファイルのいずれかを AI 指示として認めます。Claude
+だけを使うチームが点数のために `AGENTS.md` を追加する必要はありません。
+
 チーム方針は設定として保存できます:
 
 ```sh

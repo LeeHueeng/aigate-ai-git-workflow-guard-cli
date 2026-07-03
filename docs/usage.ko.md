@@ -240,6 +240,10 @@ aigate integrate all --output-dir . --force
 프로젝트가 원래 갖고 있던 AI 지침 파일은 `--force`를 써도 보호됩니다. 정말
 교체해야 할 때만 `--overwrite-ai-files`를 사용하세요.
 
+프로젝트 평가는 루트 `AGENTS.md`, `GEMINI.md`, `CLAUDE.md` 또는 생성된
+`.aigate/integrations/*` 지침 파일 중 하나만 있어도 AI 지침으로 인정합니다.
+따라서 Claude만 쓰는 팀이 점수 때문에 `AGENTS.md`를 추가할 필요는 없습니다.
+
 팀 정책은 설정으로 저장할 수 있습니다:
 
 ```sh

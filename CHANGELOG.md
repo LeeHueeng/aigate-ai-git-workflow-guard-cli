@@ -20,6 +20,9 @@ All notable changes to AIGate are documented here.
 - Aligned GitLab project scoring with merge request templates, `.gitlab`
   CODEOWNERS, and existing security scan documentation in `SECURITY.md` or
   GitLab CI.
+- Treats `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`, or generated
+  `.aigate/integrations/*` files as valid AI assistant instructions instead of
+  requiring a Codex-style root `AGENTS.md`.
 - Updated usage and HTML overview docs in English, Korean, Japanese, and
   Chinese for stale generated profile behavior.
 

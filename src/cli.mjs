@@ -5122,7 +5122,7 @@ function buildEvaluation(options = {}) {
       applicable: profile.visibility !== "private" || hasIssueTemplates(profile),
       reason: publicOnlyReason
     }),
-    check("pr_quality", "AI assistant instructions exist", existsSync("AGENTS.md") && (existsSync("GEMINI.md") || existsSync("CLAUDE.md"))),
+    check("pr_quality", "AI assistant instructions exist", hasAiAssistantInstructions()),
     check("testing", "Test directory exists", hasTestDirectory()),
     check("testing", "Project test command exists", hasTestScript(packageJson)),
     check("testing", "CI gate script exists", hasCiGateScript(packageJson)),
@@ -5611,6 +5611,17 @@ function hasCodeowners() {
     join(".gitlab", "CODEOWNERS"),
     join("docs", "CODEOWNERS"),
     "CODEOWNERS"
+  ]);
+}
+
+function hasAiAssistantInstructions() {
+  return pathExistsAny([
+    "AGENTS.md",
+    "GEMINI.md",
+    "CLAUDE.md",
+    join(".aigate", "integrations", "codex.md"),
+    join(".aigate", "integrations", "gemini.md"),
+    join(".aigate", "integrations", "claude.md")
   ]);
 }
 

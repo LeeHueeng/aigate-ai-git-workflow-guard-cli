@@ -1831,6 +1831,20 @@ test("scores GitLab MR templates and security policy scanning docs without GitHu
   assert.ok(output.score >= 90);
 });
 
+test("scores Claude-only AI instructions without requiring AGENTS", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  rmSync(join(projectDir, "AGENTS.md"));
+  rmSync(join(projectDir, "GEMINI.md"));
+  writeFileSync(join(projectDir, "CLAUDE.md"), "# Claude Project Rules\n", "utf8");
+
+  const result = run(["evaluate-project", "--format", "json"], { cwd: projectDir });
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+
+  assert.equal(output.checks.find((check) => check.name === "AI assistant instructions exist")?.pass, true);
+  assert.ok(output.score >= 90);
+});
+
 test("scores pnpm turbo workspace tests as a project test command", () => {
   const projectDir = createPrivateGitLabPnpmWorkspaceApp();
   const result = run(["evaluate-project", "--format", "json"], { cwd: projectDir });
