@@ -236,9 +236,29 @@ aigate integrate claude
 aigate integrate all --output-dir . --force
 ```
 
-The command creates `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`, and
-`.aigate/integrations/*`. Those files tell Codex, Gemini, and Claude Code to
-use scoped branches, validation commands, and `aigate push`.
+The command always writes `.aigate/integrations/*`. It creates root
+`AGENTS.md`, `GEMINI.md`, or `CLAUDE.md` only when they do not already exist, or
+when the existing file is AIGate-owned. Existing project-owned AI files are
+protected even with `--force`; use `--overwrite-ai-files` only when you really
+want to replace them.
+
+Persist the policy with settings:
+
+```sh
+aigate setup --ai-root-files protect
+aigate setup --ai-root-files sidecar
+aigate setup --ai-root-files overwrite
+```
+
+`protect` is the default, `sidecar` writes only `.aigate/integrations/*`, and
+`overwrite` allows root AI files to be replaced when `--force` is used.
+
+For GitLab repositories that previously generated GitHub helper templates, clean
+them explicitly:
+
+```sh
+aigate clean --github-files --force
+```
 
 ## Branch Strategy And Releases
 

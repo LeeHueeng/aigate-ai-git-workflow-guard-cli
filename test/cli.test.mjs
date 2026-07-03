@@ -371,6 +371,30 @@ test("cleans generated AIGate state only with force", () => {
   assert.equal(existsSync(join(outputDir, ".aigate", "generated-branch-strategy.md")), false);
 });
 
+test("cleans generated GitHub helper files only when requested", () => {
+  const outputDir = createOutputDir();
+  mkdirSync(join(outputDir, ".github", "ISSUE_TEMPLATE"), { recursive: true });
+  mkdirSync(join(outputDir, ".github", "DISCUSSION_TEMPLATE"), { recursive: true });
+  writeFileSync(join(outputDir, ".github", "ISSUE_TEMPLATE", "bug_report.yml"), "name: Bug\n", "utf8");
+  writeFileSync(join(outputDir, ".github", "DISCUSSION_TEMPLATE", "ideas.yml"), "title: Idea\n", "utf8");
+  writeFileSync(join(outputDir, ".github", "pull_request_template.md"), "## Summary\n", "utf8");
+  writeFileSync(join(outputDir, ".github", "CODEOWNERS"), "* @team\n", "utf8");
+
+  const defaultClean = run(["clean", "--output-dir", outputDir, "--force", "--format", "json"]);
+  assert.equal(defaultClean.status, 0);
+  assert.ok(existsSync(join(outputDir, ".github", "pull_request_template.md")));
+
+  const githubClean = run(["clean", "--github-files", "--output-dir", outputDir, "--force", "--format", "json"]);
+  assert.equal(githubClean.status, 0);
+  const output = JSON.parse(githubClean.stdout);
+
+  assert.ok(output.targets.some((target) => target.path.endsWith(".github/ISSUE_TEMPLATE") && target.action === "deleted"));
+  assert.equal(existsSync(join(outputDir, ".github", "ISSUE_TEMPLATE")), false);
+  assert.equal(existsSync(join(outputDir, ".github", "DISCUSSION_TEMPLATE")), false);
+  assert.equal(existsSync(join(outputDir, ".github", "pull_request_template.md")), false);
+  assert.equal(existsSync(join(outputDir, ".github", "CODEOWNERS")), false);
+});
+
 test("prints check output as json", () => {
   const result = run(["check", "--format", "json"]);
 
@@ -710,6 +734,7 @@ test("configures team workflow settings for private GitLab pnpm apps", () => {
   assert.deepEqual(settings.requiredChecks, ["build", "deploy", "aigate git-ready"]);
   assert.deepEqual(settings.qualityCommands, ["pnpm lint && pnpm build"]);
   assert.deepEqual(settings.aiProviders, ["claude"]);
+  assert.equal(settings.aiRootFiles, "protect");
   assert.equal(settings.branchStrategy, "Git Flow");
 
   const init = run(["init", "--force", "--format", "json"], { cwd: projectDir, settingsPath });
@@ -732,16 +757,46 @@ test("configures team workflow settings for private GitLab pnpm apps", () => {
   const output = JSON.parse(integrate.stdout);
   const manifest = JSON.parse(readFileSync(join(projectDir, ".aigate", "integrations.json"), "utf8"));
   const claude = readFileSync(join(projectDir, "CLAUDE.md"), "utf8");
+  const claudeSidecar = readFileSync(join(projectDir, ".aigate", "integrations", "claude.md"), "utf8");
 
   assert.deepEqual(output.providers, ["claude"]);
+  assert.equal(output.files.find((file) => file.path.endsWith("CLAUDE.md"))?.action, "protected");
   assert.deepEqual(manifest.providers, ["claude"]);
   assert.equal(manifest.workflow.targetBranch, "develop");
   assert.equal(manifest.workflow.distribution, "none");
   assert.deepEqual(manifest.requiredChecks, ["build", "deploy", "aigate git-ready"]);
   assert.ok(manifest.validationCommands.includes("pnpm lint && pnpm build"));
-  assert.match(claude, /대상은 `develop`입니다\.|Target `develop`\./);
-  assert.match(claude, /pnpm lint && pnpm build/);
+  assert.match(claude, /Use glab mr create --target-branch develop/);
+  assert.match(claudeSidecar, /Target `develop`\./);
+  assert.match(claudeSidecar, /pnpm lint && pnpm build/);
   assert.doesNotMatch(JSON.stringify(manifest), /test \(20\)|npm run ci/);
+});
+
+test("configures root AI file handling from settings", () => {
+  const outputDir = createOutputDir();
+  const settingsPath = createSettingsPath();
+
+  const setup = run([
+    "setup",
+    "--providers",
+    "claude",
+    "--ai-root-files",
+    "sidecar",
+    "--format",
+    "json"
+  ], { cwd: outputDir, settingsPath });
+  assert.equal(setup.status, 0);
+  assert.equal(JSON.parse(setup.stdout).settings.aiRootFiles, "sidecar");
+
+  const integrate = run(["integrate", "--force", "--format", "json"], { cwd: outputDir, settingsPath });
+  assert.equal(integrate.status, 0);
+  const output = JSON.parse(integrate.stdout);
+
+  assert.equal(output.aiRootFiles, "sidecar");
+  assert.deepEqual(output.providers, ["claude"]);
+  assert.equal(output.files.some((file) => file.path.endsWith("CLAUDE.md")), false);
+  assert.equal(existsSync(join(outputDir, "CLAUDE.md")), false);
+  assert.ok(existsSync(join(outputDir, ".aigate", "integrations", "claude.md")));
 });
 
 test("rejects unsupported language", () => {
@@ -799,9 +854,11 @@ test("generates profile-aware GitLab AI integration files", () => {
   assert.doesNotMatch(JSON.stringify(manifest), /test \(20\)/);
 
   const agents = readFileSync(join(projectDir, "AGENTS.md"), "utf8");
-  assert.match(agents, /pnpm run ci/);
-  assert.match(agents, /GitLab CI pipeline/);
-  assert.doesNotMatch(agents, /test \(20\)|`npm run ci`/);
+  const codexSidecar = readFileSync(join(projectDir, ".aigate", "integrations", "codex.md"), "utf8");
+  assert.equal(agents, "# Agents\n");
+  assert.match(codexSidecar, /pnpm run ci/);
+  assert.match(codexSidecar, /GitLab CI pipeline/);
+  assert.doesNotMatch(codexSidecar, /test \(20\)|`npm run ci`/);
 });
 
 test("generates Claude Code integration instructions", () => {
@@ -847,6 +904,33 @@ test("skips integration files unless force is used", () => {
   const forced = run(["integrate", "codex", "--output-dir", outputDir, "--force"]);
   assert.equal(forced.status, 0);
   assert.match(forced.stdout, /updated/);
+});
+
+test("protects project-owned root AI files unless overwrite is explicit", () => {
+  const outputDir = createOutputDir();
+  writeFileSync(join(outputDir, "CLAUDE.md"), "# Project Claude Rules\nKeep domain-specific rules.\n", "utf8");
+
+  const protectedRun = run(["integrate", "claude", "--output-dir", outputDir, "--force", "--format", "json"]);
+  assert.equal(protectedRun.status, 0);
+  const protectedOutput = JSON.parse(protectedRun.stdout);
+  assert.equal(protectedOutput.files.find((file) => file.path.endsWith("CLAUDE.md"))?.action, "protected");
+  assert.match(readFileSync(join(outputDir, "CLAUDE.md"), "utf8"), /Project Claude Rules/);
+  assert.match(readFileSync(join(outputDir, ".aigate", "integrations", "claude.md"), "utf8"), /# Claude Code Integration/);
+
+  const overwrittenRun = run([
+    "integrate",
+    "claude",
+    "--output-dir",
+    outputDir,
+    "--force",
+    "--overwrite-ai-files",
+    "--format",
+    "json"
+  ]);
+  assert.equal(overwrittenRun.status, 0);
+  const overwrittenOutput = JSON.parse(overwrittenRun.stdout);
+  assert.equal(overwrittenOutput.files.find((file) => file.path.endsWith("CLAUDE.md"))?.action, "updated");
+  assert.match(readFileSync(join(outputDir, "CLAUDE.md"), "utf8"), /# AIGate Claude Code Instructions/);
 });
 
 test("rejects unsupported integration providers", () => {

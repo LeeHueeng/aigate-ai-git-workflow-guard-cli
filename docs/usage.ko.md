@@ -233,9 +233,28 @@ aigate integrate claude
 aigate integrate all --output-dir . --force
 ```
 
-이 명령은 `AGENTS.md`, `GEMINI.md`, `CLAUDE.md`,
-`.aigate/integrations/*`를 생성합니다. Codex, Gemini, Claude Code가 범위가
-명확한 브랜치, 검증 명령, `aigate push` 규칙을 따르도록 안내합니다.
+이 명령은 항상 `.aigate/integrations/*`를 생성합니다. 루트의 `AGENTS.md`,
+`GEMINI.md`, `CLAUDE.md`는 없거나 AIGate가 만든 파일일 때만 생성/갱신합니다.
+프로젝트가 원래 갖고 있던 AI 지침 파일은 `--force`를 써도 보호됩니다. 정말
+교체해야 할 때만 `--overwrite-ai-files`를 사용하세요.
+
+팀 정책은 설정으로 저장할 수 있습니다:
+
+```sh
+aigate setup --ai-root-files protect
+aigate setup --ai-root-files sidecar
+aigate setup --ai-root-files overwrite
+```
+
+`protect`가 기본값이고, `sidecar`는 `.aigate/integrations/*`만 생성하며,
+`overwrite`는 `--force`를 쓸 때 루트 AI 파일 교체를 허용합니다.
+
+GitLab 저장소에 예전에 생성된 GitHub 보조 템플릿이 남아 있으면 명시적으로
+정리합니다:
+
+```sh
+aigate clean --github-files --force
+```
 
 ## 브랜치 전략과 릴리스
 

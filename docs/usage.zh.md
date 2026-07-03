@@ -228,9 +228,27 @@ aigate integrate claude
 aigate integrate all --output-dir . --force
 ```
 
-该命令会创建 `AGENTS.md`、`GEMINI.md`、`CLAUDE.md` 和
-`.aigate/integrations/*`。这些文件会告诉 Codex、Gemini、Claude Code 使用
-范围明确的 branch、validation commands 和 `aigate push`。
+此命令始终写入 `.aigate/integrations/*`。根目录的 `AGENTS.md`、`GEMINI.md`、
+`CLAUDE.md` 只有在不存在，或现有文件由 AIGate 生成时才会创建/更新。项目原有的
+AI 指令文件即使使用 `--force` 也会被保护。只有确实要替换时才使用
+`--overwrite-ai-files`。
+
+团队策略可以保存到设置中:
+
+```sh
+aigate setup --ai-root-files protect
+aigate setup --ai-root-files sidecar
+aigate setup --ai-root-files overwrite
+```
+
+`protect` 是默认值，`sidecar` 只写入 `.aigate/integrations/*`，
+`overwrite` 允许在使用 `--force` 时替换根目录 AI 文件。
+
+如果 GitLab 仓库里还留有之前生成的 GitHub helper 模板，请显式清理:
+
+```sh
+aigate clean --github-files --force
+```
 
 ## 分支策略和发布
 

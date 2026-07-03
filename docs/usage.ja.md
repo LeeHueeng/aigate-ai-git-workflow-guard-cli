@@ -234,9 +234,29 @@ aigate integrate claude
 aigate integrate all --output-dir . --force
 ```
 
-このコマンドは `AGENTS.md`、`GEMINI.md`、`CLAUDE.md`、
-`.aigate/integrations/*` を作成します。Codex、Gemini、Claude Code に、
-範囲の明確な branch、validation command、`aigate push` のルールを伝えます。
+このコマンドは常に `.aigate/integrations/*` を生成します。root の
+`AGENTS.md`、`GEMINI.md`、`CLAUDE.md` は、存在しない場合、または AIGate が生成
+したファイルの場合だけ作成/更新します。プロジェクト既存の AI 指示ファイルは
+`--force` でも保護されます。本当に置き換える場合のみ `--overwrite-ai-files` を
+使ってください。
+
+チーム方針は設定として保存できます:
+
+```sh
+aigate setup --ai-root-files protect
+aigate setup --ai-root-files sidecar
+aigate setup --ai-root-files overwrite
+```
+
+`protect` がデフォルトです。`sidecar` は `.aigate/integrations/*` のみを書き、
+`overwrite` は `--force` 使用時に root AI ファイルの置き換えを許可します。
+
+GitLab repository に過去生成された GitHub helper template が残っている場合は、
+明示的に削除します:
+
+```sh
+aigate clean --github-files --force
+```
 
 ## ブランチ戦略とリリース
 

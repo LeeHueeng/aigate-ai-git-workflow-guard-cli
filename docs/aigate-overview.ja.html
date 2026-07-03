@@ -542,6 +542,9 @@ aigate pr-check</code></pre>
       <div>
         <p class="kicker">コマンド例</p>
         <pre><code>aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm
+aigate setup --ai-root-files sidecar
+aigate integrate claude --force
+aigate clean --github-files --force
 aigate test
 aigate evaluate-project</code></pre>
       </div>
@@ -750,6 +753,10 @@ aigate uninstall --force</code></pre>
     <td>生成済み AIGate レポートとローカル状態を削除します。</td>
     <td>レポートと generated state を空にするとき</td>
   </tr><tr>
+    <td><code>aigate clean --github-files --force</code></td>
+    <td>実際の運用が GitLab の場合に、残っている GitHub 補助テンプレートを削除します。</td>
+    <td>GitLab project から古い GitHub 生成物を整理するとき</td>
+  </tr><tr>
     <td><code>aigate uninstall --force</code></td>
     <td>AIGate 設定、.aigate ディレクトリ、AIGate 所有 hook を削除します。</td>
     <td>プロジェクトから AIGate を外すとき</td>
@@ -878,6 +885,10 @@ aigate uninstall --force</code></pre>
     <td>Codex、Gemini、Claude Code 統合ファイルを生成します。</td>
     <td>AI assistant の規則をそろえるとき</td>
   </tr><tr>
+    <td><code>aigate setup --ai-root-files sidecar</code></td>
+    <td>integrate が .aigate/integrations/* だけを書くように root AI ファイル処理を保存します。</td>
+    <td>プロジェクト固有の AGENTS/GEMINI/CLAUDE ファイルを保護するとき</td>
+  </tr><tr>
     <td><code>aigate release-check</code></td>
     <td>パッケージ、workflow、tag の準備状態を確認します。</td>
     <td>リリース tag 作成前</td>
@@ -944,7 +955,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">機能</p>
         <h2>現在実装済みの機能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">aigate start によるガイド付き開始ルート</div><div class="feature done">aigate start --route default による段階的なデフォルト設定</div><div class="feature done">aigate reset、clean、uninstall による初期化と削除コマンド</div><div class="feature done">aigate start --route oss によるオープンソース初期ファイル生成</div><div class="feature done">aigate test による turbo 実行環境を確認した root/workspace プロジェクトテスト自動化</div><div class="feature done">pnpm-workspace.yaml、package.json workspaces、apps/*、packages/* test detection と切り替え</div><div class="feature done">aigate ai report による AI プロジェクト状態ブリーフ</div><div class="feature done">aigate aitest による AI 修正プロンプト、リアルタイム agent ログ、任意の agent 実行</div><div class="feature done">doctor、demo、install-hook による初回実行 UX</div><div class="feature done">doctor による generatedBy version drift warning と gate 実行時の古い profile 無視</div><div class="feature done">pre-push Git hook のインストール</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">GitHub PR comment と GitHub Checks summary payload</div><div class="feature done">PR テンプレートと CODEOWNERS のガイド付き設定</div><div class="feature done">再利用可能な公開 GitHub Action</div><div class="feature done">プロジェクト状態トレンド履歴</div><div class="feature done">private app、GitLab、pnpm、develop 対象、Claude 中心チーム向けの profile と workflow 設定固定</div><div class="feature done">doctor、AI 指示、branch strategy policy pack 全体の GitHub/GitLab profile 整合性</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">コンプライアンスレポートとローカル HTML ヘルスダッシュボード</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦、提案比較、ポリシーパック生成</div><div class="feature done">Codex/Gemini/Claude Code 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と app profile 対応 release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow と Homebrew formula draft</div></div>
+      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">aigate start によるガイド付き開始ルート</div><div class="feature done">aigate start --route default による段階的なデフォルト設定</div><div class="feature done">aigate reset、clean、uninstall による初期化と削除コマンド</div><div class="feature done">aigate start --route oss によるオープンソース初期ファイル生成</div><div class="feature done">aigate test による turbo 実行環境を確認した root/workspace プロジェクトテスト自動化</div><div class="feature done">pnpm-workspace.yaml、package.json workspaces、apps/*、packages/* test detection と切り替え</div><div class="feature done">aigate ai report による AI プロジェクト状態ブリーフ</div><div class="feature done">aigate aitest による AI 修正プロンプト、リアルタイム agent ログ、任意の agent 実行</div><div class="feature done">doctor、demo、install-hook による初回実行 UX</div><div class="feature done">doctor による generatedBy version drift warning と gate 実行時の古い profile 無視</div><div class="feature done">pre-push Git hook のインストール</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">GitHub PR comment と GitHub Checks summary payload</div><div class="feature done">PR テンプレートと CODEOWNERS のガイド付き設定</div><div class="feature done">再利用可能な公開 GitHub Action</div><div class="feature done">プロジェクト状態トレンド履歴</div><div class="feature done">private app、GitLab、pnpm、develop 対象、Claude 中心チーム向けの profile と workflow 設定固定</div><div class="feature done">doctor、AI 指示、branch strategy policy pack 全体の GitHub/GitLab profile 整合性</div><div class="feature done">root AI 指示ファイルの保護、sidecar 専用、上書きポリシー設定</div><div class="feature done">GitLab repository 向け GitHub 補助生成物の明示的な整理</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">コンプライアンスレポートとローカル HTML ヘルスダッシュボード</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦、提案比較、ポリシーパック生成</div><div class="feature done">Codex/Gemini/Claude Code 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と app profile 対応 release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker publish workflow と Homebrew formula draft</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">

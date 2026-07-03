@@ -9,6 +9,12 @@ All notable changes to AIGate are documented here.
 - Added workflow settings for private GitLab/pnpm teams, including distribution
   mode, target branch, protected branches, required checks, quality command,
   default AI providers, and pinned branch strategy.
+- Protects existing root AI instruction files during `aigate integrate --force`;
+  AIGate sidecar instructions are still regenerated under `.aigate/integrations/`.
+- Added `aigate setup --ai-root-files <protect|sidecar|overwrite>` so teams can
+  persist whether root AI instruction files are protected, skipped, or replaced.
+- Added `aigate clean --github-files --force` for removing generated GitHub
+  helper templates from GitLab repositories.
 - Updated usage and HTML overview docs in English, Korean, Japanese, and
   Chinese for stale generated profile behavior.
 

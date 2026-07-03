@@ -16,6 +16,7 @@ const SUPPORTED_LANGUAGES = ["en", "ko", "ja", "zh"];
 const SUPPORTED_INTEGRATIONS = ["codex", "gemini", "claude"];
 const START_ROUTE_IDS = ["default", "quickstart", "oss", "ai", "hook", "release", "full"];
 const AI_TEST_PROVIDERS = ["codex", "claude", "gemini"];
+const AI_ROOT_FILE_MODES = ["protect", "sidecar", "overwrite"];
 const AIGATE_HOOK_MARKER = "AIGate pre-push hook";
 const DEFAULT_SETTINGS = {
   version: 1,
@@ -31,7 +32,8 @@ const DEFAULT_SETTINGS = {
   protectedBranches: [],
   requiredChecks: [],
   qualityCommands: [],
-  aiProviders: []
+  aiProviders: [],
+  aiRootFiles: "protect"
 };
 const MAX_SECRET_SCAN_BYTES = 250_000;
 const SECRET_PATTERNS = [
@@ -131,7 +133,7 @@ const I18N = {
     "settings.file": "Settings file: {path}",
     "settings.profile": "Project profile: type={type}, hosting={hosting}, ci={ciProvider}, package manager={packageManager}",
     "settings.title": "AIGate settings",
-    "settings.workflow": "Workflow: distribution={distribution}, target={targetBranch}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}",
+    "settings.workflow": "Workflow: distribution={distribution}, target={targetBranch}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}, root AI files={aiRootFiles}",
     "trends.unknownAction": "Unknown trends action: {action}",
     "unknownCommand": "Unknown command: {command}",
     "runHelp": "Run `aigate --help` for available commands.",
@@ -228,7 +230,7 @@ const I18N = {
     "settings.file": "설정 파일: {path}",
     "settings.profile": "프로젝트 프로필: 유형={type}, 호스팅={hosting}, CI={ciProvider}, 패키지 매니저={packageManager}",
     "settings.title": "AIGate 설정",
-    "settings.workflow": "워크플로: 배포={distribution}, 대상={targetBranch}, 체크={requiredChecks}, 명령={qualityCommands}, AI={aiProviders}",
+    "settings.workflow": "워크플로: 배포={distribution}, 대상={targetBranch}, 체크={requiredChecks}, 명령={qualityCommands}, AI={aiProviders}, 루트 AI 파일={aiRootFiles}",
     "trends.unknownAction": "알 수 없는 추세 작업: {action}",
     "unknownCommand": "알 수 없는 명령어: {command}",
     "runHelp": "사용 가능한 명령어는 `aigate --help`로 확인하세요.",
@@ -325,7 +327,7 @@ const I18N = {
     "settings.file": "設定ファイル: {path}",
     "settings.profile": "プロジェクトプロファイル: 種別={type}, hosting={hosting}, CI={ciProvider}, package manager={packageManager}",
     "settings.title": "AIGate 設定",
-    "settings.workflow": "ワークフロー: distribution={distribution}, target={targetBranch}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}",
+    "settings.workflow": "ワークフロー: distribution={distribution}, target={targetBranch}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}, ルートAIファイル={aiRootFiles}",
     "trends.unknownAction": "不明なトレンドアクション: {action}",
     "unknownCommand": "不明なコマンド: {command}",
     "runHelp": "利用可能なコマンドは `aigate --help` で確認してください。",
@@ -422,7 +424,7 @@ const I18N = {
     "settings.file": "设置文件: {path}",
     "settings.profile": "项目配置: 类型={type}, 托管={hosting}, CI={ciProvider}, 包管理器={packageManager}",
     "settings.title": "AIGate 设置",
-    "settings.workflow": "工作流: distribution={distribution}, target={targetBranch}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}",
+    "settings.workflow": "工作流: distribution={distribution}, target={targetBranch}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}, 根 AI 文件={aiRootFiles}",
     "trends.unknownAction": "未知趋势操作: {action}",
     "unknownCommand": "未知命令: {command}",
     "runHelp": "运行 `aigate --help` 查看可用命令。",
@@ -1097,6 +1099,7 @@ const HELP_CONTENT = {
       ["--required-checks <list>", "Set required CI/check names, comma-separated."],
       ["--quality-command <shell>", "Set the primary local quality command."],
       ["--providers <list>", "Set default AI integration providers, comma-separated."],
+      ["--ai-root-files <protect|sidecar|overwrite>", "Set how integrate handles root AGENTS/GEMINI/CLAUDE files."],
       ["--branch-strategy <name>", "Pin branch strategy: github-flow, gitlab-flow, trunk, hybrid, or git-flow."],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, or all."],
       ["--script <name>", "npm script name for aigate test or aitest."],
@@ -1105,6 +1108,8 @@ const HELP_CONTENT = {
       ["--prompt-output <path>", "Write the AI report handoff prompt to a custom path."],
       ["--pre-push", "Install or target the pre-push Git hook."],
       ["--include-ai-files", "Also target generated AGENTS/GEMINI/CLAUDE files for uninstall."],
+      ["--overwrite-ai-files", "Allow integrate --force to overwrite existing root AGENTS/GEMINI/CLAUDE files."],
+      ["--github-files", "Also target generated GitHub helper templates during clean."],
       ["--language <en|ko|ja|zh>", "Select output language."],
       ["--output-dir <path>", "Select integration output directory."],
       ["--force", "Overwrite generated integration files."],
@@ -1194,6 +1199,7 @@ const HELP_CONTENT = {
       ["--required-checks <list>", "필수 CI/check 이름을 쉼표로 지정합니다."],
       ["--quality-command <shell>", "기본 로컬 품질 검증 명령을 지정합니다."],
       ["--providers <list>", "기본 AI 연동 provider를 쉼표로 지정합니다."],
+      ["--ai-root-files <protect|sidecar|overwrite>", "integrate가 루트 AGENTS/GEMINI/CLAUDE 파일을 다루는 방식을 지정합니다."],
       ["--branch-strategy <name>", "브랜치 전략을 고정합니다: github-flow, gitlab-flow, trunk, hybrid, git-flow."],
       ["--provider <name>", "AI 제공자입니다: auto, codex, claude, gemini, all."],
       ["--script <name>", "aigate test 또는 aitest에서 사용할 npm script 이름입니다."],
@@ -1202,6 +1208,8 @@ const HELP_CONTENT = {
       ["--prompt-output <path>", "AI report 전달 프롬프트를 지정한 경로에 저장합니다."],
       ["--pre-push", "pre-push Git hook을 설치하거나 대상으로 지정합니다."],
       ["--include-ai-files", "uninstall에서 생성된 AGENTS/GEMINI/CLAUDE 파일도 대상으로 포함합니다."],
+      ["--overwrite-ai-files", "integrate --force가 기존 루트 AGENTS/GEMINI/CLAUDE 파일을 덮어쓸 수 있게 합니다."],
+      ["--github-files", "clean에서 생성된 GitHub 보조 템플릿도 대상으로 포함합니다."],
       ["--language <en|ko|ja|zh>", "출력 언어를 선택합니다."],
       ["--output-dir <path>", "연동 파일 출력 디렉터리를 선택합니다."],
       ["--force", "생성된 연동 파일을 덮어씁니다."],
@@ -1291,6 +1299,7 @@ const HELP_CONTENT = {
       ["--required-checks <list>", "必須 CI/check 名をカンマ区切りで指定します。"],
       ["--quality-command <shell>", "主要なローカル品質チェックコマンドを指定します。"],
       ["--providers <list>", "デフォルト AI 連携 provider をカンマ区切りで指定します。"],
+      ["--ai-root-files <protect|sidecar|overwrite>", "integrate が root の AGENTS/GEMINI/CLAUDE ファイルを扱う方法を指定します。"],
       ["--branch-strategy <name>", "ブランチ戦略を固定します: github-flow, gitlab-flow, trunk, hybrid, git-flow。"],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
       ["--script <name>", "aigate test または aitest で使う npm script 名です。"],
@@ -1299,6 +1308,8 @@ const HELP_CONTENT = {
       ["--prompt-output <path>", "AI report 引き継ぎプロンプトを指定パスへ保存します。"],
       ["--pre-push", "pre-push Git hook をインストールまたは対象にします。"],
       ["--include-ai-files", "uninstall で生成済み AGENTS/GEMINI/CLAUDE ファイルも対象にします。"],
+      ["--overwrite-ai-files", "integrate --force が既存 root AGENTS/GEMINI/CLAUDE files を上書きできるようにします。"],
+      ["--github-files", "clean で生成済み GitHub helper template も対象にします。"],
       ["--language <en|ko|ja|zh>", "出力言語を選択します。"],
       ["--output-dir <path>", "連携ファイルの出力ディレクトリを選択します。"],
       ["--force", "生成済み連携ファイルを上書きします。"],
@@ -1388,6 +1399,7 @@ const HELP_CONTENT = {
       ["--required-checks <list>", "用逗号指定必需 CI/check 名称。"],
       ["--quality-command <shell>", "设置主要本地质量检查命令。"],
       ["--providers <list>", "用逗号指定默认 AI 集成 provider。"],
+      ["--ai-root-files <protect|sidecar|overwrite>", "设置 integrate 如何处理根目录 AGENTS/GEMINI/CLAUDE 文件。"],
       ["--branch-strategy <name>", "固定分支策略: github-flow, gitlab-flow, trunk, hybrid, git-flow。"],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
       ["--script <name>", "aigate test 或 aitest 使用的 npm script 名称。"],
@@ -1396,6 +1408,8 @@ const HELP_CONTENT = {
       ["--prompt-output <path>", "将 AI report 交接提示写入指定路径。"],
       ["--pre-push", "安装或指定 pre-push Git hook。"],
       ["--include-ai-files", "uninstall 时也包含生成的 AGENTS/GEMINI/CLAUDE 文件。"],
+      ["--overwrite-ai-files", "允许 integrate --force 覆盖已有 root AGENTS/GEMINI/CLAUDE 文件。"],
+      ["--github-files", "clean 时也包含生成的 GitHub helper 模板。"],
       ["--language <en|ko|ja|zh>", "选择输出语言。"],
       ["--output-dir <path>", "选择集成输出目录。"],
       ["--force", "覆盖已生成的集成文件。"],
@@ -1987,7 +2001,7 @@ function commandClean(args) {
 
   const outputDir = options.outputDir ?? ".";
   const previewOnly = Boolean(options.dryRun || !options.force);
-  const targets = applyDeleteTargets(buildCleanTargets(outputDir), previewOnly);
+  const targets = applyDeleteTargets(buildCleanTargets(outputDir, options), previewOnly);
   const result = {
     command: "clean",
     status: previewOnly ? "DRY_RUN" : targets.some((target) => target.action === "protected") ? "WARN" : "DONE",
@@ -2503,6 +2517,7 @@ function commandSetup(args) {
     options.aiProviders ?? options.providers ?? options.provider,
     currentSettings.aiProviders
   );
+  const aiRootFiles = aiRootFilesSettingValue(options.aiRootFiles ?? options.rootAiFiles, currentSettings.aiRootFiles);
 
   if (!language) {
     return unsupportedLanguage(options.language);
@@ -2523,7 +2538,8 @@ function commandSetup(args) {
     protectedBranches,
     requiredChecks,
     qualityCommands,
-    aiProviders
+    aiProviders,
+    aiRootFiles
   };
 
   writeSettings(settings);
@@ -2592,14 +2608,20 @@ function commandIntegrate(args) {
   const packageJson = readJsonFile("package.json");
   const profile = detectProjectProfile(packageJson, options);
   const manifest = buildIntegrationManifest(providers, profile, packageJson, options);
-  const files = buildIntegrationFiles(providers, outputDir, manifest, language);
-  const results = writeIntegrationFiles(files, Boolean(options.force));
+  const aiRootFiles = options.overwriteAiFiles
+    ? "overwrite"
+    : aiRootFilesSettingValue(options.aiRootFiles ?? options.rootAiFiles, settings.aiRootFiles);
+  const files = buildIntegrationFiles(providers, outputDir, manifest, language, { aiRootFiles });
+  const results = writeIntegrationFiles(files, Boolean(options.force), {
+    overwriteProtected: Boolean(options.overwriteAiFiles || options.writeRootAiFiles || aiRootFiles === "overwrite")
+  });
 
   if (options.format === "json") {
     return JSON.stringify({
       command: "integrate",
       providers,
       outputDir,
+      aiRootFiles,
       files: results
     }, null, 2);
   }
@@ -2624,7 +2646,9 @@ function commandRepositoryStarterFiles(args) {
   const packageJson = readJsonFile("package.json");
   const profile = detectProjectProfile(packageJson, options);
   const files = buildRepositoryStarterFiles(outputDir, language, packageJson, owner, profile);
-  const results = writeProjectFiles(files, Boolean(options.force));
+  const results = writeProjectFiles(files, Boolean(options.force), {
+    overwriteProtected: Boolean(options.overwriteAiFiles || options.writeRootAiFiles)
+  });
 
   if (options.format === "json") {
     return JSON.stringify({
@@ -5346,7 +5370,8 @@ function normalizeSettings(settings = {}) {
     protectedBranches: normalizeListSetting(settings.protectedBranches),
     requiredChecks: normalizeListSetting(settings.requiredChecks),
     qualityCommands: normalizeListSetting(settings.qualityCommands),
-    aiProviders: normalizeIntegrationProviderList(settings.aiProviders)
+    aiProviders: normalizeIntegrationProviderList(settings.aiProviders),
+    aiRootFiles: normalizeAiRootFilesMode(settings.aiRootFiles) ?? DEFAULT_SETTINGS.aiRootFiles
   };
 }
 
@@ -5395,6 +5420,11 @@ function integrationProviderListSetting(optionValue, currentValue = []) {
   return normalizeIntegrationProviderList(optionValue);
 }
 
+function aiRootFilesSettingValue(optionValue, currentValue = DEFAULT_SETTINGS.aiRootFiles) {
+  const value = optionValue ?? currentValue ?? DEFAULT_SETTINGS.aiRootFiles;
+  return normalizeAiRootFilesMode(value) ?? DEFAULT_SETTINGS.aiRootFiles;
+}
+
 function normalizeIntegrationProviderList(value) {
   const providers = normalizeListSetting(value);
   if (providers.some((provider) => provider.toLowerCase() === "all")) {
@@ -5404,6 +5434,24 @@ function normalizeIntegrationProviderList(value) {
   return [...new Set(providers
     .map((provider) => provider.toLowerCase())
     .filter((provider) => SUPPORTED_INTEGRATIONS.includes(provider)))];
+}
+
+function normalizeAiRootFilesMode(value) {
+  const normalized = String(value ?? DEFAULT_SETTINGS.aiRootFiles).trim().toLowerCase().replace(/[_\s]+/g, "-");
+  const aliases = {
+    protected: "protect",
+    keep: "protect",
+    safe: "protect",
+    "sidecar-only": "sidecar",
+    skip: "sidecar",
+    none: "sidecar",
+    off: "sidecar",
+    false: "sidecar",
+    replace: "overwrite",
+    force: "overwrite"
+  };
+  const mode = aliases[normalized] ?? normalized;
+  return AI_ROOT_FILE_MODES.includes(mode) ? mode : null;
 }
 
 function normalizeDistribution(value) {
@@ -9318,7 +9366,8 @@ function requiredChecksForProfile(profile = {}, options = {}) {
   return ["CI pipeline", "aigate git-ready"];
 }
 
-function buildIntegrationFiles(providers, outputDir, manifest, language = "en") {
+function buildIntegrationFiles(providers, outputDir, manifest, language = "en", options = {}) {
+  const writeRootAiFiles = aiRootFilesSettingValue(options.aiRootFiles) !== "sidecar";
   const files = [
     {
       path: join(outputDir, ".aigate", "integrations.json"),
@@ -9331,11 +9380,14 @@ function buildIntegrationFiles(providers, outputDir, manifest, language = "en") 
   ];
 
   if (providers.includes("codex")) {
-    files.push(
-      {
+    if (writeRootAiFiles) {
+      files.push({
         path: join(outputDir, "AGENTS.md"),
-        content: renderCodexInstructions(language, manifest)
-      },
+        content: renderCodexInstructions(language, manifest),
+        protectExistingUnlessAigateOwned: true
+      });
+    }
+    files.push(
       {
         path: join(outputDir, ".aigate", "integrations", "codex.md"),
         content: renderProviderInstructions("Codex", language, manifest)
@@ -9344,11 +9396,14 @@ function buildIntegrationFiles(providers, outputDir, manifest, language = "en") 
   }
 
   if (providers.includes("gemini")) {
-    files.push(
-      {
+    if (writeRootAiFiles) {
+      files.push({
         path: join(outputDir, "GEMINI.md"),
-        content: renderGeminiInstructions(language, manifest)
-      },
+        content: renderGeminiInstructions(language, manifest),
+        protectExistingUnlessAigateOwned: true
+      });
+    }
+    files.push(
       {
         path: join(outputDir, ".aigate", "integrations", "gemini.md"),
         content: renderProviderInstructions("Gemini", language, manifest)
@@ -9357,11 +9412,14 @@ function buildIntegrationFiles(providers, outputDir, manifest, language = "en") 
   }
 
   if (providers.includes("claude")) {
-    files.push(
-      {
+    if (writeRootAiFiles) {
+      files.push({
         path: join(outputDir, "CLAUDE.md"),
-        content: renderClaudeInstructions(language, manifest)
-      },
+        content: renderClaudeInstructions(language, manifest),
+        protectExistingUnlessAigateOwned: true
+      });
+    }
+    files.push(
       {
         path: join(outputDir, ".aigate", "integrations", "claude.md"),
         content: renderProviderInstructions("Claude Code", language, manifest)
@@ -9372,16 +9430,30 @@ function buildIntegrationFiles(providers, outputDir, manifest, language = "en") 
   return files;
 }
 
-function writeIntegrationFiles(files, force) {
+function writeIntegrationFiles(files, force, options = {}) {
   return files.map((file) => {
-    if (existsSync(file.path) && !force) {
+    const exists = existsSync(file.path);
+    if (
+      exists &&
+      force &&
+      file.protectExistingUnlessAigateOwned &&
+      !options.overwriteProtected &&
+      !isAigateOwnedRootAiFile(file.path)
+    ) {
+      return {
+        path: file.path,
+        action: "protected"
+      };
+    }
+
+    if (exists && !force) {
       return {
         path: file.path,
         action: "skipped"
       };
     }
 
-    const action = existsSync(file.path) ? "updated" : "created";
+    const action = exists ? "updated" : "created";
     mkdirSync(dirname(file.path), { recursive: true });
     writeFileSync(file.path, file.content, "utf8");
 
@@ -9816,16 +9888,30 @@ function renderDefaultConfig(packageJson, options = {}) {
   ].join("\n");
 }
 
-function writeProjectFiles(files, force) {
+function writeProjectFiles(files, force, options = {}) {
   return files.map((file) => {
-    if (existsSync(file.path) && !force) {
+    const exists = existsSync(file.path);
+    if (
+      exists &&
+      force &&
+      file.protectExistingUnlessAigateOwned &&
+      !options.overwriteProtected &&
+      !isAigateOwnedRootAiFile(file.path)
+    ) {
+      return {
+        path: file.path,
+        action: "protected"
+      };
+    }
+
+    if (exists && !force) {
       return {
         path: file.path,
         action: "skipped"
       };
     }
 
-    const action = existsSync(file.path) ? "updated" : "created";
+    const action = exists ? "updated" : "created";
     mkdirSync(dirname(file.path), { recursive: true });
     writeFileSync(file.path, file.content, "utf8");
 
@@ -9836,6 +9922,20 @@ function writeProjectFiles(files, force) {
   });
 }
 
+function isAigateOwnedRootAiFile(filePath) {
+  if (!existsSync(filePath)) {
+    return false;
+  }
+
+  const fileName = filePath.split(/[\\/]/).pop();
+  if (!["AGENTS.md", "GEMINI.md", "CLAUDE.md"].includes(fileName)) {
+    return false;
+  }
+
+  const content = readFileSync(filePath, "utf8");
+  return /^# AIGate (Codex|Gemini|Claude Code)(?:\s|$)/m.test(content);
+}
+
 function previewProjectFiles(files) {
   return files.map((file) => ({
     path: file.path,
@@ -9843,8 +9943,8 @@ function previewProjectFiles(files) {
   }));
 }
 
-function buildCleanTargets(outputDir) {
-  return [
+function buildCleanTargets(outputDir, options = {}) {
+  const targets = [
     deleteTarget(join(outputDir, ".aigate", "reports")),
     deleteTarget(join(outputDir, ".aigate", "generated-branch-strategy.md")),
     deleteTarget(join(outputDir, ".aigate", "branch-strategy-policy.json")),
@@ -9852,6 +9952,19 @@ function buildCleanTargets(outputDir) {
     deleteTarget(join(outputDir, ".aigate", "reports", "ai-test.md")),
     deleteTarget(join(outputDir, ".aigate", "reports", "ai-report.md"))
   ];
+
+  if (options.githubFiles) {
+    targets.push(
+      deleteTarget(join(outputDir, ".github", "ISSUE_TEMPLATE")),
+      deleteTarget(join(outputDir, ".github", "DISCUSSION_TEMPLATE")),
+      deleteTarget(join(outputDir, ".github", "pull_request_template.md")),
+      deleteTarget(join(outputDir, ".github", "pull_request_template.aigate.md")),
+      deleteTarget(join(outputDir, ".github", "CODEOWNERS")),
+      deleteTarget(join(outputDir, ".github", "CODEOWNERS.aigate"))
+    );
+  }
+
+  return targets;
 }
 
 function buildUninstallTargets(outputDir, options = {}) {
@@ -10753,9 +10866,13 @@ function stripAigatePushOptions(args) {
     const arg = args[index];
     if (
       arg === "--dry-run" ||
+      arg === "--github-files" ||
       arg === "--no-verify" ||
+      arg === "--overwrite-ai-files" ||
       arg.startsWith("--dry-run=") ||
+      arg.startsWith("--github-files=") ||
       arg.startsWith("--no-verify=") ||
+      arg.startsWith("--overwrite-ai-files=") ||
       arg.startsWith("--notify-channel=") ||
       arg.startsWith("--webhook-env=") ||
       arg.startsWith("--webhook-url=") ||
@@ -10771,6 +10888,8 @@ function stripAigatePushOptions(args) {
       arg.startsWith("--quality-command=") ||
       arg.startsWith("--providers=") ||
       arg.startsWith("--ai-providers=") ||
+      arg.startsWith("--ai-root-files=") ||
+      arg.startsWith("--root-ai-files=") ||
       arg.startsWith("--branch-strategy=") ||
       arg.startsWith("--jira-api-token=") ||
       arg.startsWith("--jira-base-url=") ||
@@ -10802,6 +10921,8 @@ function stripAigatePushOptions(args) {
       arg === "--quality-command" ||
       arg === "--providers" ||
       arg === "--ai-providers" ||
+      arg === "--ai-root-files" ||
+      arg === "--root-ai-files" ||
       arg === "--branch-strategy" ||
       arg === "--jira-api-token" ||
       arg === "--jira-base-url" ||
@@ -10832,6 +10953,7 @@ function firstPositionalArg(args) {
     "--base",
     "--body",
     "--ai-providers",
+    "--ai-root-files",
     "--branch-strategy",
     "--channel",
     "--ci-provider",
@@ -10861,6 +10983,7 @@ function firstPositionalArg(args) {
     "--prompt-output",
     "--pr",
     "--providers",
+    "--root-ai-files",
     "--quality-command",
     "--quality-commands",
     "--release",
