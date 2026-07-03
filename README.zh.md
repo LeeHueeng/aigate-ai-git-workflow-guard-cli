@@ -169,8 +169,11 @@ jobs:
 稳定运行请使用当前发布标签；只有在有意验证未发布的最新行为时才使用 `@main`。
 完整输入见 [GitHub Action 文档](docs/github-action.zh.md)。
 
-Marketplace 发布设置:
+Action 发布状态:
 
+- 当前稳定标签: `v0.1.6`
+- Action 使用: 可通过 `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` 使用
+- Marketplace 发布: 在 GitHub Release 页面手动启用
 - Action name: `AIGate AI Git Workflow Guard CLI`
 - Primary category: `Code quality`
 - Secondary category: `Security`

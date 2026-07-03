@@ -59,15 +59,18 @@ PR 리포트를 만들 때:
 
 ## GitHub Marketplace
 
-다음 GitHub Release를 게시할 때 이 값을 사용합니다.
+현재 `v0.1.6` Action 상태와 Marketplace metadata입니다.
 
 | 항목 | 값 |
 | --- | --- |
+| 안정 Action 참조 | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` |
+| Marketplace 게시 | GitHub Release 화면에서 수동으로 켜는 단계 |
 | Action name | `AIGate AI Git Workflow Guard CLI` |
 | 주요 카테고리 | `Code quality` |
 | 보조 카테고리 | `Security` |
 | 릴리스 태그 | `v0.1.6` |
 | 릴리스 제목 | `AIGate AI Git Workflow Guard CLI v0.1.6` |
 
+Marketplace 노출을 켜기 전에도 Action은 릴리스 태그로 사용할 수 있습니다.
 안정 patch release라면 `Set as the latest release`는 켜고, pre-release는
-체크하지 않습니다. 릴리스 화면에서 GitHub Marketplace 게시 옵션을 켜세요.
+체크하지 않습니다.

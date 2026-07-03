@@ -3,6 +3,16 @@
 AIGate ships through npm, GHCR Docker images, a Homebrew tap, and a reusable
 GitHub Action. Standalone binaries remain a planned distribution channel.
 
+## Current Public Status
+
+| Channel | Current status |
+| --- | --- |
+| npm | `aigate-cli@0.1.6` on the `latest` dist-tag |
+| GitHub Release | `v0.1.6` published |
+| Docker/GHCR | `ghcr.io/leehueeng/aigate-cli:0.1.6` and `latest` published |
+| Homebrew | `brew install LeeHueeng/tap/aigate-cli` |
+| GitHub Action | usable via `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6`; Marketplace publishing is a manual release-screen step |
+
 ## npm
 
 The target package is `aigate-cli`.

@@ -58,15 +58,17 @@ workflow 测试。
 
 ## GitHub Marketplace
 
-发布下一个 GitHub Release 时使用这些值。
+当前 `v0.1.6` Action 状态和 Marketplace metadata 如下。
 
 | 项目 | 值 |
 | --- | --- |
+| 稳定 Action 引用 | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` |
+| Marketplace 发布 | 在 GitHub Release 页面手动启用 |
 | Action name | `AIGate AI Git Workflow Guard CLI` |
 | Primary category | `Code quality` |
 | Secondary category | `Security` |
 | Release tag | `v0.1.6` |
 | Release title | `AIGate AI Git Workflow Guard CLI v0.1.6` |
 
-稳定 patch release 保持 `Set as the latest release` 开启，不要标记为
-pre-release。在 release 页面启用 GitHub Marketplace publish option。
+即使尚未启用 Marketplace 展示，Action 也可以通过 release tag 使用。稳定
+patch release 保持 `Set as the latest release` 开启，不要标记为 pre-release。

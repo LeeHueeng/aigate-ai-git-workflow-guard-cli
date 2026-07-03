@@ -172,8 +172,11 @@ jobs:
 したい場合だけ `@main` を使ってください。入力一覧は
 [GitHub Action ドキュメント](docs/github-action.ja.md) にまとめています。
 
-Marketplace 登録値:
+Action リリース状態:
 
+- 現在の安定タグ: `v0.1.6`
+- Action 利用: `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` で利用可能
+- Marketplace 公開: GitHub Release 画面で手動で有効にする手順
 - Action name: `AIGate AI Git Workflow Guard CLI`
 - Primary category: `Code quality`
 - Secondary category: `Security`

@@ -59,15 +59,18 @@ PR レポートを生成する場合:
 
 ## GitHub Marketplace
 
-次の GitHub Release を公開するときはこの値を使います。
+現在の `v0.1.6` Action 状態と Marketplace metadata です。
 
 | 項目 | 値 |
 | --- | --- |
+| 安定 Action 参照 | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` |
+| Marketplace 公開 | GitHub Release 画面で手動で有効にする手順 |
 | Action name | `AIGate AI Git Workflow Guard CLI` |
 | Primary category | `Code quality` |
 | Secondary category | `Security` |
 | Release tag | `v0.1.6` |
 | Release title | `AIGate AI Git Workflow Guard CLI v0.1.6` |
 
+Marketplace 掲載を有効にする前でも、Action は release tag から利用できます。
 安定 patch release では `Set as the latest release` を有効にし、pre-release
-にはしません。リリース画面で GitHub Marketplace publish option を有効にします。
+にはしません。
