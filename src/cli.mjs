@@ -5152,7 +5152,7 @@ function detectProjectProfile(packageJson = readJsonFile("package.json"), option
 
 function resolveProjectProfileOptions(options = {}) {
   const settings = readSettings();
-  const config = readAigateConfig(options.config ?? ".aigate.yml");
+  const config = readCurrentAigateConfig(options.config ?? ".aigate.yml");
   const projectConfig = config.project ?? {};
 
   return {
@@ -5161,6 +5161,26 @@ function resolveProjectProfileOptions(options = {}) {
     ciProvider: options.ciProvider ?? settings.ciProvider ?? settings.project?.ciProvider ?? projectConfig.ciProvider,
     packageManager: options.packageManager ?? settings.packageManager ?? settings.project?.packageManager ?? projectConfig.packageManager
   };
+}
+
+function readCurrentAigateConfig(filePath = ".aigate.yml") {
+  const config = readAigateConfig(filePath);
+
+  if (isStaleGeneratedAigateConfig(config)) {
+    return {};
+  }
+
+  return config;
+}
+
+function isStaleGeneratedAigateConfig(config = {}) {
+  const generatedVersion = generatedByVersion(config.generatedBy);
+  return Boolean(generatedVersion && generatedVersion !== VERSION);
+}
+
+function generatedByVersion(value) {
+  const match = String(value ?? "").match(/\baigate\s+([0-9][^\s]*)/i);
+  return match?.[1] ?? null;
 }
 
 function normalizeProjectType(value) {

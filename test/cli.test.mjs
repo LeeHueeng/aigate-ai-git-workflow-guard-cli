@@ -853,6 +853,33 @@ test("doctor warns when generated AIGate files are stale", () => {
   assert.ok(output.nextSteps.includes("Regenerate stale AIGate files with aigate init --force and aigate integrate all --force."));
 });
 
+test("ignores stale generated profile config during project evaluation", () => {
+  const projectDir = createPrivateGitLabPnpmWorkspaceApp();
+  writeFileSync(join(projectDir, ".aigate.yml"), [
+    "version: 1",
+    "generatedBy: aigate 0.1.1",
+    "",
+    "project:",
+    "  type: package",
+    "  hosting: github",
+    "  ciProvider: github",
+    "  packageManager: npm",
+    ""
+  ].join("\n"), "utf8");
+
+  const result = run(["evaluate-project", "--format", "json"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+
+  assert.equal(output.profile.kind, "app");
+  assert.equal(output.profile.visibility, "private");
+  assert.equal(output.profile.hosting, "gitlab");
+  assert.equal(output.profile.ciProvider, "gitlab");
+  assert.equal(output.profile.packageManager, "pnpm");
+  assert.equal(output.profile.publishableNpmPackage, false);
+});
+
 test("renders a localized first-run demo", () => {
   const result = run(["demo", "--language", "ko"]);
 

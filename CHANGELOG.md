@@ -2,6 +2,13 @@
 
 All notable changes to AIGate are documented here.
 
+## Unreleased
+
+- Ignores stale generated `.aigate.yml` profile values during scoring and gates
+  while keeping `doctor` warnings and explicit regeneration guidance.
+- Updated usage and HTML overview docs in English, Korean, Japanese, and
+  Chinese for stale generated profile behavior.
+
 ## 0.1.6 - 2026-07-02
 
 - Added `aigate ai report` and `aigate ai-report` to summarize current

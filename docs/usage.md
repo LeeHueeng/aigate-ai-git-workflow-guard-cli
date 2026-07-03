@@ -242,7 +242,10 @@ repository should be treated as a publishable npm package.
 `aigate doctor` also warns when generated AIGate files were created by an older
 CLI version, for example `generatedBy: aigate 0.1.1` while the current CLI is
 `0.1.6`. Regenerate those files with `aigate init --force` and
-`aigate integrate all --force` when you want the latest profile behavior.
+`aigate integrate all --force` when you want the latest generated templates.
+Until you regenerate them, stale generated `.aigate.yml` profile values are
+ignored during scoring and gates so an old GitHub/npm package template does not
+override the current repository signals.
 
 Pin the profile when auto-detection is not enough:
 

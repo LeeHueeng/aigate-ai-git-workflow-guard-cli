@@ -232,7 +232,9 @@ app 即使没有 package release version，`release-check --npm` 也不会阻塞
 
 `aigate doctor` 也会在生成的 AIGate 文件来自旧 CLI 时发出警告。例如当前 CLI 是
 `0.1.6`，但仍有 `generatedBy: aigate 0.1.1`，请用 `aigate init --force` 和
-`aigate integrate all --force` 重新生成，以获得最新 profile 行为。
+`aigate integrate all --force` 重新生成，以获得最新 generated template。在重新
+生成前，过期 `.aigate.yml` 中的 profile 值不会参与评分和 gate 计算，因此旧的
+GitHub/npm package template 不会覆盖当前仓库信号。
 
 当自动检测不够时，可以固定配置:
 
