@@ -29,6 +29,30 @@ aigate setup --language ja
 aigate setup --language zh
 ```
 
+对于 private GitLab pnpm app，或以 `develop` 作为 merge target 的团队，可以固定
+workflow 设置:
+
+```sh
+aigate setup \
+  --hosting gitlab \
+  --ci-provider gitlab \
+  --project-type app \
+  --package-manager pnpm \
+  --distribution none \
+  --target-branch develop \
+  --protected-branches main,develop \
+  --required-checks "build,deploy,aigate git-ready" \
+  --quality-command "pnpm lint && pnpm build" \
+  --providers claude \
+  --branch-strategy git-flow
+aigate init --force
+aigate integrate --force
+```
+
+这些设置会移除 npm 发布假设，使用实际 GitLab check 名称，将 AI 指令的目标分支
+设为 `develop`。没有显式传入 `--command` 时，`aigate test` 会默认运行设置的
+quality command。
+
 ## 在仓库中首次运行
 
 进入 Git 仓库根目录后执行:

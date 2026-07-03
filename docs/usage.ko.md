@@ -30,6 +30,30 @@ aigate setup --language ja
 aigate setup --language zh
 ```
 
+private GitLab pnpm 앱이거나 merge target이 `develop`인 팀은 워크플로 설정을
+고정하세요:
+
+```sh
+aigate setup \
+  --hosting gitlab \
+  --ci-provider gitlab \
+  --project-type app \
+  --package-manager pnpm \
+  --distribution none \
+  --target-branch develop \
+  --protected-branches main,develop \
+  --required-checks "build,deploy,aigate git-ready" \
+  --quality-command "pnpm lint && pnpm build" \
+  --providers claude \
+  --branch-strategy git-flow
+aigate init --force
+aigate integrate --force
+```
+
+이 설정은 npm 배포 가정을 제거하고, 실제 GitLab check 이름을 사용하며, AI 지침의
+대상 브랜치를 `develop`으로 맞춥니다. `aigate test`도 명시적인 `--command`가
+없으면 설정된 quality command를 기본으로 실행합니다.
+
 ## 저장소에서 첫 실행
 
 Git 저장소 루트로 이동한 뒤 실행합니다.

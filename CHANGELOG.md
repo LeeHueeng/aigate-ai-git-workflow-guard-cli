@@ -6,6 +6,9 @@ All notable changes to AIGate are documented here.
 
 - Ignores stale generated `.aigate.yml` profile values during scoring and gates
   while keeping `doctor` warnings and explicit regeneration guidance.
+- Added workflow settings for private GitLab/pnpm teams, including distribution
+  mode, target branch, protected branches, required checks, quality command,
+  default AI providers, and pinned branch strategy.
 - Updated usage and HTML overview docs in English, Korean, Japanese, and
   Chinese for stale generated profile behavior.
 

@@ -30,6 +30,30 @@ aigate setup --language ja
 aigate setup --language zh
 ```
 
+Pin team workflow settings when the repository is a private GitLab pnpm app or
+uses a develop-target merge flow:
+
+```sh
+aigate setup \
+  --hosting gitlab \
+  --ci-provider gitlab \
+  --project-type app \
+  --package-manager pnpm \
+  --distribution none \
+  --target-branch develop \
+  --protected-branches main,develop \
+  --required-checks "build,deploy,aigate git-ready" \
+  --quality-command "pnpm lint && pnpm build" \
+  --providers claude \
+  --branch-strategy git-flow
+aigate init --force
+aigate integrate --force
+```
+
+Those settings remove npm publication assumptions, use the configured GitLab
+check names, keep AI instructions pointed at `develop`, and make `aigate test`
+use the configured quality command when no explicit `--command` is passed.
+
 ## First Run In A Repository
 
 Use these commands after moving into a Git repository.

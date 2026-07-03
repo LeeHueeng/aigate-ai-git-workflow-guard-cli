@@ -23,7 +23,15 @@ const DEFAULT_SETTINGS = {
   projectType: "auto",
   hosting: "auto",
   ciProvider: "auto",
-  packageManager: "auto"
+  packageManager: "auto",
+  distribution: "auto",
+  defaultBranch: "main",
+  targetBranch: "main",
+  branchStrategy: "auto",
+  protectedBranches: [],
+  requiredChecks: [],
+  qualityCommands: [],
+  aiProviders: []
 };
 const MAX_SECRET_SCAN_BYTES = 250_000;
 const SECRET_PATTERNS = [
@@ -123,6 +131,7 @@ const I18N = {
     "settings.file": "Settings file: {path}",
     "settings.profile": "Project profile: type={type}, hosting={hosting}, ci={ciProvider}, package manager={packageManager}",
     "settings.title": "AIGate settings",
+    "settings.workflow": "Workflow: distribution={distribution}, target={targetBranch}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}",
     "trends.unknownAction": "Unknown trends action: {action}",
     "unknownCommand": "Unknown command: {command}",
     "runHelp": "Run `aigate --help` for available commands.",
@@ -219,6 +228,7 @@ const I18N = {
     "settings.file": "설정 파일: {path}",
     "settings.profile": "프로젝트 프로필: 유형={type}, 호스팅={hosting}, CI={ciProvider}, 패키지 매니저={packageManager}",
     "settings.title": "AIGate 설정",
+    "settings.workflow": "워크플로: 배포={distribution}, 대상={targetBranch}, 체크={requiredChecks}, 명령={qualityCommands}, AI={aiProviders}",
     "trends.unknownAction": "알 수 없는 추세 작업: {action}",
     "unknownCommand": "알 수 없는 명령어: {command}",
     "runHelp": "사용 가능한 명령어는 `aigate --help`로 확인하세요.",
@@ -315,6 +325,7 @@ const I18N = {
     "settings.file": "設定ファイル: {path}",
     "settings.profile": "プロジェクトプロファイル: 種別={type}, hosting={hosting}, CI={ciProvider}, package manager={packageManager}",
     "settings.title": "AIGate 設定",
+    "settings.workflow": "ワークフロー: distribution={distribution}, target={targetBranch}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}",
     "trends.unknownAction": "不明なトレンドアクション: {action}",
     "unknownCommand": "不明なコマンド: {command}",
     "runHelp": "利用可能なコマンドは `aigate --help` で確認してください。",
@@ -411,6 +422,7 @@ const I18N = {
     "settings.file": "设置文件: {path}",
     "settings.profile": "项目配置: 类型={type}, 托管={hosting}, CI={ciProvider}, 包管理器={packageManager}",
     "settings.title": "AIGate 设置",
+    "settings.workflow": "工作流: distribution={distribution}, target={targetBranch}, checks={requiredChecks}, commands={qualityCommands}, AI={aiProviders}",
     "trends.unknownAction": "未知趋势操作: {action}",
     "unknownCommand": "未知命令: {command}",
     "runHelp": "运行 `aigate --help` 查看可用命令。",
@@ -535,6 +547,7 @@ const BRANCH_USE_TRANSLATIONS = {
     "optional integration branch for larger releases": "큰 릴리스를 위한 선택적 통합 브랜치",
     "planned release stabilization": "계획된 릴리스 안정화",
     "protected stable source of truth": "보호된 안정 기준 브랜치",
+    "merge request target branch": "merge request 대상 브랜치",
     "release stabilization": "릴리스 안정화"
   },
   ja: {
@@ -555,6 +568,7 @@ const BRANCH_USE_TRANSLATIONS = {
     "optional integration branch for larger releases": "大きなリリース向けの任意統合ブランチ",
     "planned release stabilization": "計画的なリリース安定化",
     "protected stable source of truth": "保護された安定基準ブランチ",
+    "merge request target branch": "merge request 対象ブランチ",
     "release stabilization": "リリース安定化"
   },
   zh: {
@@ -575,6 +589,7 @@ const BRANCH_USE_TRANSLATIONS = {
     "optional integration branch for larger releases": "大型发布的可选集成分支",
     "planned release stabilization": "计划内发布稳定",
     "protected stable source of truth": "受保护的稳定基准分支",
+    "merge request target branch": "merge request 目标分支",
     "release stabilization": "发布稳定"
   }
 };
@@ -1076,6 +1091,13 @@ const HELP_CONTENT = {
       ["--hosting <auto|github|gitlab|other>", "Override repository hosting provider."],
       ["--ci-provider <auto|github|gitlab|other>", "Override CI provider used by repository checks."],
       ["--package-manager <auto|npm|pnpm|yarn|bun>", "Override package manager detection."],
+      ["--distribution <auto|none|npm>", "Set release distribution mode for generated config."],
+      ["--target-branch <branch>", "Set the PR/MR target branch for generated AI instructions."],
+      ["--protected-branches <list>", "Set protected branches, comma-separated."],
+      ["--required-checks <list>", "Set required CI/check names, comma-separated."],
+      ["--quality-command <shell>", "Set the primary local quality command."],
+      ["--providers <list>", "Set default AI integration providers, comma-separated."],
+      ["--branch-strategy <name>", "Pin branch strategy: github-flow, gitlab-flow, trunk, hybrid, or git-flow."],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, or all."],
       ["--script <name>", "npm script name for aigate test or aitest."],
       ["--command <shell>", "Custom shell command for aigate test or aitest."],
@@ -1166,6 +1188,13 @@ const HELP_CONTENT = {
       ["--hosting <auto|github|gitlab|other>", "저장소 호스팅 제공자를 지정합니다."],
       ["--ci-provider <auto|github|gitlab|other>", "저장소 점검에 사용할 CI 제공자를 지정합니다."],
       ["--package-manager <auto|npm|pnpm|yarn|bun>", "패키지 매니저 감지를 지정합니다."],
+      ["--distribution <auto|none|npm>", "생성 설정의 배포 방식을 지정합니다."],
+      ["--target-branch <branch>", "생성 AI 지침의 PR/MR 대상 브랜치를 지정합니다."],
+      ["--protected-branches <list>", "보호 브랜치를 쉼표로 지정합니다."],
+      ["--required-checks <list>", "필수 CI/check 이름을 쉼표로 지정합니다."],
+      ["--quality-command <shell>", "기본 로컬 품질 검증 명령을 지정합니다."],
+      ["--providers <list>", "기본 AI 연동 provider를 쉼표로 지정합니다."],
+      ["--branch-strategy <name>", "브랜치 전략을 고정합니다: github-flow, gitlab-flow, trunk, hybrid, git-flow."],
       ["--provider <name>", "AI 제공자입니다: auto, codex, claude, gemini, all."],
       ["--script <name>", "aigate test 또는 aitest에서 사용할 npm script 이름입니다."],
       ["--command <shell>", "aigate test 또는 aitest에서 사용할 사용자 지정 shell 명령입니다."],
@@ -1256,6 +1285,13 @@ const HELP_CONTENT = {
       ["--hosting <auto|github|gitlab|other>", "リポジトリ hosting provider を指定します。"],
       ["--ci-provider <auto|github|gitlab|other>", "リポジトリチェックで使う CI provider を指定します。"],
       ["--package-manager <auto|npm|pnpm|yarn|bun>", "package manager 検出を指定します。"],
+      ["--distribution <auto|none|npm>", "生成設定の distribution mode を指定します。"],
+      ["--target-branch <branch>", "生成 AI 指示の PR/MR 対象ブランチを指定します。"],
+      ["--protected-branches <list>", "保護ブランチをカンマ区切りで指定します。"],
+      ["--required-checks <list>", "必須 CI/check 名をカンマ区切りで指定します。"],
+      ["--quality-command <shell>", "主要なローカル品質チェックコマンドを指定します。"],
+      ["--providers <list>", "デフォルト AI 連携 provider をカンマ区切りで指定します。"],
+      ["--branch-strategy <name>", "ブランチ戦略を固定します: github-flow, gitlab-flow, trunk, hybrid, git-flow。"],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
       ["--script <name>", "aigate test または aitest で使う npm script 名です。"],
       ["--command <shell>", "aigate test または aitest で使うカスタム shell コマンドです。"],
@@ -1346,6 +1382,13 @@ const HELP_CONTENT = {
       ["--hosting <auto|github|gitlab|other>", "指定仓库托管服务。"],
       ["--ci-provider <auto|github|gitlab|other>", "指定仓库检查使用的 CI 服务。"],
       ["--package-manager <auto|npm|pnpm|yarn|bun>", "指定包管理器检测结果。"],
+      ["--distribution <auto|none|npm>", "设置生成配置的发布模式。"],
+      ["--target-branch <branch>", "设置生成 AI 指令中的 PR/MR 目标分支。"],
+      ["--protected-branches <list>", "用逗号指定受保护分支。"],
+      ["--required-checks <list>", "用逗号指定必需 CI/check 名称。"],
+      ["--quality-command <shell>", "设置主要本地质量检查命令。"],
+      ["--providers <list>", "用逗号指定默认 AI 集成 provider。"],
+      ["--branch-strategy <name>", "固定分支策略: github-flow, gitlab-flow, trunk, hybrid, git-flow。"],
       ["--provider <name>", "AI provider: auto, codex, claude, gemini, all。"],
       ["--script <name>", "aigate test 或 aitest 使用的 npm script 名称。"],
       ["--command <shell>", "aigate test 或 aitest 使用的自定义 shell 命令。"],
@@ -2443,12 +2486,23 @@ async function commandAiReport(args) {
 
 function commandSetup(args) {
   const options = parseOptions(args);
-  const currentSettings = readSettings();
+  const currentSettings = normalizeSettings(readSettings());
   const language = normalizeLanguage(options.language ?? currentSettings.language ?? DEFAULT_SETTINGS.language);
   const projectType = settingValue(options.projectType, currentSettings.projectType, normalizeProjectType, "auto");
   const hosting = settingValue(options.hosting, currentSettings.hosting, normalizeHosting, "auto");
   const ciProvider = settingValue(options.ciProvider, currentSettings.ciProvider, normalizeCiProvider, "auto");
   const packageManager = settingValue(options.packageManager, currentSettings.packageManager, normalizePackageManager, "auto");
+  const distribution = settingValue(options.distribution, currentSettings.distribution, normalizeDistribution, "auto");
+  const defaultBranch = branchSettingValue(options.defaultBranch, currentSettings.defaultBranch, "main");
+  const targetBranch = branchSettingValue(options.targetBranch ?? options.base, currentSettings.targetBranch, defaultBranch);
+  const branchStrategy = settingValue(options.branchStrategy, currentSettings.branchStrategy, normalizeBranchStrategySetting, "auto");
+  const protectedBranches = listSettingValue(options.protectedBranches ?? options.protectedBranch, currentSettings.protectedBranches);
+  const requiredChecks = listSettingValue(options.requiredChecks ?? options.requiredCheck, currentSettings.requiredChecks);
+  const qualityCommands = listSettingValue(options.qualityCommands ?? options.qualityCommand, currentSettings.qualityCommands);
+  const aiProviders = integrationProviderListSetting(
+    options.aiProviders ?? options.providers ?? options.provider,
+    currentSettings.aiProviders
+  );
 
   if (!language) {
     return unsupportedLanguage(options.language);
@@ -2461,7 +2515,15 @@ function commandSetup(args) {
     projectType,
     hosting,
     ciProvider,
-    packageManager
+    packageManager,
+    distribution,
+    defaultBranch,
+    targetBranch,
+    branchStrategy,
+    protectedBranches,
+    requiredChecks,
+    qualityCommands,
+    aiProviders
   };
 
   writeSettings(settings);
@@ -2478,16 +2540,14 @@ function commandSetup(args) {
     t(language, "settings.complete"),
     t(language, "settings.file", { path: getSettingsPath() }),
     t(language, "language.label", { language: languageName(language) }),
-    t(language, "settings.profile", settings)
+    t(language, "settings.profile", settings),
+    t(language, "settings.workflow", settingsSummary(settings))
   ].join("\n");
 }
 
 function commandSettings(args) {
   const options = parseOptions(args);
-  const settings = {
-    ...DEFAULT_SETTINGS,
-    ...readSettings()
-  };
+  const settings = normalizeSettings(readSettings());
   const language = resolveLanguage(options);
   if (!language) {
     return unsupportedLanguage(options.language);
@@ -2505,13 +2565,15 @@ function commandSettings(args) {
     t(language, "settings.title"),
     t(language, "settings.file", { path: getSettingsPath() }),
     t(language, "language.label", { language: languageName(settings.language) }),
-    t(language, "settings.profile", settings)
+    t(language, "settings.profile", settings),
+    t(language, "settings.workflow", settingsSummary(settings))
   ].join("\n");
 }
 
 function commandIntegrate(args) {
   const options = parseOptions(args);
-  const providerArg = firstPositionalArg(args) ?? "all";
+  const settings = normalizeSettings(readSettings());
+  const providerArg = firstPositionalArg(args) ?? (settings.aiProviders.length ? settings.aiProviders.join(",") : "all");
   const providers = resolveIntegrationProviders(providerArg);
   const language = resolveLanguage(options);
   if (!language) {
@@ -2529,7 +2591,7 @@ function commandIntegrate(args) {
   const outputDir = options.outputDir ?? ".";
   const packageJson = readJsonFile("package.json");
   const profile = detectProjectProfile(packageJson, options);
-  const manifest = buildIntegrationManifest(providers, profile, packageJson);
+  const manifest = buildIntegrationManifest(providers, profile, packageJson, options);
   const files = buildIntegrationFiles(providers, outputDir, manifest, language);
   const results = writeIntegrationFiles(files, Boolean(options.force));
 
@@ -3097,18 +3159,27 @@ function buildAigateTestResult(options) {
 
 function resolveProjectTestCommand(options) {
   if (options.command) {
-    return {
-      source: "custom-command",
-      display: String(options.command),
-      executable: String(options.command),
-      args: [],
-      shell: true
-    };
+    return customShellCommand(options.command, "custom-command");
   }
 
   const packageJson = readJsonFile("package.json");
   const profile = detectProjectProfile(packageJson, options);
+  const workflow = resolveWorkflowSettings(options, profile, packageJson);
+  if (!options.script && workflow.qualityCommands.length) {
+    return customShellCommand(workflow.qualityCommands[0], "configured-quality-command");
+  }
+
   return discoverProjectTestCommand(packageJson, profile, options.script);
+}
+
+function customShellCommand(command, source = "custom-command") {
+  return {
+    source,
+    display: String(command),
+    executable: String(command),
+    args: [],
+    shell: true
+  };
 }
 
 function runProjectCommand(command, options) {
@@ -5163,6 +5234,46 @@ function resolveProjectProfileOptions(options = {}) {
   };
 }
 
+function resolveWorkflowSettings(options = {}, profile = {}, packageJson = readJsonFile("package.json")) {
+  const settings = normalizeSettings(readSettings());
+  const config = readCurrentAigateConfig(options.config ?? ".aigate.yml");
+  const projectConfig = config.project ?? {};
+  const branchConfig = config.branchStrategy ?? {};
+  const defaultBranch = branchSettingValue(
+    options.defaultBranch ?? settings.defaultBranch ?? projectConfig.defaultBranch,
+    "main"
+  );
+  const targetBranch = branchSettingValue(
+    options.targetBranch ?? options.base ?? settings.targetBranch ?? projectConfig.targetBranch,
+    defaultBranch
+  );
+  const protectedBranches = listSettingValue(
+    options.protectedBranches ?? options.protectedBranch ?? branchConfig.protectedBranches,
+    settings.protectedBranches
+  );
+  const requiredChecks = listSettingValue(options.requiredChecks ?? options.requiredCheck, settings.requiredChecks);
+  const qualityCommands = listSettingValue(options.qualityCommands ?? options.qualityCommand, settings.qualityCommands);
+  const aiProviders = integrationProviderListSetting(
+    options.aiProviders ?? options.providers ?? options.provider,
+    settings.aiProviders
+  );
+  const distribution = settingValue(options.distribution, settings.distribution, normalizeDistribution, "auto");
+  const branchStrategy = settingValue(options.branchStrategy, settings.branchStrategy, normalizeBranchStrategySetting, "auto");
+
+  return {
+    defaultBranch,
+    targetBranch,
+    protectedBranches,
+    requiredChecks,
+    qualityCommands,
+    aiProviders,
+    distribution,
+    branchStrategy,
+    profile,
+    packageName: packageJson.name ?? ""
+  };
+}
+
 function readCurrentAigateConfig(filePath = ".aigate.yml") {
   const config = readAigateConfig(filePath);
 
@@ -5222,6 +5333,113 @@ function settingValue(optionValue, currentValue, normalize, fallback = "auto") {
   }
 
   return normalize(text) ?? fallback;
+}
+
+function normalizeSettings(settings = {}) {
+  return {
+    ...DEFAULT_SETTINGS,
+    ...settings,
+    distribution: normalizeDistribution(settings.distribution) ?? DEFAULT_SETTINGS.distribution,
+    defaultBranch: branchSettingValue(settings.defaultBranch, DEFAULT_SETTINGS.defaultBranch),
+    targetBranch: branchSettingValue(settings.targetBranch, settings.defaultBranch ?? DEFAULT_SETTINGS.targetBranch),
+    branchStrategy: normalizeBranchStrategySetting(settings.branchStrategy) ?? DEFAULT_SETTINGS.branchStrategy,
+    protectedBranches: normalizeListSetting(settings.protectedBranches),
+    requiredChecks: normalizeListSetting(settings.requiredChecks),
+    qualityCommands: normalizeListSetting(settings.qualityCommands),
+    aiProviders: normalizeIntegrationProviderList(settings.aiProviders)
+  };
+}
+
+function settingsSummary(settings = {}) {
+  const normalized = normalizeSettings(settings);
+  return {
+    ...normalized,
+    requiredChecks: normalized.requiredChecks.length ? normalized.requiredChecks.join(", ") : "auto",
+    qualityCommands: normalized.qualityCommands.length ? normalized.qualityCommands.join(", ") : "auto",
+    aiProviders: normalized.aiProviders.length ? normalized.aiProviders.join(", ") : "all"
+  };
+}
+
+function branchSettingValue(optionValue, currentValue, fallback = "main") {
+  const value = optionValue ?? currentValue ?? fallback;
+  const text = String(value ?? fallback).trim();
+  return text && text.toLowerCase() !== "auto" ? text : fallback;
+}
+
+function listSettingValue(optionValue, currentValue = []) {
+  if (optionValue === undefined || optionValue === null) {
+    return normalizeListSetting(currentValue);
+  }
+
+  return normalizeListSetting(optionValue);
+}
+
+function normalizeListSetting(value) {
+  if (Array.isArray(value)) {
+    return [...new Set(value.map((item) => String(item).trim()).filter(Boolean))];
+  }
+
+  const text = String(value ?? "").trim();
+  if (!text || ["auto", "none", "false", "off"].includes(text.toLowerCase())) {
+    return [];
+  }
+
+  return [...new Set(text.split(/\s*,\s*/).map((item) => item.trim()).filter(Boolean))];
+}
+
+function integrationProviderListSetting(optionValue, currentValue = []) {
+  if (optionValue === undefined || optionValue === null) {
+    return normalizeIntegrationProviderList(currentValue);
+  }
+
+  return normalizeIntegrationProviderList(optionValue);
+}
+
+function normalizeIntegrationProviderList(value) {
+  const providers = normalizeListSetting(value);
+  if (providers.some((provider) => provider.toLowerCase() === "all")) {
+    return [...SUPPORTED_INTEGRATIONS];
+  }
+
+  return [...new Set(providers
+    .map((provider) => provider.toLowerCase())
+    .filter((provider) => SUPPORTED_INTEGRATIONS.includes(provider)))];
+}
+
+function normalizeDistribution(value) {
+  const normalized = String(value ?? "auto").trim().toLowerCase();
+  if (!normalized || normalized === "auto") {
+    return "auto";
+  }
+
+  return ["none", "npm"].includes(normalized) ? normalized : null;
+}
+
+function normalizeBranchStrategySetting(value) {
+  if (value === undefined || value === null) {
+    return "auto";
+  }
+
+  return normalizeBranchStrategyName(value) ?? (String(value).trim().toLowerCase() === "auto" ? "auto" : null);
+}
+
+function normalizeBranchStrategyName(value) {
+  const normalized = String(value ?? "").trim().toLowerCase().replace(/[_\s]+/g, "-");
+  const aliases = {
+    "github-flow": "GitHub Flow with release channels",
+    "github": "GitHub Flow with release channels",
+    "gitlab-flow": "GitLab Flow with merge requests",
+    "gitlab": "GitLab Flow with merge requests",
+    "trunk": "Trunk-Based Development",
+    "trunk-based": "Trunk-Based Development",
+    "trunk-based-development": "Trunk-Based Development",
+    "hybrid": "Hybrid Flow",
+    "hybrid-flow": "Hybrid Flow",
+    "git-flow": "Git Flow",
+    "gitflow": "Git Flow"
+  };
+
+  return aliases[normalized] ?? null;
 }
 
 function projectProfileOptionArgs(options = {}) {
@@ -5333,7 +5551,8 @@ function hasTestScript(packageJson = readJsonFile("package.json")) {
 }
 
 function hasCiGateScript(packageJson = readJsonFile("package.json")) {
-  return Boolean(discoverValidationCommand(packageJson, detectProjectProfile(packageJson)));
+  const profile = detectProjectProfile(packageJson);
+  return Boolean(resolveWorkflowSettings({}, profile, packageJson).qualityCommands.length || discoverValidationCommand(packageJson, profile));
 }
 
 function hasNestedDirectory(baseDirs, names) {
@@ -5735,6 +5954,7 @@ function buildDeepSignals() {
 function buildBranchStrategy(options = {}) {
   const packageJson = readJsonFile("package.json");
   const profile = detectProjectProfile(packageJson, options);
+  const workflow = resolveWorkflowSettings(options, profile, packageJson);
   const hasCi = hasCiWorkflow(profile);
   const hasReleaseDocs = existsSync(join("docs", "roadmap.md"));
   const hasDevelopWorkflow = hasDevelopWorkflowSignal();
@@ -5744,10 +5964,10 @@ function buildBranchStrategy(options = {}) {
     .filter(Boolean);
   const teamSize = Number.parseInt(options.teamSize ?? "0", 10) || null;
   const releaseCadence = String(options.release ?? "auto").trim().toLowerCase();
-  const selectedStrategy = selectBranchStrategy({
+  const selectedStrategy = normalizeBranchStrategyName(workflow.branchStrategy) ?? selectBranchStrategy({
     branchNames,
     hasCi,
-    hasDevelopWorkflow,
+    hasDevelopWorkflow: hasDevelopWorkflow || workflow.targetBranch === "develop",
     teamSize,
     releaseCadence,
     profile
@@ -5760,7 +5980,7 @@ function buildBranchStrategy(options = {}) {
     reasonParts.push("repository needs a clear contribution flow");
   }
 
-  if (profile.kind === "package") {
+  if (profile.kind === "package" && workflow.distribution !== "none") {
     reasonParts.push("package releases may need channel control for stable and prerelease versions");
   }
 
@@ -5787,14 +6007,15 @@ function buildBranchStrategy(options = {}) {
     signals: {
       packageName: packageJson.name ?? null,
       hasCi,
-      hasDevelopWorkflow,
+      hasDevelopWorkflow: hasDevelopWorkflow || workflow.targetBranch === "develop",
+      targetBranch: workflow.targetBranch,
       hasReleaseDocs,
       teamSize,
       releaseCadence,
       branchCount: branchNames.length,
       changedPaths: getChangedPaths().length
     },
-    branches: branchRulesForStrategy(selectedStrategy),
+    branches: branchRulesForWorkflow(selectedStrategy, workflow.targetBranch),
     githubProtection: [
       profile.hosting === "gitlab" ? "Require a merge request before merging into main." : "Require pull request before merging into main.",
       "Do not require mandatory approvals by default; enable reviews per repository policy.",
@@ -5808,7 +6029,7 @@ function buildBranchStrategy(options = {}) {
       ".aigate/policy-packs/README.md",
       ".aigate/policy-packs/branch-protection.json",
       ".aigate/policy-packs/pr-quality.json",
-      ...(profile.kind === "package" ? [".aigate/policy-packs/release-channels.json"] : []),
+      ...(profile.kind === "package" && workflow.distribution !== "none" ? [".aigate/policy-packs/release-channels.json"] : []),
       ".aigate/policy-packs/ai-collaboration.json",
       "docs/release-process.md",
       "docs/hotfix-process.md",
@@ -5817,6 +6038,22 @@ function buildBranchStrategy(options = {}) {
         : [".github/pull_request_template.aigate.md", ".github/CODEOWNERS.aigate"])
     ]
   };
+}
+
+function branchRulesForWorkflow(strategyName, targetBranch = "main") {
+  const branches = branchRulesForStrategy(strategyName);
+  const target = String(targetBranch ?? "").trim();
+  if (!target || target === "main" || branches.some((branch) => branch.name === target)) {
+    return branches;
+  }
+
+  const mainIndex = branches.findIndex((branch) => branch.name === "main");
+  const insertAt = mainIndex >= 0 ? mainIndex + 1 : 0;
+  return [
+    ...branches.slice(0, insertAt),
+    { name: target, use: "merge request target branch" },
+    ...branches.slice(insertAt)
+  ];
 }
 
 function buildBranchStrategyComparison(options = {}, recommendedStrategy = buildBranchStrategy(options)) {
@@ -6718,6 +6955,8 @@ function buildAiReportDirection({ evaluation, releaseCheck, branchStrategy }, la
 function buildAiReportCommands({ evaluation, releaseCheck }, language = "en") {
   const privateApp = evaluation.profile?.visibility === "private" && evaluation.profile?.kind === "app";
   const profileFlags = profileOptionFlags(evaluation.profile);
+  const settings = normalizeSettings(readSettings());
+  const providerArg = settings.aiProviders.length ? settings.aiProviders.join(",") : "all";
   const missingChecks = new Set(evaluation.checks.filter((check) => checkNeedsAction(check)).map((check) => check.name));
   const commands = [];
 
@@ -6728,7 +6967,7 @@ function buildAiReportCommands({ evaluation, releaseCheck }, language = "en") {
   }
 
   if (missingChecks.has("AI assistant instructions exist")) {
-    commands.push(aiReportCommand("aigate start --route ai --provider all", aiReportText("commandAi", language)));
+    commands.push(aiReportCommand(`aigate start --route ai --provider ${providerArg}`, aiReportText("commandAi", language)));
   }
 
   commands.push(aiReportCommand("aigate ai report --output .aigate/reports/ai-report.md", aiReportText("commandReport", language)));
@@ -6753,6 +6992,8 @@ function aiReportCommand(command, reason) {
 
 function aiReportCommandForEvaluationCheck(name) {
   const profile = detectProjectProfile();
+  const settings = normalizeSettings(readSettings());
+  const providerArg = settings.aiProviders.length ? settings.aiProviders.join(",") : "all";
   const profileFlags = profileOptionFlags(profile);
   const repoFilesCommand = profile.visibility === "private" && profile.kind === "app"
     ? `aigate start --route default --steps repo-files${profileFlags}`
@@ -6768,7 +7009,7 @@ function aiReportCommandForEvaluationCheck(name) {
     "CODEOWNERS exists": `${repoFilesCommand} --owner @your-org/team`,
     "Contribution guide exists": repoFilesCommand,
     "Issue templates exist": repoFilesCommand,
-    "AI assistant instructions exist": "aigate start --route ai --provider all",
+    "AI assistant instructions exist": `aigate start --route ai --provider ${providerArg}`,
     "Test directory exists": "aigate test",
     "Project test command exists": "aigate test",
     "CI gate script exists": "aigate test",
@@ -7920,7 +8161,9 @@ function buildBranchStrategyFiles(strategy, outputDir, language = "en", profile 
 function buildBranchPolicyPacks(strategy, profile = {}) {
   const packageJson = readJsonFile("package.json");
   const validationCommands = buildValidationCommands(packageJson, profile);
+  const workflow = resolveWorkflowSettings({}, profile, packageJson);
   const requiredChecks = requiredChecksForProfile(profile);
+  const protectedBranches = effectiveProtectedBranches(strategy, workflow);
   const packs = [
     {
       path: ".aigate/policy-packs/branch-protection.json",
@@ -7928,7 +8171,7 @@ function buildBranchPolicyPacks(strategy, profile = {}) {
         version: 1,
         id: "branch-protection",
         strategy: strategy.name,
-        appliesTo: ["main", "develop", "release/*", "hotfix/*"],
+        appliesTo: protectedBranches,
         requiredChecks,
         rules: [
           {
@@ -8046,6 +8289,23 @@ function buildBranchPolicyPacks(strategy, profile = {}) {
   }
 
   return packs;
+}
+
+function effectiveProtectedBranches(strategy = {}, workflow = {}) {
+  const configured = normalizeListSetting(workflow.protectedBranches);
+  if (configured.length) {
+    return configured;
+  }
+
+  const branches = (strategy.branches ?? [])
+    .map((branch) => branch.name)
+    .filter((branch) => ["main", "develop"].includes(branch));
+  const targetBranch = String(workflow.targetBranch ?? "").trim();
+  if (targetBranch && !branches.includes(targetBranch)) {
+    branches.push(targetBranch);
+  }
+
+  return [...new Set(branches.length ? branches : ["main"])];
 }
 
 function renderPolicyPackReadme(strategy, policyPacks, language = "en", profile = {}, validationCommands = ["aigate git-ready"]) {
@@ -8966,25 +9226,28 @@ function projectNameToTitle(projectName) {
 }
 
 function resolveIntegrationProviders(providerArg) {
-  const provider = String(providerArg).trim().toLowerCase();
-  if (provider === "all") {
+  const providers = normalizeListSetting(providerArg).map((provider) => provider.toLowerCase());
+  if (!providers.length || providers.includes("all")) {
     return [...SUPPORTED_INTEGRATIONS];
   }
 
-  if (SUPPORTED_INTEGRATIONS.includes(provider)) {
-    return [provider];
+  if (providers.every((provider) => SUPPORTED_INTEGRATIONS.includes(provider))) {
+    return [...new Set(providers)];
   }
 
   return null;
 }
 
-function buildIntegrationManifest(providers, profile = {}, packageJson = readJsonFile("package.json")) {
-  const validationCommands = buildValidationCommands(packageJson, profile);
+function buildIntegrationManifest(providers, profile = {}, packageJson = readJsonFile("package.json"), options = {}) {
+  const workflow = resolveWorkflowSettings(options, profile, packageJson);
+  const validationCommands = buildValidationCommands(packageJson, profile, options);
   const branchStrategy = buildBranchStrategy({
     projectType: profile.kind,
     hosting: profile.hosting,
     ciProvider: profile.ciProvider,
-    packageManager: profile.packageManager
+    packageManager: profile.packageManager,
+    branchStrategy: workflow.branchStrategy,
+    targetBranch: workflow.targetBranch
   });
   return {
     version: 1,
@@ -8995,6 +9258,12 @@ function buildIntegrationManifest(providers, profile = {}, packageJson = readJso
       ciProvider: profile.ciProvider ?? "unknown",
       packageManager: profile.packageManager ?? "unknown"
     },
+    workflow: {
+      defaultBranch: workflow.defaultBranch,
+      targetBranch: workflow.targetBranch,
+      protectedBranches: effectiveProtectedBranches(branchStrategy, workflow),
+      distribution: workflow.distribution
+    },
     providers,
     requiredCommands: [...new Set([
       ...validationCommands,
@@ -9004,11 +9273,16 @@ function buildIntegrationManifest(providers, profile = {}, packageJson = readJso
     ])],
     validationCommands,
     branchStrategy: branchStrategy.name,
-    requiredChecks: requiredChecksForProfile(profile)
+    requiredChecks: requiredChecksForProfile(profile, options)
   };
 }
 
-function buildValidationCommands(packageJson = readJsonFile("package.json"), profile = detectProjectProfile(packageJson)) {
+function buildValidationCommands(packageJson = readJsonFile("package.json"), profile = detectProjectProfile(packageJson), options = {}) {
+  const workflow = resolveWorkflowSettings(options, profile, packageJson);
+  if (workflow.qualityCommands.length) {
+    return [...new Set([...workflow.qualityCommands, "aigate git-ready"])];
+  }
+
   const commands = [];
   const validationCommand = discoverValidationCommand(packageJson, profile);
   if (validationCommand) {
@@ -9027,7 +9301,12 @@ function packageManagerScriptCommand(packageManager, script) {
   return pm === "yarn" ? `yarn ${script}` : `${pm} run ${script}`;
 }
 
-function requiredChecksForProfile(profile = {}) {
+function requiredChecksForProfile(profile = {}, options = {}) {
+  const workflow = resolveWorkflowSettings(options, profile);
+  if (workflow.requiredChecks.length) {
+    return [...new Set(workflow.requiredChecks)];
+  }
+
   if (profile.ciProvider === "gitlab" || profile.hosting === "gitlab") {
     return ["GitLab CI pipeline", "aigate git-ready"];
   }
@@ -9265,13 +9544,15 @@ function formatInlineCodeList(items) {
 function renderSharedAssistantInstructions(language = "en", manifest = {}) {
   const validationCommands = manifest.validationCommands ?? ["aigate git-ready"];
   const requiredChecks = manifest.requiredChecks ?? ["aigate git-ready"];
+  const defaultBranch = manifest.workflow?.defaultBranch ?? "main";
+  const targetBranch = manifest.workflow?.targetBranch ?? defaultBranch;
   if (language === "ko") {
     return [
       "## 저장소 컨텍스트",
       "",
       "- 제품: AIGate AI Git 워크플로 보호 CLI.",
-      "- 기본 브랜치: `main`.",
-      "- 변경은 작업 브랜치를 사용하고 `main`에 직접 푸시하지 않습니다.",
+      `- 기본 브랜치: \`${defaultBranch}\`.`,
+      `- 변경은 작업 브랜치를 사용하고 \`${targetBranch}\`에 직접 푸시하지 않습니다.`,
       "- Conventional Commit 메시지로 범위가 명확한 커밋을 선호합니다.",
       "",
       "## 편집 전",
@@ -9306,7 +9587,7 @@ function renderSharedAssistantInstructions(language = "en", manifest = {}) {
       "",
       "## PR 규칙",
       "",
-      "- 대상은 `main`입니다.",
+      `- 대상은 \`${targetBranch}\`입니다.`,
       "- 요약, 이유, 검증, 릴리스 영향을 포함합니다.",
       `- 필수 검사: ${formatInlineCodeList(requiredChecks)}.`,
       "- 저장소의 현재 review 정책을 따르고 대화를 해결한 뒤 병합합니다."
@@ -9318,8 +9599,8 @@ function renderSharedAssistantInstructions(language = "en", manifest = {}) {
       "## リポジトリコンテキスト",
       "",
       "- 製品: AIGate AI Git ワークフロー保護 CLI.",
-      "- デフォルトブランチ: `main`.",
-      "- 変更には作業ブランチを使い、`main` へ直接プッシュしません。",
+      `- デフォルトブランチ: \`${defaultBranch}\`.`,
+      `- 変更には作業ブランチを使い、\`${targetBranch}\` へ直接プッシュしません。`,
       "- Conventional Commit メッセージで範囲を絞ったコミットを推奨します。",
       "",
       "## 編集前",
@@ -9354,7 +9635,7 @@ function renderSharedAssistantInstructions(language = "en", manifest = {}) {
       "",
       "## PR ルール",
       "",
-      "- 対象は `main` です。",
+      `- 対象は \`${targetBranch}\` です。`,
       "- 概要、理由、検証、リリース影響を含めます。",
       `- 必須チェック: ${formatInlineCodeList(requiredChecks)}.`,
       "- リポジトリの現在の review policy に従い、会話を解決してからマージします。"
@@ -9366,8 +9647,8 @@ function renderSharedAssistantInstructions(language = "en", manifest = {}) {
       "## 仓库上下文",
       "",
       "- 产品: AIGate AI Git 工作流守护 CLI.",
-      "- 默认分支: `main`.",
-      "- 使用工作分支进行变更，不要直接推送到 `main`。",
+      `- 默认分支: \`${defaultBranch}\`.`,
+      `- 使用工作分支进行变更，不要直接推送到 \`${targetBranch}\`。`,
       "- 优先使用 Conventional Commit，并保持提交范围清晰。",
       "",
       "## 编辑前",
@@ -9402,7 +9683,7 @@ function renderSharedAssistantInstructions(language = "en", manifest = {}) {
       "",
       "## PR 规则",
       "",
-      "- 目标分支是 `main`。",
+      `- 目标分支是 \`${targetBranch}\`。`,
       "- 包含摘要、原因、验证和发布影响。",
       `- 必需检查: ${formatInlineCodeList(requiredChecks)}。`,
       "- 遵循仓库当前 review policy，并在解决对话后再合并。"
@@ -9413,8 +9694,8 @@ function renderSharedAssistantInstructions(language = "en", manifest = {}) {
     "## Repository Context",
     "",
     "- Product: AIGate AI Git Workflow Guard CLI.",
-    "- Default branch: `main`.",
-    "- Use feature branches for changes; do not push directly to `main`.",
+    `- Default branch: \`${defaultBranch}\`.`,
+    `- Use feature branches for changes; do not push directly to \`${targetBranch}\`.`,
     "- Prefer focused commits with Conventional Commit messages.",
     "",
     "## Before Editing",
@@ -9449,7 +9730,7 @@ function renderSharedAssistantInstructions(language = "en", manifest = {}) {
     "",
     "## Pull Request Rules",
     "",
-    "- Target `main`.",
+    `- Target \`${targetBranch}\`.`,
     "- Include summary, why, validation, and release impact.",
     `- Required checks: ${formatInlineCodeList(requiredChecks)}.`,
     "- Follow the repository's current review policy and resolve conversations before merge."
@@ -9459,7 +9740,9 @@ function renderSharedAssistantInstructions(language = "en", manifest = {}) {
 function renderDefaultConfig(packageJson, options = {}) {
   const projectName = packageJson.name ?? "my-project";
   const profile = detectProjectProfile(packageJson, options);
-  const distributionLines = profile.kind === "package" ? [
+  const workflow = resolveWorkflowSettings(options, profile, packageJson);
+  const shouldRenderNpmDistribution = workflow.distribution === "npm" || (workflow.distribution === "auto" && profile.kind === "package");
+  const distributionLines = shouldRenderNpmDistribution ? [
     "",
     "distribution:",
     "  primaryRegistry: npm",
@@ -9470,11 +9753,11 @@ function renderDefaultConfig(packageJson, options = {}) {
     "    beta: beta",
     "    experimental: canary"
   ] : [];
-  const validationCommands = buildValidationCommands(packageJson, profile);
+  const validationCommands = buildValidationCommands(packageJson, profile, options);
   const strategy = buildBranchStrategy(options);
-  const protectedBranches = strategy.branches
-    .filter((branch) => ["main", "develop"].includes(branch.name))
-    .map((branch) => branch.name);
+  const protectedBranches = effectiveProtectedBranches(strategy, workflow);
+  const requiredChecks = requiredChecksForProfile(profile, options);
+  const aiProviders = workflow.aiProviders.length ? workflow.aiProviders : [...SUPPORTED_INTEGRATIONS];
   return [
     `version: ${CONFIG_SCHEMA_VERSION}`,
     `generatedBy: aigate ${VERSION}`,
@@ -9482,7 +9765,8 @@ function renderDefaultConfig(packageJson, options = {}) {
     "project:",
     `  name: ${quoteYamlScalar(projectName)}`,
     `  package: ${quoteYamlScalar(packageJson.name ?? "")}`,
-    "  defaultBranch: main",
+    `  defaultBranch: ${quoteYamlScalar(workflow.defaultBranch)}`,
+    `  targetBranch: ${quoteYamlScalar(workflow.targetBranch)}`,
     `  type: ${profile.kind}`,
     `  hosting: ${profile.hosting}`,
     `  ciProvider: ${profile.ciProvider}`,
@@ -9508,7 +9792,7 @@ function renderDefaultConfig(packageJson, options = {}) {
     "      - slack",
     "",
     "branchStrategy:",
-    "  default: auto",
+    `  default: ${quoteYamlScalar(workflow.branchStrategy)}`,
     "  protectedBranches:",
     ...protectedBranches.map((branch) => `    - ${branch}`),
     "  workBranches:",
@@ -9516,6 +9800,12 @@ function renderDefaultConfig(packageJson, options = {}) {
     "    - fix/*",
     "    - docs/*",
     "    - chore/*",
+    "",
+    "aiIntegrations:",
+    "  providers:",
+    ...aiProviders.map((provider) => `    - ${provider}`),
+    "  requiredChecks:",
+    ...requiredChecks.map((check) => `    - ${check}`),
     "",
     "qualityGates:",
     "  beforePush:",
@@ -10474,6 +10764,14 @@ function stripAigatePushOptions(args) {
       arg.startsWith("--ci-provider=") ||
       arg.startsWith("--package-manager=") ||
       arg.startsWith("--project-type=") ||
+      arg.startsWith("--distribution=") ||
+      arg.startsWith("--target-branch=") ||
+      arg.startsWith("--protected-branches=") ||
+      arg.startsWith("--required-checks=") ||
+      arg.startsWith("--quality-command=") ||
+      arg.startsWith("--providers=") ||
+      arg.startsWith("--ai-providers=") ||
+      arg.startsWith("--branch-strategy=") ||
       arg.startsWith("--jira-api-token=") ||
       arg.startsWith("--jira-base-url=") ||
       arg.startsWith("--jira-email=") ||
@@ -10497,6 +10795,14 @@ function stripAigatePushOptions(args) {
       arg === "--ci-provider" ||
       arg === "--package-manager" ||
       arg === "--project-type" ||
+      arg === "--distribution" ||
+      arg === "--target-branch" ||
+      arg === "--protected-branches" ||
+      arg === "--required-checks" ||
+      arg === "--quality-command" ||
+      arg === "--providers" ||
+      arg === "--ai-providers" ||
+      arg === "--branch-strategy" ||
       arg === "--jira-api-token" ||
       arg === "--jira-base-url" ||
       arg === "--jira-email" ||
@@ -10525,9 +10831,12 @@ function firstPositionalArg(args) {
   const optionsWithValues = new Set([
     "--base",
     "--body",
+    "--ai-providers",
+    "--branch-strategy",
     "--channel",
     "--ci-provider",
     "--config",
+    "--distribution",
     "--event",
     "--format",
     "--history",
@@ -10547,9 +10856,16 @@ function firstPositionalArg(args) {
     "--owner",
     "--hosting",
     "--package-manager",
+    "--protected-branches",
+    "--protected-branch",
     "--prompt-output",
     "--pr",
+    "--providers",
+    "--quality-command",
+    "--quality-commands",
     "--release",
+    "--required-check",
+    "--required-checks",
     "--route",
     "--steps",
     "--provider",
@@ -10558,6 +10874,7 @@ function firstPositionalArg(args) {
     "--command",
     "--agent-command",
     "--team-size",
+    "--target-branch",
     "--details-url",
     "--timeout",
     "--title",

@@ -671,6 +671,79 @@ test("configures GitLab project profile settings", () => {
   assert.equal(JSON.parse(settings.stdout).settings.hosting, "gitlab");
 });
 
+test("configures team workflow settings for private GitLab pnpm apps", () => {
+  const settingsPath = createSettingsPath();
+  const projectDir = createPrivateGitLabPnpmWorkspaceApp();
+  const setup = run([
+    "setup",
+    "--hosting",
+    "gitlab",
+    "--ci-provider",
+    "gitlab",
+    "--project-type",
+    "app",
+    "--package-manager",
+    "pnpm",
+    "--distribution",
+    "none",
+    "--target-branch",
+    "develop",
+    "--protected-branches",
+    "main,develop",
+    "--required-checks",
+    "build,deploy,aigate git-ready",
+    "--quality-command",
+    "pnpm lint && pnpm build",
+    "--providers",
+    "claude",
+    "--branch-strategy",
+    "git-flow",
+    "--format",
+    "json"
+  ], { cwd: projectDir, settingsPath });
+
+  assert.equal(setup.status, 0);
+  const settings = JSON.parse(setup.stdout).settings;
+  assert.equal(settings.distribution, "none");
+  assert.equal(settings.targetBranch, "develop");
+  assert.deepEqual(settings.protectedBranches, ["main", "develop"]);
+  assert.deepEqual(settings.requiredChecks, ["build", "deploy", "aigate git-ready"]);
+  assert.deepEqual(settings.qualityCommands, ["pnpm lint && pnpm build"]);
+  assert.deepEqual(settings.aiProviders, ["claude"]);
+  assert.equal(settings.branchStrategy, "Git Flow");
+
+  const init = run(["init", "--force", "--format", "json"], { cwd: projectDir, settingsPath });
+  assert.equal(init.status, 0);
+  const config = readFileSync(join(projectDir, ".aigate.yml"), "utf8");
+
+  assert.match(config, /targetBranch: "develop"/);
+  assert.match(config, /default: "Git Flow"/);
+  assert.match(config, /    - main/);
+  assert.match(config, /    - develop/);
+  assert.match(config, /    - claude/);
+  assert.match(config, /    - build/);
+  assert.match(config, /    - deploy/);
+  assert.match(config, /      - pnpm lint && pnpm build/);
+  assert.doesNotMatch(config, /distribution:/);
+  assert.doesNotMatch(config, /npm run ci/);
+
+  const integrate = run(["integrate", "--force", "--format", "json"], { cwd: projectDir, settingsPath });
+  assert.equal(integrate.status, 0);
+  const output = JSON.parse(integrate.stdout);
+  const manifest = JSON.parse(readFileSync(join(projectDir, ".aigate", "integrations.json"), "utf8"));
+  const claude = readFileSync(join(projectDir, "CLAUDE.md"), "utf8");
+
+  assert.deepEqual(output.providers, ["claude"]);
+  assert.deepEqual(manifest.providers, ["claude"]);
+  assert.equal(manifest.workflow.targetBranch, "develop");
+  assert.equal(manifest.workflow.distribution, "none");
+  assert.deepEqual(manifest.requiredChecks, ["build", "deploy", "aigate git-ready"]);
+  assert.ok(manifest.validationCommands.includes("pnpm lint && pnpm build"));
+  assert.match(claude, /대상은 `develop`입니다\.|Target `develop`\./);
+  assert.match(claude, /pnpm lint && pnpm build/);
+  assert.doesNotMatch(JSON.stringify(manifest), /test \(20\)|npm run ci/);
+});
+
 test("rejects unsupported language", () => {
   const result = run(["setup", "--language", "fr"]);
 
@@ -1106,6 +1179,25 @@ test("runs a project test command", () => {
   assert.equal(output.command, "test");
   assert.equal(output.status, "PASS");
   assert.equal(output.testRun.exitCode, 0);
+});
+
+test("runs configured quality command as project test fallback", () => {
+  const settingsPath = createSettingsPath();
+  const projectDir = createMinimalGitProject();
+  run(["setup", "--quality-command", "node -e \"process.stdout.write('configured')\""], {
+    cwd: projectDir,
+    settingsPath
+  });
+  const result = run(["test", "--format", "json"], {
+    cwd: projectDir,
+    settingsPath
+  });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.status, "PASS");
+  assert.equal(output.testCommand.source, "configured-quality-command");
+  assert.match(output.testRun.stdout, /configured/);
 });
 
 test("reports failing project tests in Korean", () => {
