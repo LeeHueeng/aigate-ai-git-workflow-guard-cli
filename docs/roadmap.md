@@ -21,9 +21,9 @@
 ## V1.5: Workflow Intelligence
 
 - [x] Prepare GHCR Docker publishing workflow.
-- [x] Add Homebrew formula draft.
-- [ ] Publish Homebrew formula.
-- [ ] Publish Docker image after local Docker usage is validated.
+- [x] Add Homebrew formula.
+- [x] Publish Homebrew formula through `LeeHueeng/homebrew-tap`.
+- [x] Publish Docker image to GHCR.
 - [x] Promote the bundled GitHub composite action to a reusable public action.
 - [x] Add Discord and Teams webhook notification payloads.
 - [x] Expand generated branch strategy docs into richer policy packs.

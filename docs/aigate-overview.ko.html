@@ -542,9 +542,6 @@ aigate pr-check</code></pre>
       <div>
         <p class="kicker">예시 명령</p>
         <pre><code>aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm
-aigate setup --ai-root-files sidecar
-aigate integrate claude --force
-aigate clean --github-files --force
 aigate test
 aigate evaluate-project</code></pre>
       </div>
@@ -753,10 +750,6 @@ aigate uninstall --force</code></pre>
     <td>생성된 AIGate 리포트와 로컬 상태를 삭제합니다.</td>
     <td>리포트와 generated state를 비울 때</td>
   </tr><tr>
-    <td><code>aigate clean --github-files --force</code></td>
-    <td>실제 운영은 GitLab인데 남아 있는 GitHub 보조 템플릿을 삭제합니다.</td>
-    <td>GitLab 프로젝트에서 오래된 GitHub 산출물을 정리할 때</td>
-  </tr><tr>
     <td><code>aigate uninstall --force</code></td>
     <td>AIGate 설정, .aigate 디렉터리, AIGate 소유 hook을 제거합니다.</td>
     <td>프로젝트에서 AIGate를 제거할 때</td>
@@ -885,10 +878,6 @@ aigate uninstall --force</code></pre>
     <td>Codex, Gemini, Claude Code 통합 문서를 생성합니다.</td>
     <td>AI assistant가 같은 규칙을 따르게 할 때</td>
   </tr><tr>
-    <td><code>aigate setup --ai-root-files sidecar</code></td>
-    <td>integrate가 .aigate/integrations/*만 쓰도록 루트 AI 파일 처리 방식을 저장합니다.</td>
-    <td>프로젝트 고유 AGENTS/GEMINI/CLAUDE 파일을 보호할 때</td>
-  </tr><tr>
     <td><code>aigate release-check</code></td>
     <td>패키지, workflow, tag 상태를 점검합니다.</td>
     <td>릴리스 태그 생성 전</td>
@@ -921,7 +910,7 @@ aigate uninstall --force</code></pre>
       <div>
         <p class="kicker">Git</p>
         <h2>브랜치와 배포 흐름</h2>
-        <p>main은 보호된 안정 브랜치이며, codex/*, feature/*, feat/* 같은 작업 브랜치에서 PR을 만든 뒤 병합합니다. release/*와 hotfix/*는 배포 안정화와 긴급 수정에 예약되어 있습니다.</p>
+        <p>main은 보호된 안정 브랜치이며, codex/*와 feature/* 같은 작업 브랜치에서 PR을 만든 뒤 병합합니다. release/*와 hotfix/*는 배포 안정화와 긴급 수정에 예약되어 있습니다.</p>
       </div>
       <pre><code>npm install -g aigate-cli
 aigate setup --language ko
@@ -955,7 +944,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">기능</p>
         <h2>현재 구현된 기능</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm 패키지 aigate-cli 공개 배포와 npx 실행</div><div class="feature done">Git 변경사항과 untracked 파일 기반 readiness check</div><div class="feature done">aigate start 기반 안내형 시작 루트</div><div class="feature done">aigate start --route default 기반 단계별 기본 설정</div><div class="feature done">aigate reset, clean, uninstall 기반 초기화와 삭제 명령</div><div class="feature done">aigate start --route oss 기반 오픈소스 시작 파일 생성</div><div class="feature done">aigate test 기반 turbo 실행기 감지형 root/workspace 테스트 자동화</div><div class="feature done">pnpm-workspace.yaml, package.json workspaces, apps/*, packages/* 테스트 탐지와 대체 실행</div><div class="feature done">aigate ai report 기반 AI 프로젝트 상태 브리프</div><div class="feature done">aigate aitest 기반 AI 수정 프롬프트, 실시간 에이전트 로그, 선택적 에이전트 실행</div><div class="feature done">doctor, demo, install-hook 기반 첫 실행 UX</div><div class="feature done">doctor 기반 generatedBy 버전 드리프트 경고와 게이트 실행 시 오래된 프로필 무시</div><div class="feature done">pre-push Git hook 설치</div><div class="feature done">secret 패턴 탐지와 SARIF 출력</div><div class="feature done">git-ready, guarded push, guarded PR 생성 흐름</div><div class="feature done">GitHub PR comment와 GitHub Checks summary payload</div><div class="feature done">PR 템플릿과 CODEOWNERS 안내형 설정</div><div class="feature done">재사용 가능한 공개 GitHub Action</div><div class="feature done">프로젝트 상태 추세 기록</div><div class="feature done">private 앱, GitLab, pnpm, develop 대상, Claude 중심 팀을 위한 프로필과 워크플로 설정 고정</div><div class="feature done">doctor, AI 지침, branch strategy 정책팩의 GitHub/GitLab 프로필 정합성</div><div class="feature done">루트 AI 지침 파일 보호, sidecar 전용, 덮어쓰기 정책 설정</div><div class="feature done">GitLab 저장소용 GitHub 보조 산출물 명시적 정리</div><div class="feature done">Markdown, HTML, JSON, SARIF 리포트</div><div class="feature done">컴플라이언스 리포트와 로컬 HTML 상태 대시보드</div><div class="feature done">프로젝트 점수와 deep Git signal 평가</div><div class="feature done">브랜치 전략 추천, 제안 비교, 정책 팩 생성</div><div class="feature done">Codex/Gemini/Claude Code 통합 파일 생성</div><div class="feature done">한국어/영어/일본어/중국어 CLI 설정</div><div class="feature done">release-check와 앱 프로필 인식 release-check --npm</div><div class="feature done">npm Trusted Publishing 기반 자동 배포</div><div class="feature done">GitHub CI, OpenSSF Scorecard, GitHub Release 운영</div><div class="feature done">터미널, Slack BLOCK, Discord, Teams, email, Linear, Jira 알림</div><div class="feature done">GHCR Docker 배포 workflow와 Homebrew formula 초안</div></div>
+      <div class="feature-grid"><div class="feature done">npm 패키지 aigate-cli 공개 배포와 npx 실행</div><div class="feature done">Git 변경사항과 untracked 파일 기반 readiness check</div><div class="feature done">aigate start 기반 안내형 시작 루트</div><div class="feature done">aigate start --route default 기반 단계별 기본 설정</div><div class="feature done">aigate reset, clean, uninstall 기반 초기화와 삭제 명령</div><div class="feature done">aigate start --route oss 기반 오픈소스 시작 파일 생성</div><div class="feature done">aigate test 기반 turbo 실행기 감지형 root/workspace 테스트 자동화</div><div class="feature done">pnpm-workspace.yaml, package.json workspaces, apps/*, packages/* 테스트 탐지와 대체 실행</div><div class="feature done">aigate ai report 기반 AI 프로젝트 상태 브리프</div><div class="feature done">aigate aitest 기반 AI 수정 프롬프트, 실시간 에이전트 로그, 선택적 에이전트 실행</div><div class="feature done">doctor, demo, install-hook 기반 첫 실행 UX</div><div class="feature done">doctor 기반 generatedBy 버전 드리프트 경고</div><div class="feature done">pre-push Git hook 설치</div><div class="feature done">secret 패턴 탐지와 SARIF 출력</div><div class="feature done">git-ready, guarded push, guarded PR 생성 흐름</div><div class="feature done">GitHub PR comment와 GitHub Checks summary payload</div><div class="feature done">PR 템플릿과 CODEOWNERS 안내형 설정</div><div class="feature done">재사용 가능한 공개 GitHub Action</div><div class="feature done">프로젝트 상태 추세 기록</div><div class="feature done">private 앱, GitLab, pnpm 자동 프로필 감지와 설정 고정</div><div class="feature done">doctor, AI 지침, branch strategy 정책팩의 GitHub/GitLab 프로필 정합성</div><div class="feature done">Markdown, HTML, JSON, SARIF 리포트</div><div class="feature done">컴플라이언스 리포트와 로컬 HTML 상태 대시보드</div><div class="feature done">프로젝트 점수와 deep Git signal 평가</div><div class="feature done">브랜치 전략 추천, 제안 비교, 정책 팩 생성</div><div class="feature done">Codex/Gemini/Claude Code 통합 파일 생성</div><div class="feature done">한국어/영어/일본어/중국어 CLI 설정</div><div class="feature done">release-check와 앱 프로필 인식 release-check --npm</div><div class="feature done">npm Trusted Publishing 기반 자동 배포</div><div class="feature done">GitHub CI, OpenSSF Scorecard, GitHub Release 운영</div><div class="feature done">터미널, Slack BLOCK, Discord, Teams, email, Linear, Jira 알림</div><div class="feature done">GHCR Docker 이미지와 Homebrew tap 공개 배포</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -963,7 +952,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">기능</p>
         <h2>미래에 구현할 기능</h2>
       </div>
-      <div class="feature-grid"><div class="feature planned">Slack BLOCK 알림을 제품 수준 UX로 고도화</div><div class="feature planned">태그 기반 GHCR workflow 실행 후 public Docker image</div><div class="feature planned">Homebrew tap publish</div><div class="feature planned">중앙 알림 정책 강화</div><div class="feature planned">Linear/Jira workflow 연동 심화</div><div class="feature planned">standalone binary 배포</div><div class="feature planned">조직 대시보드</div><div class="feature planned">SSO/SAML, 엔터프라이즈 거버넌스</div></div>
+      <div class="feature-grid"><div class="feature planned">Slack BLOCK 알림을 제품 수준 UX로 고도화</div><div class="feature planned">중앙 알림 정책 강화</div><div class="feature planned">Linear/Jira workflow 연동 심화</div><div class="feature planned">standalone binary 배포</div><div class="feature planned">조직 대시보드</div><div class="feature planned">SSO/SAML, 엔터프라이즈 거버넌스</div></div>
     </section>
   </main>
 

@@ -59,7 +59,7 @@ open source CLI에는 다음이 포함되어야 합니다.
 1. `aigate-cli`를 npm에서 최신 상태로 유지합니다.
 2. GitHub Actions와 npm Trusted Publishing으로 provenance를 제공합니다.
 3. tagged version마다 release note를 추가합니다.
-4. npm package에 실제 사용자가 생기면 Homebrew와 Docker를 추가합니다.
+4. Homebrew와 Docker release를 tagged npm release와 맞춰 유지합니다.
 5. public roadmap을 명확하고 issue-driven하게 유지합니다.
 
 ## Adoption goals

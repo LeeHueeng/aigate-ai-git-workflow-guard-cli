@@ -2,9 +2,8 @@
 
 [English](distribution.md) | [한국어](distribution.ko.md) | [日本語](distribution.ja.md) | [中文](distribution.zh.md)
 
-AIGate は npm を最初の配布 channel にします。Docker、Homebrew、
-standalone binary は計画中の public channel であり、公開されるまでは
-copy-paste install path として案内しません。
+AIGate は npm、GHCR Docker image、Homebrew tap、再利用可能な GitHub Action
+で配布されます。standalone binary は今後の配布 channel です。
 
 ## npm
 
@@ -53,17 +52,15 @@ npx npm@latest trust github aigate-cli \
 
 ## Docker
 
-リポジトリには `.github/workflows/docker.yml` の GHCR 公開 workflow が
-含まれています。タグ付き workflow run が public image を公開するまでは、
-local build で container usage を検証します。
+タグ付き release は `.github/workflows/docker.yml` を通じて GHCR public
+image を publish します。
 
 ```sh
-docker build -t aigate/cli .
-docker run --rm -v "$PWD:/repo" -w /repo aigate/cli check
-docker run --rm -v "$PWD:/repo" -w /repo aigate/cli audit-report
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:latest audit-report
 ```
 
-公開が有効になった後、タグ付きリリースは次の image に publish されます。
+Image:
 
 ```text
 ghcr.io/leehueeng/aigate-cli
@@ -71,12 +68,17 @@ ghcr.io/leehueeng/aigate-cli
 
 ## Homebrew
 
-リポジトリには `packaging/homebrew/aigate-cli.rb` の formula draft が
-含まれています。一致する npm release が安定した後に Homebrew tap へ
-publish します。
+公開 tap は <https://github.com/LeeHueeng/homebrew-tap> です。
 
 ```sh
-brew install --formula ./packaging/homebrew/aigate-cli.rb
+brew tap LeeHueeng/tap
+brew install aigate-cli
+```
+
+1 command install:
+
+```sh
+brew install LeeHueeng/tap/aigate-cli
 ```
 
 ## GitHub Actions
@@ -105,6 +107,4 @@ jobs:
 
 ## 今後の channel
 
-- GHCR workflow のタグ実行成功後の public Docker image
-- npm package に実ユーザーが付いた後の Homebrew tap publish
 - Node.js がない環境向け standalone binary

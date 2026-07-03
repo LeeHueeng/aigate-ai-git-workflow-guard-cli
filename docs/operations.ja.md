@@ -109,12 +109,10 @@ aigate release-check --npm
 - 英語、韓国語、日本語、中国語の CLI settings
 - release-check と npm Trusted Publishing workflow
 - Terminal, Slack BLOCK, Discord, Teams, email, Linear, Jira notifications
-- GHCR Docker publish workflow と Homebrew formula draft
+- GHCR Docker image と Homebrew tap の公開配布
 
 ## 今後の予定
 
-- タグ付き GHCR workflow 実行後の public Docker image
-- Homebrew tap publish
 - standalone binary
 - Linear/Jira workflow integrations の深化
 - organization dashboard と enterprise governance packs

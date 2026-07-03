@@ -59,7 +59,7 @@ open source CLI 应包含:
 1. 保持 `aigate-cli` 在 npm 上更新
 2. 使用 GitHub Actions 和 npm Trusted Publishing 提供 provenance
 3. 为每个 tagged version 添加 release notes
-4. npm package 有真实用户后添加 Homebrew 和 Docker
+4. 让 Homebrew 和 Docker release 与 tagged npm release 保持一致
 5. 保持 public roadmap 清晰并由 issue 驱动
 
 ## Adoption goals

@@ -22,8 +22,8 @@ global install, `npx` 실행을 제공하면서 yarn, pnpm, bun과도 함께 사
 | yarn | `yarn global add aigate-cli` | MVP |
 | pnpm | `pnpm add -g aigate-cli` | MVP |
 | bun | `bun add -g aigate-cli` | MVP |
-| Homebrew | `packaging/homebrew/`에 formula 초안 준비 | prepared |
-| Docker | GHCR workflow 준비, public image는 tagged release 대기 | prepared |
+| Homebrew | `brew install LeeHueeng/tap/aigate-cli` | MVP |
+| Docker | `docker run --rm ghcr.io/leehueeng/aigate-cli:0.1.6 check` | MVP |
 | GitHub Releases | standalone binary download | V2 |
 
 Release channel:

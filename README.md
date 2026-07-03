@@ -254,13 +254,20 @@ aigate setup --language ja
 aigate setup --language zh
 ```
 
+## Public Install Channels
+
+These public install paths are available now:
+
+```sh
+npm install -g aigate-cli
+brew install LeeHueeng/tap/aigate-cli
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+```
+
 ## Planned, Not Shipped Yet
 
-These are intentionally not in the quickstart until they are publicly
-distributed:
+These remain on the roadmap:
 
-- Published Docker image
-- Homebrew formula
 - Standalone binaries
 - Hosted dashboard
 - Deeper Linear and Jira workflow automation
