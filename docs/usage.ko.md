@@ -135,22 +135,26 @@ push 전에 AIGate 점검을 붙이는 보호 래퍼입니다.
 세 단계로 봅니다.
 
 - 권고형: hook이나 필수 CI gate가 확인되지 않은 상태입니다.
-- 부분강제: 로컬 pre-push hook이 있지만 `--no-verify`로 우회할 수 있습니다.
-- 서버강제: CI가 `aigate git-ready`를 실행하고 branch protection 또는 MR rule이 CI 결과를 요구합니다.
+- 부분강제: 현재 클론에서는 hook이 활성화되어 있지만 `--no-verify`로 우회할 수 있고 신규 클론에는 활성화되지 않았을 수 있습니다.
+- 서버강제: CI가 `aigate git-ready`를 실행하고 검증된 branch protection 또는 MR rule이 CI 결과를 요구합니다.
 
 일반적인 설정 명령은 아래와 같습니다.
 
 ```sh
 aigate install-hook --pre-push
 aigate setup --gitlab-pipeline-must-succeed true
+aigate setup --gitlab-pipeline-must-succeed verified
 aigate setup --github-required-checks-enforced true
+aigate setup --github-required-checks-enforced verified
 ```
 
 `aigate doctor`는 `AIGate 강제 연결` 항목으로 현재 수준을 보고합니다.
 `aigate evaluate-project`는 `AIGate CI 게이트 존재`와
 `AIGate 서버 강제 적용 존재`를 따로 확인합니다. GitLab의 `allow_failure: true`
 또는 `when: manual` job은 서버강제로 보지 않으며, 저장소 안의 GitLab `include:`
-YAML 파일도 함께 확인합니다.
+YAML 파일도 함께 확인합니다. `--gitlab-pipeline-must-succeed true` 같은 값은
+선언된 증거일 뿐 live/API 검증은 아니며, 호스팅 제공자의 branch protection 또는
+merge rule을 확인한 뒤에만 `verified`를 사용하세요.
 
 ## 테스트와 AI 자동 조치 흐름
 

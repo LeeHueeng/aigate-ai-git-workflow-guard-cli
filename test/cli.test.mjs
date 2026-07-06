@@ -713,6 +713,24 @@ test("configures server enforcement evidence settings", () => {
   assert.equal(settings.serverEnforcement.github.requiredChecksEnforced, false);
 });
 
+test("configures verified server enforcement evidence settings", () => {
+  const settingsPath = createSettingsPath();
+  const setup = run([
+    "setup",
+    "--gitlab-pipeline-must-succeed",
+    "verified",
+    "--github-required-checks-enforced",
+    "verified",
+    "--format",
+    "json"
+  ], { settingsPath });
+
+  assert.equal(setup.status, 0);
+  const settings = JSON.parse(setup.stdout).settings;
+  assert.equal(settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, "verified");
+  assert.equal(settings.serverEnforcement.github.requiredChecksEnforced, "verified");
+});
+
 test("configures team workflow settings for private GitLab pnpm apps", () => {
   const settingsPath = createSettingsPath();
   const projectDir = createPrivateGitLabPnpmWorkspaceApp();
@@ -1020,7 +1038,7 @@ test("doctor follows GitLab app profile CI and test detection", () => {
   assert.doesNotMatch(JSON.stringify(output), /github missing/);
 });
 
-test("doctor reports AIGate enforcement when the pre-push hook is installed", () => {
+test("doctor reports active local hooks as partial non-server enforcement", () => {
   const projectDir = createMinimalGitProject();
   const hook = run(["install-hook", "--pre-push"], { cwd: projectDir });
   assert.equal(hook.status, 0);
@@ -1030,8 +1048,52 @@ test("doctor reports AIGate enforcement when the pre-push hook is installed", ()
   const output = JSON.parse(result.stdout);
   const enforcement = output.checks.find((check) => check.id === "aigate-enforcement");
 
-  assert.equal(enforcement.pass, true);
-  assert.equal(enforcement.value, "partial: local pre-push hook");
+  assert.equal(output.status, "WARN");
+  assert.equal(enforcement.pass, false);
+  assert.equal(enforcement.value, "partial: local hook active in this clone; team-wide activation not verified");
+  assert.equal(output.checks.find((check) => check.id === "local-pre-push-hook")?.pass, undefined);
+  assert.equal(output.checks.find((check) => check.id === "pre-push-hook")?.value, "active in this clone");
+});
+
+test("doctor distinguishes committed hook files from active local hook configuration", () => {
+  const projectDir = createMinimalGitProject();
+  mkdirSync(join(projectDir, ".githooks"), { recursive: true });
+  writeFileSync(join(projectDir, ".githooks", "pre-push"), [
+    "#!/bin/sh",
+    "# AIGate pre-push hook",
+    "aigate git-ready"
+  ].join("\n"));
+
+  const result = run(["doctor", "--format", "json"], { cwd: projectDir });
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+
+  assert.equal(output.checks.find((check) => check.id === "pre-push-hook")?.pass, false);
+  assert.equal(output.checks.find((check) => check.id === "repository-pre-push-hook-file")?.pass, true);
+  assert.equal(output.checks.find((check) => check.id === "hook-activation-automation")?.pass, false);
+  assert.equal(
+    output.checks.find((check) => check.id === "aigate-enforcement")?.value,
+    "advisory: repository hook file found but not active in this clone"
+  );
+});
+
+test("doctor detects automatic hook activation scripts separately from active local hooks", () => {
+  const projectDir = createMinimalGitProject();
+  writeFileSync(join(projectDir, "package.json"), `${JSON.stringify({
+    name: "minimal-project",
+    version: "1.0.0",
+    scripts: {
+      prepare: "git config core.hooksPath .githooks"
+    }
+  }, null, 2)}\n`);
+
+  const result = run(["doctor", "--format", "json"], { cwd: projectDir });
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+
+  assert.equal(output.checks.find((check) => check.id === "pre-push-hook")?.pass, false);
+  assert.equal(output.checks.find((check) => check.id === "hook-activation-automation")?.pass, true);
+  assert.equal(output.checks.find((check) => check.id === "hook-activation-automation")?.value, "prepare script");
 });
 
 test("doctor detects pnpm workspace test scripts", () => {
@@ -1914,7 +1976,7 @@ test("does not treat allow_failure GitLab AIGate jobs as server enforcement", ()
   assert.match(output.enforcement.serverReason, /manual, allow_failure, or not matched/);
 });
 
-test("scores GitLab server enforcement only with a blocking MR job and required pipeline setting", () => {
+test("does not treat declared GitLab required pipeline settings as verified server enforcement", () => {
   const projectDir = createPrivateGitLabPnpmApp();
   mkdirSync(join(projectDir, ".aigate"), { recursive: true });
   writeFileSync(join(projectDir, ".aigate", "settings.json"), `${JSON.stringify({
@@ -1942,7 +2004,41 @@ test("scores GitLab server enforcement only with a blocking MR job and required 
   const output = JSON.parse(result.stdout);
 
   assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "AIGate server enforcement exists")?.pass, false);
+  assert.equal(output.enforcement.serverEvidence, "declared:settings");
+  assert.match(output.enforcement.serverReason, /declared but not live\/API verified/);
+});
+
+test("scores GitLab server enforcement only with a blocking MR job and required pipeline setting", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  mkdirSync(join(projectDir, ".aigate"), { recursive: true });
+  writeFileSync(join(projectDir, ".aigate", "settings.json"), `${JSON.stringify({
+    hosting: "gitlab",
+    ciProvider: "gitlab",
+    serverEnforcement: {
+      gitlab: {
+        onlyAllowMergeIfPipelineSucceeds: "verified"
+      }
+    }
+  }, null, 2)}\n`);
+  writeFileSync(join(projectDir, ".gitlab-ci.yml"), [
+    "aigate:",
+    "  rules:",
+    "    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'",
+    "  script:",
+    "    - aigate git-ready"
+  ].join("\n"));
+
+  const result = run(["evaluate-project", "--format", "json"], {
+    cwd: projectDir,
+    settingsPath: join(projectDir, ".aigate", "settings.json")
+  });
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+
+  assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, true);
   assert.equal(output.checks.find((check) => check.name === "AIGate server enforcement exists")?.pass, true);
+  assert.equal(output.enforcement.serverEvidence, "verified:settings");
   assert.equal(output.enforcement.level, "server");
 });
 

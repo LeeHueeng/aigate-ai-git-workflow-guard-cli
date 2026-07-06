@@ -135,15 +135,17 @@ AIGate checks を追加する guarded wrapper です。
 3 段階で見ます。
 
 - advisory: hook または必須 CI gate が確認されていません。
-- partial: local pre-push hook はありますが、`--no-verify` で回避できます。
-- server enforced: CI が `aigate git-ready` を実行し、branch protection または MR rule が CI 結果を要求します。
+- partial: この clone では hook が有効ですが、`--no-verify` で回避でき、新しい clone では有効でない場合があります。
+- server enforced: CI が `aigate git-ready` を実行し、検証済みの branch protection または MR rule が CI 結果を要求します。
 
 通常の設定コマンドは次の通りです。
 
 ```sh
 aigate install-hook --pre-push
 aigate setup --gitlab-pipeline-must-succeed true
+aigate setup --gitlab-pipeline-must-succeed verified
 aigate setup --github-required-checks-enforced true
+aigate setup --github-required-checks-enforced verified
 ```
 
 `aigate doctor` は `AIGate 強制接続` として現在のレベルを報告します。
@@ -151,6 +153,9 @@ aigate setup --github-required-checks-enforced true
 `AIGate サーバー強制が存在` を分けて確認します。GitLab の
 `allow_failure: true` または `when: manual` job は server enforcement と見なさず、
 リポジトリ内の GitLab `include:` YAML ファイルも確認します。
+`--gitlab-pipeline-must-succeed true` のような値は declared evidence であり、
+live/API 検証ではありません。hosting provider の branch protection または
+merge rule を確認した後だけ `verified` を使ってください。
 
 ## テストと AI 自動修正フロー
 

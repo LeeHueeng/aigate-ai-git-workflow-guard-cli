@@ -9,6 +9,9 @@ All notable changes to AIGate are documented here.
 - Split AIGate enforcement scoring into CI gate presence and server-side
   enforcement, including GitLab `allow_failure`, `when: manual`, local
   `include:` files, and explicit required-pipeline evidence.
+- Clarified local hook enforcement by separating active clone-local hooks,
+  committed hook files, hook activation automation, and verified server-side
+  enforcement evidence.
 - Added a GitHub Pages multilingual HTML documentation index for publishing the
   `docs/` site.
 - Refreshed distribution and GitHub Action docs with the verified `0.1.6`

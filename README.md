@@ -97,16 +97,18 @@ AIGate is strongest when it is wired into a workflow, not only run as advice.
 It reports three practical levels:
 
 - advisory: a person can ignore AIGate and run plain `git push`.
-- partial: `aigate install-hook --pre-push` runs locally, but can still be bypassed with `--no-verify`.
-- server enforced: CI runs `aigate git-ready` and branch protection or merge rules require that CI to pass.
+- partial: a hook is active in this clone, but it can still be bypassed with `--no-verify` and may not be active in a fresh clone.
+- server enforced: CI runs `aigate git-ready` and verified branch protection or merge rules require that CI to pass.
 
 `aigate doctor` reports the current level as `AIGate enforcement`.
 `aigate evaluate-project` checks both `AIGate CI gate exists` and
 `AIGate server enforcement exists`, so a CI job that only runs in advisory mode
-does not look fully protected. For GitLab, AIGate treats `allow_failure: true`
-or `when: manual` jobs as non-enforcing and only marks server enforcement when
-`only_allow_merge_if_pipeline_succeeds` is confirmed through settings or
-environment evidence.
+does not look fully protected. `doctor` also separates an active local hook from
+a committed hook file and hook activation automation, because `core.hooksPath`
+is clone-local. For GitLab, AIGate treats `allow_failure: true` or
+`when: manual` jobs as non-enforcing. Declared settings such as
+`--gitlab-pipeline-must-succeed true` are reported as declared evidence; server
+enforcement only passes when evidence is marked verified.
 
 ## Scenario Playbooks
 

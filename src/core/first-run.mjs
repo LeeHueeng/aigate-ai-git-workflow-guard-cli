@@ -12,6 +12,8 @@ export function buildDoctorReport(context) {
   const ciGateCheck = evaluation.checks.find((check) => check.name === "AIGate CI gate exists");
   const serverEnforcementCheck = evaluation.checks.find((check) => check.name === "AIGate server enforcement exists");
   const prePushHookInstalled = hasAigatePrePushHook(context);
+  const repositoryHookFile = repositoryPrePushHookFile();
+  const hookActivation = hookActivationAutomation(packageJson);
   const profile = evaluation.profile ?? {};
   const enforcement = evaluation.enforcement ?? {};
   const generatedVersion = generatedFilesVersion(context);
@@ -74,19 +76,35 @@ export function buildDoctorReport(context) {
     }),
     doctorCheck({
       id: "pre-push-hook",
-      label: "pre-push hook",
+      label: "local pre-push hook",
       pass: prePushHookInstalled,
       severity: "warn",
-      value: prePushHookInstalled ? "installed" : "missing",
+      value: prePushHookInstalled ? "active in this clone" : "not active in this clone",
       next: "Run aigate install-hook --pre-push."
+    }),
+    doctorCheck({
+      id: "repository-pre-push-hook-file",
+      label: "repository pre-push hook file",
+      pass: repositoryHookFile.found || Boolean(serverEnforcementCheck?.pass),
+      severity: "warn",
+      value: repositoryHookFile.found ? `found ${repositoryHookFile.path}` : "missing",
+      next: "Commit an AIGate pre-push hook file or rely on required server-side CI."
+    }),
+    doctorCheck({
+      id: "hook-activation-automation",
+      label: "hook activation automation",
+      pass: hookActivation.found || Boolean(serverEnforcementCheck?.pass),
+      severity: "warn",
+      value: hookActivation.value,
+      next: "Automate hook activation in prepare/postinstall or rely on required server-side CI."
     }),
     doctorCheck({
       id: "aigate-enforcement",
       label: "AIGate enforcement",
-      pass: prePushHookInstalled || Boolean(serverEnforcementCheck?.pass),
+      pass: Boolean(serverEnforcementCheck?.pass),
       severity: "warn",
-      value: enforcementValue({ prePushHookInstalled, ciGateCheck, serverEnforcementCheck, enforcement }),
-      next: "Make aigate git-ready a required CI check or install the local pre-push hook."
+      value: enforcementValue({ prePushHookInstalled, repositoryHookFile, hookActivation, ciGateCheck, serverEnforcementCheck, enforcement }),
+      next: "Make aigate git-ready a verified required CI check."
     }),
     doctorCheck({
       id: "git-ready",
@@ -269,9 +287,9 @@ function ciWorkflowValue(profile) {
   return existsSync(".gitlab-ci.yml") || existsSync(join(".github", "workflows", "ci.yml")) ? "found" : "missing";
 }
 
-function enforcementValue({ prePushHookInstalled, ciGateCheck, serverEnforcementCheck, enforcement }) {
+function enforcementValue({ prePushHookInstalled, repositoryHookFile, hookActivation, ciGateCheck, serverEnforcementCheck, enforcement }) {
   if (serverEnforcementCheck?.pass && prePushHookInstalled) {
-    return "server required CI gate, local pre-push hook";
+    return "server required CI gate, local hook active in this clone";
   }
 
   if (serverEnforcementCheck?.pass) {
@@ -279,7 +297,13 @@ function enforcementValue({ prePushHookInstalled, ciGateCheck, serverEnforcement
   }
 
   if (prePushHookInstalled) {
-    return "partial: local pre-push hook";
+    return hookActivation?.found
+      ? "partial: local hook active in this clone; bypassable with --no-verify"
+      : "partial: local hook active in this clone; team-wide activation not verified";
+  }
+
+  if (repositoryHookFile?.found) {
+    return "advisory: repository hook file found but not active in this clone";
   }
 
   if (ciGateCheck?.pass) {
@@ -407,6 +431,53 @@ function doctorCheck({ id, label, pass, severity, value, next }) {
     value,
     next
   };
+}
+
+function repositoryPrePushHookFile() {
+  const candidates = [
+    join(".githooks", "pre-push"),
+    join(".husky", "pre-push"),
+    join("hooks", "pre-push")
+  ];
+  const filePath = candidates.find((candidate) => (
+    existsSync(candidate) && fileHasAigateGate(candidate)
+  ));
+
+  return filePath
+    ? { found: true, path: filePath }
+    : { found: false, path: "" };
+}
+
+function fileHasAigateGate(filePath) {
+  try {
+    const content = readFileSync(filePath, "utf8");
+    return content.includes(AIGATE_HOOK_MARKER) ||
+      /\baigate\s+git-ready\b/i.test(content) ||
+      /\baigate-cli\s+git-ready\b/i.test(content) ||
+      /\bnode\s+src\/cli\.mjs\s+git-ready\b/i.test(content);
+  } catch {
+    return false;
+  }
+}
+
+function hookActivationAutomation(packageJson) {
+  const scripts = packageJson.scripts ?? {};
+  const automaticScripts = ["prepare", "postinstall", "install", "preinstall"];
+  const scriptName = automaticScripts.find((name) => hookActivationCommand(scripts[name]));
+
+  if (scriptName) {
+    return { found: true, value: `${scriptName} script` };
+  }
+
+  return { found: false, value: "manual or missing" };
+}
+
+function hookActivationCommand(command) {
+  const text = String(command ?? "");
+  return /git\s+config\s+(?:--local\s+)?core\.hooksPath\b/i.test(text) ||
+    /\bhusky\s+install\b/i.test(text) ||
+    /\blefthook\s+install\b/i.test(text) ||
+    /\bpre-commit\s+install\b/i.test(text);
 }
 
 function hasAigatePrePushHook(context) {

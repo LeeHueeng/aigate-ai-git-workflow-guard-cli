@@ -64,14 +64,16 @@ AIGate 不是只作为建议命令运行时最有价值，而是在接入 workfl
 实际保护级别分为三种。
 
 - advisory: 开发者仍然可以忽略 AIGate 并直接运行普通 `git push`。
-- partial: `aigate install-hook --pre-push` 会在本地运行，但仍可被 `--no-verify` 绕过。
-- server enforced: CI 运行 `aigate git-ready`，并且 branch protection 或 MR merge rule 要求 CI 通过。
+- partial: 当前 clone 中 hook 已激活，但仍可被 `--no-verify` 绕过，并且新 clone 中可能未激活。
+- server enforced: CI 运行 `aigate git-ready`，并且已验证的 branch protection 或 MR merge rule 要求 CI 通过。
 
 `aigate doctor` 会用 `AIGate enforcement` 报告当前级别。
 `aigate evaluate-project` 会分别检查 `AIGate CI gate exists` 和
 `AIGate server enforcement exists`。在 GitLab 中，`allow_failure: true`
-或 `when: manual` job 不会被视为强制执行；只有通过设置或环境证据确认
-`only_allow_merge_if_pipeline_succeeds` 时，才会判定为 server enforced。
+或 `when: manual` job 不会被视为强制执行。由于 `core.hooksPath` 是每个 clone
+自己的设置，AIGate 会分别显示 active local hook、已提交 hook file、hook activation
+automation。`--gitlab-pipeline-must-succeed true` 这类值只会被视为 declared evidence；
+只有标为 `verified` 的证据才会判定为 server enforced。
 
 ## 场景式使用手册
 

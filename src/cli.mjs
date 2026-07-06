@@ -1109,8 +1109,8 @@ const HELP_CONTENT = {
       ["--work-branches <list>", "Set allowed work branch patterns, comma-separated."],
       ["--required-checks <list>", "Set required CI/check names, comma-separated."],
       ["--quality-command <shell>", "Set the primary local quality command."],
-      ["--gitlab-pipeline-must-succeed <true|false>", "Record whether GitLab merge requests require successful pipelines."],
-      ["--github-required-checks-enforced <true|false>", "Record whether GitHub branch protection requires the AIGate check."],
+      ["--gitlab-pipeline-must-succeed <true|false|verified>", "Record declared or verified GitLab required-pipeline evidence."],
+      ["--github-required-checks-enforced <true|false|verified>", "Record declared or verified GitHub required-check evidence."],
       ["--providers <list>", "Set default AI integration providers, comma-separated."],
       ["--ai-root-files <protect|sidecar|overwrite>", "Set how integrate handles root AGENTS/GEMINI/CLAUDE files."],
       ["--branch-strategy <name>", "Pin branch strategy: github-flow, gitlab-flow, trunk, hybrid, or git-flow."],
@@ -1212,8 +1212,8 @@ const HELP_CONTENT = {
       ["--work-branches <list>", "허용할 작업 브랜치 패턴을 쉼표로 지정합니다."],
       ["--required-checks <list>", "필수 CI/check 이름을 쉼표로 지정합니다."],
       ["--quality-command <shell>", "기본 로컬 품질 검증 명령을 지정합니다."],
-      ["--gitlab-pipeline-must-succeed <true|false>", "GitLab MR이 성공한 pipeline을 요구하는지 기록합니다."],
-      ["--github-required-checks-enforced <true|false>", "GitHub branch protection이 AIGate check를 필수로 요구하는지 기록합니다."],
+      ["--gitlab-pipeline-must-succeed <true|false|verified>", "GitLab 필수 pipeline 증거를 선언 또는 검증 값으로 기록합니다."],
+      ["--github-required-checks-enforced <true|false|verified>", "GitHub 필수 check 증거를 선언 또는 검증 값으로 기록합니다."],
       ["--providers <list>", "기본 AI 연동 provider를 쉼표로 지정합니다."],
       ["--ai-root-files <protect|sidecar|overwrite>", "integrate가 루트 AGENTS/GEMINI/CLAUDE 파일을 다루는 방식을 지정합니다."],
       ["--branch-strategy <name>", "브랜치 전략을 고정합니다: github-flow, gitlab-flow, trunk, hybrid, git-flow."],
@@ -1315,8 +1315,8 @@ const HELP_CONTENT = {
       ["--work-branches <list>", "許可する作業ブランチパターンをカンマ区切りで指定します。"],
       ["--required-checks <list>", "必須 CI/check 名をカンマ区切りで指定します。"],
       ["--quality-command <shell>", "主要なローカル品質チェックコマンドを指定します。"],
-      ["--gitlab-pipeline-must-succeed <true|false>", "GitLab MR が成功した pipeline を必須にしているかを記録します。"],
-      ["--github-required-checks-enforced <true|false>", "GitHub branch protection が AIGate check を必須にしているかを記録します。"],
+      ["--gitlab-pipeline-must-succeed <true|false|verified>", "GitLab required pipeline の証拠を宣言または検証済み値として記録します。"],
+      ["--github-required-checks-enforced <true|false|verified>", "GitHub required check の証拠を宣言または検証済み値として記録します。"],
       ["--providers <list>", "デフォルト AI 連携 provider をカンマ区切りで指定します。"],
       ["--ai-root-files <protect|sidecar|overwrite>", "integrate が root の AGENTS/GEMINI/CLAUDE ファイルを扱う方法を指定します。"],
       ["--branch-strategy <name>", "ブランチ戦略を固定します: github-flow, gitlab-flow, trunk, hybrid, git-flow。"],
@@ -1418,8 +1418,8 @@ const HELP_CONTENT = {
       ["--work-branches <list>", "用逗号指定允许的工作分支模式。"],
       ["--required-checks <list>", "用逗号指定必需 CI/check 名称。"],
       ["--quality-command <shell>", "设置主要本地质量检查命令。"],
-      ["--gitlab-pipeline-must-succeed <true|false>", "记录 GitLab MR 是否要求 pipeline 成功。"],
-      ["--github-required-checks-enforced <true|false>", "记录 GitHub branch protection 是否要求 AIGate check。"],
+      ["--gitlab-pipeline-must-succeed <true|false|verified>", "记录声明或已验证的 GitLab required pipeline 证据。"],
+      ["--github-required-checks-enforced <true|false|verified>", "记录声明或已验证的 GitHub required check 证据。"],
       ["--providers <list>", "用逗号指定默认 AI 集成 provider。"],
       ["--ai-root-files <protect|sidecar|overwrite>", "设置 integrate 如何处理根目录 AGENTS/GEMINI/CLAUDE 文件。"],
       ["--branch-strategy <name>", "固定分支策略: github-flow, gitlab-flow, trunk, hybrid, git-flow。"],
@@ -5520,6 +5520,10 @@ function setupBooleanSettingValue(optionValue, currentValue) {
     return currentValue ?? "auto";
   }
 
+  if (String(optionValue ?? "").trim().toLowerCase() === "verified") {
+    return "verified";
+  }
+
   const normalized = normalizeBooleanEvidence(optionValue);
   return normalized.known ? normalized.value : "auto";
 }
@@ -6149,6 +6153,14 @@ function detectAigateServerEnforcement({ provider, ciGate }) {
       };
     }
 
+    if (!projectSetting.verified) {
+      return {
+        pass: false,
+        reason: "GitLab only_allow_merge_if_pipeline_succeeds is declared but not live/API verified.",
+        evidence: projectSetting.source
+      };
+    }
+
     return {
       pass: true,
       reason: `GitLab required pipeline with blocking AIGate job: ${blockingJobs.map((job) => job.name).join(", ")}`,
@@ -6158,7 +6170,7 @@ function detectAigateServerEnforcement({ provider, ciGate }) {
 
   if (provider === "github") {
     const requiredChecks = githubRequiredChecksEvidence();
-    return requiredChecks.value === true
+    return requiredChecks.value === true && requiredChecks.verified
       ? {
           pass: true,
           reason: "GitHub branch protection required checks are configured for the AIGate gate.",
@@ -6166,9 +6178,11 @@ function detectAigateServerEnforcement({ provider, ciGate }) {
         }
       : {
           pass: false,
-          reason: requiredChecks.known
-            ? "GitHub branch protection required checks do not include the AIGate gate."
-            : "GitHub branch protection required checks are not verified.",
+          reason: requiredChecks.known && requiredChecks.value === true
+            ? "GitHub branch protection required checks are declared but not live/API verified."
+            : requiredChecks.known
+              ? "GitHub branch protection required checks do not include the AIGate gate."
+              : "GitHub branch protection required checks are not verified.",
           evidence: requiredChecks.source
         };
   }
@@ -6327,7 +6341,7 @@ function gitlabPipelineMustSucceedEvidence() {
   const normalized = normalizeBooleanEvidence(configured?.value);
 
   return normalized.known
-    ? { ...normalized, source: configured.source }
+    ? { ...normalized, source: evidenceSource(configured.source, normalized) }
     : { known: false, value: null, source: "unverified" };
 }
 
@@ -6342,7 +6356,7 @@ function githubRequiredChecksEvidence() {
   const normalized = normalizeBooleanEvidence(configured?.value);
 
   return normalized.known
-    ? { ...normalized, source: configured.source }
+    ? { ...normalized, source: evidenceSource(configured.source, normalized) }
     : { known: false, value: null, source: "unverified" };
 }
 
@@ -6351,20 +6365,32 @@ function firstConfiguredEvidence(candidates) {
 }
 
 function normalizeBooleanEvidence(value) {
+  const normalizedText = String(value ?? "").trim().toLowerCase();
+  if (["verified", "verified:true", "api:true", "live:true"].includes(normalizedText)) {
+    return { known: true, value: true, verified: true };
+  }
+
   if (typeof value === "boolean") {
-    return { known: true, value };
+    return { known: true, value, verified: false };
   }
 
-  const normalized = String(value ?? "").trim().toLowerCase();
-  if (["true", "1", "yes", "on", "required", "enforced"].includes(normalized)) {
-    return { known: true, value: true };
+  if (["true", "1", "yes", "on", "required", "enforced"].includes(normalizedText)) {
+    return { known: true, value: true, verified: false };
   }
 
-  if (["false", "0", "no", "off", "optional", "disabled"].includes(normalized)) {
-    return { known: true, value: false };
+  if (["false", "0", "no", "off", "optional", "disabled"].includes(normalizedText)) {
+    return { known: true, value: false, verified: false };
   }
 
-  return { known: false, value: null };
+  return { known: false, value: null, verified: false };
+}
+
+function evidenceSource(source, evidence) {
+  if (!evidence.value) {
+    return source;
+  }
+
+  return evidence.verified ? `verified:${source}` : `declared:${source}`;
 }
 
 function githubWorkflowFiles() {

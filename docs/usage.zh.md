@@ -132,21 +132,25 @@ AIGate 检查的 guarded wrapper。
 `git push`，它仍然更接近建议。AIGate 将保护级别分为三种。
 
 - advisory: 未确认 hook 或必需 CI gate。
-- partial: 已安装 local pre-push hook，但仍可被 `--no-verify` 绕过。
-- server enforced: CI 运行 `aigate git-ready`，并且 branch protection 或 MR rule 要求 CI 结果。
+- partial: 当前 clone 中 hook 已激活，但仍可被 `--no-verify` 绕过，并且新 clone 中可能未激活。
+- server enforced: CI 运行 `aigate git-ready`，并且已验证的 branch protection 或 MR rule 要求 CI 结果。
 
 常用设置命令如下：
 
 ```sh
 aigate install-hook --pre-push
 aigate setup --gitlab-pipeline-must-succeed true
+aigate setup --gitlab-pipeline-must-succeed verified
 aigate setup --github-required-checks-enforced true
+aigate setup --github-required-checks-enforced verified
 ```
 
 `aigate doctor` 会用 `AIGate 强制连接` 报告当前级别。
 `aigate evaluate-project` 会分别检查 `AIGate CI 关卡存在` 和
 `AIGate 服务器强制存在`。GitLab 的 `allow_failure: true` 或 `when: manual`
 job 不会被视为 server enforcement；仓库内的 GitLab `include:` YAML 文件也会被检查。
+`--gitlab-pipeline-must-succeed true` 这类值只是 declared evidence，不是 live/API
+验证。只有在托管平台中确认 branch protection 或 merge rule 后，才使用 `verified`。
 
 ## 测试和 AI 自动修复流程
 
