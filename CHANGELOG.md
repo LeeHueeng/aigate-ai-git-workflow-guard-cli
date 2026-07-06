@@ -12,6 +12,8 @@ All notable changes to AIGate are documented here.
 - Clarified local hook enforcement by separating active clone-local hooks,
   committed hook files, hook activation automation, and verified server-side
   enforcement evidence.
+- Capped project evaluation scores below A-grade when an AIGate CI gate exists
+  but verified server-side enforcement is missing.
 - Added a GitHub Pages multilingual HTML documentation index for publishing the
   `docs/` site.
 - Refreshed distribution and GitHub Action docs with the verified `0.1.6`

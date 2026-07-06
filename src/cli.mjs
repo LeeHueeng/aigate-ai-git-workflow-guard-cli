@@ -1448,6 +1448,8 @@ const EVALUATION_LABELS = {
     title: "AIGate Project Evaluation",
     textTitle: "AIGate project score",
     score: "Score",
+    rawScore: "Raw score",
+    scoreAdjustments: "Score adjustments",
     grade: "Grade",
     recommendation: "Recommendation",
     categories: "Categories",
@@ -1466,6 +1468,8 @@ const EVALUATION_LABELS = {
     title: "AIGate 프로젝트 평가",
     textTitle: "AIGate 프로젝트 점수",
     score: "점수",
+    rawScore: "원점수",
+    scoreAdjustments: "점수 조정",
     grade: "등급",
     recommendation: "권장 사항",
     categories: "카테고리",
@@ -1484,6 +1488,8 @@ const EVALUATION_LABELS = {
     title: "AIGate プロジェクト評価",
     textTitle: "AIGate プロジェクトスコア",
     score: "スコア",
+    rawScore: "元スコア",
+    scoreAdjustments: "スコア調整",
     grade: "グレード",
     recommendation: "推奨事項",
     categories: "カテゴリ",
@@ -1502,6 +1508,8 @@ const EVALUATION_LABELS = {
     title: "AIGate 项目评估",
     textTitle: "AIGate 项目分数",
     score: "分数",
+    rawScore: "原始分数",
+    scoreAdjustments: "分数调整",
     grade: "等级",
     recommendation: "建议",
     categories: "类别",
@@ -5222,7 +5230,9 @@ function buildEvaluation(options = {}) {
       score: total === 0 ? weight : Math.round((passed / total) * weight)
     };
   });
-  const score = categories.reduce((sum, category) => sum + category.score, 0);
+  const rawScore = categories.reduce((sum, category) => sum + category.score, 0);
+  const scoreAdjustments = evaluationScoreAdjustments({ rawScore, enforcement });
+  const score = applyScoreAdjustments(rawScore, scoreAdjustments);
   const grade = gradeForScore(score);
   const privateApp = profile.visibility === "private" && profile.kind === "app";
   const recommendation = score === 100
@@ -5232,11 +5242,13 @@ function buildEvaluation(options = {}) {
       : "Complete the missing repository foundations before public release.";
   const evaluation = {
     score,
+    rawScore,
     grade,
     profile,
     categories,
     checks,
     enforcement,
+    scoreAdjustments,
     recommendation
   };
 
@@ -5245,6 +5257,26 @@ function buildEvaluation(options = {}) {
   }
 
   return evaluation;
+}
+
+function evaluationScoreAdjustments({ rawScore, enforcement }) {
+  const adjustments = [];
+
+  if (rawScore > 89 && enforcement?.ciGateExists && !enforcement?.serverEnforced) {
+    adjustments.push({
+      type: "cap",
+      cap: 89,
+      reason: "Verified server-side AIGate enforcement is missing."
+    });
+  }
+
+  return adjustments;
+}
+
+function applyScoreAdjustments(score, adjustments = []) {
+  return adjustments.reduce((current, adjustment) => (
+    adjustment.type === "cap" ? Math.min(current, adjustment.cap) : current
+  ), score);
 }
 
 function makeCheck(category, name, pass, options = {}) {
@@ -8355,6 +8387,17 @@ function renderProjectEvaluationReport(evaluation, format, language = "en") {
       "<body>",
       `<h1>${escapeHtml(labels.title)}</h1>`,
       `<p>${escapeHtml(labels.score)}: ${evaluation.score}/100 (${escapeHtml(evaluation.grade)})</p>`,
+      ...(evaluation.scoreAdjustments?.length
+        ? [
+            `<p>${escapeHtml(labels.rawScore)}: ${evaluation.rawScore}/100</p>`,
+            `<h2>${escapeHtml(labels.scoreAdjustments)}</h2>`,
+            "<ul>",
+            ...evaluation.scoreAdjustments.map((adjustment) => (
+              `<li>${escapeHtml(formatScoreAdjustment(adjustment, language))}</li>`
+            )),
+            "</ul>"
+          ]
+        : []),
       `<h2>${escapeHtml(labels.categories)}</h2>`,
       "<ul>",
       ...evaluation.categories.map((category) => (
@@ -8377,6 +8420,12 @@ function renderProjectEvaluationReport(evaluation, format, language = "en") {
     `# ${labels.title}`,
     "",
     `- ${labels.score}: ${evaluation.score}/100`,
+    ...(evaluation.scoreAdjustments?.length
+      ? [
+          `- ${labels.rawScore}: ${evaluation.rawScore}/100`,
+          `- ${labels.scoreAdjustments}: ${evaluation.scoreAdjustments.map((adjustment) => formatScoreAdjustment(adjustment, language)).join("; ")}`
+        ]
+      : []),
     `- ${labels.grade}: ${evaluation.grade}`,
     `- ${labels.recommendation}: ${translateRecommendation(evaluation.recommendation, language)}`,
     "",
@@ -10844,6 +10893,36 @@ function unsupportedLanguage(value) {
 
 function translateRecommendation(recommendation, language) {
   return RECOMMENDATION_TRANSLATIONS[language]?.[recommendation] ?? recommendation;
+}
+
+function formatScoreAdjustment(adjustment, language = "en") {
+  if (adjustment.type === "cap") {
+    const reason = translateScoreAdjustmentReason(adjustment.reason, language);
+    return {
+      ko: `점수 상한 ${adjustment.cap}: ${reason}`,
+      ja: `スコア上限 ${adjustment.cap}: ${reason}`,
+      zh: `分数上限 ${adjustment.cap}: ${reason}`,
+      en: `Score capped at ${adjustment.cap}: ${reason}`
+    }[language] ?? `Score capped at ${adjustment.cap}: ${reason}`;
+  }
+
+  return translateScoreAdjustmentReason(adjustment.reason, language);
+}
+
+function translateScoreAdjustmentReason(reason, language) {
+  if (!reason || language === "en") {
+    return reason ?? "";
+  }
+
+  const exact = {
+    "Verified server-side AIGate enforcement is missing.": {
+      ko: "검증된 서버측 AIGate 강제 적용이 없습니다.",
+      ja: "検証済みのサーバー側 AIGate 強制がありません。",
+      zh: "缺少已验证的服务器端 AIGate 强制执行。"
+    }
+  };
+
+  return exact[reason]?.[language] ?? reason;
 }
 
 function translateNotApplicableReason(reason, language) {

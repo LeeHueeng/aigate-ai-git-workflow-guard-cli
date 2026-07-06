@@ -156,7 +156,9 @@ aigate setup --github-required-checks-enforced verified
 `include:` files are inspected when they point at repository YAML files.
 Values such as `--gitlab-pipeline-must-succeed true` are declared evidence, not
 live verification; use `verified` only after branch protection or merge rules
-have been checked through the hosting provider.
+have been checked through the hosting provider. If a CI gate exists but server
+enforcement is not verified, `evaluate-project` reports the raw score and caps
+the final score below A-grade.
 
 ## Test And AI Remediation Flow
 

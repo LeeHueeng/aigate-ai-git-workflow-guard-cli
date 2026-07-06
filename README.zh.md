@@ -73,7 +73,9 @@ AIGate 不是只作为建议命令运行时最有价值，而是在接入 workfl
 或 `when: manual` job 不会被视为强制执行。由于 `core.hooksPath` 是每个 clone
 自己的设置，AIGate 会分别显示 active local hook、已提交 hook file、hook activation
 automation。`--gitlab-pipeline-must-succeed true` 这类值只会被视为 declared evidence；
-只有标为 `verified` 的证据才会判定为 server enforced。
+只有标为 `verified` 的证据才会判定为 server enforced。存在 CI gate 但缺少已验证的
+server enforcement 时，`evaluate-project` 会在 JSON 中保留原始分数，并把最终分数限制在
+A 等级以下，避免警告被分数掩盖。
 
 ## 场景式使用手册
 

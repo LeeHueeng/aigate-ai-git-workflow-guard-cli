@@ -151,6 +151,8 @@ aigate setup --github-required-checks-enforced verified
 job 不会被视为 server enforcement；仓库内的 GitLab `include:` YAML 文件也会被检查。
 `--gitlab-pipeline-must-succeed true` 这类值只是 declared evidence，不是 live/API
 验证。只有在托管平台中确认 branch protection 或 merge rule 后，才使用 `verified`。
+如果存在 CI gate 但 server enforcement 未验证，`evaluate-project` 会显示原始分数，并把
+最终分数限制在 A 等级以下。
 
 ## 测试和 AI 自动修复流程
 

@@ -154,7 +154,9 @@ aigate setup --github-required-checks-enforced verified
 또는 `when: manual` job은 서버강제로 보지 않으며, 저장소 안의 GitLab `include:`
 YAML 파일도 함께 확인합니다. `--gitlab-pipeline-must-succeed true` 같은 값은
 선언된 증거일 뿐 live/API 검증은 아니며, 호스팅 제공자의 branch protection 또는
-merge rule을 확인한 뒤에만 `verified`를 사용하세요.
+merge rule을 확인한 뒤에만 `verified`를 사용하세요. CI 게이트는 있지만 서버강제가
+검증되지 않았으면 `evaluate-project`는 원점수를 함께 표시하고 최종 점수를 A등급
+아래로 제한합니다.
 
 ## 테스트와 AI 자동 조치 흐름
 

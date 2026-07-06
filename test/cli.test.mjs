@@ -1869,6 +1869,8 @@ test("scores repository foundations", () => {
   assert.equal(result.status, 0);
   const output = JSON.parse(result.stdout);
   assert.equal(typeof output.score, "number");
+  assert.equal(typeof output.rawScore, "number");
+  assert.ok(Array.isArray(output.scoreAdjustments));
   assert.ok(output.score > 0);
   assert.equal(typeof output.grade, "string");
   assert.ok(Array.isArray(output.categories));
@@ -1894,6 +1896,23 @@ test("renders localized project evaluation report", () => {
   assert.match(result.stdout, /## 상세 신호/);
   assert.match(result.stdout, /AI 어시스턴트 지침 존재/);
   assert.doesNotMatch(result.stdout, /Deep Signals/);
+});
+
+test("renders localized score adjustments when server enforcement is missing", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  writeFileSync(join(projectDir, ".gitlab-ci.yml"), [
+    "aigate:",
+    "  script:",
+    "    - aigate git-ready"
+  ].join("\n"));
+
+  const result = run(["evaluate-project", "--report", "--language", "ko"], { cwd: projectDir });
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /점수 조정/);
+  assert.match(result.stdout, /원점수/);
+  assert.match(result.stdout, /검증된 서버측 AIGate 강제 적용이 없습니다/);
+  assert.doesNotMatch(result.stdout, /Verified server-side/);
 });
 
 test("adapts project evaluation for private GitLab pnpm apps", () => {
@@ -1925,6 +1944,8 @@ test("scores AIGate CI gate only when CI runs git-ready", () => {
   let output = JSON.parse(result.stdout);
   assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, false);
   assert.equal(output.checks.find((check) => check.name === "AIGate server enforcement exists")?.status, "NA");
+  assert.equal(output.score, output.rawScore);
+  assert.deepEqual(output.scoreAdjustments, []);
 
   writeFileSync(join(projectDir, ".gitlab-ci.yml"), [
     "test:",
@@ -1941,6 +1962,13 @@ test("scores AIGate CI gate only when CI runs git-ready", () => {
   assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, true);
   assert.equal(output.checks.find((check) => check.name === "AIGate server enforcement exists")?.pass, false);
   assert.match(output.enforcement.serverReason, /not verified/);
+  assert.ok(output.rawScore > output.score);
+  assert.equal(output.score, 89);
+  assert.deepEqual(output.scoreAdjustments, [{
+    type: "cap",
+    cap: 89,
+    reason: "Verified server-side AIGate enforcement is missing."
+  }]);
 });
 
 test("does not treat allow_failure GitLab AIGate jobs as server enforcement", () => {
@@ -1974,6 +2002,8 @@ test("does not treat allow_failure GitLab AIGate jobs as server enforcement", ()
   assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, true);
   assert.equal(output.checks.find((check) => check.name === "AIGate server enforcement exists")?.pass, false);
   assert.match(output.enforcement.serverReason, /manual, allow_failure, or not matched/);
+  assert.ok(output.rawScore > output.score);
+  assert.equal(output.score, 89);
 });
 
 test("does not treat declared GitLab required pipeline settings as verified server enforcement", () => {
@@ -2007,6 +2037,8 @@ test("does not treat declared GitLab required pipeline settings as verified serv
   assert.equal(output.checks.find((check) => check.name === "AIGate server enforcement exists")?.pass, false);
   assert.equal(output.enforcement.serverEvidence, "declared:settings");
   assert.match(output.enforcement.serverReason, /declared but not live\/API verified/);
+  assert.ok(output.rawScore > output.score);
+  assert.equal(output.score, 89);
 });
 
 test("scores GitLab server enforcement only with a blocking MR job and required pipeline setting", () => {
@@ -2040,6 +2072,8 @@ test("scores GitLab server enforcement only with a blocking MR job and required 
   assert.equal(output.checks.find((check) => check.name === "AIGate server enforcement exists")?.pass, true);
   assert.equal(output.enforcement.serverEvidence, "verified:settings");
   assert.equal(output.enforcement.level, "server");
+  assert.equal(output.score, output.rawScore);
+  assert.deepEqual(output.scoreAdjustments, []);
 });
 
 test("detects AIGate CI gate from local GitLab include files", () => {

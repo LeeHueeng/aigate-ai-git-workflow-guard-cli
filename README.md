@@ -108,7 +108,10 @@ a committed hook file and hook activation automation, because `core.hooksPath`
 is clone-local. For GitLab, AIGate treats `allow_failure: true` or
 `when: manual` jobs as non-enforcing. Declared settings such as
 `--gitlab-pipeline-must-succeed true` are reported as declared evidence; server
-enforcement only passes when evidence is marked verified.
+enforcement only passes when evidence is marked verified. When a CI gate exists
+but verified server enforcement is missing, `evaluate-project` keeps the raw
+score in JSON and caps the final score below A-grade so the warning remains
+visible.
 
 ## Scenario Playbooks
 

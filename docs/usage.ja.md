@@ -155,7 +155,9 @@ aigate setup --github-required-checks-enforced verified
 リポジトリ内の GitLab `include:` YAML ファイルも確認します。
 `--gitlab-pipeline-must-succeed true` のような値は declared evidence であり、
 live/API 検証ではありません。hosting provider の branch protection または
-merge rule を確認した後だけ `verified` を使ってください。
+merge rule を確認した後だけ `verified` を使ってください。CI gate が存在しても
+server enforcement が検証されていない場合、`evaluate-project` は元スコアを表示し、
+最終スコアを A グレード未満に制限します。
 
 ## テストと AI 自動修正フロー
 
