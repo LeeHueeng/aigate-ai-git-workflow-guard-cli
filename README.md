@@ -94,16 +94,19 @@ repeatable local gate before `git push` or PR creation.
 ## Enforcement Model
 
 AIGate is strongest when it is wired into a workflow, not only run as advice.
-Use at least one enforced path:
+It reports three practical levels:
 
-- local: `aigate install-hook --pre-push` so plain `git push` runs `aigate git-ready`.
-- server: add `aigate git-ready` or the AIGate GitHub Action to required CI checks.
-- habit: use `aigate push -u origin <branch>` when you want a guarded `git push` wrapper.
+- advisory: a person can ignore AIGate and run plain `git push`.
+- partial: `aigate install-hook --pre-push` runs locally, but can still be bypassed with `--no-verify`.
+- server enforced: CI runs `aigate git-ready` and branch protection or merge rules require that CI to pass.
 
-`aigate doctor` now reports whether AIGate is actually enforced through a
-pre-push hook or CI gate. `aigate evaluate-project` also checks whether CI runs
-the AIGate gate, so a repository with CI but no AIGate guard no longer looks
-fully protected.
+`aigate doctor` reports the current level as `AIGate enforcement`.
+`aigate evaluate-project` checks both `AIGate CI gate exists` and
+`AIGate server enforcement exists`, so a CI job that only runs in advisory mode
+does not look fully protected. For GitLab, AIGate treats `allow_failure: true`
+or `when: manual` jobs as non-enforcing and only marks server enforcement when
+`only_allow_merge_if_pipeline_succeeds` is confirmed through settings or
+environment evidence.
 
 ## Scenario Playbooks
 

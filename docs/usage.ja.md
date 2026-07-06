@@ -131,16 +131,26 @@ AIGate checks を追加する guarded wrapper です。
 ## ゲートを強制する
 
 `aigate git-ready` を手動で実行するだけでも有用ですが、開発者が無視して通常の
-`git push` を実行できるなら、まだ助言に近い状態です。実際に保護するには、
-少なくとも 1 つの強制経路に AIGate を接続してください。
+`git push` を実行できるなら、まだ助言に近い状態です。AIGate は保護レベルを
+3 段階で見ます。
 
-- `aigate install-hook --pre-push` で local hook をインストールします。
-- GitLab CI、GitHub Actions、または AIGate GitHub Action に `aigate git-ready` を追加します。
-- branch protection または merge request rule でその CI job を必須にします。
+- advisory: hook または必須 CI gate が確認されていません。
+- partial: local pre-push hook はありますが、`--no-verify` で回避できます。
+- server enforced: CI が `aigate git-ready` を実行し、branch protection または MR rule が CI 結果を要求します。
 
-`aigate doctor` は `AIGate 強制接続` として hook/CI の接続状態をまとめて報告します。
-`aigate evaluate-project` は `AIGate CI ゲートが存在` を確認します。これは CI ファイルが
-存在するだけでなく、実際に AIGate gate を実行している場合にだけ通過します。
+通常の設定コマンドは次の通りです。
+
+```sh
+aigate install-hook --pre-push
+aigate setup --gitlab-pipeline-must-succeed true
+aigate setup --github-required-checks-enforced true
+```
+
+`aigate doctor` は `AIGate 強制接続` として現在のレベルを報告します。
+`aigate evaluate-project` は `AIGate CI ゲートが存在` と
+`AIGate サーバー強制が存在` を分けて確認します。GitLab の
+`allow_failure: true` または `when: manual` job は server enforcement と見なさず、
+リポジトリ内の GitLab `include:` YAML ファイルも確認します。
 
 ## テストと AI 自動修正フロー
 

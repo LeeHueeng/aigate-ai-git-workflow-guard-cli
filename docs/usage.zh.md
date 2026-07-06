@@ -129,15 +129,24 @@ AIGate 检查的 guarded wrapper。
 ## 强制执行 gate
 
 手动运行 `aigate git-ready` 很有用，但如果开发者可以忽略它并直接运行普通
-`git push`，它仍然更接近建议。要获得真正保护，请把 AIGate 接入至少一个强制路径。
+`git push`，它仍然更接近建议。AIGate 将保护级别分为三种。
 
-- 用 `aigate install-hook --pre-push` 安装 local hook。
-- 在 GitLab CI、GitHub Actions 或 AIGate GitHub Action 中加入 `aigate git-ready`。
-- 在 branch protection 或 merge request rule 中把该 CI job 设为必需。
+- advisory: 未确认 hook 或必需 CI gate。
+- partial: 已安装 local pre-push hook，但仍可被 `--no-verify` 绕过。
+- server enforced: CI 运行 `aigate git-ready`，并且 branch protection 或 MR rule 要求 CI 结果。
 
-`aigate doctor` 会用 `AIGate 强制连接` 汇总 hook/CI 连接状态。
-`aigate evaluate-project` 会检查 `AIGate CI 关卡存在`，也就是说不仅要有 CI 文件，
-CI 还必须实际运行 AIGate gate 才会通过。
+常用设置命令如下：
+
+```sh
+aigate install-hook --pre-push
+aigate setup --gitlab-pipeline-must-succeed true
+aigate setup --github-required-checks-enforced true
+```
+
+`aigate doctor` 会用 `AIGate 强制连接` 报告当前级别。
+`aigate evaluate-project` 会分别检查 `AIGate CI 关卡存在` 和
+`AIGate 服务器强制存在`。GitLab 的 `allow_failure: true` 或 `when: manual`
+job 不会被视为 server enforcement；仓库内的 GitLab `include:` YAML 文件也会被检查。
 
 ## 测试和 AI 自动修复流程
 

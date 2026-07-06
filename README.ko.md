@@ -61,16 +61,18 @@ aigate pr-check
 ## 강제 연결 모델
 
 AIGate는 조언으로만 실행할 때보다 workflow에 연결될 때 가장 가치가 큽니다.
-아래 중 하나 이상을 실제로 켜두는 것을 권장합니다.
+실제 보호 수준은 세 단계로 나눠서 봅니다.
 
-- 로컬: `aigate install-hook --pre-push`로 일반 `git push`도 `aigate git-ready`를 먼저 실행하게 합니다.
-- 서버: `aigate git-ready` 또는 AIGate GitHub Action을 필수 CI/check로 추가합니다.
-- 습관: 보호된 `git push` 래퍼가 필요할 때 `aigate push -u origin <branch>`를 사용합니다.
+- 권고형: 사람이 AIGate를 무시하고 일반 `git push`를 실행할 수 있습니다.
+- 부분강제: `aigate install-hook --pre-push`가 로컬에서 실행되지만 `--no-verify`로 우회할 수 있습니다.
+- 서버강제: CI가 `aigate git-ready`를 실행하고 branch protection 또는 MR merge rule이 CI 통과를 요구합니다.
 
-`aigate doctor`는 이제 AIGate가 pre-push hook 또는 CI gate로 실제 강제되고
-있는지 보고합니다. `aigate evaluate-project`도 CI가 AIGate gate를 실행하는지
-확인하므로, CI 파일만 있고 AIGate guard가 없는 저장소가 완전히 보호된 것처럼
-보이지 않습니다.
+`aigate doctor`는 현재 수준을 `AIGate 강제 연결`로 보고합니다.
+`aigate evaluate-project`는 `AIGate CI 게이트 존재`와
+`AIGate 서버 강제 적용 존재`를 따로 확인합니다. GitLab에서는
+`allow_failure: true` 또는 `when: manual` job을 강제형으로 보지 않고,
+`only_allow_merge_if_pipeline_succeeds`가 설정이나 환경 증거로 확인될 때만
+서버강제로 판단합니다.
 
 ## 상황별 플레이북
 

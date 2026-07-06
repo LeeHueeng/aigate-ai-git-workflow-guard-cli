@@ -35,7 +35,15 @@ const DEFAULT_SETTINGS = {
   requiredChecks: [],
   qualityCommands: [],
   aiProviders: [],
-  aiRootFiles: "protect"
+  aiRootFiles: "protect",
+  serverEnforcement: {
+    gitlab: {
+      onlyAllowMergeIfPipelineSucceeds: "auto"
+    },
+    github: {
+      requiredChecksEnforced: "auto"
+    }
+  }
 };
 const MAX_SECRET_SCAN_BYTES = 250_000;
 const SECRET_PATTERNS = [
@@ -1101,6 +1109,8 @@ const HELP_CONTENT = {
       ["--work-branches <list>", "Set allowed work branch patterns, comma-separated."],
       ["--required-checks <list>", "Set required CI/check names, comma-separated."],
       ["--quality-command <shell>", "Set the primary local quality command."],
+      ["--gitlab-pipeline-must-succeed <true|false>", "Record whether GitLab merge requests require successful pipelines."],
+      ["--github-required-checks-enforced <true|false>", "Record whether GitHub branch protection requires the AIGate check."],
       ["--providers <list>", "Set default AI integration providers, comma-separated."],
       ["--ai-root-files <protect|sidecar|overwrite>", "Set how integrate handles root AGENTS/GEMINI/CLAUDE files."],
       ["--branch-strategy <name>", "Pin branch strategy: github-flow, gitlab-flow, trunk, hybrid, or git-flow."],
@@ -1202,6 +1212,8 @@ const HELP_CONTENT = {
       ["--work-branches <list>", "허용할 작업 브랜치 패턴을 쉼표로 지정합니다."],
       ["--required-checks <list>", "필수 CI/check 이름을 쉼표로 지정합니다."],
       ["--quality-command <shell>", "기본 로컬 품질 검증 명령을 지정합니다."],
+      ["--gitlab-pipeline-must-succeed <true|false>", "GitLab MR이 성공한 pipeline을 요구하는지 기록합니다."],
+      ["--github-required-checks-enforced <true|false>", "GitHub branch protection이 AIGate check를 필수로 요구하는지 기록합니다."],
       ["--providers <list>", "기본 AI 연동 provider를 쉼표로 지정합니다."],
       ["--ai-root-files <protect|sidecar|overwrite>", "integrate가 루트 AGENTS/GEMINI/CLAUDE 파일을 다루는 방식을 지정합니다."],
       ["--branch-strategy <name>", "브랜치 전략을 고정합니다: github-flow, gitlab-flow, trunk, hybrid, git-flow."],
@@ -1303,6 +1315,8 @@ const HELP_CONTENT = {
       ["--work-branches <list>", "許可する作業ブランチパターンをカンマ区切りで指定します。"],
       ["--required-checks <list>", "必須 CI/check 名をカンマ区切りで指定します。"],
       ["--quality-command <shell>", "主要なローカル品質チェックコマンドを指定します。"],
+      ["--gitlab-pipeline-must-succeed <true|false>", "GitLab MR が成功した pipeline を必須にしているかを記録します。"],
+      ["--github-required-checks-enforced <true|false>", "GitHub branch protection が AIGate check を必須にしているかを記録します。"],
       ["--providers <list>", "デフォルト AI 連携 provider をカンマ区切りで指定します。"],
       ["--ai-root-files <protect|sidecar|overwrite>", "integrate が root の AGENTS/GEMINI/CLAUDE ファイルを扱う方法を指定します。"],
       ["--branch-strategy <name>", "ブランチ戦略を固定します: github-flow, gitlab-flow, trunk, hybrid, git-flow。"],
@@ -1404,6 +1418,8 @@ const HELP_CONTENT = {
       ["--work-branches <list>", "用逗号指定允许的工作分支模式。"],
       ["--required-checks <list>", "用逗号指定必需 CI/check 名称。"],
       ["--quality-command <shell>", "设置主要本地质量检查命令。"],
+      ["--gitlab-pipeline-must-succeed <true|false>", "记录 GitLab MR 是否要求 pipeline 成功。"],
+      ["--github-required-checks-enforced <true|false>", "记录 GitHub branch protection 是否要求 AIGate check。"],
       ["--providers <list>", "用逗号指定默认 AI 集成 provider。"],
       ["--ai-root-files <protect|sidecar|overwrite>", "设置 integrate 如何处理根目录 AGENTS/GEMINI/CLAUDE 文件。"],
       ["--branch-strategy <name>", "固定分支策略: github-flow, gitlab-flow, trunk, hybrid, git-flow。"],
@@ -1548,6 +1564,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "CI gate script exists": "CI 게이트 스크립트 존재",
     "CI workflow exists": "CI 워크플로 존재",
     "AIGate CI gate exists": "AIGate CI 게이트 존재",
+    "AIGate server enforcement exists": "AIGate 서버 강제 적용 존재",
     "Release workflow exists": "릴리스 워크플로 존재",
     "Dependabot exists": "Dependabot 존재",
     "Security policy exists": "보안 정책 존재",
@@ -1576,6 +1593,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "CI gate script exists": "CI ゲートスクリプトが存在",
     "CI workflow exists": "CI ワークフローが存在",
     "AIGate CI gate exists": "AIGate CI ゲートが存在",
+    "AIGate server enforcement exists": "AIGate サーバー強制が存在",
     "Release workflow exists": "リリースワークフローが存在",
     "Dependabot exists": "Dependabot が存在",
     "Security policy exists": "セキュリティポリシーが存在",
@@ -1604,6 +1622,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "CI gate script exists": "CI 关卡脚本存在",
     "CI workflow exists": "CI 工作流存在",
     "AIGate CI gate exists": "AIGate CI 关卡存在",
+    "AIGate server enforcement exists": "AIGate 服务器强制存在",
     "Release workflow exists": "发布工作流存在",
     "Dependabot exists": "Dependabot 存在",
     "Security policy exists": "安全政策存在",
@@ -2535,6 +2554,7 @@ function commandSetup(args) {
     currentSettings.aiProviders
   );
   const aiRootFiles = aiRootFilesSettingValue(options.aiRootFiles ?? options.rootAiFiles, currentSettings.aiRootFiles);
+  const serverEnforcement = serverEnforcementSetting(options, currentSettings);
 
   if (!language) {
     return unsupportedLanguage(options.language);
@@ -2557,7 +2577,8 @@ function commandSetup(args) {
     requiredChecks,
     qualityCommands,
     aiProviders,
-    aiRootFiles
+    aiRootFiles,
+    serverEnforcement
   };
 
   writeSettings(settings);
@@ -5106,6 +5127,7 @@ function isHighRiskPath(filePath) {
 function buildEvaluation(options = {}) {
   const packageJson = readJsonFile("package.json");
   const profile = detectProjectProfile(packageJson, options);
+  const enforcement = detectAigateEnforcement(profile, packageJson);
   const githubOnlyReason = "GitHub-specific check is not required for this repository profile.";
   const publicOnlyReason = "Public repository governance check is not required for a private app profile.";
   const packageOnlyReason = "Package release check is not required for an app profile.";
@@ -5130,9 +5152,15 @@ function buildEvaluation(options = {}) {
     check("testing", "Project test command exists", hasTestScript(packageJson)),
     check("testing", "CI gate script exists", hasCiGateScript(packageJson)),
     check("ci_cd", "CI workflow exists", hasCiWorkflow(profile)),
-    check("ci_cd", "AIGate CI gate exists", hasAigateCiGate(profile), {
+    check("ci_cd", "AIGate CI gate exists", enforcement.ciGateExists, {
       applicable: hasCiWorkflow(profile),
-      reason: "AIGate CI gate requires a CI workflow."
+      reason: "AIGate CI gate requires a CI workflow.",
+      value: enforcement.ciGateValue
+    }),
+    check("ci_cd", "AIGate server enforcement exists", enforcement.serverEnforced, {
+      applicable: enforcement.ciGateExists,
+      reason: "AIGate server enforcement requires a CI gate first.",
+      value: enforcement.serverReason
     }),
     check("ci_cd", "Release workflow exists", hasReleaseWorkflow(profile), {
       applicable: profile.kind === "package" || hasReleaseWorkflow(profile),
@@ -5208,6 +5236,7 @@ function buildEvaluation(options = {}) {
     profile,
     categories,
     checks,
+    enforcement,
     recommendation
   };
 
@@ -5229,6 +5258,10 @@ function makeCheck(category, name, pass, options = {}) {
 
   if (!applicable && options.reason) {
     check.reason = options.reason;
+  }
+
+  if (options.value !== undefined) {
+    check.value = options.value;
   }
 
   check.status = checkStatus(check);
@@ -5402,7 +5435,8 @@ function normalizeSettings(settings = {}) {
     requiredChecks: normalizeListSetting(settings.requiredChecks),
     qualityCommands: normalizeListSetting(settings.qualityCommands),
     aiProviders: normalizeIntegrationProviderList(settings.aiProviders),
-    aiRootFiles: normalizeAiRootFilesMode(settings.aiRootFiles) ?? DEFAULT_SETTINGS.aiRootFiles
+    aiRootFiles: normalizeAiRootFilesMode(settings.aiRootFiles) ?? DEFAULT_SETTINGS.aiRootFiles,
+    serverEnforcement: serverEnforcementSetting({}, settings)
   };
 }
 
@@ -5455,6 +5489,39 @@ function integrationProviderListSetting(optionValue, currentValue = []) {
 function aiRootFilesSettingValue(optionValue, currentValue = DEFAULT_SETTINGS.aiRootFiles) {
   const value = optionValue ?? currentValue ?? DEFAULT_SETTINGS.aiRootFiles;
   return normalizeAiRootFilesMode(value) ?? DEFAULT_SETTINGS.aiRootFiles;
+}
+
+function serverEnforcementSetting(options = {}, currentSettings = {}) {
+  const current = currentSettings.serverEnforcement ?? {};
+  const gitlabPipeline = setupBooleanSettingValue(
+    options.gitlabPipelineMustSucceed ?? options.gitlabPipelineRequired ?? options.gitlabRequiredPipeline,
+    current.gitlab?.onlyAllowMergeIfPipelineSucceeds
+  );
+  const githubRequiredChecks = setupBooleanSettingValue(
+    options.githubRequiredChecksEnforced ?? options.githubRequiredChecks,
+    current.github?.requiredChecksEnforced
+  );
+
+  return {
+    ...current,
+    gitlab: {
+      ...(current.gitlab ?? {}),
+      onlyAllowMergeIfPipelineSucceeds: gitlabPipeline
+    },
+    github: {
+      ...(current.github ?? {}),
+      requiredChecksEnforced: githubRequiredChecks
+    }
+  };
+}
+
+function setupBooleanSettingValue(optionValue, currentValue) {
+  if (optionValue === undefined) {
+    return currentValue ?? "auto";
+  }
+
+  const normalized = normalizeBooleanEvidence(optionValue);
+  return normalized.known ? normalized.value : "auto";
 }
 
 function normalizeIntegrationProviderList(value) {
@@ -5994,14 +6061,31 @@ function hasCiWorkflow(profile) {
 }
 
 function hasAigateCiGate(profile) {
-  const packageJson = readJsonFile("package.json");
+  return detectAigateEnforcement(profile).ciGateExists;
+}
+
+function detectAigateEnforcement(profile, packageJson = readJsonFile("package.json")) {
+  const provider = profile.ciProvider ?? profile.hosting ?? "unknown";
   const workflowFiles = ciWorkflowFiles(profile);
-  return workflowFiles.some((filePath) => fileContainsAigateGate(filePath, packageJson));
+  const ciGate = detectAigateCiGate(profile, packageJson, workflowFiles);
+  const server = detectAigateServerEnforcement({ provider, ciGate });
+
+  return {
+    provider,
+    ciGateExists: ciGate.exists,
+    ciGateValue: ciGate.value,
+    ciGateFiles: ciGate.files,
+    ciGateJobs: ciGate.jobs,
+    serverEnforced: server.pass,
+    serverReason: server.reason,
+    serverEvidence: server.evidence,
+    level: server.pass ? "server" : ciGate.exists ? "ci-advisory" : "advisory"
+  };
 }
 
 function ciWorkflowFiles(profile) {
   if (profile.ciProvider === "gitlab") {
-    return [".gitlab-ci.yml"].filter((filePath) => existsSync(filePath));
+    return gitlabWorkflowFiles();
   }
 
   if (profile.ciProvider === "github") {
@@ -6010,8 +6094,277 @@ function ciWorkflowFiles(profile) {
 
   return [
     ...githubWorkflowFiles(),
-    ...[".gitlab-ci.yml"].filter((filePath) => existsSync(filePath))
+    ...gitlabWorkflowFiles()
   ];
+}
+
+function detectAigateCiGate(profile, packageJson, workflowFiles = ciWorkflowFiles(profile)) {
+  if (profile.ciProvider === "gitlab") {
+    const jobs = gitlabAigateGateJobs(workflowFiles, packageJson);
+    return {
+      exists: jobs.length > 0,
+      value: jobs.length ? `gitlab jobs: ${jobs.map((job) => job.name).join(", ")}` : "missing",
+      files: [...new Set(jobs.map((job) => job.filePath))],
+      jobs
+    };
+  }
+
+  const files = workflowFiles.filter((filePath) => fileContainsAigateGate(filePath, packageJson));
+  return {
+    exists: files.length > 0,
+    value: files.length ? `workflow files: ${files.join(", ")}` : "missing",
+    files,
+    jobs: []
+  };
+}
+
+function detectAigateServerEnforcement({ provider, ciGate }) {
+  if (!ciGate.exists) {
+    return {
+      pass: false,
+      reason: "AIGate CI gate is missing.",
+      evidence: "missing-ci-gate"
+    };
+  }
+
+  if (provider === "gitlab") {
+    const blockingJobs = ciGate.jobs.filter((job) => job.blocking);
+    const projectSetting = gitlabPipelineMustSucceedEvidence();
+
+    if (!blockingJobs.length) {
+      return {
+        pass: false,
+        reason: "GitLab AIGate job is manual, allow_failure, or not matched to merge requests.",
+        evidence: "gitlab-job-not-blocking"
+      };
+    }
+
+    if (projectSetting.value !== true) {
+      return {
+        pass: false,
+        reason: projectSetting.known
+          ? "GitLab only_allow_merge_if_pipeline_succeeds is false."
+          : "GitLab only_allow_merge_if_pipeline_succeeds is not verified.",
+        evidence: projectSetting.source
+      };
+    }
+
+    return {
+      pass: true,
+      reason: `GitLab required pipeline with blocking AIGate job: ${blockingJobs.map((job) => job.name).join(", ")}`,
+      evidence: projectSetting.source
+    };
+  }
+
+  if (provider === "github") {
+    const requiredChecks = githubRequiredChecksEvidence();
+    return requiredChecks.value === true
+      ? {
+          pass: true,
+          reason: "GitHub branch protection required checks are configured for the AIGate gate.",
+          evidence: requiredChecks.source
+        }
+      : {
+          pass: false,
+          reason: requiredChecks.known
+            ? "GitHub branch protection required checks do not include the AIGate gate."
+            : "GitHub branch protection required checks are not verified.",
+          evidence: requiredChecks.source
+        };
+  }
+
+  return {
+    pass: false,
+    reason: "Server-side required checks are not verified for this CI provider.",
+    evidence: "unknown-provider"
+  };
+}
+
+function gitlabWorkflowFiles() {
+  if (!existsSync(".gitlab-ci.yml")) {
+    return [];
+  }
+
+  return collectGitlabWorkflowFiles(".gitlab-ci.yml", new Set());
+}
+
+function collectGitlabWorkflowFiles(filePath, seen) {
+  if (seen.has(filePath) || !existsSync(filePath)) {
+    return [];
+  }
+
+  seen.add(filePath);
+  const content = readFileSync(filePath, "utf8");
+  return [
+    filePath,
+    ...gitlabLocalIncludes(content).flatMap((includePath) => collectGitlabWorkflowFiles(includePath, seen))
+  ];
+}
+
+function gitlabLocalIncludes(content) {
+  const includes = [];
+  const localPattern = /\blocal:\s*['"]?([^'"\s#]+)['"]?/g;
+  let match;
+
+  while ((match = localPattern.exec(content)) !== null) {
+    includes.push(normalizeGitlabLocalIncludePath(match[1]));
+  }
+
+  const inlinePattern = /^\s*-\s*['"]([^'"]+\.ya?ml)['"]\s*$/gm;
+  while ((match = inlinePattern.exec(content)) !== null) {
+    includes.push(normalizeGitlabLocalIncludePath(match[1]));
+  }
+
+  const singlePattern = /^include:\s*['"]([^'"]+\.ya?ml)['"]\s*$/gm;
+  while ((match = singlePattern.exec(content)) !== null) {
+    includes.push(normalizeGitlabLocalIncludePath(match[1]));
+  }
+
+  return [...new Set(includes)].filter(Boolean);
+}
+
+function normalizeGitlabLocalIncludePath(filePath) {
+  return String(filePath ?? "").trim().replace(/^\//, "");
+}
+
+function gitlabAigateGateJobs(workflowFiles, packageJson) {
+  const scripts = packageJson.scripts ?? {};
+  return workflowFiles.flatMap((filePath) => {
+    if (!existsSync(filePath)) {
+      return [];
+    }
+
+    return gitlabJobBlocks(readFileSync(filePath, "utf8"))
+      .filter((job) => commandRunsAigateGate(job.block, scripts))
+      .map((job) => ({
+        ...job,
+        filePath,
+        allowFailure: gitlabJobAllowsFailure(job.block),
+        manual: gitlabJobIsManual(job.block),
+        mergeRequestMatched: gitlabJobMatchesMergeRequest(job.block),
+        blocking: gitlabJobIsBlocking(job.block)
+      }));
+  });
+}
+
+const GITLAB_RESERVED_TOP_LEVEL_KEYS = new Set([
+  "after_script",
+  "before_script",
+  "cache",
+  "default",
+  "image",
+  "include",
+  "pages",
+  "services",
+  "stages",
+  "variables",
+  "workflow"
+]);
+
+function gitlabJobBlocks(content) {
+  const jobs = [];
+  const lines = String(content ?? "").split(/\r?\n/);
+  let current = null;
+
+  for (const line of lines) {
+    const match = line.match(/^([A-Za-z0-9_.-]+):\s*(?:#.*)?$/);
+    if (match) {
+      if (current) {
+        jobs.push(current);
+      }
+
+      const name = match[1];
+      current = GITLAB_RESERVED_TOP_LEVEL_KEYS.has(name) || name.startsWith(".")
+        ? null
+        : { name, block: `${line}\n` };
+      continue;
+    }
+
+    if (current) {
+      current.block += `${line}\n`;
+    }
+  }
+
+  if (current) {
+    jobs.push(current);
+  }
+
+  return jobs;
+}
+
+function gitlabJobAllowsFailure(block) {
+  return /^\s*allow_failure:\s*true\b/im.test(block);
+}
+
+function gitlabJobIsManual(block) {
+  return /^\s*when:\s*manual\b/im.test(block);
+}
+
+function gitlabJobMatchesMergeRequest(block) {
+  if (!/^\s*(rules|only|except):\s*$/im.test(block)) {
+    return true;
+  }
+
+  if (/^\s*except:\s*(?:\[.*\bmerge_requests\b.*\]|.*\bmerge_requests\b.*)$/im.test(block)) {
+    return false;
+  }
+
+  return /\b(merge_request_event|merge_requests|CI_MERGE_REQUEST)\b/i.test(block);
+}
+
+function gitlabJobIsBlocking(block) {
+  return !gitlabJobAllowsFailure(block) && !gitlabJobIsManual(block) && gitlabJobMatchesMergeRequest(block);
+}
+
+function gitlabPipelineMustSucceedEvidence() {
+  const settings = readSettings();
+  const configured = firstConfiguredEvidence([
+    { source: "settings", value: settings.serverEnforcement?.gitlab?.onlyAllowMergeIfPipelineSucceeds },
+    { source: "settings", value: settings.enforcement?.gitlab?.onlyAllowMergeIfPipelineSucceeds },
+    { source: "settings", value: settings.gitlab?.onlyAllowMergeIfPipelineSucceeds },
+    { source: "env:AIGATE_GITLAB_PIPELINE_MUST_SUCCEED", value: process.env.AIGATE_GITLAB_PIPELINE_MUST_SUCCEED }
+  ]);
+  const normalized = normalizeBooleanEvidence(configured?.value);
+
+  return normalized.known
+    ? { ...normalized, source: configured.source }
+    : { known: false, value: null, source: "unverified" };
+}
+
+function githubRequiredChecksEvidence() {
+  const settings = readSettings();
+  const configured = firstConfiguredEvidence([
+    { source: "settings", value: settings.serverEnforcement?.github?.requiredChecksEnforced },
+    { source: "settings", value: settings.enforcement?.github?.requiredChecksEnforced },
+    { source: "settings", value: settings.github?.requiredChecksEnforced },
+    { source: "env:AIGATE_GITHUB_REQUIRED_CHECKS_ENFORCED", value: process.env.AIGATE_GITHUB_REQUIRED_CHECKS_ENFORCED }
+  ]);
+  const normalized = normalizeBooleanEvidence(configured?.value);
+
+  return normalized.known
+    ? { ...normalized, source: configured.source }
+    : { known: false, value: null, source: "unverified" };
+}
+
+function firstConfiguredEvidence(candidates) {
+  return candidates.find(({ value }) => value !== undefined && value !== null && value !== "");
+}
+
+function normalizeBooleanEvidence(value) {
+  if (typeof value === "boolean") {
+    return { known: true, value };
+  }
+
+  const normalized = String(value ?? "").trim().toLowerCase();
+  if (["true", "1", "yes", "on", "required", "enforced"].includes(normalized)) {
+    return { known: true, value: true };
+  }
+
+  if (["false", "0", "no", "off", "optional", "disabled"].includes(normalized)) {
+    return { known: true, value: false };
+  }
+
+  return { known: false, value: null };
 }
 
 function githubWorkflowFiles() {
@@ -7089,6 +7442,7 @@ function buildAiReportStrengths({ evaluation, releaseCheck, branchStrategy }, la
     "Project test command exists",
     "CI workflow exists",
     "AIGate CI gate exists",
+    "AIGate server enforcement exists",
     "Release workflow exists",
     "Security policy exists",
     "Security scanning is documented"
@@ -7146,7 +7500,7 @@ function buildAiReportDirection({ evaluation, releaseCheck, branchStrategy }, la
     direction.push(aiReportText("directionAi", language));
   }
 
-  if (["Project test command exists", "CI workflow exists", "AIGate CI gate exists"].some((name) => missingChecks.has(name))) {
+  if (["Project test command exists", "CI workflow exists", "AIGate CI gate exists", "AIGate server enforcement exists"].some((name) => missingChecks.has(name))) {
     direction.push(aiReportText("directionTests", language));
   }
 
@@ -7228,6 +7582,9 @@ function aiReportCommandForEvaluationCheck(name) {
     "CI gate script exists": "aigate test",
     "CI workflow exists": ciCommand,
     "AIGate CI gate exists": "aigate install-hook --pre-push",
+    "AIGate server enforcement exists": profile.hosting === "gitlab"
+      ? "aigate setup --gitlab-pipeline-must-succeed true"
+      : "aigate setup --github-required-checks-enforced true",
     "Release workflow exists": "aigate release-check",
     "Dependabot exists": "aigate ai report",
     "Security policy exists": repoFilesCommand,
@@ -10489,6 +10846,11 @@ function translateNotApplicableReason(reason, language) {
       ja: "AIGate CI ゲートには CI ワークフローが必要です。",
       zh: "AIGate CI 关卡需要 CI 工作流。"
     },
+    "AIGate server enforcement requires a CI gate first.": {
+      ko: "AIGate 서버 강제 적용에는 먼저 CI 게이트가 필요합니다.",
+      ja: "AIGate サーバー強制には先に CI ゲートが必要です。",
+      zh: "AIGate 服务器强制需要先配置 CI 关卡。"
+    },
     "npm package release check is not required for this repository profile.": {
       ko: "이 저장소 프로필에는 npm 패키지 배포 점검이 필요하지 않습니다.",
       ja: "このリポジトリプロファイルでは npm パッケージ公開チェックは不要です。",
@@ -11099,6 +11461,8 @@ function stripAigatePushOptions(args) {
       arg.startsWith("--work-branch=") ||
       arg.startsWith("--required-checks=") ||
       arg.startsWith("--quality-command=") ||
+      arg.startsWith("--gitlab-pipeline-must-succeed=") ||
+      arg.startsWith("--github-required-checks-enforced=") ||
       arg.startsWith("--providers=") ||
       arg.startsWith("--ai-providers=") ||
       arg.startsWith("--ai-root-files=") ||
@@ -11134,6 +11498,8 @@ function stripAigatePushOptions(args) {
       arg === "--work-branch" ||
       arg === "--required-checks" ||
       arg === "--quality-command" ||
+      arg === "--gitlab-pipeline-must-succeed" ||
+      arg === "--github-required-checks-enforced" ||
       arg === "--providers" ||
       arg === "--ai-providers" ||
       arg === "--ai-root-files" ||
@@ -11176,6 +11542,8 @@ function firstPositionalArg(args) {
     "--distribution",
     "--event",
     "--format",
+    "--gitlab-pipeline-must-succeed",
+    "--github-required-checks-enforced",
     "--history",
     "--issue-type",
     "--jira-api-token",

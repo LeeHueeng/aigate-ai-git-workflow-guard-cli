@@ -61,15 +61,17 @@ aigate pr-check
 ## 强制连接模型
 
 AIGate 不是只作为建议命令运行时最有价值，而是在接入 workflow 后最有价值。
-建议至少启用下面一种路径。
+实际保护级别分为三种。
 
-- local: 使用 `aigate install-hook --pre-push`，让普通 `git push` 也先运行 `aigate git-ready`。
-- server: 将 `aigate git-ready` 或 AIGate GitHub Action 加入必需 CI/check。
-- habit: 需要受保护的 `git push` wrapper 时，使用 `aigate push -u origin <branch>`。
+- advisory: 开发者仍然可以忽略 AIGate 并直接运行普通 `git push`。
+- partial: `aigate install-hook --pre-push` 会在本地运行，但仍可被 `--no-verify` 绕过。
+- server enforced: CI 运行 `aigate git-ready`，并且 branch protection 或 MR merge rule 要求 CI 通过。
 
-`aigate doctor` 现在会报告 AIGate 是否真的通过 pre-push hook 或 CI gate 被强制执行。
-`aigate evaluate-project` 也会检查 CI 是否运行 AIGate gate，因此只有 CI 文件、
-但没有 AIGate guard 的仓库不会再看起来像是已经完全受保护。
+`aigate doctor` 会用 `AIGate enforcement` 报告当前级别。
+`aigate evaluate-project` 会分别检查 `AIGate CI gate exists` 和
+`AIGate server enforcement exists`。在 GitLab 中，`allow_failure: true`
+或 `when: manual` job 不会被视为强制执行；只有通过设置或环境证据确认
+`only_allow_merge_if_pipeline_succeeds` 时，才会判定为 server enforced。
 
 ## 场景式使用手册
 

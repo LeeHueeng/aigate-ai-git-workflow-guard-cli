@@ -695,6 +695,24 @@ test("configures GitLab project profile settings", () => {
   assert.equal(JSON.parse(settings.stdout).settings.hosting, "gitlab");
 });
 
+test("configures server enforcement evidence settings", () => {
+  const settingsPath = createSettingsPath();
+  const setup = run([
+    "setup",
+    "--gitlab-pipeline-must-succeed",
+    "true",
+    "--github-required-checks-enforced",
+    "false",
+    "--format",
+    "json"
+  ], { settingsPath });
+
+  assert.equal(setup.status, 0);
+  const settings = JSON.parse(setup.stdout).settings;
+  assert.equal(settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, true);
+  assert.equal(settings.serverEnforcement.github.requiredChecksEnforced, false);
+});
+
 test("configures team workflow settings for private GitLab pnpm apps", () => {
   const settingsPath = createSettingsPath();
   const projectDir = createPrivateGitLabPnpmWorkspaceApp();
@@ -1013,7 +1031,7 @@ test("doctor reports AIGate enforcement when the pre-push hook is installed", ()
   const enforcement = output.checks.find((check) => check.id === "aigate-enforcement");
 
   assert.equal(enforcement.pass, true);
-  assert.equal(enforcement.value, "pre-push hook");
+  assert.equal(enforcement.value, "partial: local pre-push hook");
 });
 
 test("doctor detects pnpm workspace test scripts", () => {
@@ -1071,7 +1089,10 @@ test("ignores stale generated profile config during project evaluation", () => {
     ""
   ].join("\n"), "utf8");
 
-  const result = run(["evaluate-project", "--format", "json"], { cwd: projectDir });
+  const result = run(["evaluate-project", "--format", "json"], {
+    cwd: projectDir,
+    settingsPath: join(projectDir, ".aigate", "settings.json")
+  });
 
   assert.equal(result.status, 0);
   const output = JSON.parse(result.stdout);
@@ -1815,7 +1836,10 @@ test("renders localized project evaluation report", () => {
 
 test("adapts project evaluation for private GitLab pnpm apps", () => {
   const projectDir = createPrivateGitLabPnpmApp();
-  const result = run(["evaluate-project", "--format", "json"], { cwd: projectDir });
+  const result = run(["evaluate-project", "--format", "json"], {
+    cwd: projectDir,
+    settingsPath: join(projectDir, ".aigate", "settings.json")
+  });
 
   assert.equal(result.status, 0);
   const output = JSON.parse(result.stdout);
@@ -1838,6 +1862,7 @@ test("scores AIGate CI gate only when CI runs git-ready", () => {
   assert.equal(result.status, 0);
   let output = JSON.parse(result.stdout);
   assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, false);
+  assert.equal(output.checks.find((check) => check.name === "AIGate server enforcement exists")?.status, "NA");
 
   writeFileSync(join(projectDir, ".gitlab-ci.yml"), [
     "test:",
@@ -1852,6 +1877,94 @@ test("scores AIGate CI gate only when CI runs git-ready", () => {
   assert.equal(result.status, 0);
   output = JSON.parse(result.stdout);
   assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "AIGate server enforcement exists")?.pass, false);
+  assert.match(output.enforcement.serverReason, /not verified/);
+});
+
+test("does not treat allow_failure GitLab AIGate jobs as server enforcement", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  mkdirSync(join(projectDir, ".aigate"), { recursive: true });
+  writeFileSync(join(projectDir, ".aigate", "settings.json"), `${JSON.stringify({
+    hosting: "gitlab",
+    ciProvider: "gitlab",
+    serverEnforcement: {
+      gitlab: {
+        onlyAllowMergeIfPipelineSucceeds: true
+      }
+    }
+  }, null, 2)}\n`);
+  writeFileSync(join(projectDir, ".gitlab-ci.yml"), [
+    "aigate:",
+    "  rules:",
+    "    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'",
+    "  allow_failure: true",
+    "  script:",
+    "    - aigate git-ready"
+  ].join("\n"));
+
+  const result = run(["evaluate-project", "--format", "json"], {
+    cwd: projectDir,
+    settingsPath: join(projectDir, ".aigate", "settings.json")
+  });
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+
+  assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "AIGate server enforcement exists")?.pass, false);
+  assert.match(output.enforcement.serverReason, /manual, allow_failure, or not matched/);
+});
+
+test("scores GitLab server enforcement only with a blocking MR job and required pipeline setting", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  mkdirSync(join(projectDir, ".aigate"), { recursive: true });
+  writeFileSync(join(projectDir, ".aigate", "settings.json"), `${JSON.stringify({
+    hosting: "gitlab",
+    ciProvider: "gitlab",
+    serverEnforcement: {
+      gitlab: {
+        onlyAllowMergeIfPipelineSucceeds: true
+      }
+    }
+  }, null, 2)}\n`);
+  writeFileSync(join(projectDir, ".gitlab-ci.yml"), [
+    "aigate:",
+    "  rules:",
+    "    - if: '$CI_PIPELINE_SOURCE == \"merge_request_event\"'",
+    "  script:",
+    "    - aigate git-ready"
+  ].join("\n"));
+
+  const result = run(["evaluate-project", "--format", "json"], {
+    cwd: projectDir,
+    settingsPath: join(projectDir, ".aigate", "settings.json")
+  });
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+
+  assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "AIGate server enforcement exists")?.pass, true);
+  assert.equal(output.enforcement.level, "server");
+});
+
+test("detects AIGate CI gate from local GitLab include files", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  mkdirSync(join(projectDir, ".gitlab", "ci"), { recursive: true });
+  writeFileSync(join(projectDir, ".gitlab-ci.yml"), [
+    "include:",
+    "  - local: .gitlab/ci/aigate.yml"
+  ].join("\n"));
+  writeFileSync(join(projectDir, ".gitlab", "ci", "aigate.yml"), [
+    "aigate:",
+    "  script:",
+    "    - aigate git-ready"
+  ].join("\n"));
+
+  const result = run(["evaluate-project", "--format", "json"], { cwd: projectDir });
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+
+  assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, true);
+  assert.deepEqual(output.enforcement.ciGateFiles, [".gitlab/ci/aigate.yml"]);
 });
 
 test("does not mistake npm ci install steps for an AIGate CI gate", () => {

@@ -10,8 +10,10 @@ export function buildDoctorReport(context) {
   const evaluation = context.buildEvaluation();
   const ciCheck = evaluation.checks.find((check) => check.name === "CI workflow exists");
   const ciGateCheck = evaluation.checks.find((check) => check.name === "AIGate CI gate exists");
+  const serverEnforcementCheck = evaluation.checks.find((check) => check.name === "AIGate server enforcement exists");
   const prePushHookInstalled = hasAigatePrePushHook(context);
   const profile = evaluation.profile ?? {};
+  const enforcement = evaluation.enforcement ?? {};
   const generatedVersion = generatedFilesVersion(context);
   const checks = [
     doctorCheck({
@@ -81,10 +83,10 @@ export function buildDoctorReport(context) {
     doctorCheck({
       id: "aigate-enforcement",
       label: "AIGate enforcement",
-      pass: prePushHookInstalled || Boolean(ciGateCheck?.pass),
+      pass: prePushHookInstalled || Boolean(serverEnforcementCheck?.pass),
       severity: "warn",
-      value: enforcementValue({ prePushHookInstalled, ciGateCheck }),
-      next: "Install the pre-push hook or add aigate git-ready to CI required checks."
+      value: enforcementValue({ prePushHookInstalled, ciGateCheck, serverEnforcementCheck, enforcement }),
+      next: "Make aigate git-ready a required CI check or install the local pre-push hook."
     }),
     doctorCheck({
       id: "git-ready",
@@ -267,15 +269,24 @@ function ciWorkflowValue(profile) {
   return existsSync(".gitlab-ci.yml") || existsSync(join(".github", "workflows", "ci.yml")) ? "found" : "missing";
 }
 
-function enforcementValue({ prePushHookInstalled, ciGateCheck }) {
-  const modes = [];
+function enforcementValue({ prePushHookInstalled, ciGateCheck, serverEnforcementCheck, enforcement }) {
+  if (serverEnforcementCheck?.pass && prePushHookInstalled) {
+    return "server required CI gate, local pre-push hook";
+  }
+
+  if (serverEnforcementCheck?.pass) {
+    return "server required CI gate";
+  }
+
   if (prePushHookInstalled) {
-    modes.push("pre-push hook");
+    return "partial: local pre-push hook";
   }
+
   if (ciGateCheck?.pass) {
-    modes.push("CI gate");
+    return `advisory: CI gate not proven required (${enforcement?.serverReason ?? "server setting unverified"})`;
   }
-  return modes.length ? modes.join(", ") : "missing";
+
+  return "missing";
 }
 
 export function buildDemoScenario() {

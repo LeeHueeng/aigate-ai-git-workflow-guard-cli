@@ -6,6 +6,9 @@ All notable changes to AIGate are documented here.
 
 - Added enforcement diagnostics so `doctor`, `evaluate-project`, and AI reports
   distinguish advisory local checks from pre-push or CI-enforced AIGate gates.
+- Split AIGate enforcement scoring into CI gate presence and server-side
+  enforcement, including GitLab `allow_failure`, `when: manual`, local
+  `include:` files, and explicit required-pipeline evidence.
 - Added a GitHub Pages multilingual HTML documentation index for publishing the
   `docs/` site.
 - Refreshed distribution and GitHub Action docs with the verified `0.1.6`

@@ -133,16 +133,25 @@ updated.
 ## Make The Gate Enforced
 
 Running `aigate git-ready` manually is useful, but it is still advisory if a
-developer can ignore it and run plain `git push`. For real protection, connect
-AIGate to at least one enforced path:
+developer can ignore it and run plain `git push`. AIGate reports three levels:
 
-- Install the local hook with `aigate install-hook --pre-push`.
-- Add `aigate git-ready` to GitLab CI, GitHub Actions, or the AIGate GitHub Action.
-- Mark the CI job as required in branch protection or merge request rules.
+- advisory: no hook or required CI gate is proven.
+- partial: a local pre-push hook is installed, but it can be bypassed with `--no-verify`.
+- server enforced: CI runs `aigate git-ready` and branch protection or merge request rules require the CI result.
+
+Use these commands as the usual path:
+
+```sh
+aigate install-hook --pre-push
+aigate setup --gitlab-pipeline-must-succeed true
+aigate setup --github-required-checks-enforced true
+```
 
 `aigate doctor` reports the combined enforcement state as `AIGate enforcement`.
-`aigate evaluate-project` checks `AIGate CI gate exists`, which means the CI file
-must actually run the AIGate gate, not merely exist.
+`aigate evaluate-project` checks `AIGate CI gate exists` separately from
+`AIGate server enforcement exists`. GitLab jobs with `allow_failure: true` or
+`when: manual` are not treated as server enforcement, and local GitLab
+`include:` files are inspected when they point at repository YAML files.
 
 ## Test And AI Remediation Flow
 

@@ -131,16 +131,26 @@ push 전에 AIGate 점검을 붙이는 보호 래퍼입니다.
 ## 게이트를 강제하기
 
 `aigate git-ready`를 수동으로 실행하는 것만으로도 유용하지만, 개발자가 무시하고
-일반 `git push`를 실행할 수 있다면 아직 권고에 가깝습니다. 실제 보호를 원하면
-아래 중 하나 이상에 AIGate를 연결하세요.
+일반 `git push`를 실행할 수 있다면 아직 권고에 가깝습니다. AIGate는 보호 수준을
+세 단계로 봅니다.
 
-- `aigate install-hook --pre-push`로 로컬 hook을 설치합니다.
-- GitLab CI, GitHub Actions, 또는 AIGate GitHub Action에 `aigate git-ready`를 추가합니다.
-- branch protection이나 merge request rule에서 해당 CI job을 필수로 지정합니다.
+- 권고형: hook이나 필수 CI gate가 확인되지 않은 상태입니다.
+- 부분강제: 로컬 pre-push hook이 있지만 `--no-verify`로 우회할 수 있습니다.
+- 서버강제: CI가 `aigate git-ready`를 실행하고 branch protection 또는 MR rule이 CI 결과를 요구합니다.
 
-`aigate doctor`는 `AIGate 강제 연결` 항목으로 hook/CI 연결 상태를 함께 보고합니다.
-`aigate evaluate-project`는 `AIGate CI 게이트 존재`를 확인하며, 이는 CI 파일이
-존재하는 것만이 아니라 실제로 AIGate gate를 실행해야 통과한다는 뜻입니다.
+일반적인 설정 명령은 아래와 같습니다.
+
+```sh
+aigate install-hook --pre-push
+aigate setup --gitlab-pipeline-must-succeed true
+aigate setup --github-required-checks-enforced true
+```
+
+`aigate doctor`는 `AIGate 강제 연결` 항목으로 현재 수준을 보고합니다.
+`aigate evaluate-project`는 `AIGate CI 게이트 존재`와
+`AIGate 서버 강제 적용 존재`를 따로 확인합니다. GitLab의 `allow_failure: true`
+또는 `when: manual` job은 서버강제로 보지 않으며, 저장소 안의 GitLab `include:`
+YAML 파일도 함께 확인합니다.
 
 ## 테스트와 AI 자동 조치 흐름
 
