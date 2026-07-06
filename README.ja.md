@@ -59,6 +59,20 @@ aigate install-hook --pre-push
 aigate pr-check
 ```
 
+## 強制接続モデル
+
+AIGate は助言として実行するだけでなく、workflow に接続したときに最も効果を
+発揮します。少なくとも 1 つは有効にすることを推奨します。
+
+- local: `aigate install-hook --pre-push` で通常の `git push` でも先に `aigate git-ready` を実行します。
+- server: `aigate git-ready` または AIGate GitHub Action を必須 CI/check に追加します。
+- habit: guarded `git push` wrapper が必要なときは `aigate push -u origin <branch>` を使います。
+
+`aigate doctor` は、AIGate が pre-push hook または CI gate によって実際に
+強制されているかを報告します。`aigate evaluate-project` も CI が AIGate gate
+を実行しているかを確認するため、CI ファイルだけがあり AIGate guard がない
+リポジトリが完全に保護済みのようには見えません。
+
 ## 状況別プレイブック
 
 | 状況 | プロセス | コマンド |

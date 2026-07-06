@@ -4,6 +4,8 @@ All notable changes to AIGate are documented here.
 
 ## Unreleased
 
+- Added enforcement diagnostics so `doctor`, `evaluate-project`, and AI reports
+  distinguish advisory local checks from pre-push or CI-enforced AIGate gates.
 - Added a GitHub Pages multilingual HTML documentation index for publishing the
   `docs/` site.
 - Refreshed distribution and GitHub Action docs with the verified `0.1.6`

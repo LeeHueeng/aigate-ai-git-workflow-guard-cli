@@ -91,6 +91,20 @@ Recommendation: Run AIGate test, commit focused changes, push the branch, and op
 AIGate is useful when AI coding assistants move quickly and you need one
 repeatable local gate before `git push` or PR creation.
 
+## Enforcement Model
+
+AIGate is strongest when it is wired into a workflow, not only run as advice.
+Use at least one enforced path:
+
+- local: `aigate install-hook --pre-push` so plain `git push` runs `aigate git-ready`.
+- server: add `aigate git-ready` or the AIGate GitHub Action to required CI checks.
+- habit: use `aigate push -u origin <branch>` when you want a guarded `git push` wrapper.
+
+`aigate doctor` now reports whether AIGate is actually enforced through a
+pre-push hook or CI gate. `aigate evaluate-project` also checks whether CI runs
+the AIGate gate, so a repository with CI but no AIGate guard no longer looks
+fully protected.
+
 ## Scenario Playbooks
 
 | Situation | Process | Commands |

@@ -126,6 +126,19 @@ aigate pr --title "feat: short summary"
 `aigate push` 不是替代 Git 的新版本管理工具，而是在 `git push` 前增加
 AIGate 检查的 guarded wrapper。
 
+## 强制执行 gate
+
+手动运行 `aigate git-ready` 很有用，但如果开发者可以忽略它并直接运行普通
+`git push`，它仍然更接近建议。要获得真正保护，请把 AIGate 接入至少一个强制路径。
+
+- 用 `aigate install-hook --pre-push` 安装 local hook。
+- 在 GitLab CI、GitHub Actions 或 AIGate GitHub Action 中加入 `aigate git-ready`。
+- 在 branch protection 或 merge request rule 中把该 CI job 设为必需。
+
+`aigate doctor` 会用 `AIGate 强制连接` 汇总 hook/CI 连接状态。
+`aigate evaluate-project` 会检查 `AIGate CI 关卡存在`，也就是说不仅要有 CI 文件，
+CI 还必须实际运行 AIGate gate 才会通过。
+
 ## 测试和 AI 自动修复流程
 
 ```sh

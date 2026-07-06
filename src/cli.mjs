@@ -1547,6 +1547,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "Project test command exists": "프로젝트 테스트 명령 존재",
     "CI gate script exists": "CI 게이트 스크립트 존재",
     "CI workflow exists": "CI 워크플로 존재",
+    "AIGate CI gate exists": "AIGate CI 게이트 존재",
     "Release workflow exists": "릴리스 워크플로 존재",
     "Dependabot exists": "Dependabot 존재",
     "Security policy exists": "보안 정책 존재",
@@ -1574,6 +1575,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "Project test command exists": "プロジェクトテストコマンドが存在",
     "CI gate script exists": "CI ゲートスクリプトが存在",
     "CI workflow exists": "CI ワークフローが存在",
+    "AIGate CI gate exists": "AIGate CI ゲートが存在",
     "Release workflow exists": "リリースワークフローが存在",
     "Dependabot exists": "Dependabot が存在",
     "Security policy exists": "セキュリティポリシーが存在",
@@ -1601,6 +1603,7 @@ const EVALUATION_CHECK_TRANSLATIONS = {
     "Project test command exists": "项目测试命令存在",
     "CI gate script exists": "CI 关卡脚本存在",
     "CI workflow exists": "CI 工作流存在",
+    "AIGate CI gate exists": "AIGate CI 关卡存在",
     "Release workflow exists": "发布工作流存在",
     "Dependabot exists": "Dependabot 存在",
     "Security policy exists": "安全政策存在",
@@ -5127,6 +5130,10 @@ function buildEvaluation(options = {}) {
     check("testing", "Project test command exists", hasTestScript(packageJson)),
     check("testing", "CI gate script exists", hasCiGateScript(packageJson)),
     check("ci_cd", "CI workflow exists", hasCiWorkflow(profile)),
+    check("ci_cd", "AIGate CI gate exists", hasAigateCiGate(profile), {
+      applicable: hasCiWorkflow(profile),
+      reason: "AIGate CI gate requires a CI workflow."
+    }),
     check("ci_cd", "Release workflow exists", hasReleaseWorkflow(profile), {
       applicable: profile.kind === "package" || hasReleaseWorkflow(profile),
       reason: packageOnlyReason
@@ -5984,6 +5991,101 @@ function hasCiWorkflow(profile) {
   }
 
   return existsSync(join(".github", "workflows", "ci.yml")) || existsSync(".gitlab-ci.yml");
+}
+
+function hasAigateCiGate(profile) {
+  const packageJson = readJsonFile("package.json");
+  const workflowFiles = ciWorkflowFiles(profile);
+  return workflowFiles.some((filePath) => fileContainsAigateGate(filePath, packageJson));
+}
+
+function ciWorkflowFiles(profile) {
+  if (profile.ciProvider === "gitlab") {
+    return [".gitlab-ci.yml"].filter((filePath) => existsSync(filePath));
+  }
+
+  if (profile.ciProvider === "github") {
+    return githubWorkflowFiles();
+  }
+
+  return [
+    ...githubWorkflowFiles(),
+    ...[".gitlab-ci.yml"].filter((filePath) => existsSync(filePath))
+  ];
+}
+
+function githubWorkflowFiles() {
+  const workflowsDir = join(".github", "workflows");
+  if (!existsSync(workflowsDir)) {
+    return [];
+  }
+
+  try {
+    return readdirSync(workflowsDir)
+      .filter((entry) => /\.(ya?ml)$/i.test(entry))
+      .map((entry) => join(workflowsDir, entry));
+  } catch {
+    return [];
+  }
+}
+
+function fileContainsAigateGate(filePath, packageJson) {
+  if (!existsSync(filePath)) {
+    return false;
+  }
+
+  const content = readFileSync(filePath, "utf8");
+  if (/\baigate\s+git-ready\b/i.test(content) ||
+      /\baigate-cli\s+git-ready\b/i.test(content) ||
+      /\bnode\s+src\/cli\.mjs\s+git-ready\b/i.test(content) ||
+      /\bcommand:\s*['"]?git-ready['"]?/i.test(content)) {
+    return true;
+  }
+
+  const scripts = packageJson.scripts ?? {};
+  return Object.entries(scripts).some(([name, command]) => (
+    workflowRunsScript(content, name) && commandRunsAigateGate(command, scripts)
+  ));
+}
+
+function workflowRunsScript(content, scriptName) {
+  return packageManagerRunsScript(content, scriptName);
+}
+
+function commandRunsAigateGate(command, scripts = {}, seen = new Set()) {
+  const text = String(command ?? "");
+  if (/\baigate\s+git-ready\b/i.test(text) ||
+      /\baigate-cli\s+git-ready\b/i.test(text) ||
+      /\bnode\s+src\/cli\.mjs\s+git-ready\b/i.test(text)) {
+    return true;
+  }
+
+  for (const referenced of referencedScripts(text, scripts)) {
+    if (seen.has(referenced)) {
+      continue;
+    }
+    seen.add(referenced);
+    if (commandRunsAigateGate(scripts[referenced], scripts, seen)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function referencedScripts(command, scripts = {}) {
+  const text = String(command ?? "");
+  return Object.keys(scripts).filter((name) => (
+    packageManagerRunsScript(text, name)
+  ));
+}
+
+function packageManagerRunsScript(content, scriptName) {
+  const escaped = escapeRegExp(scriptName);
+  const npmDirectScripts = ["test", "start", "stop", "restart"];
+  return new RegExp(`\\bnpm\\s+run\\s+${escaped}\\b`, "i").test(content) ||
+    (npmDirectScripts.includes(scriptName) && new RegExp(`\\bnpm\\s+${escaped}\\b`, "i").test(content)) ||
+    new RegExp(`\\b(pnpm|yarn|bun)\\s+(?:run\\s+)?${escaped}\\b`, "i").test(content);
 }
 
 function hasReleaseWorkflow(profile = {}) {
@@ -6986,6 +7088,7 @@ function buildAiReportStrengths({ evaluation, releaseCheck, branchStrategy }, la
     "Test directory exists",
     "Project test command exists",
     "CI workflow exists",
+    "AIGate CI gate exists",
     "Release workflow exists",
     "Security policy exists",
     "Security scanning is documented"
@@ -7043,7 +7146,7 @@ function buildAiReportDirection({ evaluation, releaseCheck, branchStrategy }, la
     direction.push(aiReportText("directionAi", language));
   }
 
-  if (["Project test command exists", "CI workflow exists"].some((name) => missingChecks.has(name))) {
+  if (["Project test command exists", "CI workflow exists", "AIGate CI gate exists"].some((name) => missingChecks.has(name))) {
     direction.push(aiReportText("directionTests", language));
   }
 
@@ -7124,6 +7227,7 @@ function aiReportCommandForEvaluationCheck(name) {
     "Project test command exists": "aigate test",
     "CI gate script exists": "aigate test",
     "CI workflow exists": ciCommand,
+    "AIGate CI gate exists": "aigate install-hook --pre-push",
     "Release workflow exists": "aigate release-check",
     "Dependabot exists": "aigate ai report",
     "Security policy exists": repoFilesCommand,
@@ -10379,6 +10483,11 @@ function translateNotApplicableReason(reason, language) {
       ko: "app 프로필에는 패키지 릴리스 점검이 필요하지 않습니다.",
       ja: "app プロファイルではパッケージリリースチェックは不要です。",
       zh: "app 配置不需要包发布检查。"
+    },
+    "AIGate CI gate requires a CI workflow.": {
+      ko: "AIGate CI 게이트에는 CI 워크플로가 필요합니다.",
+      ja: "AIGate CI ゲートには CI ワークフローが必要です。",
+      zh: "AIGate CI 关卡需要 CI 工作流。"
     },
     "npm package release check is not required for this repository profile.": {
       ko: "이 저장소 프로필에는 npm 패키지 배포 점검이 필요하지 않습니다.",

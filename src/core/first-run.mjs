@@ -9,6 +9,8 @@ export function buildDoctorReport(context) {
   const gitReady = context.buildGitReadyResult();
   const evaluation = context.buildEvaluation();
   const ciCheck = evaluation.checks.find((check) => check.name === "CI workflow exists");
+  const ciGateCheck = evaluation.checks.find((check) => check.name === "AIGate CI gate exists");
+  const prePushHookInstalled = hasAigatePrePushHook(context);
   const profile = evaluation.profile ?? {};
   const generatedVersion = generatedFilesVersion(context);
   const checks = [
@@ -71,10 +73,18 @@ export function buildDoctorReport(context) {
     doctorCheck({
       id: "pre-push-hook",
       label: "pre-push hook",
-      pass: hasAigatePrePushHook(context),
+      pass: prePushHookInstalled,
       severity: "warn",
-      value: hasAigatePrePushHook(context) ? "installed" : "missing",
+      value: prePushHookInstalled ? "installed" : "missing",
       next: "Run aigate install-hook --pre-push."
+    }),
+    doctorCheck({
+      id: "aigate-enforcement",
+      label: "AIGate enforcement",
+      pass: prePushHookInstalled || Boolean(ciGateCheck?.pass),
+      severity: "warn",
+      value: enforcementValue({ prePushHookInstalled, ciGateCheck }),
+      next: "Install the pre-push hook or add aigate git-ready to CI required checks."
     }),
     doctorCheck({
       id: "git-ready",
@@ -255,6 +265,17 @@ function ciWorkflowValue(profile) {
   }
 
   return existsSync(".gitlab-ci.yml") || existsSync(join(".github", "workflows", "ci.yml")) ? "found" : "missing";
+}
+
+function enforcementValue({ prePushHookInstalled, ciGateCheck }) {
+  const modes = [];
+  if (prePushHookInstalled) {
+    modes.push("pre-push hook");
+  }
+  if (ciGateCheck?.pass) {
+    modes.push("CI gate");
+  }
+  return modes.length ? modes.join(", ") : "missing";
 }
 
 export function buildDemoScenario() {

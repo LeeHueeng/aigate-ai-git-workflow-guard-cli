@@ -58,6 +58,19 @@ aigate install-hook --pre-push
 aigate pr-check
 ```
 
+## 强制连接模型
+
+AIGate 不是只作为建议命令运行时最有价值，而是在接入 workflow 后最有价值。
+建议至少启用下面一种路径。
+
+- local: 使用 `aigate install-hook --pre-push`，让普通 `git push` 也先运行 `aigate git-ready`。
+- server: 将 `aigate git-ready` 或 AIGate GitHub Action 加入必需 CI/check。
+- habit: 需要受保护的 `git push` wrapper 时，使用 `aigate push -u origin <branch>`。
+
+`aigate doctor` 现在会报告 AIGate 是否真的通过 pre-push hook 或 CI gate 被强制执行。
+`aigate evaluate-project` 也会检查 CI 是否运行 AIGate gate，因此只有 CI 文件、
+但没有 AIGate guard 的仓库不会再看起来像是已经完全受保护。
+
 ## 场景式使用手册
 
 | 场景 | 流程 | 命令 |

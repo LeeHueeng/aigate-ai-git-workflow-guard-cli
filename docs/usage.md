@@ -130,6 +130,20 @@ preview the command. `aigate push` is a guarded wrapper around `git push`; it is
 not a replacement for Git, but it adds AIGate checks before the remote is
 updated.
 
+## Make The Gate Enforced
+
+Running `aigate git-ready` manually is useful, but it is still advisory if a
+developer can ignore it and run plain `git push`. For real protection, connect
+AIGate to at least one enforced path:
+
+- Install the local hook with `aigate install-hook --pre-push`.
+- Add `aigate git-ready` to GitLab CI, GitHub Actions, or the AIGate GitHub Action.
+- Mark the CI job as required in branch protection or merge request rules.
+
+`aigate doctor` reports the combined enforcement state as `AIGate enforcement`.
+`aigate evaluate-project` checks `AIGate CI gate exists`, which means the CI file
+must actually run the AIGate gate, not merely exist.
+
 ## Test And AI Remediation Flow
 
 ```sh

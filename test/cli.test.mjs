@@ -998,7 +998,22 @@ test("doctor follows GitLab app profile CI and test detection", () => {
   assert.equal(testScript.value, "frontend-test");
   assert.equal(ciWorkflow.pass, true);
   assert.equal(ciWorkflow.value, "gitlab found");
+  assert.equal(output.checks.find((check) => check.id === "aigate-enforcement")?.pass, false);
   assert.doesNotMatch(JSON.stringify(output), /github missing/);
+});
+
+test("doctor reports AIGate enforcement when the pre-push hook is installed", () => {
+  const projectDir = createMinimalGitProject();
+  const hook = run(["install-hook", "--pre-push"], { cwd: projectDir });
+  assert.equal(hook.status, 0);
+
+  const result = run(["doctor", "--format", "json"], { cwd: projectDir });
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  const enforcement = output.checks.find((check) => check.id === "aigate-enforcement");
+
+  assert.equal(enforcement.pass, true);
+  assert.equal(enforcement.value, "pre-push hook");
 });
 
 test("doctor detects pnpm workspace test scripts", () => {
@@ -1810,10 +1825,77 @@ test("adapts project evaluation for private GitLab pnpm apps", () => {
   assert.equal(output.profile.packageManager, "pnpm");
   assert.ok(output.score >= 90);
   assert.equal(output.checks.find((check) => check.name === "CI workflow exists")?.pass, true);
+  assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, false);
   assert.equal(output.checks.find((check) => check.name === "Merge request template exists")?.pass, true);
   assert.equal(output.checks.find((check) => check.name === "Dependabot exists")?.status, "NA");
   assert.equal(output.checks.find((check) => check.name === "OpenSSF Scorecard workflow exists")?.status, "NA");
   assert.equal(output.checks.find((check) => check.name === "License exists")?.status, "NA");
+});
+
+test("scores AIGate CI gate only when CI runs git-ready", () => {
+  const projectDir = createPrivateGitLabPnpmApp();
+  let result = run(["evaluate-project", "--format", "json"], { cwd: projectDir });
+  assert.equal(result.status, 0);
+  let output = JSON.parse(result.stdout);
+  assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, false);
+
+  writeFileSync(join(projectDir, ".gitlab-ci.yml"), [
+    "test:",
+    "  script:",
+    "    - pnpm frontend-test",
+    "aigate:",
+    "  script:",
+    "    - aigate git-ready"
+  ].join("\n"));
+
+  result = run(["evaluate-project", "--format", "json"], { cwd: projectDir });
+  assert.equal(result.status, 0);
+  output = JSON.parse(result.stdout);
+  assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, true);
+});
+
+test("does not mistake npm ci install steps for an AIGate CI gate", () => {
+  const projectDir = createMinimalGitProject();
+  mkdirSync(join(projectDir, ".github", "workflows"), { recursive: true });
+  writeFileSync(join(projectDir, "package.json"), `${JSON.stringify({
+    name: "minimal-project",
+    version: "1.0.0",
+    scripts: {
+      ci: "aigate git-ready"
+    },
+    repository: {
+      type: "git",
+      url: "https://github.com/example/minimal-project.git"
+    }
+  }, null, 2)}\n`);
+  writeFileSync(join(projectDir, ".github", "workflows", "ci.yml"), [
+    "name: CI",
+    "jobs:",
+    "  test:",
+    "    runs-on: ubuntu-latest",
+    "    steps:",
+    "      - run: npm ci"
+  ].join("\n"));
+
+  let result = run(["evaluate-project", "--format", "json"], { cwd: projectDir });
+  assert.equal(result.status, 0);
+  let output = JSON.parse(result.stdout);
+  assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, false);
+
+  writeFileSync(join(projectDir, ".github", "workflows", "ci.yml"), [
+    "name: CI",
+    "jobs:",
+    "  test:",
+    "    runs-on: ubuntu-latest",
+    "    steps:",
+    "      - run: npm ci",
+    "      - run: npm run ci"
+  ].join("\n"));
+
+  result = run(["evaluate-project", "--format", "json"], { cwd: projectDir });
+  assert.equal(result.status, 0);
+  output = JSON.parse(result.stdout);
+  assert.equal(output.checks.find((check) => check.name === "AIGate CI gate exists")?.pass, true);
 });
 
 test("scores GitLab MR templates and security policy scanning docs without GitHub files", () => {

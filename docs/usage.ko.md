@@ -128,6 +128,20 @@ aigate pr --title "feat: short summary"
 사용합니다. `aigate push`는 `git push`를 대체하는 새 버전 관리 도구가 아니라,
 push 전에 AIGate 점검을 붙이는 보호 래퍼입니다.
 
+## 게이트를 강제하기
+
+`aigate git-ready`를 수동으로 실행하는 것만으로도 유용하지만, 개발자가 무시하고
+일반 `git push`를 실행할 수 있다면 아직 권고에 가깝습니다. 실제 보호를 원하면
+아래 중 하나 이상에 AIGate를 연결하세요.
+
+- `aigate install-hook --pre-push`로 로컬 hook을 설치합니다.
+- GitLab CI, GitHub Actions, 또는 AIGate GitHub Action에 `aigate git-ready`를 추가합니다.
+- branch protection이나 merge request rule에서 해당 CI job을 필수로 지정합니다.
+
+`aigate doctor`는 `AIGate 강제 연결` 항목으로 hook/CI 연결 상태를 함께 보고합니다.
+`aigate evaluate-project`는 `AIGate CI 게이트 존재`를 확인하며, 이는 CI 파일이
+존재하는 것만이 아니라 실제로 AIGate gate를 실행해야 통과한다는 뜻입니다.
+
 ## 테스트와 AI 자동 조치 흐름
 
 ```sh
