@@ -116,6 +116,7 @@ A グレード未満に制限して警告が埋もれないようにします。
 | GitHub PR テンプレートと CODEOWNERS 設定 | `aigate github setup` |
 | Markdown, HTML, JSON, SARIF report | `aigate report --format <format>` |
 | repository health score | `aigate evaluate-project` |
+| server enforcement のライブ検証 | `aigate verify-enforcement --apply` |
 | コンプライアンス統制レポート | `aigate compliance-report` |
 | ローカル HTML ヘルスダッシュボード | `aigate dashboard` |
 | プロジェクト状態トレンド履歴 | `aigate trends record` |
@@ -199,7 +200,7 @@ Action リリース状態:
 - 現在の安定タグ: `v0.1.6`
 - Action 利用: `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` で利用可能
 - Marketplace 公開: GitHub Release 画面で手動で有効にする手順
-- Action name: `AIGate AI Git Workflow Guard CLI`
+- Action name: `AIGate Git Workflow Guard`
 - Primary category: `Code quality`
 - Secondary category: `Security`
 - Release title: `AIGate AI Git Workflow Guard CLI v0.1.6`

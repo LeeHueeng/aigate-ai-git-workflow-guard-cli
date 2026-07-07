@@ -178,6 +178,45 @@ function createPrivateGitLabPnpmWorkspaceApp() {
   return projectDir;
 }
 
+function createGitHubAigateProject() {
+  const projectDir = mkdtempSync(join(tmpdir(), "aigate-github-project-"));
+  mkdirSync(join(projectDir, ".github", "workflows"), { recursive: true });
+  writeFileSync(join(projectDir, "package.json"), `${JSON.stringify({
+    name: "github-aigate-project",
+    version: "1.0.0",
+    scripts: {
+      ci: "aigate git-ready"
+    },
+    repository: {
+      type: "git",
+      url: "git+https://github.com/example/github-aigate-project.git"
+    }
+  }, null, 2)}\n`);
+  writeFileSync(join(projectDir, ".github", "workflows", "ci.yml"), [
+    "name: CI",
+    "on:",
+    "  pull_request:",
+    "jobs:",
+    "  test:",
+    "    name: test",
+    "    runs-on: ubuntu-latest",
+    "    strategy:",
+    "      matrix:",
+    "        node-version:",
+    "          - 20",
+    "          - 22",
+    "    steps:",
+    "      - run: npm ci",
+    "      - run: npm run ci"
+  ].join("\n"));
+  spawnSync("git", ["init"], { cwd: projectDir, encoding: "utf8" });
+  spawnSync("git", ["remote", "add", "origin", "git@github.com:example/github-aigate-project.git"], {
+    cwd: projectDir,
+    encoding: "utf8"
+  });
+  return projectDir;
+}
+
 function createFakeCurlBin() {
   const binDir = mkdtempSync(join(tmpdir(), "aigate-curl-"));
   const curlPath = join(binDir, "curl");
@@ -197,6 +236,20 @@ function createFakeCurlBin() {
   ].join("\n"));
   chmodSync(curlPath, 0o755);
   return { binDir, payloadPath };
+}
+
+function createFakeGhBin(response, status = 0) {
+  const binDir = mkdtempSync(join(tmpdir(), "aigate-gh-"));
+  const ghPath = join(binDir, "gh");
+  writeFileSync(ghPath, [
+    "#!/bin/sh",
+    status === 0
+      ? `cat <<'JSON'\n${JSON.stringify(response)}\nJSON`
+      : `printf '%s\\n' ${JSON.stringify(String(response))} >&2`,
+    `exit ${status}`
+  ].join("\n"));
+  chmodSync(ghPath, 0o755);
+  return binDir;
 }
 
 function createFakePnpmBin() {
@@ -269,7 +322,7 @@ test("prints package version", () => {
   const result = run(["--version"]);
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /^0\.1\.6/m);
+  assert.match(result.stdout, /^0\.1\.7/m);
 });
 
 test("ships reusable GitHub Action metadata", () => {
@@ -277,7 +330,7 @@ test("ships reusable GitHub Action metadata", () => {
   const bundledAction = readFileSync(join(repoRoot, ".github", "actions", "aigate", "action.yml"), "utf8");
 
   assert.equal(bundledAction, rootAction);
-  assert.match(rootAction, /^name: AIGate AI Git Workflow Guard CLI/m);
+  assert.match(rootAction, /^name: AIGate Git Workflow Guard/m);
   assert.match(rootAction, /secret scans, and release gates/);
   assert.match(rootAction, /default: aigate-cli@latest/);
   assert.match(rootAction, /uses: actions\/setup-node@v6/);
@@ -320,7 +373,7 @@ test("initializes GitLab pnpm workspace config with real validation commands", (
   assert.equal(result.status, 0);
   const config = readFileSync(join(projectDir, ".aigate.yml"), "utf8");
 
-  assert.match(config, /generatedBy: aigate 0\.1\.6/);
+  assert.match(config, /generatedBy: aigate 0\.1\.7/);
   assert.match(config, /hosting: gitlab/);
   assert.match(config, /packageManager: pnpm/);
   assert.match(config, /    - main/);
@@ -731,6 +784,68 @@ test("configures verified server enforcement evidence settings", () => {
   assert.equal(settings.serverEnforcement.github.requiredChecksEnforced, "verified");
 });
 
+test("verifies GitHub required checks through live API evidence", () => {
+  const projectDir = createGitHubAigateProject();
+  const fakeGh = createFakeGhBin({
+    strict: true,
+    contexts: ["test (20)", "test (22)"],
+    checks: [
+      { context: "test (20)" },
+      { context: "test (22)" }
+    ]
+  });
+  const settingsPath = createSettingsPath();
+  const result = run(["verify-enforcement", "--format", "json"], {
+    cwd: projectDir,
+    settingsPath,
+    env: {
+      PATH: `${fakeGh}:${process.env.PATH}`
+    }
+  });
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.verified, true);
+  assert.deepEqual(output.ciGateContexts, ["test (20)", "test (22)"]);
+  assert.deepEqual(output.missingContexts, []);
+
+  const apply = run(["verify-enforcement", "--apply", "--format", "json"], {
+    cwd: projectDir,
+    settingsPath,
+    env: {
+      PATH: `${fakeGh}:${process.env.PATH}`
+    }
+  });
+  assert.equal(apply.status, 0);
+  const applied = JSON.parse(apply.stdout);
+  assert.equal(applied.applied, true);
+
+  const settings = JSON.parse(readFileSync(settingsPath, "utf8"));
+  assert.equal(settings.serverEnforcement.github.requiredChecksEnforced, "verified");
+});
+
+test("fails GitHub enforcement verification when required contexts are missing", () => {
+  const projectDir = createGitHubAigateProject();
+  const fakeGh = createFakeGhBin({
+    strict: true,
+    contexts: ["test (20)"],
+    checks: [
+      { context: "test (20)" }
+    ]
+  });
+  const result = run(["verify-enforcement", "--format", "json"], {
+    cwd: projectDir,
+    env: {
+      PATH: `${fakeGh}:${process.env.PATH}`
+    }
+  });
+
+  assert.equal(result.status, 1);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.verified, false);
+  assert.deepEqual(output.missingContexts, ["test (22)"]);
+});
+
 test("configures team workflow settings for private GitLab pnpm apps", () => {
   const settingsPath = createSettingsPath();
   const projectDir = createPrivateGitLabPnpmWorkspaceApp();
@@ -1133,7 +1248,7 @@ test("doctor warns when generated AIGate files are stale", () => {
   const generatedVersion = output.checks.find((check) => check.id === "generated-version");
 
   assert.equal(generatedVersion.pass, false);
-  assert.match(generatedVersion.value, /stale 0\.1\.1; current 0\.1\.6/);
+  assert.match(generatedVersion.value, /stale 0\.1\.1; current 0\.1\.7/);
   assert.ok(output.nextSteps.includes("Regenerate stale AIGate files with aigate init --force and aigate integrate all --force."));
 });
 
@@ -2284,8 +2399,8 @@ test("checks release readiness", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.command, "release-check");
   assert.equal(output.packageName, "aigate-cli");
-  assert.equal(output.version, "0.1.6");
-  assert.equal(output.expectedTag, "v0.1.6");
+  assert.equal(output.version, "0.1.7");
+  assert.equal(output.expectedTag, "v0.1.7");
   assert.ok(["READY", "ACTION_REQUIRED", "RELEASED"].includes(output.status));
   assert.equal(output.registry.checked, false);
   assert.equal(output.registry.applicable, true);
@@ -2294,7 +2409,7 @@ test("checks release readiness", () => {
 test("checks npm publication state when requested", () => {
   const binDir = mkdtempSync(join(tmpdir(), "aigate-npm-"));
   const npmPath = join(binDir, "npm");
-  writeFileSync(npmPath, "#!/bin/sh\nprintf '\"0.1.6\"\\n'\n");
+  writeFileSync(npmPath, "#!/bin/sh\nprintf '\"0.1.7\"\\n'\n");
   chmodSync(npmPath, 0o755);
 
   const result = run(["release-check", "--npm", "--format", "json"], {
@@ -2307,7 +2422,7 @@ test("checks npm publication state when requested", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.registry.checked, true);
   assert.equal(output.registry.published, true);
-  assert.equal(output.registry.publishedVersion, "0.1.6");
+  assert.equal(output.registry.publishedVersion, "0.1.7");
 });
 
 test("treats private GitLab pnpm apps as non-npm release targets", () => {

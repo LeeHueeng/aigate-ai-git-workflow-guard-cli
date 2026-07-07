@@ -115,6 +115,7 @@ hook 활성화 자동화를 따로 보여줍니다. `--gitlab-pipeline-must-succ
 | GitHub PR 템플릿과 CODEOWNERS 설정 | `aigate github setup` |
 | Markdown, HTML, JSON, SARIF 리포트 | `aigate report --format <format>` |
 | 저장소 건강 점수 | `aigate evaluate-project` |
+| 서버강제 라이브 검증 | `aigate verify-enforcement --apply` |
 | 컴플라이언스 통제 리포트 | `aigate compliance-report` |
 | 로컬 HTML 상태 대시보드 | `aigate dashboard` |
 | 프로젝트 상태 추세 기록 | `aigate trends record` |
@@ -198,7 +199,7 @@ Action 릴리스 상태:
 - 현재 안정 태그: `v0.1.6`
 - Action 사용: `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6`로 사용 가능
 - Marketplace 게시: GitHub Release 화면에서 수동으로 켜는 단계
-- Action name: `AIGate AI Git Workflow Guard CLI`
+- Action name: `AIGate Git Workflow Guard`
 - 주요 카테고리: `Code quality`
 - 보조 카테고리: `Security`
 - 릴리스 제목: `AIGate AI Git Workflow Guard CLI v0.1.6`

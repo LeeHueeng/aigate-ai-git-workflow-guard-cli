@@ -16,6 +16,7 @@ export function buildDoctorReport(context) {
   const hookActivation = hookActivationAutomation(packageJson);
   const profile = evaluation.profile ?? {};
   const enforcement = evaluation.enforcement ?? {};
+  const serverEnforced = Boolean(serverEnforcementCheck?.pass);
   const generatedVersion = generatedFilesVersion(context);
   const checks = [
     doctorCheck({
@@ -85,23 +86,31 @@ export function buildDoctorReport(context) {
     doctorCheck({
       id: "repository-pre-push-hook-file",
       label: "repository pre-push hook file",
-      pass: repositoryHookFile.found || Boolean(serverEnforcementCheck?.pass),
+      pass: repositoryHookFile.found || serverEnforced,
       severity: "warn",
-      value: repositoryHookFile.found ? `found ${repositoryHookFile.path}` : "missing",
+      value: repositoryHookFile.found
+        ? `found ${repositoryHookFile.path}`
+        : serverEnforced
+          ? "not required; server enforcement verified"
+          : "missing",
       next: "Commit an AIGate pre-push hook file or rely on required server-side CI."
     }),
     doctorCheck({
       id: "hook-activation-automation",
       label: "hook activation automation",
-      pass: hookActivation.found || Boolean(serverEnforcementCheck?.pass),
+      pass: hookActivation.found || serverEnforced,
       severity: "warn",
-      value: hookActivation.value,
+      value: hookActivation.found
+        ? hookActivation.value
+        : serverEnforced
+          ? "not required; server enforcement verified"
+          : hookActivation.value,
       next: "Automate hook activation in prepare/postinstall or rely on required server-side CI."
     }),
     doctorCheck({
       id: "aigate-enforcement",
       label: "AIGate enforcement",
-      pass: Boolean(serverEnforcementCheck?.pass),
+      pass: serverEnforced,
       severity: "warn",
       value: enforcementValue({ prePushHookInstalled, repositoryHookFile, hookActivation, ciGateCheck, serverEnforcementCheck, enforcement }),
       next: "Make aigate git-ready a verified required CI check."

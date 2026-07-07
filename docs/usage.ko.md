@@ -389,6 +389,7 @@ aigate git-ready --notify-channel terminal
 | `aigate integrate <provider>` | Codex/Gemini/Claude 연동 파일을 생성합니다. |
 | `aigate report` | Markdown, HTML, JSON, SARIF 리포트를 작성합니다. |
 | `aigate evaluate-project` | 저장소 기반과 Git signal을 점수화합니다. |
+| `aigate verify-enforcement` | GitHub/GitLab 서버측 AIGate 필수 검사를 검증하고 필요하면 검증 증거를 기록합니다. |
 | `aigate score` | 현재 프로젝트 점수를 출력합니다. |
 | `aigate trends <record\|show>` | 점수 이력을 기록하거나 보여줍니다. |
 | `aigate branch-strategy` | 브랜치 정책 문서를 추천하거나 생성합니다. |

@@ -4,6 +4,15 @@ All notable changes to AIGate are documented here.
 
 ## Unreleased
 
+- No unreleased changes.
+
+## 0.1.7 - 2026-07-07
+
+- Added `aigate verify-enforcement` to verify GitHub branch protection or
+  GitLab merge settings through live hosting APIs and record verified evidence
+  with `--apply`.
+- Renamed the GitHub Action display name to `AIGate Git Workflow Guard` for a
+  clearer Marketplace listing.
 - Added enforcement diagnostics so `doctor`, `evaluate-project`, and AI reports
   distinguish advisory local checks from pre-push or CI-enforced AIGate gates.
 - Split AIGate enforcement scoring into CI gate presence and server-side

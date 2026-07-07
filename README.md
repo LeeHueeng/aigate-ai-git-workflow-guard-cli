@@ -153,6 +153,7 @@ visible.
 | Changed-file secret scan | `aigate report --format sarif` |
 | Repository health score | `aigate evaluate-project` |
 | Deep project report | `aigate evaluate-project --deep --report` |
+| Live server enforcement verification | `aigate verify-enforcement --apply` |
 | Compliance control report | `aigate compliance-report` |
 | Local HTML health dashboard | `aigate dashboard` |
 | Project health trend history | `aigate trends record` |
@@ -238,7 +239,7 @@ Action release status:
 - Current stable tag: `v0.1.6`
 - Action usage: ready through `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6`
 - Marketplace publishing: manual GitHub Release screen step
-- Action name: `AIGate AI Git Workflow Guard CLI`
+- Action name: `AIGate Git Workflow Guard`
 - Primary category: `Code quality`
 - Secondary category: `Security`
 - Release title: `AIGate AI Git Workflow Guard CLI v0.1.6`

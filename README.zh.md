@@ -114,6 +114,7 @@ A 等级以下，避免警告被分数掩盖。
 | GitHub PR 模板和 CODEOWNERS 设置 | `aigate github setup` |
 | Markdown, HTML, JSON, SARIF report | `aigate report --format <format>` |
 | repository health score | `aigate evaluate-project` |
+| server enforcement 实时验证 | `aigate verify-enforcement --apply` |
 | 合规控制报告 | `aigate compliance-report` |
 | 本地 HTML 健康仪表盘 | `aigate dashboard` |
 | 项目状态趋势历史 | `aigate trends record` |
@@ -195,7 +196,7 @@ Action 发布状态:
 - 当前稳定标签: `v0.1.6`
 - Action 使用: 可通过 `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` 使用
 - Marketplace 发布: 在 GitHub Release 页面手动启用
-- Action name: `AIGate AI Git Workflow Guard CLI`
+- Action name: `AIGate Git Workflow Guard`
 - Primary category: `Code quality`
 - Secondary category: `Security`
 - Release title: `AIGate AI Git Workflow Guard CLI v0.1.6`

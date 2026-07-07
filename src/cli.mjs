@@ -1059,6 +1059,7 @@ const HELP_CONTENT = {
       ["integrate <provider>", "Generate Codex/Gemini/Claude assistant integration files."],
       ["report", "Print a workflow report."],
       ["evaluate-project", "Score repository workflow foundations."],
+      ["verify-enforcement", "Verify required server-side AIGate checks through GitHub or GitLab APIs."],
       ["score", "Print only the project score."],
       ["trends <record|show>", "Track repository health trend history."],
       ["branch-strategy", "Recommend or compare branch strategies."],
@@ -1087,6 +1088,8 @@ const HELP_CONTENT = {
       ["--github", "Include GitHub protection guidance."],
       ["--deep", "Include deeper project history signals."],
       ["--report", "Render a project evaluation report."],
+      ["--repo <owner/repo>", "Repository slug for live enforcement verification."],
+      ["--branch <name>", "Branch to inspect for live enforcement verification."],
       ["--team-size <number>", "Team size signal for strategy recommendations."],
       ["--release <cadence>", "Release cadence signal for strategy recommendations."],
       ["--event <name>", "Notification event name."],
@@ -1162,6 +1165,7 @@ const HELP_CONTENT = {
       ["integrate <provider>", "Codex/Gemini/Claude 어시스턴트 연동 파일을 생성합니다."],
       ["report", "워크플로 리포트를 출력합니다."],
       ["evaluate-project", "저장소 워크플로 기반 점수를 계산합니다."],
+      ["verify-enforcement", "GitHub 또는 GitLab API로 서버측 AIGate 필수 검사를 검증합니다."],
       ["score", "프로젝트 점수만 출력합니다."],
       ["trends <record|show>", "저장소 상태 추세 기록을 관리합니다."],
       ["branch-strategy", "브랜치 전략을 추천하거나 비교합니다."],
@@ -1190,6 +1194,8 @@ const HELP_CONTENT = {
       ["--github", "GitHub 보호 규칙 가이드를 포함합니다."],
       ["--deep", "더 깊은 프로젝트 히스토리 신호를 포함합니다."],
       ["--report", "프로젝트 평가 리포트를 렌더링합니다."],
+      ["--repo <owner/repo>", "라이브 강제 검증에 사용할 저장소 slug입니다."],
+      ["--branch <name>", "라이브 강제 검증에서 확인할 브랜치입니다."],
       ["--team-size <number>", "전략 추천용 팀 규모 신호입니다."],
       ["--release <cadence>", "전략 추천용 릴리스 주기 신호입니다."],
       ["--event <name>", "알림 이벤트 이름입니다."],
@@ -1265,6 +1271,7 @@ const HELP_CONTENT = {
       ["integrate <provider>", "Codex/Gemini/Claude アシスタント連携ファイルを生成します。"],
       ["report", "ワークフローレポートを出力します。"],
       ["evaluate-project", "リポジトリのワークフロー基盤を採点します。"],
+      ["verify-enforcement", "GitHub または GitLab API でサーバー側 AIGate 必須チェックを検証します。"],
       ["score", "プロジェクトスコアのみ出力します。"],
       ["trends <record|show>", "リポジトリ状態トレンド履歴を管理します。"],
       ["branch-strategy", "ブランチ戦略を推薦または比較します。"],
@@ -1293,6 +1300,8 @@ const HELP_CONTENT = {
       ["--github", "GitHub 保護ルールガイドを含めます。"],
       ["--deep", "より深いプロジェクト履歴シグナルを含めます。"],
       ["--report", "プロジェクト評価レポートをレンダリングします。"],
+      ["--repo <owner/repo>", "ライブ強制検証に使うリポジトリ slug です。"],
+      ["--branch <name>", "ライブ強制検証で確認するブランチです。"],
       ["--team-size <number>", "戦略推薦用のチームサイズシグナルです。"],
       ["--release <cadence>", "戦略推薦用のリリース頻度シグナルです。"],
       ["--event <name>", "通知イベント名です。"],
@@ -1368,6 +1377,7 @@ const HELP_CONTENT = {
       ["integrate <provider>", "生成 Codex/Gemini/Claude 助手集成文件。"],
       ["report", "输出工作流报告。"],
       ["evaluate-project", "评估仓库工作流基础分。"],
+      ["verify-enforcement", "通过 GitHub 或 GitLab API 验证服务器端 AIGate 必需检查。"],
       ["score", "仅输出项目分数。"],
       ["trends <record|show>", "管理仓库状态趋势历史。"],
       ["branch-strategy", "推荐或比较分支策略。"],
@@ -1396,6 +1406,8 @@ const HELP_CONTENT = {
       ["--github", "包含 GitHub 保护规则指南。"],
       ["--deep", "包含更深入的项目历史信号。"],
       ["--report", "渲染项目评估报告。"],
+      ["--repo <owner/repo>", "实时强制验证使用的仓库 slug。"],
+      ["--branch <name>", "实时强制验证要检查的分支。"],
       ["--team-size <number>", "用于策略推荐的团队规模信号。"],
       ["--release <cadence>", "用于策略推荐的发布节奏信号。"],
       ["--event <name>", "通知事件名称。"],
@@ -1646,6 +1658,69 @@ const EVALUATION_CHECK_TRANSLATIONS = {
   }
 };
 
+const VERIFY_ENFORCEMENT_LABELS = {
+  en: {
+    status: "AIGate verify-enforcement",
+    provider: "Provider",
+    repository: "Repository",
+    branch: "Branch",
+    expected: "AIGate CI checks",
+    required: "Required checks",
+    missing: "Missing required checks",
+    reason: "Reason",
+    applied: "Applied to settings",
+    next: "Next",
+    none: "none",
+    yes: "yes",
+    no: "no"
+  },
+  ko: {
+    status: "AIGate 강제 검증",
+    provider: "제공자",
+    repository: "저장소",
+    branch: "브랜치",
+    expected: "AIGate CI 검사",
+    required: "필수 검사",
+    missing: "누락된 필수 검사",
+    reason: "이유",
+    applied: "settings 반영",
+    next: "다음 단계",
+    none: "없음",
+    yes: "예",
+    no: "아니오"
+  },
+  ja: {
+    status: "AIGate 強制検証",
+    provider: "プロバイダー",
+    repository: "リポジトリ",
+    branch: "ブランチ",
+    expected: "AIGate CI チェック",
+    required: "必須チェック",
+    missing: "不足している必須チェック",
+    reason: "理由",
+    applied: "settings へ反映",
+    next: "次のステップ",
+    none: "なし",
+    yes: "はい",
+    no: "いいえ"
+  },
+  zh: {
+    status: "AIGate 强制验证",
+    provider: "提供方",
+    repository: "仓库",
+    branch: "分支",
+    expected: "AIGate CI 检查",
+    required: "必需检查",
+    missing: "缺少的必需检查",
+    reason: "原因",
+    applied: "已写入 settings",
+    next: "下一步",
+    none: "无",
+    yes: "是",
+    no: "否"
+  }
+};
+
 const AUDIT_LABELS = {
   en: {
     title: "AIGate Audit Report",
@@ -1867,6 +1942,7 @@ const commands = {
   integrate: commandIntegrate,
   report: commandReport,
   "evaluate-project": commandEvaluateProject,
+  "verify-enforcement": commandVerifyEnforcement,
   score: commandScore,
   trends: (args) => commandTrends(args, commandContext()),
   "branch-strategy": commandBranchStrategy,
@@ -4268,6 +4344,49 @@ function commandEvaluateProject(args) {
   ].join("\n");
 }
 
+function commandVerifyEnforcement(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const packageJson = readJsonFile("package.json");
+  const profile = detectProjectProfile(packageJson, options);
+  const provider = normalizeCiProvider(options.provider) ?? profile.ciProvider ?? profile.hosting;
+  const result = buildEnforcementVerification({
+    provider,
+    branch: options.branch,
+    repo: options.repo,
+    packageJson,
+    profile
+  });
+
+  if (options.apply && result.verified) {
+    const currentSettings = normalizeSettings(readSettings());
+    const settings = {
+      ...currentSettings,
+      hosting: currentSettings.hosting === "auto" ? profile.hosting : currentSettings.hosting,
+      ciProvider: currentSettings.ciProvider === "auto" ? provider : currentSettings.ciProvider,
+      defaultBranch: result.branch ?? currentSettings.defaultBranch,
+      serverEnforcement: verifiedServerEnforcementSettings(provider, currentSettings.serverEnforcement)
+    };
+    writeSettings(settings);
+    result.applied = true;
+    result.settingsPath = getSettingsPath();
+  }
+
+  if (!result.verified) {
+    process.exitCode = 1;
+  }
+
+  if (options.format === "json") {
+    return JSON.stringify(result, null, 2);
+  }
+
+  return renderEnforcementVerification(result, language);
+}
+
 function commandScore() {
   return String(buildEvaluation().score);
 }
@@ -6145,12 +6264,19 @@ function detectAigateCiGate(profile, packageJson, workflowFiles = ciWorkflowFile
     };
   }
 
-  const files = workflowFiles.filter((filePath) => fileContainsAigateGate(filePath, packageJson));
+  const jobs = githubAigateGateJobs(workflowFiles, packageJson);
+  const files = jobs.length
+    ? [...new Set(jobs.map((job) => job.filePath))]
+    : workflowFiles.filter((filePath) => fileContainsAigateGate(filePath, packageJson));
   return {
-    exists: files.length > 0,
-    value: files.length ? `workflow files: ${files.join(", ")}` : "missing",
+    exists: files.length > 0 || jobs.length > 0,
+    value: jobs.length
+      ? `github jobs: ${jobs.map((job) => job.name).join(", ")}`
+      : files.length
+        ? `workflow files: ${files.join(", ")}`
+        : "missing",
     files,
-    jobs: []
+    jobs
   };
 }
 
@@ -6226,6 +6352,236 @@ function detectAigateServerEnforcement({ provider, ciGate }) {
   };
 }
 
+function buildEnforcementVerification({ provider, branch, repo, packageJson = readJsonFile("package.json"), profile = detectProjectProfile(packageJson) }) {
+  const normalizedProvider = normalizeCiProvider(provider) ?? profile.ciProvider ?? profile.hosting;
+  const defaultBranch = branchSettingValue(branch, normalizeSettings(readSettings()).defaultBranch, "main");
+  const workflowFiles = ciWorkflowFiles({ ...profile, ciProvider: normalizedProvider });
+  const ciGate = detectAigateCiGate({ ...profile, ciProvider: normalizedProvider }, packageJson, workflowFiles);
+
+  if (normalizedProvider === "github") {
+    return verifyGithubEnforcement({
+      branch: defaultBranch,
+      repo: repo ?? detectRepositorySlug(packageJson),
+      ciGate
+    });
+  }
+
+  if (normalizedProvider === "gitlab") {
+    return verifyGitlabEnforcement({
+      repo: repo ?? detectGitlabRepositoryPath(packageJson),
+      ciGate
+    });
+  }
+
+  return {
+    command: "verify-enforcement",
+    provider: normalizedProvider ?? "unknown",
+    branch: defaultBranch,
+    repository: repo ?? null,
+    status: "UNSUPPORTED",
+    verified: false,
+    applied: false,
+    reason: "Server-side enforcement verification is only supported for GitHub and GitLab.",
+    next: "Use --provider github or --provider gitlab, or record verified evidence through aigate setup."
+  };
+}
+
+function verifyGithubEnforcement({ branch, repo, ciGate }) {
+  const expectedContexts = [...new Set(ciGate.jobs.flatMap((job) => job.contexts ?? []))];
+  const base = {
+    command: "verify-enforcement",
+    provider: "github",
+    repository: repo ?? null,
+    branch,
+    status: "ACTION_REQUIRED",
+    verified: false,
+    applied: false,
+    ciGateExists: ciGate.exists,
+    ciGateContexts: expectedContexts,
+    requiredContexts: [],
+    missingContexts: expectedContexts
+  };
+
+  if (!repo) {
+    return {
+      ...base,
+      reason: "GitHub repository could not be detected.",
+      next: "Pass --repo <owner/repo> or configure package.json repository."
+    };
+  }
+
+  if (!ciGate.exists) {
+    return {
+      ...base,
+      reason: "AIGate CI gate was not found in GitHub workflow files.",
+      next: "Add a GitHub Actions job that runs aigate git-ready or npm run ci."
+    };
+  }
+
+  if (!expectedContexts.length) {
+    return {
+      ...base,
+      reason: "AIGate CI gate exists, but required GitHub check contexts could not be inferred.",
+      next: "Pass explicit required checks with aigate setup --github-required-checks-enforced verified after confirming branch protection."
+    };
+  }
+
+  const required = readGithubRequiredStatusChecks(repo, branch);
+  if (required.error) {
+    return {
+      ...base,
+      reason: required.error,
+      next: "Enable branch protection required status checks or authenticate GitHub CLI with repo admin access."
+    };
+  }
+
+  const requiredContexts = [...new Set([...(required.contexts ?? []), ...(required.checks ?? []).map((check) => check.context).filter(Boolean)])];
+  const missingContexts = expectedContexts.filter((context) => !requiredContexts.includes(context));
+  const verified = requiredContexts.length > 0 && missingContexts.length === 0;
+
+  return {
+    ...base,
+    status: verified ? "VERIFIED" : "ACTION_REQUIRED",
+    verified,
+    requiredContexts,
+    missingContexts,
+    strict: required.strict,
+    reason: verified
+      ? "GitHub branch protection requires every AIGate CI check context."
+      : "GitHub branch protection is missing required AIGate CI check contexts.",
+    next: verified
+      ? "Run aigate verify-enforcement --apply to record verified evidence in AIGate settings."
+      : `Require these GitHub status checks on ${branch}: ${missingContexts.join(", ")}`
+  };
+}
+
+function readGithubRequiredStatusChecks(repo, branch) {
+  const result = spawnSync("gh", [
+    "api",
+    `repos/${repo}/branches/${branch}/protection/required_status_checks`
+  ], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+
+  if (result.status !== 0) {
+    const stderr = result.stderr?.trim?.() ?? result.error?.message ?? "";
+    return {
+      error: stderr || `GitHub required status checks are not available for ${repo}@${branch}.`
+    };
+  }
+
+  try {
+    return JSON.parse(result.stdout);
+  } catch {
+    return {
+      error: "GitHub required status checks response was not valid JSON."
+    };
+  }
+}
+
+function verifyGitlabEnforcement({ repo, ciGate }) {
+  const blockingJobs = ciGate.jobs.filter((job) => job.blocking);
+  const base = {
+    command: "verify-enforcement",
+    provider: "gitlab",
+    repository: repo ?? null,
+    branch: null,
+    status: "ACTION_REQUIRED",
+    verified: false,
+    applied: false,
+    ciGateExists: ciGate.exists,
+    ciGateJobs: ciGate.jobs.map((job) => job.name),
+    blockingJobs: blockingJobs.map((job) => job.name)
+  };
+
+  if (!repo) {
+    return {
+      ...base,
+      reason: "GitLab repository path could not be detected.",
+      next: "Pass --repo <group/project> or configure a GitLab origin remote."
+    };
+  }
+
+  if (!blockingJobs.length) {
+    return {
+      ...base,
+      reason: "AIGate GitLab job is missing or not blocking merge requests.",
+      next: "Add a non-manual, non-allow_failure GitLab job that runs aigate git-ready."
+    };
+  }
+
+  const project = readGitlabProject(repo);
+  if (project.error) {
+    return {
+      ...base,
+      reason: project.error,
+      next: "Authenticate glab and make sure the project API can be read."
+    };
+  }
+
+  const verified = project.only_allow_merge_if_pipeline_succeeds === true;
+  return {
+    ...base,
+    status: verified ? "VERIFIED" : "ACTION_REQUIRED",
+    verified,
+    onlyAllowMergeIfPipelineSucceeds: project.only_allow_merge_if_pipeline_succeeds ?? null,
+    reason: verified
+      ? "GitLab requires pipelines to pass and AIGate has a blocking merge request job."
+      : "GitLab does not require successful pipelines before merge.",
+    next: verified
+      ? "Run aigate verify-enforcement --apply to record verified evidence in AIGate settings."
+      : "Enable only_allow_merge_if_pipeline_succeeds in GitLab project merge settings."
+  };
+}
+
+function readGitlabProject(projectPath) {
+  const encodedPath = encodeURIComponent(projectPath);
+  const result = spawnSync("glab", ["api", `projects/${encodedPath}`], {
+    encoding: "utf8",
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+
+  if (result.status !== 0) {
+    const stderr = result.stderr?.trim?.() ?? result.error?.message ?? "";
+    return {
+      error: stderr || `GitLab project settings are not available for ${projectPath}.`
+    };
+  }
+
+  try {
+    return JSON.parse(result.stdout);
+  } catch {
+    return {
+      error: "GitLab project response was not valid JSON."
+    };
+  }
+}
+
+function verifiedServerEnforcementSettings(provider, current = {}) {
+  if (provider === "gitlab") {
+    return {
+      ...current,
+      gitlab: {
+        ...(current.gitlab ?? {}),
+        onlyAllowMergeIfPipelineSucceeds: "verified"
+      }
+    };
+  }
+
+  if (provider === "github") {
+    return {
+      ...current,
+      github: {
+        ...(current.github ?? {}),
+        requiredChecksEnforced: "verified"
+      }
+    };
+  }
+
+  return current;
+}
+
 function gitlabWorkflowFiles() {
   if (!existsSync(".gitlab-ci.yml")) {
     return [];
@@ -6291,6 +6647,161 @@ function gitlabAigateGateJobs(workflowFiles, packageJson) {
         blocking: gitlabJobIsBlocking(job.block)
       }));
   });
+}
+
+function githubAigateGateJobs(workflowFiles, packageJson) {
+  const scripts = packageJson.scripts ?? {};
+  return workflowFiles.flatMap((filePath) => {
+    if (!existsSync(filePath)) {
+      return [];
+    }
+
+    const content = readFileSync(filePath, "utf8");
+    if (!githubWorkflowRunsForBranches(content)) {
+      return [];
+    }
+
+    return githubJobBlocks(content)
+      .filter((job) => commandRunsAigateGate(job.block, scripts))
+      .map((job) => {
+        const displayName = githubJobDisplayName(job);
+        const matrixValues = githubJobMatrixValues(job.block, "node-version");
+        return {
+          ...job,
+          filePath,
+          displayName,
+          contexts: matrixValues.length
+            ? matrixValues.map((value) => `${displayName} (${value})`)
+            : [displayName]
+        };
+      });
+  });
+}
+
+function githubWorkflowRunsForBranches(content) {
+  const text = String(content ?? "");
+  if (/^\s*pull_request(?:_target)?:\s*(?:#.*)?$/m.test(text)) {
+    return true;
+  }
+
+  const pushBlock = yamlNestedBlock(text, "push");
+  if (!pushBlock) {
+    return false;
+  }
+
+  if (/^\s+branches:\s*(?:#.*)?$/m.test(pushBlock)) {
+    return true;
+  }
+
+  return !/^\s+tags:\s*(?:#.*)?$/m.test(pushBlock);
+}
+
+function yamlNestedBlock(content, key) {
+  const lines = String(content ?? "").split(/\r?\n/);
+  const startIndex = lines.findIndex((line) => new RegExp(`^\\s*${escapeRegExp(key)}:\\s*(?:#.*)?$`).test(line));
+  if (startIndex === -1) {
+    return "";
+  }
+
+  const baseIndent = lines[startIndex].match(/^(\s*)/)?.[1].length ?? 0;
+  const block = [];
+  for (let index = startIndex + 1; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (line.trim() && (line.match(/^(\s*)/)?.[1].length ?? 0) <= baseIndent) {
+      break;
+    }
+    block.push(line);
+  }
+
+  return block.join("\n");
+}
+
+function githubJobBlocks(content) {
+  const jobs = [];
+  const lines = String(content ?? "").split(/\r?\n/);
+  let inJobs = false;
+  let current = null;
+
+  for (const line of lines) {
+    if (/^jobs:\s*(?:#.*)?$/.test(line)) {
+      inJobs = true;
+      continue;
+    }
+
+    if (inJobs && /^\S/.test(line) && !/^jobs:\s*(?:#.*)?$/.test(line)) {
+      if (current) {
+        jobs.push(current);
+        current = null;
+      }
+      inJobs = false;
+    }
+
+    if (!inJobs) {
+      continue;
+    }
+
+    const match = line.match(/^  ([A-Za-z0-9_-]+):\s*(?:#.*)?$/);
+    if (match) {
+      if (current) {
+        jobs.push(current);
+      }
+      current = { name: match[1], block: `${line}\n` };
+      continue;
+    }
+
+    if (current) {
+      current.block += `${line}\n`;
+    }
+  }
+
+  if (current) {
+    jobs.push(current);
+  }
+
+  return jobs;
+}
+
+function githubJobDisplayName(job) {
+  const match = job.block.match(/^\s{4}name:\s*(.+?)\s*$/m);
+  return cleanYamlText(match?.[1]) || job.name;
+}
+
+function githubJobMatrixValues(block, key) {
+  const lines = String(block ?? "").split(/\r?\n/);
+  const values = [];
+  let inTarget = false;
+  let targetIndent = 0;
+
+  for (const line of lines) {
+    const keyMatch = line.match(/^(\s*)([A-Za-z0-9_-]+):\s*(?:#.*)?$/);
+    if (keyMatch && keyMatch[2] === key) {
+      inTarget = true;
+      targetIndent = keyMatch[1].length;
+      continue;
+    }
+
+    if (!inTarget) {
+      continue;
+    }
+
+    const indent = line.match(/^(\s*)/)?.[1].length ?? 0;
+    if (line.trim() && indent <= targetIndent) {
+      break;
+    }
+
+    const itemMatch = line.match(/^\s*-\s*(.+?)\s*(?:#.*)?$/);
+    if (itemMatch) {
+      values.push(cleanYamlText(itemMatch[1]));
+    }
+  }
+
+  return values.filter(Boolean);
+}
+
+function cleanYamlText(value) {
+  return String(value ?? "")
+    .trim()
+    .replace(/^['"]|['"]$/g, "");
 }
 
 const GITLAB_RESERVED_TOP_LEVEL_KEYS = new Set([
@@ -6364,10 +6875,13 @@ function gitlabJobIsBlocking(block) {
 
 function gitlabPipelineMustSucceedEvidence() {
   const settings = readSettings();
+  const config = readCurrentAigateConfig();
   const configured = firstConfiguredEvidence([
     { source: "settings", value: settings.serverEnforcement?.gitlab?.onlyAllowMergeIfPipelineSucceeds },
     { source: "settings", value: settings.enforcement?.gitlab?.onlyAllowMergeIfPipelineSucceeds },
     { source: "settings", value: settings.gitlab?.onlyAllowMergeIfPipelineSucceeds },
+    { source: "config", value: config.serverEnforcement?.gitlabPipelineMustSucceed },
+    { source: "config", value: config.serverEnforcement?.gitlabRequiredPipeline },
     { source: "env:AIGATE_GITLAB_PIPELINE_MUST_SUCCEED", value: process.env.AIGATE_GITLAB_PIPELINE_MUST_SUCCEED }
   ]);
   const normalized = normalizeBooleanEvidence(configured?.value);
@@ -6379,10 +6893,13 @@ function gitlabPipelineMustSucceedEvidence() {
 
 function githubRequiredChecksEvidence() {
   const settings = readSettings();
+  const config = readCurrentAigateConfig();
   const configured = firstConfiguredEvidence([
     { source: "settings", value: settings.serverEnforcement?.github?.requiredChecksEnforced },
     { source: "settings", value: settings.enforcement?.github?.requiredChecksEnforced },
     { source: "settings", value: settings.github?.requiredChecksEnforced },
+    { source: "config", value: config.serverEnforcement?.githubRequiredChecksEnforced },
+    { source: "config", value: config.serverEnforcement?.githubRequiredChecks },
     { source: "env:AIGATE_GITHUB_REQUIRED_CHECKS_ENFORCED", value: process.env.AIGATE_GITHUB_REQUIRED_CHECKS_ENFORCED }
   ]);
   const normalized = normalizeBooleanEvidence(configured?.value);
@@ -7136,6 +7653,12 @@ function detectRepositorySlug(packageJson) {
     null;
 }
 
+function detectGitlabRepositoryPath(packageJson) {
+  return parseGitlabRepositoryPath(git(["config", "--get", "remote.origin.url"])) ??
+    parseGitlabRepositoryPath(packageJson.repository?.url ?? packageJson.repository) ??
+    null;
+}
+
 function parseGitHubRepositorySlug(value) {
   if (!value) {
     return null;
@@ -7151,6 +7674,27 @@ function parseGitHubRepositorySlug(value) {
     const match = text.match(pattern);
     if (match) {
       return `${match[1]}/${match[2]}`;
+    }
+  }
+
+  return null;
+}
+
+function parseGitlabRepositoryPath(value) {
+  if (!value) {
+    return null;
+  }
+
+  const text = String(value).trim().replace(/\.git$/, "");
+  const patterns = [
+    /gitlab[^:/\s]*[:/]([^#\s]+)$/i,
+    /^([^/\s]+\/[^#\s]+)$/
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match && match[1]?.includes("/")) {
+      return match[1].replace(/^\/+/, "");
     }
   }
 
@@ -8450,6 +8994,34 @@ function renderProjectEvaluationReport(evaluation, format, language = "en") {
         ]
       : [])
   ].join("\n");
+}
+
+function renderEnforcementVerification(result, language = "en") {
+  const labels = VERIFY_ENFORCEMENT_LABELS[language] ?? VERIFY_ENFORCEMENT_LABELS.en;
+  const contextLines = result.provider === "github"
+    ? [
+        `${labels.expected}: ${listOrNone(result.ciGateContexts, labels.none)}`,
+        `${labels.required}: ${listOrNone(result.requiredContexts, labels.none)}`,
+        `${labels.missing}: ${listOrNone(result.missingContexts, labels.none)}`
+      ]
+    : [
+        `${labels.expected}: ${listOrNone(result.blockingJobs, labels.none)}`
+      ];
+
+  return [
+    `${labels.status}: ${statusLabel(result.status, language)}`,
+    `${labels.provider}: ${result.provider}`,
+    `${labels.repository}: ${result.repository ?? labels.none}`,
+    ...(result.branch ? [`${labels.branch}: ${result.branch}`] : []),
+    ...contextLines,
+    `${labels.reason}: ${translateVerifyReason(result.reason, language)}`,
+    `${labels.applied}: ${result.applied ? labels.yes : labels.no}`,
+    `${labels.next}: ${translateVerifyNext(result.next, language)}`
+  ].join("\n");
+}
+
+function listOrNone(items = [], none = "none") {
+  return items?.length ? items.join(", ") : none;
 }
 
 function renderAuditReport(report, format, language = "en") {
@@ -10925,6 +11497,137 @@ function translateScoreAdjustmentReason(reason, language) {
   return exact[reason]?.[language] ?? reason;
 }
 
+function translateVerifyReason(reason, language) {
+  if (!reason || language === "en") {
+    return reason ?? "";
+  }
+
+  const exact = {
+    "GitHub branch protection requires every AIGate CI check context.": {
+      ko: "GitHub 브랜치 보호가 모든 AIGate CI 검사 컨텍스트를 필수로 요구합니다.",
+      ja: "GitHub branch protection がすべての AIGate CI チェック context を必須にしています。",
+      zh: "GitHub 分支保护已要求所有 AIGate CI 检查上下文。"
+    },
+    "GitHub branch protection is missing required AIGate CI check contexts.": {
+      ko: "GitHub 브랜치 보호에 필수 AIGate CI 검사 컨텍스트가 누락되어 있습니다.",
+      ja: "GitHub branch protection に必須の AIGate CI チェック context が不足しています。",
+      zh: "GitHub 分支保护缺少必需的 AIGate CI 检查上下文。"
+    },
+    "AIGate CI gate was not found in GitHub workflow files.": {
+      ko: "GitHub workflow 파일에서 AIGate CI 게이트를 찾지 못했습니다.",
+      ja: "GitHub workflow ファイルで AIGate CI ゲートが見つかりませんでした。",
+      zh: "在 GitHub workflow 文件中未找到 AIGate CI 关卡。"
+    },
+    "AIGate CI gate exists, but required GitHub check contexts could not be inferred.": {
+      ko: "AIGate CI 게이트는 있지만 GitHub 필수 검사 컨텍스트를 추론하지 못했습니다.",
+      ja: "AIGate CI ゲートはありますが、GitHub 必須チェック context を推定できませんでした。",
+      zh: "AIGate CI 关卡存在，但无法推断 GitHub 必需检查上下文。"
+    },
+    "GitHub repository could not be detected.": {
+      ko: "GitHub 저장소를 감지하지 못했습니다.",
+      ja: "GitHub リポジトリを検出できませんでした。",
+      zh: "未能检测到 GitHub 仓库。"
+    },
+    "GitLab requires pipelines to pass and AIGate has a blocking merge request job.": {
+      ko: "GitLab이 pipeline 통과를 요구하고 AIGate에 차단형 MR job이 있습니다.",
+      ja: "GitLab が pipeline 通過を要求し、AIGate には blocking MR job があります。",
+      zh: "GitLab 要求 pipeline 通过，并且 AIGate 有阻塞型 MR job。"
+    },
+    "GitLab does not require successful pipelines before merge.": {
+      ko: "GitLab이 merge 전에 성공한 pipeline을 요구하지 않습니다.",
+      ja: "GitLab は merge 前に成功した pipeline を要求していません。",
+      zh: "GitLab 未要求合并前 pipeline 必须成功。"
+    },
+    "AIGate GitLab job is missing or not blocking merge requests.": {
+      ko: "AIGate GitLab job이 없거나 merge request를 차단하지 않습니다.",
+      ja: "AIGate GitLab job がないか、merge request をブロックしていません。",
+      zh: "AIGate GitLab job 缺失，或不会阻塞 merge request。"
+    },
+    "GitLab repository path could not be detected.": {
+      ko: "GitLab 저장소 경로를 감지하지 못했습니다.",
+      ja: "GitLab リポジトリパスを検出できませんでした。",
+      zh: "未能检测到 GitLab 仓库路径。"
+    },
+    "Server-side enforcement verification is only supported for GitHub and GitLab.": {
+      ko: "서버측 강제 검증은 GitHub와 GitLab만 지원합니다.",
+      ja: "サーバー側強制検証は GitHub と GitLab のみ対応しています。",
+      zh: "服务器端强制验证仅支持 GitHub 和 GitLab。"
+    }
+  };
+
+  return exact[reason]?.[language] ?? reason;
+}
+
+function translateVerifyNext(next, language) {
+  if (!next || language === "en") {
+    return next ?? "";
+  }
+
+  const exact = {
+    "Run aigate verify-enforcement --apply to record verified evidence in AIGate settings.": {
+      ko: "검증된 증거를 AIGate settings에 기록하려면 aigate verify-enforcement --apply를 실행하세요.",
+      ja: "検証済み証拠を AIGate settings に記録するには aigate verify-enforcement --apply を実行してください。",
+      zh: "运行 aigate verify-enforcement --apply，将已验证证据写入 AIGate settings。"
+    },
+    "Enable branch protection required status checks or authenticate GitHub CLI with repo admin access.": {
+      ko: "브랜치 보호의 필수 status check를 켜거나 repo admin 권한으로 GitHub CLI에 인증하세요.",
+      ja: "branch protection の必須 status check を有効にするか、repo admin 権限で GitHub CLI を認証してください。",
+      zh: "启用分支保护必需 status checks，或使用 repo admin 权限认证 GitHub CLI。"
+    },
+    "Add a GitHub Actions job that runs aigate git-ready or npm run ci.": {
+      ko: "aigate git-ready 또는 npm run ci를 실행하는 GitHub Actions job을 추가하세요.",
+      ja: "aigate git-ready または npm run ci を実行する GitHub Actions job を追加してください。",
+      zh: "添加运行 aigate git-ready 或 npm run ci 的 GitHub Actions job。"
+    },
+    "Pass explicit required checks with aigate setup --github-required-checks-enforced verified after confirming branch protection.": {
+      ko: "브랜치 보호를 확인한 뒤 aigate setup --github-required-checks-enforced verified로 명시적 필수 검사 증거를 기록하세요.",
+      ja: "branch protection を確認した後、aigate setup --github-required-checks-enforced verified で明示的な必須チェック証拠を記録してください。",
+      zh: "确认分支保护后，使用 aigate setup --github-required-checks-enforced verified 记录明确的必需检查证据。"
+    },
+    "Pass --repo <owner/repo> or configure package.json repository.": {
+      ko: "--repo <owner/repo>를 전달하거나 package.json repository를 설정하세요.",
+      ja: "--repo <owner/repo> を渡すか package.json repository を設定してください。",
+      zh: "传入 --repo <owner/repo>，或配置 package.json repository。"
+    },
+    "Authenticate glab and make sure the project API can be read.": {
+      ko: "glab에 인증하고 프로젝트 API를 읽을 수 있는지 확인하세요.",
+      ja: "glab で認証し、project API を読めることを確認してください。",
+      zh: "请认证 glab，并确认可以读取 project API。"
+    },
+    "Add a non-manual, non-allow_failure GitLab job that runs aigate git-ready.": {
+      ko: "aigate git-ready를 실행하는 non-manual, non-allow_failure GitLab job을 추가하세요.",
+      ja: "aigate git-ready を実行する non-manual、non-allow_failure の GitLab job を追加してください。",
+      zh: "添加运行 aigate git-ready 的非 manual、非 allow_failure GitLab job。"
+    },
+    "Enable only_allow_merge_if_pipeline_succeeds in GitLab project merge settings.": {
+      ko: "GitLab 프로젝트 merge settings에서 only_allow_merge_if_pipeline_succeeds를 켜세요.",
+      ja: "GitLab project merge settings で only_allow_merge_if_pipeline_succeeds を有効にしてください。",
+      zh: "在 GitLab 项目 merge settings 中启用 only_allow_merge_if_pipeline_succeeds。"
+    },
+    "Pass --repo <group/project> or configure a GitLab origin remote.": {
+      ko: "--repo <group/project>를 전달하거나 GitLab origin remote를 설정하세요.",
+      ja: "--repo <group/project> を渡すか GitLab origin remote を設定してください。",
+      zh: "传入 --repo <group/project>，或配置 GitLab origin remote。"
+    },
+    "Use --provider github or --provider gitlab, or record verified evidence through aigate setup.": {
+      ko: "--provider github 또는 --provider gitlab을 사용하거나 aigate setup으로 검증 증거를 기록하세요.",
+      ja: "--provider github または --provider gitlab を使うか、aigate setup で検証証拠を記録してください。",
+      zh: "使用 --provider github 或 --provider gitlab，或通过 aigate setup 记录已验证证据。"
+    }
+  };
+
+  const requireMatch = next.match(/^Require these GitHub status checks on (.+): (.+)$/);
+  if (requireMatch) {
+    return {
+      ko: `${requireMatch[1]} 브랜치에 다음 GitHub status check를 필수로 지정하세요: ${requireMatch[2]}`,
+      ja: `${requireMatch[1]} ブランチで次の GitHub status check を必須にしてください: ${requireMatch[2]}`,
+      zh: `请在 ${requireMatch[1]} 分支上要求这些 GitHub status checks: ${requireMatch[2]}`
+    }[language] ?? next;
+  }
+
+  return exact[next]?.[language] ?? next;
+}
+
 function translateNotApplicableReason(reason, language) {
   if (!reason || language === "en") {
     return reason ?? "";
@@ -11638,6 +12341,7 @@ function firstPositionalArg(args) {
   const optionsWithValues = new Set([
     "--base",
     "--body",
+    "--branch",
     "--ai-providers",
     "--ai-root-files",
     "--branch-strategy",
@@ -11677,6 +12381,7 @@ function firstPositionalArg(args) {
     "--quality-command",
     "--quality-commands",
     "--release",
+    "--repo",
     "--required-check",
     "--required-checks",
     "--route",

@@ -395,6 +395,7 @@ channel:
 | `aigate integrate <provider>` | Generate Codex, Gemini, and Claude Code integration files. |
 | `aigate report` | Write Markdown, HTML, JSON, or SARIF reports. |
 | `aigate evaluate-project` | Score repository foundations and Git signals. |
+| `aigate verify-enforcement` | Verify GitHub/GitLab required server-side AIGate checks and optionally write verified evidence. |
 | `aigate score` | Print the current project score. |
 | `aigate trends <record\|show>` | Record or display score history. |
 | `aigate branch-strategy` | Recommend or generate branch policy docs. |

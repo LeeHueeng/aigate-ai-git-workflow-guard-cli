@@ -392,6 +392,7 @@ aigate git-ready --notify-channel terminal
 | `aigate integrate <provider>` | Codex/Gemini/Claude integration files を生成します。 |
 | `aigate report` | Markdown、HTML、JSON、SARIF reports を書き出します。 |
 | `aigate evaluate-project` | repository foundation と Git signals を score 化します。 |
+| `aigate verify-enforcement` | GitHub/GitLab のサーバー側 AIGate 必須チェックを検証し、必要なら検証証拠を記録します。 |
 | `aigate score` | 現在の project score を表示します。 |
 | `aigate trends <record\|show>` | score history を記録または表示します。 |
 | `aigate branch-strategy` | branch policy docs を推薦または生成します。 |

@@ -310,7 +310,7 @@ footer p + p { margin-top: 6px; }
     <p class="eyebrow">Open Source AI Git Workflow Guard CLI</p>
     <h1>AIGate Operations Guide</h1>
     <p class="subtitle">A compact guide to how AIGate works, which commands it provides, what is implemented today, and what is planned next.</p>
-    <div class="badges"><span>npm live</span><span>GHCR public</span><span>Homebrew tap</span><span>GitHub Release</span><span>CLI v0.1.6</span></div>
+    <div class="badges"><span>npm live</span><span>GHCR public</span><span>Homebrew tap</span><span>GitHub Release</span><span>CLI v0.1.7</span></div>
   </header>
 
   <main>
@@ -694,7 +694,7 @@ aigate uninstall --force</code></pre>
       <div><span>clean</span><span>uninstall</span><span>delete</span></div>
     </article><article class="command-group group-4">
       <h3>Reports</h3>
-      <div><span>ai report</span><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
+      <div><span>ai report</span><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>verify-enforcement</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
     </article><article class="command-group group-5">
       <h3>Release</h3>
       <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>branch-strategy --compare</span><span>notify</span></div>
@@ -854,6 +854,10 @@ aigate uninstall --force</code></pre>
     <td>Render a detailed report with Git signals.</td>
     <td>Release or quarterly review</td>
   </tr><tr>
+    <td><code>aigate verify-enforcement --apply</code></td>
+    <td>Verify required server-side AIGate checks through GitHub/GitLab APIs and record verified evidence.</td>
+    <td>When confirming CI is truly required before merge</td>
+  </tr><tr>
     <td><code>aigate compliance-report</code></td>
     <td>Generate a compliance control report.</td>
     <td>Audit and operations readiness sharing</td>
@@ -944,7 +948,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">Features</p>
         <h2>Implemented Features</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">Public npm package aigate-cli and npx execution</div><div class="feature done">Git change and untracked-file readiness checks</div><div class="feature done">Guided start routes through aigate start</div><div class="feature done">Stepwise default setup through aigate start --route default</div><div class="feature done">Reset and deletion commands through aigate reset, clean, and uninstall</div><div class="feature done">Open-source starter files through aigate start --route oss</div><div class="feature done">Turbo-aware root and workspace test automation through aigate test</div><div class="feature done">pnpm-workspace.yaml, package.json workspaces, apps/*, and packages/* test detection with fallback</div><div class="feature done">AI project health briefs through aigate ai report</div><div class="feature done">AI remediation prompt, live agent logs, and optional agent execution through aigate aitest</div><div class="feature done">First-run UX through doctor, demo, and install-hook</div><div class="feature done">generatedBy version drift warnings through doctor</div><div class="feature done">Pre-push Git hook installation</div><div class="feature done">Advisory, partial, and verified server-enforced AIGate diagnostics through doctor and evaluate-project</div><div class="feature done">A-grade score cap in evaluate-project when an AIGate CI gate exists without verified server enforcement</div><div class="feature done">Secret pattern detection and SARIF output</div><div class="feature done">git-ready, guarded push, and guarded PR creation</div><div class="feature done">GitHub PR comments and GitHub Checks summary payloads</div><div class="feature done">PR template and CODEOWNERS guided setup</div><div class="feature done">Reusable public GitHub Action</div><div class="feature done">Project health trend history</div><div class="feature done">Automatic and pinned profile support for private apps, GitLab, and pnpm</div><div class="feature done">GitHub/GitLab profile consistency across doctor, AI instructions, and branch policy packs</div><div class="feature done">Markdown, HTML, JSON, and SARIF reports</div><div class="feature done">Compliance reports and a local HTML health dashboard</div><div class="feature done">Project scoring and deep Git signal evaluation</div><div class="feature done">Branch strategy recommendations, proposal comparison, and policy pack generation</div><div class="feature done">Codex/Gemini/Claude Code integration file generation</div><div class="feature done">Korean/English/Japanese/Chinese CLI settings</div><div class="feature done">release-check and app-aware release-check --npm</div><div class="feature done">Automated npm releases through Trusted Publishing</div><div class="feature done">GitHub CI, OpenSSF Scorecard, and GitHub Releases</div><div class="feature done">Terminal, Slack BLOCK, Discord, Teams, email, Linear, and Jira notifications</div><div class="feature done">Published GHCR Docker image and Homebrew tap</div></div>
+      <div class="feature-grid"><div class="feature done">Public npm package aigate-cli and npx execution</div><div class="feature done">Git change and untracked-file readiness checks</div><div class="feature done">Guided start routes through aigate start</div><div class="feature done">Stepwise default setup through aigate start --route default</div><div class="feature done">Reset and deletion commands through aigate reset, clean, and uninstall</div><div class="feature done">Open-source starter files through aigate start --route oss</div><div class="feature done">Turbo-aware root and workspace test automation through aigate test</div><div class="feature done">pnpm-workspace.yaml, package.json workspaces, apps/*, and packages/* test detection with fallback</div><div class="feature done">AI project health briefs through aigate ai report</div><div class="feature done">AI remediation prompt, live agent logs, and optional agent execution through aigate aitest</div><div class="feature done">First-run UX through doctor, demo, and install-hook</div><div class="feature done">generatedBy version drift warnings through doctor</div><div class="feature done">Pre-push Git hook installation</div><div class="feature done">Advisory, partial, and verified server-enforced AIGate diagnostics through doctor and evaluate-project</div><div class="feature done">Live GitHub/GitLab server enforcement verification and evidence recording through verify-enforcement</div><div class="feature done">A-grade score cap in evaluate-project when an AIGate CI gate exists without verified server enforcement</div><div class="feature done">Secret pattern detection and SARIF output</div><div class="feature done">git-ready, guarded push, and guarded PR creation</div><div class="feature done">GitHub PR comments and GitHub Checks summary payloads</div><div class="feature done">PR template and CODEOWNERS guided setup</div><div class="feature done">Reusable public GitHub Action</div><div class="feature done">Project health trend history</div><div class="feature done">Automatic and pinned profile support for private apps, GitLab, and pnpm</div><div class="feature done">GitHub/GitLab profile consistency across doctor, AI instructions, and branch policy packs</div><div class="feature done">Markdown, HTML, JSON, and SARIF reports</div><div class="feature done">Compliance reports and a local HTML health dashboard</div><div class="feature done">Project scoring and deep Git signal evaluation</div><div class="feature done">Branch strategy recommendations, proposal comparison, and policy pack generation</div><div class="feature done">Codex/Gemini/Claude Code integration file generation</div><div class="feature done">Korean/English/Japanese/Chinese CLI settings</div><div class="feature done">release-check and app-aware release-check --npm</div><div class="feature done">Automated npm releases through Trusted Publishing</div><div class="feature done">GitHub CI, OpenSSF Scorecard, and GitHub Releases</div><div class="feature done">Terminal, Slack BLOCK, Discord, Teams, email, Linear, and Jira notifications</div><div class="feature done">Published GHCR Docker image and Homebrew tap</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -958,7 +962,7 @@ aigate release-check --npm</code></pre>
 
   <footer>
     <p>This document describes the operating state after the public AIGate release.</p>
-    <p>Generated 2026-07-03. Package version 0.1.6.</p>
+    <p>Generated 2026-07-03. Package version 0.1.7.</p>
   </footer>
 </body>
 </html>

@@ -378,6 +378,7 @@ aigate git-ready --notify-channel terminal
 | `aigate integrate <provider>` | 生成 Codex/Gemini/Claude integration files。 |
 | `aigate report` | 输出 Markdown、HTML、JSON、SARIF reports。 |
 | `aigate evaluate-project` | 为 repository foundation 和 Git signals 打分。 |
+| `aigate verify-enforcement` | 验证 GitHub/GitLab 服务器端 AIGate 必需检查，并可写入已验证证据。 |
 | `aigate score` | 输出当前 project score。 |
 | `aigate trends <record\|show>` | 记录或显示 score history。 |
 | `aigate branch-strategy` | 推荐或生成 branch policy docs。 |

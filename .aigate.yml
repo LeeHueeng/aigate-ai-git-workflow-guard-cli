@@ -116,3 +116,6 @@ qualityGates:
     blockOn:
       - possible secret-bearing filenames
       - project foundation score below threshold
+
+serverEnforcement:
+  githubRequiredChecksEnforced: verified
