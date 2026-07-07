@@ -223,7 +223,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
         with:
           command: git-ready
           language: en
@@ -236,13 +236,13 @@ intentionally want unreleased behavior. Full inputs are documented in
 
 Action release status:
 
-- Current stable tag: `v0.1.6`
-- Action usage: ready through `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6`
+- Current stable tag: `v0.1.7`
+- Action usage: ready through `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7`
 - Marketplace publishing: manual GitHub Release screen step
 - Action name: `AIGate Git Workflow Guard`
 - Primary category: `Code quality`
 - Secondary category: `Security`
-- Release title: `AIGate AI Git Workflow Guard CLI v0.1.6`
+- Release title: `AIGate Git Workflow Guard v0.1.7`
 
 ## AI Agent Integration
 
@@ -288,7 +288,7 @@ These public install paths are available now:
 ```sh
 npm install -g aigate-cli
 brew install LeeHueeng/tap/aigate-cli
-docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.7 check
 ```
 
 ## Planned, Not Shipped Yet

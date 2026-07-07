@@ -9,11 +9,11 @@ AIGate는 npm, GHCR Docker image, Homebrew tap, 재사용 가능한 GitHub Actio
 
 | 채널 | 현재 상태 |
 | --- | --- |
-| npm | `aigate-cli@0.1.6`가 `latest` dist-tag로 배포됨 |
-| GitHub Release | `v0.1.6` 게시 완료 |
-| Docker/GHCR | `ghcr.io/leehueeng/aigate-cli:0.1.6`, `latest` 배포 완료 |
+| npm | `aigate-cli@0.1.7`가 `latest` dist-tag로 배포됨 |
+| GitHub Release | `v0.1.7` 게시 완료 |
+| Docker/GHCR | `ghcr.io/leehueeng/aigate-cli:0.1.7`, `latest` 배포 완료 |
 | Homebrew | `brew install LeeHueeng/tap/aigate-cli` |
-| GitHub Action | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6`로 사용 가능, Marketplace 게시 여부는 릴리스 화면에서 수동 확인 |
+| GitHub Action | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7`로 사용 가능, Marketplace 게시 여부는 릴리스 화면에서 수동 확인 |
 | GitHub Pages | <https://leehueeng.github.io/aigate-ai-git-workflow-guard-cli/> |
 
 ## npm
@@ -28,7 +28,7 @@ npx aigate-cli check
 첫 공개 release는 npm에 올라가 있습니다.
 
 - Package: <https://www.npmjs.com/package/aigate-cli>
-- Latest tagged public release: `v0.1.6`
+- Latest tagged public release: `v0.1.7`
 - Current repository package version: `package.json`, `CHANGELOG.md` 참고
 - Trusted Publishing: GitHub Actions `release.yml`
 
@@ -67,7 +67,7 @@ npx npm@latest trust github aigate-cli \
 배포합니다.
 
 ```sh
-docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.7 check
 docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:latest audit-report
 ```
 
@@ -104,7 +104,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
         with:
           command: git-ready
           language: ko

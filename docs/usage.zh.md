@@ -241,7 +241,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
         with:
           command: git-ready
           language: zh
@@ -306,7 +306,7 @@ app 即使没有 package release version，`release-check --npm` 也不会阻塞
 需要把仓库强制视为可发布 npm 包时，才使用 `--project-type package`。
 
 `aigate doctor` 也会在生成的 AIGate 文件来自旧 CLI 时发出警告。例如当前 CLI 是
-`0.1.6`，但仍有 `generatedBy: aigate 0.1.1`，请用 `aigate init --force` 和
+`0.1.7`，但仍有 `generatedBy: aigate 0.1.1`，请用 `aigate init --force` 和
 `aigate integrate all --force` 重新生成，以获得最新 generated template。在重新
 生成前，过期 `.aigate.yml` 中的 profile 值不会参与评分和 gate 计算，因此旧的
 GitHub/npm package template 不会覆盖当前仓库信号。
@@ -396,5 +396,5 @@ AIGate 可以通过 npm、Homebrew 和公开 GHCR image 使用。
 ```sh
 npm install -g aigate-cli
 brew install LeeHueeng/tap/aigate-cli
-docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.7 check
 ```

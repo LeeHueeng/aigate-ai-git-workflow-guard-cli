@@ -28,7 +28,7 @@ Supported and planned channels:
 | bun | `bun add -g aigate-cli` | MVP |
 | bunx | `bunx aigate-cli check` | MVP |
 | Homebrew | `brew install LeeHueeng/tap/aigate-cli` | MVP |
-| Docker | `docker run --rm ghcr.io/leehueeng/aigate-cli:0.1.6 check` | MVP |
+| Docker | `docker run --rm ghcr.io/leehueeng/aigate-cli:0.1.7 check` | MVP |
 | GitHub Releases | standalone binary download | V2 |
 
 Release channels:

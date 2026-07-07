@@ -9,11 +9,11 @@ AIGate は npm、GHCR Docker image、Homebrew tap、再利用可能な GitHub Ac
 
 | Channel | 現在の状態 |
 | --- | --- |
-| npm | `aigate-cli@0.1.6` を `latest` dist-tag で公開済み |
-| GitHub Release | `v0.1.6` 公開済み |
-| Docker/GHCR | `ghcr.io/leehueeng/aigate-cli:0.1.6` と `latest` を公開済み |
+| npm | `aigate-cli@0.1.7` を `latest` dist-tag で公開済み |
+| GitHub Release | `v0.1.7` 公開済み |
+| Docker/GHCR | `ghcr.io/leehueeng/aigate-cli:0.1.7` と `latest` を公開済み |
 | Homebrew | `brew install LeeHueeng/tap/aigate-cli` |
-| GitHub Action | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` で利用可能、Marketplace 掲載は release 画面で手動確認 |
+| GitHub Action | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7` で利用可能、Marketplace 掲載は release 画面で手動確認 |
 | GitHub Pages | <https://leehueeng.github.io/aigate-ai-git-workflow-guard-cli/> |
 
 ## npm
@@ -28,7 +28,7 @@ npx aigate-cli check
 最初の public release は npm に公開済みです。
 
 - Package: <https://www.npmjs.com/package/aigate-cli>
-- Latest tagged public release: `v0.1.6`
+- Latest tagged public release: `v0.1.7`
 - Current repository package version: `package.json` と `CHANGELOG.md` を参照
 - Trusted Publishing: GitHub Actions `release.yml`
 
@@ -67,7 +67,7 @@ npx npm@latest trust github aigate-cli \
 image を publish します。
 
 ```sh
-docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.7 check
 docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:latest audit-report
 ```
 
@@ -104,7 +104,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
         with:
           command: git-ready
           language: ja

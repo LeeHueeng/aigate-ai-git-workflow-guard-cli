@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
         with:
           command: git-ready
           language: en
@@ -27,7 +27,7 @@ jobs:
 For a pull request report:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
   with:
     command: pr-check
     report-format: markdown
@@ -50,7 +50,7 @@ workflow testing inside this repository.
 For branch strategy comparison:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
   with:
     command: branch-strategy-compare
     report-format: json
@@ -59,17 +59,17 @@ For branch strategy comparison:
 
 ## GitHub Marketplace
 
-Current `v0.1.6` Action status and Marketplace metadata:
+Current `v0.1.7` Action status and Marketplace metadata:
 
 | Field | Value |
 | --- | --- |
-| Stable action reference | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` |
+| Stable action reference | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7` |
 | Marketplace publishing | Manual GitHub Release screen step |
 | Action name | `AIGate Git Workflow Guard` |
 | Primary category | `Code quality` |
 | Secondary category | `Security` |
-| Release tag | `v0.1.6` |
-| Release title | `AIGate AI Git Workflow Guard CLI v0.1.6` |
+| Release tag | `v0.1.7` |
+| Release title | `AIGate Git Workflow Guard v0.1.7` |
 
 The Action is usable from the release tag even before Marketplace discoverability
 is enabled. Keep `Set as the latest release` enabled and do not mark stable

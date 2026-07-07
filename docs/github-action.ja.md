@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
         with:
           command: git-ready
           language: ja
@@ -27,7 +27,7 @@ jobs:
 PR レポートを生成する場合:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
   with:
     command: pr-check
     report-format: markdown
@@ -50,7 +50,7 @@ PR レポートを生成する場合:
 ブランチ戦略比較:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
   with:
     command: branch-strategy-compare
     report-format: json
@@ -59,17 +59,17 @@ PR レポートを生成する場合:
 
 ## GitHub Marketplace
 
-現在の `v0.1.6` Action 状態と Marketplace metadata です。
+現在の `v0.1.7` Action 状態と Marketplace metadata です。
 
 | 項目 | 値 |
 | --- | --- |
-| 安定 Action 参照 | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` |
+| 安定 Action 参照 | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7` |
 | Marketplace 公開 | GitHub Release 画面で手動で有効にする手順 |
 | Action name | `AIGate Git Workflow Guard` |
 | Primary category | `Code quality` |
 | Secondary category | `Security` |
-| Release tag | `v0.1.6` |
-| Release title | `AIGate AI Git Workflow Guard CLI v0.1.6` |
+| Release tag | `v0.1.7` |
+| Release title | `AIGate Git Workflow Guard v0.1.7` |
 
 Marketplace 掲載を有効にする前でも、Action は release tag から利用できます。
 安定 patch release では `Set as the latest release` を有効にし、pre-release

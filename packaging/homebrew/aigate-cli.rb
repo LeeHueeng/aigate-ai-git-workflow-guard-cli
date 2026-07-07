@@ -1,14 +1,14 @@
 class AigateCli < Formula
   desc "Pre-push Git safety CLI for AI-assisted coding"
   homepage "https://github.com/LeeHueeng/aigate-ai-git-workflow-guard-cli"
-  url "https://registry.npmjs.org/aigate-cli/-/aigate-cli-0.1.6.tgz"
-  sha256 "bb2d73875923d7ba20640036fc87e7357ad92c4d94e2c5876692854df15f93f1"
+  url "https://registry.npmjs.org/aigate-cli/-/aigate-cli-0.1.7.tgz"
+  sha256 "fb30aafb89fd55f0df4e9dc8e1cc29f018ba70a2cd7c456e4dcb2616d004d341"
   license "MIT"
 
   depends_on "node"
 
   def install
-    system "npm", "install", *std_npm_install_args(libexec)
+    system "npm", "install", *std_npm_args(prefix: libexec)
     bin.install_symlink Dir["#{libexec}/bin/*"]
   end
 
