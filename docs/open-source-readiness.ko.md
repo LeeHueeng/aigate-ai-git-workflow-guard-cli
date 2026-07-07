@@ -52,7 +52,7 @@
 - [x] `aigate-cli` npm 접근 권한 확보
 - [x] 이 GitHub repository용 npm Trusted Publisher 설정
 - [x] `aigate release-check` 실행
-- [x] npm package publish, 현재 공개 버전은 `0.1.6`
-- [x] GitHub release tag를 `v0.1.6`까지 생성
+- [x] npm package publish, 현재 공개 버전은 `0.1.7`
+- [x] GitHub release tag를 `v0.1.7`까지 생성
 - [x] publish 후 `npm view aigate-cli` 확인
 - [x] future release를 changelog entry와 tagged GitHub Release에 연결

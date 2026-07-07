@@ -185,7 +185,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
         with:
           command: git-ready
           language: ja
@@ -197,13 +197,13 @@ jobs:
 
 Action リリース状態:
 
-- 現在の安定タグ: `v0.1.6`
-- Action 利用: `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` で利用可能
+- 現在の安定タグ: `v0.1.7`
+- Action 利用: `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7` で利用可能
 - Marketplace 公開: GitHub Release 画面で手動で有効にする手順
 - Action name: `AIGate Git Workflow Guard`
 - Primary category: `Code quality`
 - Secondary category: `Security`
-- Release title: `AIGate AI Git Workflow Guard CLI v0.1.6`
+- Release title: `AIGate Git Workflow Guard v0.1.7`
 
 ## AI エージェント連携
 
@@ -254,7 +254,7 @@ agent 出力をターミナルに表示し、最終レポートにも stdout/std
 ```sh
 npm install -g aigate-cli
 brew install LeeHueeng/tap/aigate-cli
-docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.7 check
 ```
 
 ## まだ公開していない計画

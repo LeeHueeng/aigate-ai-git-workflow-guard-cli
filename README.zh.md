@@ -182,7 +182,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
         with:
           command: git-ready
           language: zh
@@ -193,13 +193,13 @@ jobs:
 
 Action 发布状态:
 
-- 当前稳定标签: `v0.1.6`
-- Action 使用: 可通过 `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` 使用
+- 当前稳定标签: `v0.1.7`
+- Action 使用: 可通过 `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7` 使用
 - Marketplace 发布: 在 GitHub Release 页面手动启用
 - Action name: `AIGate Git Workflow Guard`
 - Primary category: `Code quality`
 - Secondary category: `Security`
-- Release title: `AIGate AI Git Workflow Guard CLI v0.1.6`
+- Release title: `AIGate Git Workflow Guard v0.1.7`
 
 ## AI Agent 集成
 
@@ -249,7 +249,7 @@ agent 输出，并在最终报告中保留 stdout/stderr。
 ```sh
 npm install -g aigate-cli
 brew install LeeHueeng/tap/aigate-cli
-docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.7 check
 ```
 
 ## 尚未发布的计划

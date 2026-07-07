@@ -23,7 +23,7 @@ global install 和 `npx` execution，同时兼容 yarn、pnpm 和 bun。
 | pnpm | `pnpm add -g aigate-cli` | MVP |
 | bun | `bun add -g aigate-cli` | MVP |
 | Homebrew | `brew install LeeHueeng/tap/aigate-cli` | MVP |
-| Docker | `docker run --rm ghcr.io/leehueeng/aigate-cli:0.1.6 check` | MVP |
+| Docker | `docker run --rm ghcr.io/leehueeng/aigate-cli:0.1.7 check` | MVP |
 | GitHub Releases | standalone binary download | V2 |
 
 Release channels:

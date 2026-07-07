@@ -252,7 +252,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
         with:
           command: git-ready
           language: en
@@ -321,7 +321,7 @@ repository should be treated as a publishable npm package.
 
 `aigate doctor` also warns when generated AIGate files were created by an older
 CLI version, for example `generatedBy: aigate 0.1.1` while the current CLI is
-`0.1.6`. Regenerate those files with `aigate init --force` and
+`0.1.7`. Regenerate those files with `aigate init --force` and
 `aigate integrate all --force` when you want the latest generated templates.
 Until you regenerate them, stale generated `.aigate.yml` profile values are
 ignored during scoring and gates so an old GitHub/npm package template does not
@@ -414,5 +414,5 @@ GHCR image:
 ```sh
 npm install -g aigate-cli
 brew install LeeHueeng/tap/aigate-cli
-docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.6 check
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/leehueeng/aigate-cli:0.1.7 check
 ```

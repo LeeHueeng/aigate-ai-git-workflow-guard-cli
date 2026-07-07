@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+      - uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
         with:
           command: git-ready
           language: zh
@@ -26,7 +26,7 @@ jobs:
 生成 PR 报告时:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
   with:
     command: pr-check
     report-format: markdown
@@ -49,7 +49,7 @@ workflow 测试。
 分支策略比较:
 
 ```yaml
-- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6
+- uses: LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7
   with:
     command: branch-strategy-compare
     report-format: json
@@ -58,17 +58,17 @@ workflow 测试。
 
 ## GitHub Marketplace
 
-当前 `v0.1.6` Action 状态和 Marketplace metadata 如下。
+当前 `v0.1.7` Action 状态和 Marketplace metadata 如下。
 
 | 项目 | 值 |
 | --- | --- |
-| 稳定 Action 引用 | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` |
+| 稳定 Action 引用 | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.7` |
 | Marketplace 发布 | 在 GitHub Release 页面手动启用 |
 | Action name | `AIGate Git Workflow Guard` |
 | Primary category | `Code quality` |
 | Secondary category | `Security` |
-| Release tag | `v0.1.6` |
-| Release title | `AIGate AI Git Workflow Guard CLI v0.1.6` |
+| Release tag | `v0.1.7` |
+| Release title | `AIGate Git Workflow Guard v0.1.7` |
 
 即使尚未启用 Marketplace 展示，Action 也可以通过 release tag 使用。稳定
 patch release 保持 `Set as the latest release` 开启，不要标记为 pre-release。
