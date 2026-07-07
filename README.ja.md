@@ -59,6 +59,26 @@ aigate install-hook --pre-push
 aigate pr-check
 ```
 
+## 強制接続モデル
+
+AIGate は助言として実行するだけでなく、workflow に接続したときに最も効果を
+発揮します。実際の保護レベルは 3 段階で見ます。
+
+- advisory: 人が AIGate を無視して通常の `git push` を実行できます。
+- partial: この clone では hook が有効ですが、`--no-verify` で回避でき、新しい clone では有効でない場合があります。
+- server enforced: CI が `aigate git-ready` を実行し、検証済みの branch protection または MR merge rule が CI 通過を要求します。
+
+`aigate doctor` は現在のレベルを `AIGate enforcement` として報告します。
+`aigate evaluate-project` は `AIGate CI gate exists` と
+`AIGate server enforcement exists` を分けて確認します。GitLab では
+`allow_failure: true` または `when: manual` の job は強制とは見なしません。
+また `core.hooksPath` は clone ごとの設定なので、active local hook、commit 済み hook file、
+hook activation automation を分けて表示します。`--gitlab-pipeline-must-succeed true`
+のような値は declared evidence として扱い、`verified` と示された証拠だけを
+server enforced と判定します。CI gate が存在しても検証済みの server enforcement が
+ない場合、`evaluate-project` は JSON に元スコアを残しつつ、最終スコアを
+A グレード未満に制限して警告が埋もれないようにします。
+
 ## 状況別プレイブック
 
 | 状況 | プロセス | コマンド |
@@ -96,6 +116,7 @@ aigate pr-check
 | GitHub PR テンプレートと CODEOWNERS 設定 | `aigate github setup` |
 | Markdown, HTML, JSON, SARIF report | `aigate report --format <format>` |
 | repository health score | `aigate evaluate-project` |
+| server enforcement のライブ検証 | `aigate verify-enforcement --apply` |
 | コンプライアンス統制レポート | `aigate compliance-report` |
 | ローカル HTML ヘルスダッシュボード | `aigate dashboard` |
 | プロジェクト状態トレンド履歴 | `aigate trends record` |
@@ -179,7 +200,7 @@ Action リリース状態:
 - 現在の安定タグ: `v0.1.6`
 - Action 利用: `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` で利用可能
 - Marketplace 公開: GitHub Release 画面で手動で有効にする手順
-- Action name: `AIGate AI Git Workflow Guard CLI`
+- Action name: `AIGate Git Workflow Guard`
 - Primary category: `Code quality`
 - Secondary category: `Security`
 - Release title: `AIGate AI Git Workflow Guard CLI v0.1.6`

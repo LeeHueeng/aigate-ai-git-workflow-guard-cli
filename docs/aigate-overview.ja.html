@@ -310,7 +310,7 @@ footer p + p { margin-top: 6px; }
     <p class="eyebrow">オープンソース AI Git Workflow Guard CLI</p>
     <h1>AIGate 運用ドキュメント</h1>
     <p class="subtitle">AIGate の動作プロセス、提供コマンド、現在実装済みの機能、今後の計画をまとめた HTML ガイドです。</p>
-    <div class="badges"><span>npm 公開済み</span><span>GHCR 公開</span><span>Homebrew tap</span><span>GitHub Release</span><span>CLI v0.1.6</span></div>
+    <div class="badges"><span>npm 公開済み</span><span>GHCR 公開</span><span>Homebrew tap</span><span>GitHub Release</span><span>CLI v0.1.7</span></div>
   </header>
 
   <main>
@@ -694,7 +694,7 @@ aigate uninstall --force</code></pre>
       <div><span>clean</span><span>uninstall</span><span>delete</span></div>
     </article><article class="command-group group-4">
       <h3>レポート</h3>
-      <div><span>ai report</span><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
+      <div><span>ai report</span><span>pr-check</span><span>github comment</span><span>github check</span><span>github setup</span><span>trends</span><span>report</span><span>evaluate-project</span><span>verify-enforcement</span><span>compliance-report</span><span>dashboard</span><span>audit-report</span></div>
     </article><article class="command-group group-5">
       <h3>リリース</h3>
       <div><span>release-check</span><span>release-check --npm</span><span>branch-strategy</span><span>branch-strategy --compare</span><span>notify</span></div>
@@ -854,6 +854,10 @@ aigate uninstall --force</code></pre>
     <td>Git signal を含む詳細レポートを生成します。</td>
     <td>リリースまたは定期レビュー</td>
   </tr><tr>
+    <td><code>aigate verify-enforcement --apply</code></td>
+    <td>GitHub/GitLab API でサーバー側 AIGate 必須チェックを検証し、検証証拠を記録します。</td>
+    <td>CI が本当に merge を止めるか確認するとき</td>
+  </tr><tr>
     <td><code>aigate compliance-report</code></td>
     <td>コンプライアンス統制レポートを生成します。</td>
     <td>監査と運用準備の共有</td>
@@ -944,7 +948,7 @@ aigate release-check --npm</code></pre>
         <p class="kicker">機能</p>
         <h2>現在実装済みの機能</h2>
       </div>
-      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">aigate start によるガイド付き開始ルート</div><div class="feature done">aigate start --route default による段階的なデフォルト設定</div><div class="feature done">aigate reset、clean、uninstall による初期化と削除コマンド</div><div class="feature done">aigate start --route oss によるオープンソース初期ファイル生成</div><div class="feature done">aigate test による turbo 実行環境を確認した root/workspace プロジェクトテスト自動化</div><div class="feature done">pnpm-workspace.yaml、package.json workspaces、apps/*、packages/* test detection と切り替え</div><div class="feature done">aigate ai report による AI プロジェクト状態ブリーフ</div><div class="feature done">aigate aitest による AI 修正プロンプト、リアルタイム agent ログ、任意の agent 実行</div><div class="feature done">doctor、demo、install-hook による初回実行 UX</div><div class="feature done">doctor による generatedBy version drift warning</div><div class="feature done">pre-push Git hook のインストール</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">GitHub PR comment と GitHub Checks summary payload</div><div class="feature done">PR テンプレートと CODEOWNERS のガイド付き設定</div><div class="feature done">再利用可能な公開 GitHub Action</div><div class="feature done">プロジェクト状態トレンド履歴</div><div class="feature done">private app、GitLab、pnpm の自動検出と profile 固定</div><div class="feature done">doctor、AI 指示、branch strategy policy pack 全体の GitHub/GitLab profile 整合性</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">コンプライアンスレポートとローカル HTML ヘルスダッシュボード</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦、提案比較、ポリシーパック生成</div><div class="feature done">Codex/Gemini/Claude Code 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と app profile 対応 release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker image と Homebrew tap の公開配布</div></div>
+      <div class="feature-grid"><div class="feature done">npm パッケージ aigate-cli の公開と npx 実行</div><div class="feature done">Git 変更と untracked ファイルの readiness check</div><div class="feature done">aigate start によるガイド付き開始ルート</div><div class="feature done">aigate start --route default による段階的なデフォルト設定</div><div class="feature done">aigate reset、clean、uninstall による初期化と削除コマンド</div><div class="feature done">aigate start --route oss によるオープンソース初期ファイル生成</div><div class="feature done">aigate test による turbo 実行環境を確認した root/workspace プロジェクトテスト自動化</div><div class="feature done">pnpm-workspace.yaml、package.json workspaces、apps/*、packages/* test detection と切り替え</div><div class="feature done">aigate ai report による AI プロジェクト状態ブリーフ</div><div class="feature done">aigate aitest による AI 修正プロンプト、リアルタイム agent ログ、任意の agent 実行</div><div class="feature done">doctor、demo、install-hook による初回実行 UX</div><div class="feature done">doctor による generatedBy version drift warning</div><div class="feature done">pre-push Git hook のインストール</div><div class="feature done">doctor と evaluate-project による advisory/partial/verified server-enforced AIGate 診断</div><div class="feature done">verify-enforcement による GitHub/GitLab server enforcement のライブ検証と証拠記録</div><div class="feature done">検証済み server enforcement がなく AIGate CI gate だけがある場合の evaluate-project A グレード上限</div><div class="feature done">secret パターン検出と SARIF 出力</div><div class="feature done">git-ready、保護付き push、保護付き PR 作成</div><div class="feature done">GitHub PR comment と GitHub Checks summary payload</div><div class="feature done">PR テンプレートと CODEOWNERS のガイド付き設定</div><div class="feature done">再利用可能な公開 GitHub Action</div><div class="feature done">プロジェクト状態トレンド履歴</div><div class="feature done">private app、GitLab、pnpm の自動検出と profile 固定</div><div class="feature done">doctor、AI 指示、branch strategy policy pack 全体の GitHub/GitLab profile 整合性</div><div class="feature done">Markdown、HTML、JSON、SARIF レポート</div><div class="feature done">コンプライアンスレポートとローカル HTML ヘルスダッシュボード</div><div class="feature done">プロジェクトスコアと deep Git signal 評価</div><div class="feature done">ブランチ戦略推薦、提案比較、ポリシーパック生成</div><div class="feature done">Codex/Gemini/Claude Code 統合ファイル生成</div><div class="feature done">韓国語/英語/日本語/中国語 CLI 設定</div><div class="feature done">release-check と app profile 対応 release-check --npm</div><div class="feature done">Trusted Publishing による npm 自動リリース</div><div class="feature done">GitHub CI、OpenSSF Scorecard、GitHub Release 運用</div><div class="feature done">ターミナル、Slack BLOCK、Discord、Teams、email、Linear、Jira 通知</div><div class="feature done">GHCR Docker image と Homebrew tap の公開配布</div></div>
     </section>
 
     <section class="section bottom-features future" id="future">
@@ -958,7 +962,7 @@ aigate release-check --npm</code></pre>
 
   <footer>
     <p>この文書は AIGate の公開リリース後の運用状態を説明します。</p>
-    <p>Generated 2026-07-03. Package version 0.1.6.</p>
+    <p>Generated 2026-07-03. Package version 0.1.7.</p>
   </footer>
 </body>
 </html>

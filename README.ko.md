@@ -58,6 +58,26 @@ aigate install-hook --pre-push
 aigate pr-check
 ```
 
+## 강제 연결 모델
+
+AIGate는 조언으로만 실행할 때보다 workflow에 연결될 때 가장 가치가 큽니다.
+실제 보호 수준은 세 단계로 나눠서 봅니다.
+
+- 권고형: 사람이 AIGate를 무시하고 일반 `git push`를 실행할 수 있습니다.
+- 부분강제: 현재 클론에서는 hook이 활성화되어 있지만 `--no-verify`로 우회할 수 있고 신규 클론에는 활성화되지 않았을 수 있습니다.
+- 서버강제: CI가 `aigate git-ready`를 실행하고 검증된 branch protection 또는 MR merge rule이 CI 통과를 요구합니다.
+
+`aigate doctor`는 현재 수준을 `AIGate 강제 연결`로 보고합니다.
+`aigate evaluate-project`는 `AIGate CI 게이트 존재`와
+`AIGate 서버 강제 적용 존재`를 따로 확인합니다. GitLab에서는
+`allow_failure: true` 또는 `when: manual` job을 강제형으로 보지 않습니다.
+또한 `core.hooksPath`는 클론별 설정이므로 활성 로컬 hook, 커밋된 hook 파일,
+hook 활성화 자동화를 따로 보여줍니다. `--gitlab-pipeline-must-succeed true`
+같은 값은 선언된 증거로만 보고, `verified`로 표시된 검증 증거일 때만
+서버강제로 판단합니다. CI 게이트는 있지만 검증된 서버강제가 없으면
+`evaluate-project`는 JSON에 원점수를 남기고 최종 점수를 A등급 아래로 제한해
+경고가 묻히지 않게 합니다.
+
 ## 상황별 플레이북
 
 | 상황 | 프로세스 | 명령어 |
@@ -95,6 +115,7 @@ aigate pr-check
 | GitHub PR 템플릿과 CODEOWNERS 설정 | `aigate github setup` |
 | Markdown, HTML, JSON, SARIF 리포트 | `aigate report --format <format>` |
 | 저장소 건강 점수 | `aigate evaluate-project` |
+| 서버강제 라이브 검증 | `aigate verify-enforcement --apply` |
 | 컴플라이언스 통제 리포트 | `aigate compliance-report` |
 | 로컬 HTML 상태 대시보드 | `aigate dashboard` |
 | 프로젝트 상태 추세 기록 | `aigate trends record` |
@@ -178,7 +199,7 @@ Action 릴리스 상태:
 - 현재 안정 태그: `v0.1.6`
 - Action 사용: `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6`로 사용 가능
 - Marketplace 게시: GitHub Release 화면에서 수동으로 켜는 단계
-- Action name: `AIGate AI Git Workflow Guard CLI`
+- Action name: `AIGate Git Workflow Guard`
 - 주요 카테고리: `Code quality`
 - 보조 카테고리: `Security`
 - 릴리스 제목: `AIGate AI Git Workflow Guard CLI v0.1.6`

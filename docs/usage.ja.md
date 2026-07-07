@@ -128,6 +128,37 @@ aigate pr --title "feat: short summary"
 を使います。`aigate push` は Git の置き換えではなく、`git push` の前に
 AIGate checks を追加する guarded wrapper です。
 
+## ゲートを強制する
+
+`aigate git-ready` を手動で実行するだけでも有用ですが、開発者が無視して通常の
+`git push` を実行できるなら、まだ助言に近い状態です。AIGate は保護レベルを
+3 段階で見ます。
+
+- advisory: hook または必須 CI gate が確認されていません。
+- partial: この clone では hook が有効ですが、`--no-verify` で回避でき、新しい clone では有効でない場合があります。
+- server enforced: CI が `aigate git-ready` を実行し、検証済みの branch protection または MR rule が CI 結果を要求します。
+
+通常の設定コマンドは次の通りです。
+
+```sh
+aigate install-hook --pre-push
+aigate setup --gitlab-pipeline-must-succeed true
+aigate setup --gitlab-pipeline-must-succeed verified
+aigate setup --github-required-checks-enforced true
+aigate setup --github-required-checks-enforced verified
+```
+
+`aigate doctor` は `AIGate 強制接続` として現在のレベルを報告します。
+`aigate evaluate-project` は `AIGate CI ゲートが存在` と
+`AIGate サーバー強制が存在` を分けて確認します。GitLab の
+`allow_failure: true` または `when: manual` job は server enforcement と見なさず、
+リポジトリ内の GitLab `include:` YAML ファイルも確認します。
+`--gitlab-pipeline-must-succeed true` のような値は declared evidence であり、
+live/API 検証ではありません。hosting provider の branch protection または
+merge rule を確認した後だけ `verified` を使ってください。CI gate が存在しても
+server enforcement が検証されていない場合、`evaluate-project` は元スコアを表示し、
+最終スコアを A グレード未満に制限します。
+
 ## テストと AI 自動修正フロー
 
 ```sh
@@ -361,6 +392,7 @@ aigate git-ready --notify-channel terminal
 | `aigate integrate <provider>` | Codex/Gemini/Claude integration files を生成します。 |
 | `aigate report` | Markdown、HTML、JSON、SARIF reports を書き出します。 |
 | `aigate evaluate-project` | repository foundation と Git signals を score 化します。 |
+| `aigate verify-enforcement` | GitHub/GitLab のサーバー側 AIGate 必須チェックを検証し、必要なら検証証拠を記録します。 |
 | `aigate score` | 現在の project score を表示します。 |
 | `aigate trends <record\|show>` | score history を記録または表示します。 |
 | `aigate branch-strategy` | branch policy docs を推薦または生成します。 |

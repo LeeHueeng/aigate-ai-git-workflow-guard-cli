@@ -1,4 +1,4 @@
-name: AIGate AI Git Workflow Guard CLI
+name: AIGate Git Workflow Guard
 description: Run AI-friendly Git workflow checks, PR readiness reports, secret scans, and release gates in GitHub Actions.
 author: LeeHueeng
 

@@ -65,7 +65,7 @@ PR 리포트를 만들 때:
 | --- | --- |
 | 안정 Action 참조 | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` |
 | Marketplace 게시 | GitHub Release 화면에서 수동으로 켜는 단계 |
-| Action name | `AIGate AI Git Workflow Guard CLI` |
+| Action name | `AIGate Git Workflow Guard` |
 | 주요 카테고리 | `Code quality` |
 | 보조 카테고리 | `Security` |
 | 릴리스 태그 | `v0.1.6` |

@@ -91,6 +91,28 @@ Recommendation: Run AIGate test, commit focused changes, push the branch, and op
 AIGate is useful when AI coding assistants move quickly and you need one
 repeatable local gate before `git push` or PR creation.
 
+## Enforcement Model
+
+AIGate is strongest when it is wired into a workflow, not only run as advice.
+It reports three practical levels:
+
+- advisory: a person can ignore AIGate and run plain `git push`.
+- partial: a hook is active in this clone, but it can still be bypassed with `--no-verify` and may not be active in a fresh clone.
+- server enforced: CI runs `aigate git-ready` and verified branch protection or merge rules require that CI to pass.
+
+`aigate doctor` reports the current level as `AIGate enforcement`.
+`aigate evaluate-project` checks both `AIGate CI gate exists` and
+`AIGate server enforcement exists`, so a CI job that only runs in advisory mode
+does not look fully protected. `doctor` also separates an active local hook from
+a committed hook file and hook activation automation, because `core.hooksPath`
+is clone-local. For GitLab, AIGate treats `allow_failure: true` or
+`when: manual` jobs as non-enforcing. Declared settings such as
+`--gitlab-pipeline-must-succeed true` are reported as declared evidence; server
+enforcement only passes when evidence is marked verified. When a CI gate exists
+but verified server enforcement is missing, `evaluate-project` keeps the raw
+score in JSON and caps the final score below A-grade so the warning remains
+visible.
+
 ## Scenario Playbooks
 
 | Situation | Process | Commands |
@@ -131,6 +153,7 @@ repeatable local gate before `git push` or PR creation.
 | Changed-file secret scan | `aigate report --format sarif` |
 | Repository health score | `aigate evaluate-project` |
 | Deep project report | `aigate evaluate-project --deep --report` |
+| Live server enforcement verification | `aigate verify-enforcement --apply` |
 | Compliance control report | `aigate compliance-report` |
 | Local HTML health dashboard | `aigate dashboard` |
 | Project health trend history | `aigate trends record` |
@@ -216,7 +239,7 @@ Action release status:
 - Current stable tag: `v0.1.6`
 - Action usage: ready through `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6`
 - Marketplace publishing: manual GitHub Release screen step
-- Action name: `AIGate AI Git Workflow Guard CLI`
+- Action name: `AIGate Git Workflow Guard`
 - Primary category: `Code quality`
 - Secondary category: `Security`
 - Release title: `AIGate AI Git Workflow Guard CLI v0.1.6`

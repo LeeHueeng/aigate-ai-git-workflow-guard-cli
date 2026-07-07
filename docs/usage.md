@@ -130,6 +130,36 @@ preview the command. `aigate push` is a guarded wrapper around `git push`; it is
 not a replacement for Git, but it adds AIGate checks before the remote is
 updated.
 
+## Make The Gate Enforced
+
+Running `aigate git-ready` manually is useful, but it is still advisory if a
+developer can ignore it and run plain `git push`. AIGate reports three levels:
+
+- advisory: no hook or required CI gate is proven.
+- partial: a hook is active in this clone, but it can be bypassed with `--no-verify` and may not be active in a fresh clone.
+- server enforced: CI runs `aigate git-ready` and verified branch protection or merge request rules require the CI result.
+
+Use these commands as the usual path:
+
+```sh
+aigate install-hook --pre-push
+aigate setup --gitlab-pipeline-must-succeed true
+aigate setup --gitlab-pipeline-must-succeed verified
+aigate setup --github-required-checks-enforced true
+aigate setup --github-required-checks-enforced verified
+```
+
+`aigate doctor` reports the combined enforcement state as `AIGate enforcement`.
+`aigate evaluate-project` checks `AIGate CI gate exists` separately from
+`AIGate server enforcement exists`. GitLab jobs with `allow_failure: true` or
+`when: manual` are not treated as server enforcement, and local GitLab
+`include:` files are inspected when they point at repository YAML files.
+Values such as `--gitlab-pipeline-must-succeed true` are declared evidence, not
+live verification; use `verified` only after branch protection or merge rules
+have been checked through the hosting provider. If a CI gate exists but server
+enforcement is not verified, `evaluate-project` reports the raw score and caps
+the final score below A-grade.
+
 ## Test And AI Remediation Flow
 
 ```sh
@@ -365,6 +395,7 @@ channel:
 | `aigate integrate <provider>` | Generate Codex, Gemini, and Claude Code integration files. |
 | `aigate report` | Write Markdown, HTML, JSON, or SARIF reports. |
 | `aigate evaluate-project` | Score repository foundations and Git signals. |
+| `aigate verify-enforcement` | Verify GitHub/GitLab required server-side AIGate checks and optionally write verified evidence. |
 | `aigate score` | Print the current project score. |
 | `aigate trends <record\|show>` | Record or display score history. |
 | `aigate branch-strategy` | Recommend or generate branch policy docs. |

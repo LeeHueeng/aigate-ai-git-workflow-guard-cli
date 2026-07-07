@@ -58,6 +58,25 @@ aigate install-hook --pre-push
 aigate pr-check
 ```
 
+## 强制连接模型
+
+AIGate 不是只作为建议命令运行时最有价值，而是在接入 workflow 后最有价值。
+实际保护级别分为三种。
+
+- advisory: 开发者仍然可以忽略 AIGate 并直接运行普通 `git push`。
+- partial: 当前 clone 中 hook 已激活，但仍可被 `--no-verify` 绕过，并且新 clone 中可能未激活。
+- server enforced: CI 运行 `aigate git-ready`，并且已验证的 branch protection 或 MR merge rule 要求 CI 通过。
+
+`aigate doctor` 会用 `AIGate enforcement` 报告当前级别。
+`aigate evaluate-project` 会分别检查 `AIGate CI gate exists` 和
+`AIGate server enforcement exists`。在 GitLab 中，`allow_failure: true`
+或 `when: manual` job 不会被视为强制执行。由于 `core.hooksPath` 是每个 clone
+自己的设置，AIGate 会分别显示 active local hook、已提交 hook file、hook activation
+automation。`--gitlab-pipeline-must-succeed true` 这类值只会被视为 declared evidence；
+只有标为 `verified` 的证据才会判定为 server enforced。存在 CI gate 但缺少已验证的
+server enforcement 时，`evaluate-project` 会在 JSON 中保留原始分数，并把最终分数限制在
+A 等级以下，避免警告被分数掩盖。
+
 ## 场景式使用手册
 
 | 场景 | 流程 | 命令 |
@@ -95,6 +114,7 @@ aigate pr-check
 | GitHub PR 模板和 CODEOWNERS 设置 | `aigate github setup` |
 | Markdown, HTML, JSON, SARIF report | `aigate report --format <format>` |
 | repository health score | `aigate evaluate-project` |
+| server enforcement 实时验证 | `aigate verify-enforcement --apply` |
 | 合规控制报告 | `aigate compliance-report` |
 | 本地 HTML 健康仪表盘 | `aigate dashboard` |
 | 项目状态趋势历史 | `aigate trends record` |
@@ -176,7 +196,7 @@ Action 发布状态:
 - 当前稳定标签: `v0.1.6`
 - Action 使用: 可通过 `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` 使用
 - Marketplace 发布: 在 GitHub Release 页面手动启用
-- Action name: `AIGate AI Git Workflow Guard CLI`
+- Action name: `AIGate Git Workflow Guard`
 - Primary category: `Code quality`
 - Secondary category: `Security`
 - Release title: `AIGate AI Git Workflow Guard CLI v0.1.6`

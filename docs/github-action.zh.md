@@ -64,7 +64,7 @@ workflow 测试。
 | --- | --- |
 | 稳定 Action 引用 | `LeeHueeng/aigate-ai-git-workflow-guard-cli@v0.1.6` |
 | Marketplace 发布 | 在 GitHub Release 页面手动启用 |
-| Action name | `AIGate AI Git Workflow Guard CLI` |
+| Action name | `AIGate Git Workflow Guard` |
 | Primary category | `Code quality` |
 | Secondary category | `Security` |
 | Release tag | `v0.1.6` |
