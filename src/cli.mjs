@@ -4712,6 +4712,34 @@ async function handleWebRequest(request, response, language) {
     return;
   }
 
+  if (request.method === "GET" && url.pathname === "/api/actions") {
+    writeWebJson(response, 200, {
+      ok: true,
+      actions: webActionCatalog(language)
+    });
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/actions/run") {
+    const payload = await readWebJsonBody(request);
+    const result = await runWebAction(payload.id, language);
+    writeWebJson(response, result.ok ? 200 : 400, result);
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/api/reports") {
+    writeWebJson(response, 200, {
+      ok: true,
+      reports: listWebReports()
+    });
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname.startsWith("/reports/")) {
+    serveWebReport(response, url.pathname.slice("/reports/".length));
+    return;
+  }
+
   if (request.method === "POST" && url.pathname === "/api/settings") {
     const payload = await readWebJsonBody(request);
     const settings = applyWebSettings(payload);
@@ -4779,7 +4807,8 @@ function buildWebState() {
   const profile = detectProjectProfile(packageJson);
   const evaluation = buildEvaluation();
   const status = buildGitStatus();
-  return {
+  const reports = listWebReports();
+  const state = {
     command: "web",
     version: VERSION,
     generatedAt: new Date().toISOString(),
@@ -4802,8 +4831,12 @@ function buildWebState() {
       changedFiles: status.changedFiles.length,
       riskLevel: status.riskLevel,
       recommendation: status.recommendation
-    }
+    },
+    actions: webActionCatalog(settings.language),
+    reports
   };
+  state.recommendations = buildWebRecommendations(state);
+  return state;
 }
 
 function applyWebSettings(payload = {}) {
@@ -4841,6 +4874,211 @@ function applyWebSettings(payload = {}) {
   return settings;
 }
 
+function webActionCatalog(language = "en") {
+  const uiLanguage = normalizeLanguage(language) ?? DEFAULT_SETTINGS.language;
+  const ui = WEB_UI_LABELS[uiLanguage] ?? WEB_UI_LABELS.en;
+  return WEB_ACTIONS.map((group) => ({
+    id: group.group,
+    title: ui.actionGroups[group.group] ?? WEB_UI_LABELS.en.actionGroups[group.group] ?? group.group,
+    actions: group.actions.map((action) => {
+      const text = ui.actions[action.id] ?? WEB_UI_LABELS.en.actions[action.id] ?? [action.id, ""];
+      return {
+        id: action.id,
+        title: text[0],
+        description: text[1],
+        command: formatAigateCommand(action.command),
+        report: Boolean(action.report)
+      };
+    })
+  }));
+}
+
+function webActionDefinition(id) {
+  return WEB_ACTIONS.flatMap((group) => group.actions).find((action) => action.id === id);
+}
+
+async function runWebAction(id, language = "en") {
+  const action = webActionDefinition(id);
+  if (!action) {
+    return {
+      ok: false,
+      id,
+      error: "Unknown web action."
+    };
+  }
+
+  const [commandName, ...args] = action.command;
+  const command = commands[commandName];
+  if (!command || commandName === "web" || commandName === "push" || commandName === "pr") {
+    return {
+      ok: false,
+      id,
+      error: "This action is not available from the web console."
+    };
+  }
+
+  const startedAt = Date.now();
+  const previousExitCode = process.exitCode;
+  process.exitCode = 0;
+
+  try {
+    const output = await command([...args, "--language", normalizeLanguage(language) ?? DEFAULT_SETTINGS.language]);
+    const exitCode = typeof process.exitCode === "number" ? process.exitCode : 0;
+    process.exitCode = previousExitCode;
+    return {
+      ok: exitCode === 0,
+      id,
+      command: formatAigateCommand(action.command),
+      exitCode,
+      durationMs: Date.now() - startedAt,
+      output: output ?? "",
+      reports: listWebReports()
+    };
+  } catch (error) {
+    process.exitCode = previousExitCode;
+    return {
+      ok: false,
+      id,
+      command: formatAigateCommand(action.command),
+      exitCode: 1,
+      durationMs: Date.now() - startedAt,
+      error: error?.message ?? String(error),
+      reports: listWebReports()
+    };
+  }
+}
+
+function formatAigateCommand(args = []) {
+  return quoteArgs(["aigate", ...args]).join(" ");
+}
+
+function listWebReports() {
+  const reportsDir = join(process.cwd(), ".aigate", "reports");
+  if (!existsSync(reportsDir)) {
+    return [];
+  }
+
+  return readdirSync(reportsDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && !entry.name.startsWith("."))
+    .map((entry) => {
+      const path = join(reportsDir, entry.name);
+      const stats = statSync(path);
+      return {
+        name: entry.name,
+        path,
+        url: `/reports/${encodeURIComponent(entry.name)}`,
+        type: reportFileType(entry.name),
+        sizeBytes: stats.size,
+        modifiedAt: stats.mtime.toISOString(),
+        modifiedMs: stats.mtimeMs
+      };
+    })
+    .sort((left, right) => right.modifiedMs - left.modifiedMs)
+    .map(({ modifiedMs, ...report }) => report);
+}
+
+function serveWebReport(response, encodedName) {
+  let name = "";
+  try {
+    name = decodeURIComponent(encodedName);
+  } catch {
+    writeWebJson(response, 400, {
+      ok: false,
+      error: "Invalid report path."
+    });
+    return;
+  }
+
+  if (!name || name.includes("/") || name.includes("\\") || name.includes("..")) {
+    writeWebJson(response, 400, {
+      ok: false,
+      error: "Invalid report path."
+    });
+    return;
+  }
+
+  const reportPath = join(process.cwd(), ".aigate", "reports", name);
+  if (!existsSync(reportPath) || !statSync(reportPath).isFile()) {
+    writeWebJson(response, 404, {
+      ok: false,
+      error: "Report not found."
+    });
+    return;
+  }
+
+  response.writeHead(200, {
+    "content-type": reportContentType(name),
+    "cache-control": "no-store"
+  });
+  response.end(readFileSync(reportPath));
+}
+
+function reportFileType(name) {
+  if (/\.html?$/i.test(name)) return "html";
+  if (/\.md$/i.test(name)) return "markdown";
+  if (/\.sarif$/i.test(name)) return "sarif";
+  if (/\.json$/i.test(name)) return "json";
+  return "text";
+}
+
+function reportContentType(name) {
+  const type = reportFileType(name);
+  if (type === "html") return "text/html; charset=utf-8";
+  if (type === "markdown") return "text/markdown; charset=utf-8";
+  if (type === "json") return "application/json; charset=utf-8";
+  if (type === "sarif") return "application/sarif+json; charset=utf-8";
+  return "text/plain; charset=utf-8";
+}
+
+function buildWebRecommendations(state) {
+  const ui = WEB_UI_LABELS[state.settings.language] ?? WEB_UI_LABELS.en;
+  const recommendations = [];
+  const add = (key) => {
+    if (recommendations.some((item) => item.id === key)) {
+      return;
+    }
+
+    const text = ui.recommendationTexts[key] ?? WEB_UI_LABELS.en.recommendationTexts[key];
+    if (!text) {
+      return;
+    }
+
+    const action = webActionDefinition(text[2]);
+    recommendations.push({
+      id: key,
+      title: text[0],
+      description: text[1],
+      actionId: text[2],
+      command: action ? formatAigateCommand(action.command) : null
+    });
+  };
+
+  if (state.evaluation.todoChecks.length > 0 || state.evaluation.score < 90) {
+    add("score");
+  }
+
+  if (state.git.riskLevel === "high" || state.evaluation.todoChecks.some((check) => /secret|security|scan/i.test(check))) {
+    add("secrets");
+  }
+
+  if (state.evaluation.enforcement.level !== "server") {
+    add("enforcement");
+  }
+
+  if (state.reports.length === 0) {
+    add("reports");
+  }
+
+  if (state.git.changedFiles > 0) {
+    add("blockers");
+  }
+
+  add("ai");
+  add("trends");
+
+  return recommendations.slice(0, 6);
+}
+
 function openBrowser(url) {
   const command = process.platform === "darwin"
     ? "open"
@@ -4856,12 +5094,65 @@ function openBrowser(url) {
   child.unref();
 }
 
+const WEB_ACTIONS = [
+  {
+    group: "checks",
+    actions: [
+      { id: "check", command: ["check"], report: false },
+      { id: "doctor", command: ["doctor"], report: false },
+      { id: "test", command: ["test"], report: false },
+      { id: "git-ready", command: ["git-ready"], report: false },
+      { id: "pr-check", command: ["pr-check"], report: false },
+      { id: "evaluate-project", command: ["evaluate-project"], report: false }
+    ]
+  },
+  {
+    group: "reports",
+    actions: [
+      { id: "report-md", command: ["report", "--format", "markdown", "--output", ".aigate/reports/report.md"], report: true },
+      { id: "report-html", command: ["report", "--format", "html", "--output", ".aigate/reports/report.html"], report: true },
+      { id: "report-json", command: ["report", "--format", "json", "--output", ".aigate/reports/report.json"], report: true },
+      { id: "report-sarif", command: ["report", "--format", "sarif", "--output", ".aigate/reports/aigate.sarif"], report: true },
+      { id: "ai-report", command: ["ai", "report", "--output", ".aigate/reports/ai-report.md"], report: true },
+      { id: "dashboard", command: ["dashboard", "--output", ".aigate/reports/dashboard.html"], report: true },
+      { id: "audit-report", command: ["audit-report", "--output", ".aigate/reports/audit.md"], report: true },
+      { id: "compliance-report", command: ["compliance-report", "--output", ".aigate/reports/compliance.md"], report: true }
+    ]
+  },
+  {
+    group: "workflow",
+    actions: [
+      { id: "branch-strategy", command: ["branch-strategy"], report: false },
+      { id: "branch-strategy-compare", command: ["branch-strategy", "--compare"], report: false },
+      { id: "release-check", command: ["release-check"], report: false },
+      { id: "release-check-npm", command: ["release-check", "--npm"], report: false },
+      { id: "trends-record", command: ["trends", "record"], report: false },
+      { id: "trends-show", command: ["trends", "show"], report: false }
+    ]
+  },
+  {
+    group: "setup",
+    actions: [
+      { id: "settings", command: ["settings"], report: false },
+      { id: "start-default-preview", command: ["start", "--route", "default", "--dry-run"], report: false },
+      { id: "start-oss-preview", command: ["start", "--route", "oss", "--dry-run"], report: false },
+      { id: "install-hook-preview", command: ["install-hook", "--pre-push", "--dry-run"], report: false },
+      { id: "reset-preview", command: ["reset", "--dry-run"], report: false },
+      { id: "clean-preview", command: ["clean", "--dry-run"], report: false },
+      { id: "uninstall-preview", command: ["uninstall", "--dry-run"], report: false }
+    ]
+  }
+];
+
 const WEB_UI_LABELS = {
   en: {
     title: "AIGate Web Setup",
     tagline: "Configure AIGate without memorizing CLI flags. Settings are saved to",
     navOverview: "Overview",
     navSettings: "Settings",
+    navActions: "Run Commands",
+    navReports: "Reports",
+    navRecommendations: "AI Suggestions",
     navCommands: "Next Commands",
     heroTitle: "Project Setup Console",
     heroSubtitle: "Pick repository profile, branch policy, AI providers, and enforcement evidence from the browser.",
@@ -4876,6 +5167,25 @@ const WEB_UI_LABELS = {
     from: "from",
     openItems: "Open Items",
     none: "None",
+    commandCenter: "Command Center",
+    commandCenterIntro: "Run AIGate commands from the browser. Only safe, allowlisted AIGate actions are available.",
+    reportsTitle: "Latest Reports",
+    reportsIntro: "Generated files in .aigate/reports are sorted newest first.",
+    recommendationsTitle: "AI Suggestions",
+    recommendationsIntro: "Suggested next actions based on the current score, open checks, reports, and enforcement signals.",
+    noReports: "No reports yet.",
+    noRecommendations: "No suggestions right now.",
+    run: "Run",
+    running: "Running...",
+    output: "Output",
+    command: "Command",
+    exitCode: "Exit code",
+    duration: "Duration",
+    refreshReports: "Refresh reports",
+    openReport: "Open",
+    modified: "Modified",
+    size: "Size",
+    actionFailed: "Action failed",
     projectProfile: "Project Profile",
     cliLanguage: "CLI output language",
     projectType: "Project type",
@@ -4917,13 +5227,60 @@ const WEB_UI_LABELS = {
     overwriteForce: "Overwrite with force",
     declaredTrue: "Declared true",
     falseValue: "False",
-    verified: "Verified"
+    verified: "Verified",
+    actionGroups: {
+      checks: "Checks",
+      reports: "Report Generation",
+      workflow: "Workflow",
+      setup: "Setup Previews"
+    },
+    actions: {
+      "check": ["Change Check", "Scan changed paths, risky filenames, and possible secrets."],
+      "doctor": ["Doctor", "Inspect local setup, hooks, CI evidence, and configuration drift."],
+      "test": ["Test", "Run detected project test commands."],
+      "git-ready": ["Git Ready", "Run the final local gate before commit, push, or PR."],
+      "pr-check": ["PR Check", "Generate pull request readiness signals."],
+      "evaluate-project": ["Evaluate Project", "Score repository foundation, tests, CI, security, and docs."],
+      "report-md": ["Markdown Report", "Write .aigate/reports/report.md."],
+      "report-html": ["HTML Report", "Write .aigate/reports/report.html."],
+      "report-json": ["JSON Report", "Write .aigate/reports/report.json."],
+      "report-sarif": ["SARIF Report", "Write .aigate/reports/aigate.sarif for code scanning tools."],
+      "ai-report": ["AI Report", "Write an AI-readable project brief to .aigate/reports/ai-report.md."],
+      "dashboard": ["HTML Dashboard", "Write the local health dashboard."],
+      "audit-report": ["Audit Report", "Write an audit readiness report."],
+      "compliance-report": ["Compliance Report", "Write a compliance summary report."],
+      "branch-strategy": ["Branch Strategy", "Recommend a branch strategy for this repository."],
+      "branch-strategy-compare": ["Compare Strategies", "Compare branch strategy options."],
+      "release-check": ["Release Check", "Check release readiness for the current package or app profile."],
+      "release-check-npm": ["npm Release Check", "Check npm publication readiness and registry state."],
+      "trends-record": ["Record Trend", "Save a project score snapshot."],
+      "trends-show": ["Show Trends", "Show project score history."],
+      "settings": ["Show Settings", "Print current AIGate settings."],
+      "start-default-preview": ["Preview Default Start", "Preview the default setup route without writing files."],
+      "start-oss-preview": ["Preview OSS Start", "Preview open-source starter files without writing them."],
+      "install-hook-preview": ["Preview Hook Install", "Preview pre-push hook installation."],
+      "reset-preview": ["Preview Reset", "Preview config and settings reset."],
+      "clean-preview": ["Preview Clean", "Preview generated state cleanup."],
+      "uninstall-preview": ["Preview Uninstall", "Preview full AIGate removal targets."]
+    },
+    recommendationTexts: {
+      blockers: ["Fix Blockers", "Run git-ready to inspect blocking conditions before push.", "git-ready"],
+      score: ["Raise Project Score", "Run evaluate-project and use its open checks to improve the repository foundation.", "evaluate-project"],
+      secrets: ["Generate Security Report", "Create SARIF output so possible secret findings can be reviewed by security tools.", "report-sarif"],
+      enforcement: ["Verify Enforcement", "Doctor can confirm whether AIGate is only advisory, local-hook based, or server enforced.", "doctor"],
+      reports: ["Create First Report", "Generate a Markdown or HTML report so review history has an artifact.", "report-md"],
+      ai: ["Ask AI For Direction", "Generate an AI project report with current issues, strengths, and next steps.", "ai-report"],
+      trends: ["Record Trend", "Save today's score snapshot so future changes can be compared.", "trends-record"]
+    }
   },
   ko: {
     title: "AIGate 웹 설정",
     tagline: "CLI 플래그를 외우지 않고 AIGate를 설정합니다. 설정은 다음 파일에 저장됩니다:",
     navOverview: "개요",
     navSettings: "설정",
+    navActions: "기능 실행",
+    navReports: "보고서",
+    navRecommendations: "AI 추천",
     navCommands: "다음 명령어",
     heroTitle: "프로젝트 설정 콘솔",
     heroSubtitle: "저장소 프로필, 브랜치 정책, AI 제공자, 강제 연결 증거를 브라우저에서 선택하세요.",
@@ -4938,6 +5295,25 @@ const WEB_UI_LABELS = {
     from: "위치",
     openItems: "남은 항목",
     none: "없음",
+    commandCenter: "기능 실행 콘솔",
+    commandCenterIntro: "브라우저에서 AIGate 명령을 실행합니다. 안전하게 허용된 AIGate 기능만 버튼으로 제공합니다.",
+    reportsTitle: "최신 보고서",
+    reportsIntro: ".aigate/reports에 생성된 파일을 최신순으로 보여줍니다.",
+    recommendationsTitle: "AI 추천",
+    recommendationsIntro: "현재 점수, 남은 항목, 보고서, 강제 연결 상태를 바탕으로 다음에 하면 좋은 작업을 추천합니다.",
+    noReports: "아직 보고서가 없습니다.",
+    noRecommendations: "현재 추천 항목이 없습니다.",
+    run: "실행",
+    running: "실행 중...",
+    output: "실행 결과",
+    command: "명령어",
+    exitCode: "종료 코드",
+    duration: "소요 시간",
+    refreshReports: "보고서 새로고침",
+    openReport: "열기",
+    modified: "수정 시각",
+    size: "크기",
+    actionFailed: "실행 실패",
     projectProfile: "프로젝트 프로필",
     cliLanguage: "CLI 출력 언어",
     projectType: "프로젝트 유형",
@@ -4979,13 +5355,60 @@ const WEB_UI_LABELS = {
     overwriteForce: "force 사용 시 덮어쓰기",
     declaredTrue: "선언됨",
     falseValue: "아니오",
-    verified: "검증됨"
+    verified: "검증됨",
+    actionGroups: {
+      checks: "검사",
+      reports: "보고서 생성",
+      workflow: "워크플로",
+      setup: "설정 미리보기"
+    },
+    actions: {
+      "check": ["변경 검사", "변경 경로, 위험 파일명, 민감 정보 의심 항목을 검사합니다."],
+      "doctor": ["Doctor", "로컬 설정, 훅, CI 증거, 설정 버전 차이를 점검합니다."],
+      "test": ["Test", "감지된 프로젝트 테스트 명령을 실행합니다."],
+      "git-ready": ["Git Ready", "커밋, 푸시, PR 전 마지막 로컬 게이트를 실행합니다."],
+      "pr-check": ["PR 검사", "Pull request 준비 상태 신호를 생성합니다."],
+      "evaluate-project": ["프로젝트 평가", "저장소 기반, 테스트, CI, 보안, 문서를 점수화합니다."],
+      "report-md": ["Markdown 보고서", ".aigate/reports/report.md를 생성합니다."],
+      "report-html": ["HTML 보고서", ".aigate/reports/report.html을 생성합니다."],
+      "report-json": ["JSON 보고서", ".aigate/reports/report.json을 생성합니다."],
+      "report-sarif": ["SARIF 보고서", "코드 스캔 도구용 .aigate/reports/aigate.sarif를 생성합니다."],
+      "ai-report": ["AI 보고서", "AI가 읽기 좋은 프로젝트 브리프를 .aigate/reports/ai-report.md에 씁니다."],
+      "dashboard": ["HTML 대시보드", "로컬 상태 대시보드를 생성합니다."],
+      "audit-report": ["감사 보고서", "감사 준비 보고서를 생성합니다."],
+      "compliance-report": ["컴플라이언스 보고서", "컴플라이언스 요약 보고서를 생성합니다."],
+      "branch-strategy": ["브랜치 전략", "이 저장소에 맞는 브랜치 전략을 추천합니다."],
+      "branch-strategy-compare": ["전략 비교", "브랜치 전략 후보를 비교합니다."],
+      "release-check": ["릴리스 검사", "현재 패키지 또는 앱 프로필의 릴리스 준비 상태를 검사합니다."],
+      "release-check-npm": ["npm 릴리스 검사", "npm 배포 준비와 registry 상태를 확인합니다."],
+      "trends-record": ["트렌드 기록", "프로젝트 점수 스냅샷을 저장합니다."],
+      "trends-show": ["트렌드 보기", "프로젝트 점수 이력을 보여줍니다."],
+      "settings": ["설정 보기", "현재 AIGate 설정을 출력합니다."],
+      "start-default-preview": ["기본 시작 미리보기", "파일을 쓰지 않고 기본 설정 루트를 미리 봅니다."],
+      "start-oss-preview": ["오픈소스 시작 미리보기", "파일을 쓰지 않고 오픈소스 시작 파일을 미리 봅니다."],
+      "install-hook-preview": ["훅 설치 미리보기", "pre-push 훅 설치를 미리 봅니다."],
+      "reset-preview": ["초기화 미리보기", "설정 초기화 대상을 미리 봅니다."],
+      "clean-preview": ["정리 미리보기", "생성된 상태 정리 대상을 미리 봅니다."],
+      "uninstall-preview": ["삭제 미리보기", "AIGate 제거 대상을 미리 봅니다."]
+    },
+    recommendationTexts: {
+      blockers: ["차단 항목 해결", "푸시 전에 git-ready로 차단 사유를 확인하세요.", "git-ready"],
+      score: ["프로젝트 점수 올리기", "evaluate-project를 실행하고 남은 기반 항목을 보완하세요.", "evaluate-project"],
+      secrets: ["보안 보고서 생성", "SARIF 출력을 만들어 민감 정보 의심 항목을 보안 도구에서 확인하세요.", "report-sarif"],
+      enforcement: ["강제 연결 확인", "Doctor로 AIGate가 권고형인지, 로컬 훅인지, 서버 강제인지 확인하세요.", "doctor"],
+      reports: ["첫 보고서 생성", "Markdown 또는 HTML 보고서를 만들어 리뷰 이력을 남기세요.", "report-md"],
+      ai: ["AI에게 방향 묻기", "현재 문제점, 잘된 점, 다음 단계를 담은 AI 보고서를 생성하세요.", "ai-report"],
+      trends: ["트렌드 기록", "오늘 점수 스냅샷을 저장해 이후 변경과 비교하세요.", "trends-record"]
+    }
   },
   ja: {
     title: "AIGate Web 設定",
     tagline: "CLI flags を覚えなくても AIGate を設定できます。設定の保存先:",
     navOverview: "概要",
     navSettings: "設定",
+    navActions: "機能実行",
+    navReports: "レポート",
+    navRecommendations: "AI 推奨",
     navCommands: "次のコマンド",
     heroTitle: "プロジェクト設定コンソール",
     heroSubtitle: "repository profile、branch policy、AI provider、enforcement evidence をブラウザで選択します。",
@@ -5000,6 +5423,25 @@ const WEB_UI_LABELS = {
     from: "場所",
     openItems: "未完了項目",
     none: "なし",
+    commandCenter: "機能実行コンソール",
+    commandCenterIntro: "ブラウザから AIGate コマンドを実行します。安全な allowlist の AIGate 機能だけを提供します。",
+    reportsTitle: "最新レポート",
+    reportsIntro: ".aigate/reports に生成されたファイルを新しい順に表示します。",
+    recommendationsTitle: "AI 推奨",
+    recommendationsIntro: "現在のスコア、未完了項目、レポート、強制接続シグナルから次の作業を提案します。",
+    noReports: "まだレポートはありません。",
+    noRecommendations: "現在の推奨はありません。",
+    run: "実行",
+    running: "実行中...",
+    output: "実行結果",
+    command: "コマンド",
+    exitCode: "終了コード",
+    duration: "所要時間",
+    refreshReports: "レポート更新",
+    openReport: "開く",
+    modified: "更新時刻",
+    size: "サイズ",
+    actionFailed: "実行に失敗しました",
     projectProfile: "プロジェクトプロファイル",
     cliLanguage: "CLI 出力言語",
     projectType: "プロジェクト種別",
@@ -5041,13 +5483,60 @@ const WEB_UI_LABELS = {
     overwriteForce: "force 時に上書き",
     declaredTrue: "宣言済み",
     falseValue: "いいえ",
-    verified: "検証済み"
+    verified: "検証済み",
+    actionGroups: {
+      checks: "チェック",
+      reports: "レポート生成",
+      workflow: "ワークフロー",
+      setup: "設定プレビュー"
+    },
+    actions: {
+      "check": ["変更チェック", "変更パス、危険なファイル名、機密情報候補を検査します。"],
+      "doctor": ["Doctor", "ローカル設定、hook、CI 証拠、設定バージョン差分を確認します。"],
+      "test": ["Test", "検出されたプロジェクトテストコマンドを実行します。"],
+      "git-ready": ["Git Ready", "commit、push、PR 前の最終ローカル gate を実行します。"],
+      "pr-check": ["PR チェック", "pull request 準備状況シグナルを生成します。"],
+      "evaluate-project": ["プロジェクト評価", "リポジトリ基盤、test、CI、security、docs を採点します。"],
+      "report-md": ["Markdown レポート", ".aigate/reports/report.md を生成します。"],
+      "report-html": ["HTML レポート", ".aigate/reports/report.html を生成します。"],
+      "report-json": ["JSON レポート", ".aigate/reports/report.json を生成します。"],
+      "report-sarif": ["SARIF レポート", "code scanning 用 .aigate/reports/aigate.sarif を生成します。"],
+      "ai-report": ["AI レポート", "AI が読みやすい project brief を .aigate/reports/ai-report.md に書きます。"],
+      "dashboard": ["HTML ダッシュボード", "ローカル health dashboard を生成します。"],
+      "audit-report": ["監査レポート", "監査準備レポートを生成します。"],
+      "compliance-report": ["コンプライアンスレポート", "コンプライアンス要約レポートを生成します。"],
+      "branch-strategy": ["ブランチ戦略", "このリポジトリに合うブランチ戦略を推奨します。"],
+      "branch-strategy-compare": ["戦略比較", "ブランチ戦略候補を比較します。"],
+      "release-check": ["リリースチェック", "現在の package または app profile のリリース準備状況を確認します。"],
+      "release-check-npm": ["npm リリースチェック", "npm 公開準備と registry 状態を確認します。"],
+      "trends-record": ["トレンド記録", "プロジェクトスコアの snapshot を保存します。"],
+      "trends-show": ["トレンド表示", "プロジェクトスコア履歴を表示します。"],
+      "settings": ["設定表示", "現在の AIGate settings を出力します。"],
+      "start-default-preview": ["Default start プレビュー", "ファイルを書かずに default setup route を preview します。"],
+      "start-oss-preview": ["OSS start プレビュー", "ファイルを書かずに OSS starter files を preview します。"],
+      "install-hook-preview": ["Hook install プレビュー", "pre-push hook installation を preview します。"],
+      "reset-preview": ["Reset プレビュー", "設定 reset 対象を preview します。"],
+      "clean-preview": ["Clean プレビュー", "生成 state の cleanup 対象を preview します。"],
+      "uninstall-preview": ["Uninstall プレビュー", "AIGate 削除対象を preview します。"]
+    },
+    recommendationTexts: {
+      blockers: ["ブロッカー修正", "push 前に git-ready でブロック理由を確認してください。", "git-ready"],
+      score: ["プロジェクトスコア改善", "evaluate-project を実行し、未完了の基盤項目を改善してください。", "evaluate-project"],
+      secrets: ["セキュリティレポート生成", "SARIF 出力を作成し、機密情報候補を security tools で確認してください。", "report-sarif"],
+      enforcement: ["強制接続確認", "Doctor で AIGate が advisory、local hook、server enforced のどれか確認してください。", "doctor"],
+      reports: ["最初のレポート作成", "Markdown または HTML レポートを生成して review history に残してください。", "report-md"],
+      ai: ["AI に方向性を聞く", "現在の問題、良い点、次の手順を含む AI レポートを生成してください。", "ai-report"],
+      trends: ["トレンド記録", "今日の score snapshot を保存し、今後の変更と比較してください。", "trends-record"]
+    }
   },
   zh: {
     title: "AIGate Web 设置",
     tagline: "无需记住 CLI 参数，也可以配置 AIGate。设置保存到:",
     navOverview: "概览",
     navSettings: "设置",
+    navActions: "运行功能",
+    navReports: "报告",
+    navRecommendations: "AI 建议",
     navCommands: "下一步命令",
     heroTitle: "项目设置控制台",
     heroSubtitle: "在浏览器中选择仓库配置、分支策略、AI provider 和强制连接证据。",
@@ -5062,6 +5551,25 @@ const WEB_UI_LABELS = {
     from: "位置",
     openItems: "待处理项",
     none: "无",
+    commandCenter: "功能运行控制台",
+    commandCenterIntro: "在浏览器中运行 AIGate 命令。这里只提供安全 allowlist 中的 AIGate 功能。",
+    reportsTitle: "最新报告",
+    reportsIntro: ".aigate/reports 中生成的文件会按最新时间排序。",
+    recommendationsTitle: "AI 建议",
+    recommendationsIntro: "基于当前分数、待处理项、报告和强制连接信号推荐下一步。",
+    noReports: "还没有报告。",
+    noRecommendations: "当前没有建议。",
+    run: "运行",
+    running: "运行中...",
+    output: "运行结果",
+    command: "命令",
+    exitCode: "退出码",
+    duration: "耗时",
+    refreshReports: "刷新报告",
+    openReport: "打开",
+    modified: "修改时间",
+    size: "大小",
+    actionFailed: "运行失败",
     projectProfile: "项目配置",
     cliLanguage: "CLI 输出语言",
     projectType: "项目类型",
@@ -5103,7 +5611,51 @@ const WEB_UI_LABELS = {
     overwriteForce: "使用 force 时覆盖",
     declaredTrue: "已声明",
     falseValue: "否",
-    verified: "已验证"
+    verified: "已验证",
+    actionGroups: {
+      checks: "检查",
+      reports: "报告生成",
+      workflow: "工作流",
+      setup: "设置预览"
+    },
+    actions: {
+      "check": ["变更检查", "扫描变更路径、风险文件名和疑似敏感信息。"],
+      "doctor": ["Doctor", "检查本地设置、hook、CI 证据和配置版本漂移。"],
+      "test": ["Test", "运行检测到的项目测试命令。"],
+      "git-ready": ["Git Ready", "在 commit、push 或 PR 前运行最终本地关卡。"],
+      "pr-check": ["PR 检查", "生成 pull request 就绪信号。"],
+      "evaluate-project": ["项目评估", "为仓库基础、测试、CI、安全和文档评分。"],
+      "report-md": ["Markdown 报告", "生成 .aigate/reports/report.md。"],
+      "report-html": ["HTML 报告", "生成 .aigate/reports/report.html。"],
+      "report-json": ["JSON 报告", "生成 .aigate/reports/report.json。"],
+      "report-sarif": ["SARIF 报告", "生成供 code scanning 使用的 .aigate/reports/aigate.sarif。"],
+      "ai-report": ["AI 报告", "将 AI 可读的项目简报写入 .aigate/reports/ai-report.md。"],
+      "dashboard": ["HTML 仪表盘", "生成本地健康仪表盘。"],
+      "audit-report": ["审计报告", "生成审计就绪报告。"],
+      "compliance-report": ["合规报告", "生成合规摘要报告。"],
+      "branch-strategy": ["分支策略", "为该仓库推荐分支策略。"],
+      "branch-strategy-compare": ["策略对比", "比较分支策略候选项。"],
+      "release-check": ["发布检查", "检查当前 package 或 app profile 的发布就绪状态。"],
+      "release-check-npm": ["npm 发布检查", "检查 npm 发布准备和 registry 状态。"],
+      "trends-record": ["记录趋势", "保存项目分数快照。"],
+      "trends-show": ["查看趋势", "显示项目分数历史。"],
+      "settings": ["查看设置", "输出当前 AIGate 设置。"],
+      "start-default-preview": ["预览默认启动", "不写入文件，预览默认设置路线。"],
+      "start-oss-preview": ["预览开源启动", "不写入文件，预览开源起始文件。"],
+      "install-hook-preview": ["预览 Hook 安装", "预览 pre-push hook 安装。"],
+      "reset-preview": ["预览重置", "预览配置和设置重置目标。"],
+      "clean-preview": ["预览清理", "预览生成状态清理目标。"],
+      "uninstall-preview": ["预览卸载", "预览 AIGate 移除目标。"]
+    },
+    recommendationTexts: {
+      blockers: ["修复阻塞项", "push 前运行 git-ready 查看阻塞原因。", "git-ready"],
+      score: ["提升项目分数", "运行 evaluate-project，并补齐待处理的基础项。", "evaluate-project"],
+      secrets: ["生成安全报告", "创建 SARIF 输出，让安全工具审查疑似敏感信息。", "report-sarif"],
+      enforcement: ["验证强制连接", "Doctor 可以确认 AIGate 是 advisory、本地 hook 还是 server enforced。", "doctor"],
+      reports: ["生成第一份报告", "生成 Markdown 或 HTML 报告，为 review 留下记录。", "report-md"],
+      ai: ["向 AI 询问方向", "生成包含当前问题、优点和下一步的 AI 报告。", "ai-report"],
+      trends: ["记录趋势", "保存今天的分数快照，便于和未来变更对比。", "trends-record"]
+    }
   }
 };
 
@@ -5121,6 +5673,25 @@ function renderWebSettingsApp(state, language = "en") {
   const todoItems = state.evaluation.todoChecks.length
     ? state.evaluation.todoChecks.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
     : `<li>${escapeHtml(ui.none)}</li>`;
+  const actionGroups = (state.actions ?? webActionCatalog(uiLanguage)).map((group) => `
+    <div class="panel action-group">
+      <h2>${escapeHtml(group.title)}</h2>
+      <div class="card-grid">
+        ${group.actions.map((action) => `
+          <article class="card">
+            <div>
+              <h3>${escapeHtml(action.title)}</h3>
+              <p>${escapeHtml(action.description)}</p>
+              <code>${escapeHtml(action.command)}</code>
+            </div>
+            <button class="secondary run-action" type="button" data-action="${escapeHtml(action.id)}">${escapeHtml(ui.run)}</button>
+          </article>
+        `).join("")}
+      </div>
+    </div>
+  `).join("");
+  const reportItems = renderWebReportItems(state.reports ?? [], ui);
+  const recommendationItems = renderWebRecommendationItems(state.recommendations ?? [], ui);
 
   return `<!doctype html>
 <html lang="${escapeHtml(uiLanguage)}">
@@ -5162,6 +5733,18 @@ textarea{min-height:92px;resize:vertical;line-height:1.4}
 .checks label{font-weight:500;border:1px solid var(--line);border-radius:6px;padding:9px 11px;background:#fff}
 .checks input{width:auto;min-height:auto;margin-right:6px}
 .actions{display:flex;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap}
+.card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.card{border:1px solid var(--line);border-radius:8px;background:#fff;padding:14px;display:grid;grid-template-rows:1fr auto;gap:12px;min-height:170px}
+.card h3{font-size:15px;margin:0 0 7px}
+.card p{font-size:13px;color:var(--muted);margin:0 0 10px}
+.card code{display:block;font-size:12px;color:#334155;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:8px;white-space:normal;word-break:break-word}
+.report-list,.recommendation-list{display:grid;gap:10px}
+.report-item,.recommendation-item{border:1px solid var(--line);border-radius:8px;background:#fff;padding:13px;display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+.report-item h3,.recommendation-item h3{font-size:15px;margin:0 0 7px}
+.report-item p,.recommendation-item p{font-size:13px;color:var(--muted);margin:0}
+.report-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+.output-head{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.output-meta{font-size:12px;color:var(--muted)}
 .primary{border:1px solid #0b5b94;background:#1769aa;color:#fff;border-radius:6px;padding:10px 14px;cursor:pointer}
 .secondary{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:6px;padding:10px 14px;cursor:pointer}
 .msg{font-size:13px;color:var(--muted)}
@@ -5169,7 +5752,7 @@ textarea{min-height:92px;resize:vertical;line-height:1.4}
 .hidden{display:none}
 pre{white-space:pre-wrap;word-break:break-word;background:#101828;color:#e6edf6;border-radius:8px;padding:14px;line-height:1.45;overflow:auto}
 ul{margin-top:8px}
-@media (max-width: 860px){.shell{grid-template-columns:1fr}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px}.status,.grid{grid-template-columns:1fr}.hero{display:block}}
+@media (max-width: 860px){.shell{grid-template-columns:1fr}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px}.status,.grid,.card-grid{grid-template-columns:1fr}.hero{display:block}.report-item,.recommendation-item{display:grid}}
 </style>
 </head>
 <body>
@@ -5180,6 +5763,9 @@ ul{margin-top:8px}
   <nav class="nav" aria-label="AIGate Web">
     <button class="active" data-tab="overview" type="button">${escapeHtml(ui.navOverview)}</button>
     <button data-tab="settings" type="button">${escapeHtml(ui.navSettings)}</button>
+    <button data-tab="actions" type="button">${escapeHtml(ui.navActions)}</button>
+    <button data-tab="reports" type="button">${escapeHtml(ui.navReports)}</button>
+    <button data-tab="recommendations" type="button">${escapeHtml(ui.navRecommendations)}</button>
     <button data-tab="commands" type="button">${escapeHtml(ui.navCommands)}</button>
   </nav>
 </aside>
@@ -5308,6 +5894,42 @@ ul{margin-top:8px}
     </form>
   </section>
 
+  <section id="tab-actions" class="hidden">
+    <div class="panel">
+      <h2>${escapeHtml(ui.commandCenter)}</h2>
+      <p class="sub">${escapeHtml(ui.commandCenterIntro)}</p>
+    </div>
+    ${actionGroups}
+    <div class="panel">
+      <div class="output-head">
+        <h2>${escapeHtml(ui.output)}</h2>
+        <span class="output-meta" id="action-meta"></span>
+      </div>
+      <pre id="action-output">${escapeHtml(ui.none)}</pre>
+    </div>
+  </section>
+
+  <section id="tab-reports" class="hidden">
+    <div class="panel">
+      <div class="output-head">
+        <div>
+          <h2>${escapeHtml(ui.reportsTitle)}</h2>
+          <p class="sub">${escapeHtml(ui.reportsIntro)}</p>
+        </div>
+        <button class="secondary" id="refresh-reports" type="button">${escapeHtml(ui.refreshReports)}</button>
+      </div>
+      <div class="report-list" id="reports-list">${reportItems}</div>
+    </div>
+  </section>
+
+  <section id="tab-recommendations" class="hidden">
+    <div class="panel">
+      <h2>${escapeHtml(ui.recommendationsTitle)}</h2>
+      <p class="sub">${escapeHtml(ui.recommendationsIntro)}</p>
+    </div>
+    <div class="recommendation-list" id="recommendation-list">${recommendationItems}</div>
+  </section>
+
   <section id="tab-commands" class="hidden">
     <div class="panel">
       <h2>${escapeHtml(ui.equivalentCli)}</h2>
@@ -5328,12 +5950,25 @@ aigate git-ready</pre>
 const form = document.getElementById("settings-form");
 const message = document.getElementById("message");
 const cliPreview = document.getElementById("cli-preview");
+const actionOutput = document.getElementById("action-output");
+const actionMeta = document.getElementById("action-meta");
+const reportsList = document.getElementById("reports-list");
 const listFields = new Set(["protectedBranches","workBranches","requiredChecks","qualityCommands"]);
 const uiText = ${JSON.stringify({
     saving: ui.saving,
     savedTo: ui.savedTo,
-    saveFailed: ui.saveFailed
+    saveFailed: ui.saveFailed,
+    running: ui.running,
+    actionFailed: ui.actionFailed,
+    command: ui.command,
+    exitCode: ui.exitCode,
+    duration: ui.duration,
+    modified: ui.modified,
+    size: ui.size,
+    openReport: ui.openReport,
+    noReports: ui.noReports
   })};
+function escapeText(value){return String(value ?? "").replace(/[&<>"']/g,(ch)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]))}
 function listValue(value){return String(value || "").split(/[\\n,]/).map((item)=>item.trim()).filter(Boolean)}
 function collect(){
   const data = Object.fromEntries(new FormData(form).entries());
@@ -5358,7 +5993,7 @@ document.querySelectorAll(".nav button").forEach((button)=>{
   button.addEventListener("click", ()=>{
     document.querySelectorAll(".nav button").forEach((item)=>item.classList.remove("active"));
     button.classList.add("active");
-    for (const section of ["overview","settings","commands"]){
+    for (const section of ["overview","settings","actions","reports","recommendations","commands"]){
       document.getElementById("tab-" + section).classList.toggle("hidden", section !== button.dataset.tab);
     }
     refreshPreview();
@@ -5386,10 +6021,95 @@ form.addEventListener("submit", async (event)=>{
   }
 });
 document.getElementById("refresh").addEventListener("click", ()=>location.reload());
+document.getElementById("refresh-reports").addEventListener("click", loadReports);
+document.querySelectorAll(".run-action").forEach((button)=>{
+  button.addEventListener("click", ()=>runAction(button.dataset.action, button));
+});
+function renderReports(reports){
+  if (!reports.length) {
+    reportsList.innerHTML = '<p class="hint">' + escapeText(uiText.noReports) + '</p>';
+    return;
+  }
+  reportsList.innerHTML = reports.map((report)=>[
+    '<article class="report-item">',
+    '<div><h3>' + escapeText(report.name) + '</h3>',
+    '<p class="report-meta"><span>' + escapeText(uiText.modified) + ': ' + escapeText(report.modifiedAt) + '</span><span>' + escapeText(uiText.size) + ': ' + Math.round(report.sizeBytes / 10.24) / 100 + ' KB</span></p></div>',
+    '<a class="secondary" href="' + encodeURI(report.url) + '" target="_blank" rel="noreferrer">' + escapeText(uiText.openReport) + '</a>',
+    '</article>'
+  ].join("")).join("");
+}
+async function loadReports(){
+  const response = await fetch("/api/reports");
+  const result = await response.json();
+  if (response.ok && result.ok) renderReports(result.reports || []);
+}
+async function runAction(id, button){
+  const previous = button.textContent;
+  button.disabled = true;
+  button.textContent = uiText.running;
+  actionOutput.textContent = uiText.running;
+  actionMeta.textContent = "";
+  try {
+    const response = await fetch("/api/actions/run", {
+      method: "POST",
+      headers: {"content-type":"application/json"},
+      body: JSON.stringify({id})
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) {
+      throw new Error(result.error || result.output || uiText.actionFailed);
+    }
+    actionMeta.textContent = uiText.command + ": " + result.command + " · " + uiText.exitCode + ": " + result.exitCode + " · " + uiText.duration + ": " + result.durationMs + "ms";
+    actionOutput.textContent = result.output || "";
+    renderReports(result.reports || []);
+  } catch (error) {
+    actionMeta.textContent = uiText.actionFailed;
+    actionOutput.textContent = error.message || uiText.actionFailed;
+  } finally {
+    button.disabled = false;
+    button.textContent = previous;
+  }
+}
 refreshPreview();
 </script>
 </body>
 </html>`;
+}
+
+function renderWebReportItems(reports, ui) {
+  if (!reports.length) {
+    return `<p class="hint">${escapeHtml(ui.noReports)}</p>`;
+  }
+
+  return reports.map((report) => `
+    <article class="report-item">
+      <div>
+        <h3>${escapeHtml(report.name)}</h3>
+        <p class="report-meta">
+          <span>${escapeHtml(ui.modified)}: ${escapeHtml(report.modifiedAt)}</span>
+          <span>${escapeHtml(ui.size)}: ${Math.round(report.sizeBytes / 10.24) / 100} KB</span>
+        </p>
+      </div>
+      <a class="secondary" href="${escapeHtml(report.url)}" target="_blank" rel="noreferrer">${escapeHtml(ui.openReport)}</a>
+    </article>
+  `).join("");
+}
+
+function renderWebRecommendationItems(recommendations, ui) {
+  if (!recommendations.length) {
+    return `<div class="panel"><p class="hint">${escapeHtml(ui.noRecommendations)}</p></div>`;
+  }
+
+  return recommendations.map((item) => `
+    <article class="recommendation-item">
+      <div>
+        <h3>${escapeHtml(item.title)}</h3>
+        <p>${escapeHtml(item.description)}</p>
+        ${item.command ? `<p class="report-meta"><code>${escapeHtml(item.command)}</code></p>` : ""}
+      </div>
+      ${item.actionId ? `<button class="secondary run-action" type="button" data-action="${escapeHtml(item.actionId)}">${escapeHtml(ui.run)}</button>` : ""}
+    </article>
+  `).join("");
 }
 
 function commandNotify(args) {

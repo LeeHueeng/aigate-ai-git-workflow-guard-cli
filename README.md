@@ -120,7 +120,7 @@ visible.
 | Situation | Process | Commands |
 | --- | --- | --- |
 | New repository adoption | Create the default AIGate files step by step, then install the pre-push guard. | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
-| Browser-based setup | Open a local settings console, choose language, hosting, CI, branch, AI, and enforcement options, then save the same `.aigate/settings.json` used by the CLI. | `aigate web --open` -> save settings -> `aigate doctor` |
+| Browser-based control | Open a local console, choose settings, run allowlisted AIGate commands, view newest reports first, and follow AI-suggested next actions. | `aigate web --open` -> run `git-ready` or `ai report` -> open latest report |
 | AI changed a lot of files | Inspect changed paths, run tests, and turn failures into a focused AI repair prompt. | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
 | PR is almost ready | Pass the gate, push through AIGate, and produce reviewer context. | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
 | Private GitLab monorepo | Pin the profile, run workspace tests with turbo-aware fallback, and keep GitHub/npm package gates out of app scores. | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
@@ -133,7 +133,7 @@ visible.
 | --- | --- |
 | Local Git readiness check | `aigate check` |
 | Guided setup router | `aigate start` |
-| Browser-based settings console | `aigate web --open` |
+| Browser command console, settings, reports, and AI suggestions | `aigate web --open` |
 | Default setup with yes/no step choices | `aigate start --route default --ask-steps` |
 | Deterministic setup step selection | `aigate start --route default --steps init,repo-files` |
 | Reset AIGate config and settings | `aigate reset` |

@@ -85,7 +85,7 @@ hook 활성화 자동화를 따로 보여줍니다. `--gitlab-pipeline-must-succ
 | 상황 | 프로세스 | 명령어 |
 | --- | --- | --- |
 | 새 저장소에 도입 | 기본 AIGate 파일을 단계별로 만들고 pre-push 보호를 설치합니다. | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
-| 브라우저 기반 설정 | 로컬 설정 콘솔을 열고 언어, 호스팅, CI, 브랜치, AI, 강제 연결 옵션을 선택한 뒤 CLI와 같은 `.aigate/settings.json`에 저장합니다. | `aigate web --open` -> 설정 저장 -> `aigate doctor` |
+| 브라우저 기반 제어 | 로컬 콘솔을 열고 설정을 고른 뒤, 허용된 AIGate 명령 실행, 최신순 보고서 확인, AI 추천 다음 작업 실행까지 한 화면에서 처리합니다. | `aigate web --open` -> `git-ready` 또는 `ai report` 실행 -> 최신 보고서 열기 |
 | AI가 파일을 많이 변경 | 변경 경로를 확인하고 테스트를 돌린 뒤 실패 내용을 AI 수정 프롬프트로 만듭니다. | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
 | PR 직전 | gate를 통과시키고 AIGate로 push한 뒤 리뷰어가 볼 요약을 만듭니다. | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
 | private GitLab 모노레포 | 프로필을 고정하고 turbo 실행기 감지 후 workspace 테스트를 대체 실행하며 GitHub/npm 패키지 검사를 앱 점수에서 제외합니다. | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
@@ -98,7 +98,7 @@ hook 활성화 자동화를 따로 보여줍니다. `--gitlab-pipeline-must-succ
 | --- | --- |
 | 로컬 Git 준비 상태 확인 | `aigate check` |
 | 안내형 설정 라우터 | `aigate start` |
-| 브라우저 기반 설정 콘솔 | `aigate web --open` |
+| 브라우저 명령 콘솔, 설정, 보고서, AI 추천 | `aigate web --open` |
 | 예/아니오로 고르는 기본 설정 | `aigate start --route default --ask-steps` |
 | 필요한 단계만 지정 실행 | `aigate start --route default --steps init,repo-files` |
 | AIGate 설정과 settings 초기화 | `aigate reset` |

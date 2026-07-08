@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, unlinkSync, utimesSync, writeFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -788,7 +788,12 @@ test("serves web settings UI and saves settings", async () => {
 
     assert.equal(state.command, "web");
     assert.equal(state.settings.language, "en");
+    assert.ok(state.actions.some((group) => group.actions.some((action) => action.id === "check")));
+    assert.ok(Array.isArray(state.reports));
+    assert.ok(state.recommendations.some((item) => item.actionId === "ai-report"));
     assert.match(initialHtml, /Project Setup Console/);
+    assert.match(initialHtml, /Command Center/);
+    assert.match(initialHtml, /Latest Reports/);
 
     const response = await fetch(`${baseUrl}api/settings`, {
       method: "POST",
@@ -819,6 +824,8 @@ test("serves web settings UI and saves settings", async () => {
 
     const localizedHtml = await fetch(baseUrl).then((htmlResponse) => htmlResponse.text());
     assert.match(localizedHtml, /프로젝트 설정 콘솔/);
+    assert.match(localizedHtml, /기능 실행 콘솔/);
+    assert.match(localizedHtml, /최신 보고서/);
     assert.match(localizedHtml, /설정 저장/);
     assert.doesNotMatch(localizedHtml, /Project Setup Console/);
 
@@ -837,6 +844,56 @@ test("serves web settings UI and saves settings", async () => {
       assert.match(html, titlePattern);
       assert.match(html, savePattern);
     }
+  } finally {
+    await stopProcess(child);
+  }
+});
+
+test("runs web actions and lists reports newest first", async () => {
+  const settingsPath = createSettingsPath();
+  const projectDir = createMinimalGitProject();
+  const reportsDir = join(projectDir, ".aigate", "reports");
+  mkdirSync(reportsDir, { recursive: true });
+  const oldReport = join(reportsDir, "old.md");
+  const newReport = join(reportsDir, "new.md");
+  writeFileSync(oldReport, "old report\n", "utf8");
+  writeFileSync(newReport, "new report\n", "utf8");
+  utimesSync(oldReport, new Date("2026-01-01T00:00:00Z"), new Date("2026-01-01T00:00:00Z"));
+  utimesSync(newReport, new Date("2026-01-02T00:00:00Z"), new Date("2026-01-02T00:00:00Z"));
+
+  const child = spawn(process.execPath, [cliPath, "web", "--port", "0"], {
+    cwd: projectDir,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      AIGATE_SETTINGS_PATH: settingsPath,
+      AIGATE_SLACK_WEBHOOK_URL: ""
+    },
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+
+  try {
+    const { match } = await waitForOutput(child, /URL: (http:\/\/127\.0\.0\.1:\d+\/)/);
+    const baseUrl = match[1];
+    const reports = await fetch(`${baseUrl}api/reports`).then((response) => response.json());
+    const reportText = await fetch(`${baseUrl}reports/new.md`).then((response) => response.text());
+    const action = await fetch(`${baseUrl}api/actions/run`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        id: "check"
+      })
+    }).then((response) => response.json());
+
+    assert.equal(reports.ok, true);
+    assert.equal(reports.reports[0].name, "new.md");
+    assert.equal(reports.reports[1].name, "old.md");
+    assert.equal(reportText, "new report\n");
+    assert.equal(action.ok, true);
+    assert.equal(action.command, "aigate check");
+    assert.match(action.output, /AIGate check/);
   } finally {
     await stopProcess(child);
   }

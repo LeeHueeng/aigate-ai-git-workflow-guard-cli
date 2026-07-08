@@ -36,9 +36,10 @@ aigate web --open
 ```
 
 Web UI 会在 localhost 启动，编辑与 `aigate setup` 相同的
-`.aigate/settings.json`。浏览器不会执行任意 shell 命令。默认端口
-`4317` 已被占用时，会自动选择空闲端口。浏览器界面也会按照已保存的语言设置
-显示为英语、韩语、日语或中文。
+`.aigate/settings.json`。它可以运行安全 allowlist 中的 AIGate action，
+按最新顺序显示 `.aigate/reports`，并根据当前仓库信号推荐下一步。浏览器不会
+执行任意 shell 命令。默认端口 `4317` 已被占用时，会自动选择空闲端口。
+浏览器界面也会按照已保存的语言设置显示为英语、韩语、日语或中文。
 
 对于 private GitLab pnpm app，或以 `develop` 作为 merge target 的团队，可以固定
 workflow 设置:
@@ -92,7 +93,7 @@ aigate install-hook --pre-push
 | 命令 | 用途 |
 | --- | --- |
 | `aigate start` | 在 TTY 中打开方向键路由选择，非交互 shell 中运行 quickstart 路由。第一个路由是默认设置流程。 |
-| `aigate web --open` | 启动本地浏览器设置控制台，用于选择语言、托管、CI、分支、AI provider、质量门禁和强制连接选项。 |
+| `aigate web --open` | 启动本地浏览器控制台，用于选择设置、运行 allowlist 中的 AIGate 命令、查看最新报告和执行 AI 推荐下一步。 |
 | `aigate start --route default --ask-steps` | 在默认设置流程中逐步询问是否运行推荐步骤。 |
 | `aigate start --route default --steps init,repo-files` | 只运行选中的设置步骤 ID，其余标记为 skipped。 |
 | `aigate start --route oss --owner @your-org/team` | 创建 README、贡献文档、issue 模板、PR 模板、CODEOWNERS 和运维文档草案。没有 `--force` 时不会覆盖已有文件。 |
@@ -114,7 +115,7 @@ aigate install-hook --pre-push
 | 场景 | 流程 | 命令示例 |
 | --- | --- | --- |
 | 首次接入仓库 | 选择默认设置，只创建需要的文件，然后确认诊断结果。 | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
-| 想在界面中选择设置 | 打开本地 Web console，保存仓库设置，然后用诊断确认。 | `aigate web --open` -> 保存设置 -> `aigate doctor` |
+| 想在界面中操作 | 打开本地 Web console，保存设置，运行检查或报告，然后打开最新报告。 | `aigate web --open` -> 运行 `git-ready` 或 `ai report` -> 打开最新报告 |
 | AI agent 修改了很多文件后 | 先检查 changed files 和 secret 风险，再把失败测试交给 AI 修复提示。 | `aigate check` -> `aigate test` -> `aigate aitest` |
 | 打开 PR 之前 | 通过本地 gate，经 guarded push 推送，再生成 reviewer 摘要。 | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
 | private GitLab monorepo | 固定 profile，创建 GitLab MR/CODEOWNERS 工作流文件，并避免 GitHub 专用评分噪音。 | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate start --route default --steps repo-files --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm --owner @team` -> `aigate evaluate-project` |
@@ -372,7 +373,7 @@ aigate git-ready --notify-channel terminal
 | `aigate clean` | 预览生成报告和本地状态删除目标；添加 `--force` 后执行。 |
 | `aigate uninstall` | 预览本地 AIGate 配置、状态和自有 hook 的移除目标；添加 `--force` 后执行。 |
 | `aigate start` | 选择并运行引导式设置路由。 |
-| `aigate web` | 启动 localhost 浏览器控制台，不用手写 CLI 参数即可编辑 AIGate settings。 |
+| `aigate web` | 启动 localhost 浏览器控制台，用于编辑 settings、运行 allowlist 中的 AIGate action、按最新顺序查看报告并查看 AI 建议。 |
 | `aigate start --route default --ask-steps` | 逐个确认推荐的默认设置步骤后运行。 |
 | `aigate start --route default --steps init,repo-files` | 只运行选中的默认设置步骤。 |
 | `aigate start --route oss` | 创建公开仓库 README、issue 模板、PR 模板、CODEOWNERS 和贡献文档。 |

@@ -37,9 +37,11 @@ aigate web --open
 ```
 
 Web UI は localhost で起動し、`aigate setup` と同じ `.aigate/settings.json`
-を編集します。ブラウザから任意の shell コマンドは実行しません。既定 port
-`4317` が使用中なら、空き port を自動的に選びます。ブラウザ画面も保存済み
-language setting に従って英語、韓国語、日本語、中国語で表示されます。
+を編集します。安全な allowlist 済み AIGate action を実行し、`.aigate/reports`
+を新しい順に表示し、現在の repository signals から次の action を提案します。
+ブラウザから任意の shell コマンドは実行しません。既定 port `4317` が使用中なら、
+空き port を自動的に選びます。ブラウザ画面も保存済み language setting に従って
+英語、韓国語、日本語、中国語で表示されます。
 
 private GitLab pnpm app や `develop` を merge target にするチームでは、workflow
 設定を固定します:
@@ -94,7 +96,7 @@ aigate install-hook --pre-push
 | コマンド | 目的 |
 | --- | --- |
 | `aigate start` | TTY では矢印キーのルート選択を開き、非対話 shell では quickstart ルートを実行します。最初のルートはデフォルト設定フローです。 |
-| `aigate web --open` | language、hosting、CI、branch、AI provider、quality gate、enforcement を選ぶローカルブラウザ設定コンソールを起動します。 |
+| `aigate web --open` | settings 選択、allowlist 済み AIGate コマンド実行、最新順レポート、AI 推奨 next action を扱うローカルブラウザコンソールを起動します。 |
 | `aigate start --route default --ask-steps` | デフォルト設定フローで推奨手順ごとに実行するか確認します。 |
 | `aigate start --route default --steps init,repo-files` | 選択した設定手順 ID だけを実行し、他はスキップします。 |
 | `aigate start --route oss --owner @your-org/team` | README、貢献文書、issue テンプレート、PR テンプレート、CODEOWNERS、運用文書の草案を作成します。既存ファイルは `--force` なしでは上書きしません。 |
@@ -116,7 +118,7 @@ aigate install-hook --pre-push
 | 状況 | プロセス | コマンド例 |
 | --- | --- | --- |
 | 初めてリポジトリに導入する | デフォルト設定を選び、必要なファイルだけ作成して診断を確認します。 | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
-| 画面で設定を選びたいとき | ローカル Web console で repository settings を保存し、diagnostics で確認します。 | `aigate web --open` -> 設定保存 -> `aigate doctor` |
+| 画面で操作したいとき | ローカル Web console で settings を保存し、check や report を実行して、最新レポートを開きます。 | `aigate web --open` -> `git-ready` または `ai report` を実行 -> 最新レポートを開く |
 | AI エージェントが多数のファイルを変更した後 | 変更ファイルと secret リスクを先に確認し、失敗したテストは AI 修正プロンプトに渡します。 | `aigate check` -> `aigate test` -> `aigate aitest` |
 | PR を開く直前 | ローカル gate を通し、guarded push の後に reviewer 向けサマリーを生成します。 | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
 | private GitLab monorepo | profile を固定し、GitLab MR/CODEOWNERS ワークフローファイルを作成して、GitHub 専用の score noise を避けます。 | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate start --route default --steps repo-files --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm --owner @team` -> `aigate evaluate-project` |
@@ -386,7 +388,7 @@ aigate git-ready --notify-channel terminal
 | `aigate clean` | 生成レポートとローカル状態の削除対象をプレビューします。適用するには `--force` を付けます。 |
 | `aigate uninstall` | ローカル AIGate 設定、状態、所有 hook の削除対象をプレビューします。適用するには `--force` を付けます。 |
 | `aigate start` | ガイド付き設定ルートを選択して実行します。 |
-| `aigate web` | CLI flags を書かずに AIGate settings を編集する localhost browser console を起動します。 |
+| `aigate web` | settings 編集、allowlist 済み AIGate action 実行、最新順レポート確認、AI 推奨確認の localhost browser console を起動します。 |
 | `aigate start --route default --ask-steps` | 推奨デフォルト手順を一つずつ確認してから実行します。 |
 | `aigate start --route default --steps init,repo-files` | 選択したデフォルト設定手順だけを実行します。 |
 | `aigate start --route oss` | 公開リポジトリ用 README、issue テンプレート、PR テンプレート、CODEOWNERS、貢献文書を作成します。 |
