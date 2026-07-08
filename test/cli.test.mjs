@@ -784,9 +784,11 @@ test("serves web settings UI and saves settings", async () => {
     const { match } = await waitForOutput(child, /URL: (http:\/\/127\.0\.0\.1:\d+\/)/);
     const baseUrl = match[1];
     const state = await fetch(`${baseUrl}api/state`).then((response) => response.json());
+    const initialHtml = await fetch(baseUrl).then((response) => response.text());
 
     assert.equal(state.command, "web");
     assert.equal(state.settings.language, "en");
+    assert.match(initialHtml, /Project Setup Console/);
 
     const response = await fetch(`${baseUrl}api/settings`, {
       method: "POST",
@@ -814,6 +816,27 @@ test("serves web settings UI and saves settings", async () => {
     assert.deepEqual(saved.settings.protectedBranches, ["main", "develop"]);
     assert.deepEqual(saved.settings.aiProviders, ["claude", "codex"]);
     assert.equal(saved.settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, "verified");
+
+    const localizedHtml = await fetch(baseUrl).then((htmlResponse) => htmlResponse.text());
+    assert.match(localizedHtml, /프로젝트 설정 콘솔/);
+    assert.match(localizedHtml, /설정 저장/);
+    assert.doesNotMatch(localizedHtml, /Project Setup Console/);
+
+    for (const [language, titlePattern, savePattern] of [
+      ["ja", /プロジェクト設定コンソール/, /設定を保存/],
+      ["zh", /项目设置控制台/, /保存设置/]
+    ]) {
+      await fetch(`${baseUrl}api/settings`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({ language })
+      });
+      const html = await fetch(baseUrl).then((htmlResponse) => htmlResponse.text());
+      assert.match(html, titlePattern);
+      assert.match(html, savePattern);
+    }
   } finally {
     await stopProcess(child);
   }

@@ -4702,7 +4702,8 @@ async function handleWebRequest(request, response, language) {
   const url = new URL(request.url ?? "/", "http://localhost");
 
   if (request.method === "GET" && url.pathname === "/") {
-    writeWebHtml(response, renderWebSettingsApp(buildWebState(), language));
+    const state = buildWebState();
+    writeWebHtml(response, renderWebSettingsApp(state, state.settings.language ?? language));
     return;
   }
 
@@ -4855,22 +4856,278 @@ function openBrowser(url) {
   child.unref();
 }
 
+const WEB_UI_LABELS = {
+  en: {
+    title: "AIGate Web Setup",
+    tagline: "Configure AIGate without memorizing CLI flags. Settings are saved to",
+    navOverview: "Overview",
+    navSettings: "Settings",
+    navCommands: "Next Commands",
+    heroTitle: "Project Setup Console",
+    heroSubtitle: "Pick repository profile, branch policy, AI providers, and enforcement evidence from the browser.",
+    refresh: "Refresh",
+    score: "Score",
+    branch: "Branch",
+    profile: "Profile",
+    enforcement: "Enforcement",
+    changedFiles: "changed files",
+    readiness: "Readiness",
+    generatedAt: "Generated at",
+    from: "from",
+    openItems: "Open Items",
+    none: "None",
+    projectProfile: "Project Profile",
+    cliLanguage: "CLI output language",
+    projectType: "Project type",
+    hosting: "Hosting",
+    ciProvider: "CI provider",
+    packageManager: "Package manager",
+    distribution: "Distribution",
+    workflow: "Workflow",
+    defaultBranch: "Default branch",
+    targetBranch: "PR/MR target branch",
+    branchStrategy: "Branch strategy",
+    aiRootFiles: "Root AI files",
+    protectedBranches: "Protected branches",
+    workBranches: "Work branch patterns",
+    requiredChecks: "Required checks",
+    qualityCommands: "Quality commands",
+    aiAndEnforcement: "AI And Enforcement",
+    aiProviders: "AI providers",
+    githubRequiredChecks: "GitHub required checks",
+    gitlabPipeline: "GitLab pipeline must succeed",
+    save: "Save settings",
+    currentWorkflow: "Current workflow: {target} target, {providers} AI.",
+    equivalentCli: "Equivalent CLI",
+    recommendedCommands: "Recommended Next Commands",
+    saving: "Saving...",
+    savedTo: "Saved to ",
+    saveFailed: "Save failed",
+    languageEnglish: "English",
+    languageKorean: "Korean",
+    languageJapanese: "Japanese",
+    languageChinese: "Chinese",
+    auto: "Auto",
+    app: "App",
+    package: "Package",
+    other: "Other",
+    noDistribution: "None",
+    protectFiles: "Protect existing files",
+    sidecarOnly: "Sidecar only",
+    overwriteForce: "Overwrite with force",
+    declaredTrue: "Declared true",
+    falseValue: "False",
+    verified: "Verified"
+  },
+  ko: {
+    title: "AIGate 웹 설정",
+    tagline: "CLI 플래그를 외우지 않고 AIGate를 설정합니다. 설정은 다음 파일에 저장됩니다:",
+    navOverview: "개요",
+    navSettings: "설정",
+    navCommands: "다음 명령어",
+    heroTitle: "프로젝트 설정 콘솔",
+    heroSubtitle: "저장소 프로필, 브랜치 정책, AI 제공자, 강제 연결 증거를 브라우저에서 선택하세요.",
+    refresh: "새로고침",
+    score: "점수",
+    branch: "브랜치",
+    profile: "프로필",
+    enforcement: "강제 연결",
+    changedFiles: "개 변경 파일",
+    readiness: "준비 상태",
+    generatedAt: "생성 시각",
+    from: "위치",
+    openItems: "남은 항목",
+    none: "없음",
+    projectProfile: "프로젝트 프로필",
+    cliLanguage: "CLI 출력 언어",
+    projectType: "프로젝트 유형",
+    hosting: "호스팅",
+    ciProvider: "CI 제공자",
+    packageManager: "패키지 매니저",
+    distribution: "배포 방식",
+    workflow: "워크플로",
+    defaultBranch: "기본 브랜치",
+    targetBranch: "PR/MR 대상 브랜치",
+    branchStrategy: "브랜치 전략",
+    aiRootFiles: "루트 AI 파일",
+    protectedBranches: "보호 브랜치",
+    workBranches: "작업 브랜치 패턴",
+    requiredChecks: "필수 체크",
+    qualityCommands: "품질 검증 명령",
+    aiAndEnforcement: "AI와 강제 연결",
+    aiProviders: "AI 제공자",
+    githubRequiredChecks: "GitHub 필수 체크",
+    gitlabPipeline: "GitLab pipeline 필수 통과",
+    save: "설정 저장",
+    currentWorkflow: "현재 워크플로: {target} 대상, AI {providers}.",
+    equivalentCli: "동일한 CLI 명령",
+    recommendedCommands: "추천 다음 명령어",
+    saving: "저장 중...",
+    savedTo: "저장됨: ",
+    saveFailed: "저장 실패",
+    languageEnglish: "영어",
+    languageKorean: "한국어",
+    languageJapanese: "일본어",
+    languageChinese: "중국어",
+    auto: "자동",
+    app: "앱",
+    package: "패키지",
+    other: "기타",
+    noDistribution: "없음",
+    protectFiles: "기존 파일 보호",
+    sidecarOnly: "보조 파일만 생성",
+    overwriteForce: "force 사용 시 덮어쓰기",
+    declaredTrue: "선언됨",
+    falseValue: "아니오",
+    verified: "검증됨"
+  },
+  ja: {
+    title: "AIGate Web 設定",
+    tagline: "CLI flags を覚えなくても AIGate を設定できます。設定の保存先:",
+    navOverview: "概要",
+    navSettings: "設定",
+    navCommands: "次のコマンド",
+    heroTitle: "プロジェクト設定コンソール",
+    heroSubtitle: "repository profile、branch policy、AI provider、enforcement evidence をブラウザで選択します。",
+    refresh: "更新",
+    score: "スコア",
+    branch: "ブランチ",
+    profile: "プロファイル",
+    enforcement: "強制接続",
+    changedFiles: "件の変更ファイル",
+    readiness: "準備状況",
+    generatedAt: "生成時刻",
+    from: "場所",
+    openItems: "未完了項目",
+    none: "なし",
+    projectProfile: "プロジェクトプロファイル",
+    cliLanguage: "CLI 出力言語",
+    projectType: "プロジェクト種別",
+    hosting: "ホスティング",
+    ciProvider: "CI provider",
+    packageManager: "パッケージマネージャ",
+    distribution: "配布方式",
+    workflow: "ワークフロー",
+    defaultBranch: "デフォルトブランチ",
+    targetBranch: "PR/MR 対象ブランチ",
+    branchStrategy: "ブランチ戦略",
+    aiRootFiles: "ルート AI ファイル",
+    protectedBranches: "保護ブランチ",
+    workBranches: "作業ブランチパターン",
+    requiredChecks: "必須チェック",
+    qualityCommands: "品質検証コマンド",
+    aiAndEnforcement: "AI と強制接続",
+    aiProviders: "AI provider",
+    githubRequiredChecks: "GitHub required checks",
+    gitlabPipeline: "GitLab pipeline must succeed",
+    save: "設定を保存",
+    currentWorkflow: "現在のワークフロー: {target} 対象、AI {providers}.",
+    equivalentCli: "同等の CLI",
+    recommendedCommands: "推奨される次のコマンド",
+    saving: "保存中...",
+    savedTo: "保存しました: ",
+    saveFailed: "保存に失敗しました",
+    languageEnglish: "英語",
+    languageKorean: "韓国語",
+    languageJapanese: "日本語",
+    languageChinese: "中国語",
+    auto: "自動",
+    app: "アプリ",
+    package: "パッケージ",
+    other: "その他",
+    noDistribution: "なし",
+    protectFiles: "既存ファイルを保護",
+    sidecarOnly: "sidecar のみ",
+    overwriteForce: "force 時に上書き",
+    declaredTrue: "宣言済み",
+    falseValue: "いいえ",
+    verified: "検証済み"
+  },
+  zh: {
+    title: "AIGate Web 设置",
+    tagline: "无需记住 CLI 参数，也可以配置 AIGate。设置保存到:",
+    navOverview: "概览",
+    navSettings: "设置",
+    navCommands: "下一步命令",
+    heroTitle: "项目设置控制台",
+    heroSubtitle: "在浏览器中选择仓库配置、分支策略、AI provider 和强制连接证据。",
+    refresh: "刷新",
+    score: "分数",
+    branch: "分支",
+    profile: "配置",
+    enforcement: "强制连接",
+    changedFiles: "个变更文件",
+    readiness: "就绪状态",
+    generatedAt: "生成时间",
+    from: "位置",
+    openItems: "待处理项",
+    none: "无",
+    projectProfile: "项目配置",
+    cliLanguage: "CLI 输出语言",
+    projectType: "项目类型",
+    hosting: "托管平台",
+    ciProvider: "CI 服务",
+    packageManager: "包管理器",
+    distribution: "分发方式",
+    workflow: "工作流",
+    defaultBranch: "默认分支",
+    targetBranch: "PR/MR 目标分支",
+    branchStrategy: "分支策略",
+    aiRootFiles: "根目录 AI 文件",
+    protectedBranches: "受保护分支",
+    workBranches: "工作分支模式",
+    requiredChecks: "必需检查",
+    qualityCommands: "质量检查命令",
+    aiAndEnforcement: "AI 与强制连接",
+    aiProviders: "AI provider",
+    githubRequiredChecks: "GitHub 必需检查",
+    gitlabPipeline: "GitLab pipeline 必须通过",
+    save: "保存设置",
+    currentWorkflow: "当前工作流: {target} 目标, AI {providers}.",
+    equivalentCli: "等效 CLI",
+    recommendedCommands: "推荐下一步命令",
+    saving: "保存中...",
+    savedTo: "已保存到: ",
+    saveFailed: "保存失败",
+    languageEnglish: "英语",
+    languageKorean: "韩语",
+    languageJapanese: "日语",
+    languageChinese: "中文",
+    auto: "自动",
+    app: "应用",
+    package: "包",
+    other: "其他",
+    noDistribution: "无",
+    protectFiles: "保护已有文件",
+    sidecarOnly: "仅 sidecar",
+    overwriteForce: "使用 force 时覆盖",
+    declaredTrue: "已声明",
+    falseValue: "否",
+    verified: "已验证"
+  }
+};
+
 function renderWebSettingsApp(state, language = "en") {
+  const uiLanguage = normalizeLanguage(language) ?? DEFAULT_SETTINGS.language;
+  const ui = WEB_UI_LABELS[uiLanguage] ?? WEB_UI_LABELS.en;
   const settings = state.settings;
   const summary = state.settingsSummary;
   const selected = (value, expected) => String(value) === String(expected) ? " selected" : "";
   const checked = (values, value) => values.includes(value) ? " checked" : "";
   const listValue = (value) => escapeHtml(Array.isArray(value) ? value.join("\n") : String(value ?? ""));
+  const currentWorkflow = ui.currentWorkflow
+    .replace("{target}", escapeHtml(summary.targetBranch))
+    .replace("{providers}", escapeHtml(summary.aiProviders));
   const todoItems = state.evaluation.todoChecks.length
     ? state.evaluation.todoChecks.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
-    : "<li>None</li>";
+    : `<li>${escapeHtml(ui.none)}</li>`;
 
   return `<!doctype html>
-<html lang="${escapeHtml(language)}">
+<html lang="${escapeHtml(uiLanguage)}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AIGate Web Setup</title>
+<title>${escapeHtml(ui.title)}</title>
 <style>
 :root{color-scheme:light;--bg:#f7f8fb;--ink:#18202f;--muted:#5e6a7d;--line:#d8dee9;--panel:#ffffff;--accent:#1769aa;--ok:#237a4b;--warn:#a15c00;--danger:#b42318}
 *{box-sizing:border-box}
@@ -4919,37 +5176,37 @@ ul{margin-top:8px}
 <div class="shell">
 <aside>
   <div class="brand">AIGate Web</div>
-  <div class="tagline">Configure AIGate without memorizing CLI flags. Settings are saved to <code>${escapeHtml(state.settingsPath)}</code>.</div>
-  <nav class="nav" aria-label="AIGate web sections">
-    <button class="active" data-tab="overview" type="button">Overview</button>
-    <button data-tab="settings" type="button">Settings</button>
-    <button data-tab="commands" type="button">Next Commands</button>
+  <div class="tagline">${escapeHtml(ui.tagline)} <code>${escapeHtml(state.settingsPath)}</code>.</div>
+  <nav class="nav" aria-label="AIGate Web">
+    <button class="active" data-tab="overview" type="button">${escapeHtml(ui.navOverview)}</button>
+    <button data-tab="settings" type="button">${escapeHtml(ui.navSettings)}</button>
+    <button data-tab="commands" type="button">${escapeHtml(ui.navCommands)}</button>
   </nav>
 </aside>
 <main>
   <section class="hero">
     <div>
-      <h1>Project Setup Console</h1>
-      <p class="sub">Pick repository profile, branch policy, AI providers, and enforcement evidence from the browser.</p>
+      <h1>${escapeHtml(ui.heroTitle)}</h1>
+      <p class="sub">${escapeHtml(ui.heroSubtitle)}</p>
     </div>
-    <button class="secondary" id="refresh" type="button">Refresh</button>
+    <button class="secondary" id="refresh" type="button">${escapeHtml(ui.refresh)}</button>
   </section>
 
   <section class="status" aria-label="Current status">
-    <div class="metric"><span>Score</span><strong>${state.evaluation.score}/100</strong><div class="hint">${escapeHtml(state.evaluation.grade)}</div></div>
-    <div class="metric"><span>Branch</span><strong>${escapeHtml(state.git.branch)}</strong><div class="hint">${state.git.changedFiles} changed files</div></div>
-    <div class="metric"><span>Profile</span><strong>${escapeHtml(state.profile.kind)}</strong><div class="hint">${escapeHtml(state.profile.hosting)} / ${escapeHtml(state.profile.packageManager)}</div></div>
-    <div class="metric"><span>Enforcement</span><strong>${escapeHtml(state.evaluation.enforcement.level)}</strong><div class="hint">${escapeHtml(state.evaluation.enforcement.provider)}</div></div>
+    <div class="metric"><span>${escapeHtml(ui.score)}</span><strong>${state.evaluation.score}/100</strong><div class="hint">${escapeHtml(state.evaluation.grade)}</div></div>
+    <div class="metric"><span>${escapeHtml(ui.branch)}</span><strong>${escapeHtml(state.git.branch)}</strong><div class="hint">${state.git.changedFiles} ${escapeHtml(ui.changedFiles)}</div></div>
+    <div class="metric"><span>${escapeHtml(ui.profile)}</span><strong>${escapeHtml(state.profile.kind)}</strong><div class="hint">${escapeHtml(state.profile.hosting)} / ${escapeHtml(state.profile.packageManager)}</div></div>
+    <div class="metric"><span>${escapeHtml(ui.enforcement)}</span><strong>${escapeHtml(state.evaluation.enforcement.level)}</strong><div class="hint">${escapeHtml(state.evaluation.enforcement.provider)}</div></div>
   </section>
 
   <section id="tab-overview">
     <div class="panel">
-      <h2>Readiness</h2>
+      <h2>${escapeHtml(ui.readiness)}</h2>
       <p>${escapeHtml(state.evaluation.recommendation)}</p>
-      <p class="hint">Generated at ${escapeHtml(state.generatedAt)} from ${escapeHtml(state.cwd)}</p>
+      <p class="hint">${escapeHtml(ui.generatedAt)} ${escapeHtml(state.generatedAt)} ${escapeHtml(ui.from)} ${escapeHtml(state.cwd)}</p>
     </div>
     <div class="panel">
-      <h2>Open Items</h2>
+      <h2>${escapeHtml(ui.openItems)}</h2>
       <ul>${todoItems}</ul>
     </div>
   </section>
@@ -4957,107 +5214,107 @@ ul{margin-top:8px}
   <section id="tab-settings" class="hidden">
     <form id="settings-form">
       <div class="panel">
-        <h2>Project Profile</h2>
+        <h2>${escapeHtml(ui.projectProfile)}</h2>
         <div class="grid">
-          <div class="field"><label for="language">CLI output language</label><select id="language" name="language">
-            <option value="en"${selected(settings.language, "en")}>English</option>
-            <option value="ko"${selected(settings.language, "ko")}>Korean</option>
-            <option value="ja"${selected(settings.language, "ja")}>Japanese</option>
-            <option value="zh"${selected(settings.language, "zh")}>Chinese</option>
+          <div class="field"><label for="language">${escapeHtml(ui.cliLanguage)}</label><select id="language" name="language">
+            <option value="en"${selected(settings.language, "en")}>${escapeHtml(ui.languageEnglish)}</option>
+            <option value="ko"${selected(settings.language, "ko")}>${escapeHtml(ui.languageKorean)}</option>
+            <option value="ja"${selected(settings.language, "ja")}>${escapeHtml(ui.languageJapanese)}</option>
+            <option value="zh"${selected(settings.language, "zh")}>${escapeHtml(ui.languageChinese)}</option>
           </select></div>
-          <div class="field"><label for="projectType">Project type</label><select id="projectType" name="projectType">
-            <option value="auto"${selected(settings.projectType, "auto")}>Auto</option>
-            <option value="app"${selected(settings.projectType, "app")}>App</option>
-            <option value="package"${selected(settings.projectType, "package")}>Package</option>
+          <div class="field"><label for="projectType">${escapeHtml(ui.projectType)}</label><select id="projectType" name="projectType">
+            <option value="auto"${selected(settings.projectType, "auto")}>${escapeHtml(ui.auto)}</option>
+            <option value="app"${selected(settings.projectType, "app")}>${escapeHtml(ui.app)}</option>
+            <option value="package"${selected(settings.projectType, "package")}>${escapeHtml(ui.package)}</option>
           </select></div>
-          <div class="field"><label for="hosting">Hosting</label><select id="hosting" name="hosting">
-            <option value="auto"${selected(settings.hosting, "auto")}>Auto</option>
+          <div class="field"><label for="hosting">${escapeHtml(ui.hosting)}</label><select id="hosting" name="hosting">
+            <option value="auto"${selected(settings.hosting, "auto")}>${escapeHtml(ui.auto)}</option>
             <option value="github"${selected(settings.hosting, "github")}>GitHub</option>
             <option value="gitlab"${selected(settings.hosting, "gitlab")}>GitLab</option>
-            <option value="other"${selected(settings.hosting, "other")}>Other</option>
+            <option value="other"${selected(settings.hosting, "other")}>${escapeHtml(ui.other)}</option>
           </select></div>
-          <div class="field"><label for="ciProvider">CI provider</label><select id="ciProvider" name="ciProvider">
-            <option value="auto"${selected(settings.ciProvider, "auto")}>Auto</option>
+          <div class="field"><label for="ciProvider">${escapeHtml(ui.ciProvider)}</label><select id="ciProvider" name="ciProvider">
+            <option value="auto"${selected(settings.ciProvider, "auto")}>${escapeHtml(ui.auto)}</option>
             <option value="github"${selected(settings.ciProvider, "github")}>GitHub Actions</option>
             <option value="gitlab"${selected(settings.ciProvider, "gitlab")}>GitLab CI</option>
-            <option value="other"${selected(settings.ciProvider, "other")}>Other</option>
+            <option value="other"${selected(settings.ciProvider, "other")}>${escapeHtml(ui.other)}</option>
           </select></div>
-          <div class="field"><label for="packageManager">Package manager</label><select id="packageManager" name="packageManager">
-            <option value="auto"${selected(settings.packageManager, "auto")}>Auto</option>
+          <div class="field"><label for="packageManager">${escapeHtml(ui.packageManager)}</label><select id="packageManager" name="packageManager">
+            <option value="auto"${selected(settings.packageManager, "auto")}>${escapeHtml(ui.auto)}</option>
             <option value="npm"${selected(settings.packageManager, "npm")}>npm</option>
             <option value="pnpm"${selected(settings.packageManager, "pnpm")}>pnpm</option>
             <option value="yarn"${selected(settings.packageManager, "yarn")}>yarn</option>
             <option value="bun"${selected(settings.packageManager, "bun")}>bun</option>
           </select></div>
-          <div class="field"><label for="distribution">Distribution</label><select id="distribution" name="distribution">
-            <option value="auto"${selected(settings.distribution, "auto")}>Auto</option>
-            <option value="none"${selected(settings.distribution, "none")}>None</option>
+          <div class="field"><label for="distribution">${escapeHtml(ui.distribution)}</label><select id="distribution" name="distribution">
+            <option value="auto"${selected(settings.distribution, "auto")}>${escapeHtml(ui.auto)}</option>
+            <option value="none"${selected(settings.distribution, "none")}>${escapeHtml(ui.noDistribution)}</option>
             <option value="npm"${selected(settings.distribution, "npm")}>npm</option>
           </select></div>
         </div>
       </div>
 
       <div class="panel">
-        <h2>Workflow</h2>
+        <h2>${escapeHtml(ui.workflow)}</h2>
         <div class="grid">
-          <div class="field"><label for="defaultBranch">Default branch</label><input id="defaultBranch" name="defaultBranch" value="${escapeHtml(settings.defaultBranch)}"></div>
-          <div class="field"><label for="targetBranch">PR/MR target branch</label><input id="targetBranch" name="targetBranch" value="${escapeHtml(settings.targetBranch)}"></div>
-          <div class="field"><label for="branchStrategy">Branch strategy</label><select id="branchStrategy" name="branchStrategy">
-            <option value="auto"${selected(settings.branchStrategy, "auto")}>Auto</option>
+          <div class="field"><label for="defaultBranch">${escapeHtml(ui.defaultBranch)}</label><input id="defaultBranch" name="defaultBranch" value="${escapeHtml(settings.defaultBranch)}"></div>
+          <div class="field"><label for="targetBranch">${escapeHtml(ui.targetBranch)}</label><input id="targetBranch" name="targetBranch" value="${escapeHtml(settings.targetBranch)}"></div>
+          <div class="field"><label for="branchStrategy">${escapeHtml(ui.branchStrategy)}</label><select id="branchStrategy" name="branchStrategy">
+            <option value="auto"${selected(settings.branchStrategy, "auto")}>${escapeHtml(ui.auto)}</option>
             <option value="github-flow"${selected(settings.branchStrategy, "GitHub Flow with release channels")}>GitHub Flow</option>
             <option value="gitlab-flow"${selected(settings.branchStrategy, "GitLab Flow with merge requests")}>GitLab Flow</option>
             <option value="trunk"${selected(settings.branchStrategy, "Trunk-Based Development")}>Trunk-Based</option>
             <option value="hybrid"${selected(settings.branchStrategy, "Hybrid Flow")}>Hybrid</option>
             <option value="git-flow"${selected(settings.branchStrategy, "Git Flow")}>Git Flow</option>
           </select></div>
-          <div class="field"><label for="aiRootFiles">Root AI files</label><select id="aiRootFiles" name="aiRootFiles">
-            <option value="protect"${selected(settings.aiRootFiles, "protect")}>Protect existing files</option>
-            <option value="sidecar"${selected(settings.aiRootFiles, "sidecar")}>Sidecar only</option>
-            <option value="overwrite"${selected(settings.aiRootFiles, "overwrite")}>Overwrite with force</option>
+          <div class="field"><label for="aiRootFiles">${escapeHtml(ui.aiRootFiles)}</label><select id="aiRootFiles" name="aiRootFiles">
+            <option value="protect"${selected(settings.aiRootFiles, "protect")}>${escapeHtml(ui.protectFiles)}</option>
+            <option value="sidecar"${selected(settings.aiRootFiles, "sidecar")}>${escapeHtml(ui.sidecarOnly)}</option>
+            <option value="overwrite"${selected(settings.aiRootFiles, "overwrite")}>${escapeHtml(ui.overwriteForce)}</option>
           </select></div>
-          <div class="field"><label for="protectedBranches">Protected branches</label><textarea id="protectedBranches" name="protectedBranches">${listValue(settings.protectedBranches)}</textarea></div>
-          <div class="field"><label for="workBranches">Work branch patterns</label><textarea id="workBranches" name="workBranches">${listValue(settings.workBranches)}</textarea></div>
-          <div class="field"><label for="requiredChecks">Required checks</label><textarea id="requiredChecks" name="requiredChecks">${listValue(settings.requiredChecks)}</textarea></div>
-          <div class="field"><label for="qualityCommands">Quality commands</label><textarea id="qualityCommands" name="qualityCommands">${listValue(settings.qualityCommands)}</textarea></div>
+          <div class="field"><label for="protectedBranches">${escapeHtml(ui.protectedBranches)}</label><textarea id="protectedBranches" name="protectedBranches">${listValue(settings.protectedBranches)}</textarea></div>
+          <div class="field"><label for="workBranches">${escapeHtml(ui.workBranches)}</label><textarea id="workBranches" name="workBranches">${listValue(settings.workBranches)}</textarea></div>
+          <div class="field"><label for="requiredChecks">${escapeHtml(ui.requiredChecks)}</label><textarea id="requiredChecks" name="requiredChecks">${listValue(settings.requiredChecks)}</textarea></div>
+          <div class="field"><label for="qualityCommands">${escapeHtml(ui.qualityCommands)}</label><textarea id="qualityCommands" name="qualityCommands">${listValue(settings.qualityCommands)}</textarea></div>
         </div>
       </div>
 
       <div class="panel">
-        <h2>AI And Enforcement</h2>
-        <div class="checks" aria-label="AI providers">
+        <h2>${escapeHtml(ui.aiAndEnforcement)}</h2>
+        <div class="checks" aria-label="${escapeHtml(ui.aiProviders)}">
           <label><input type="checkbox" name="aiProviders" value="codex"${checked(settings.aiProviders, "codex")}>Codex</label>
           <label><input type="checkbox" name="aiProviders" value="claude"${checked(settings.aiProviders, "claude")}>Claude</label>
           <label><input type="checkbox" name="aiProviders" value="gemini"${checked(settings.aiProviders, "gemini")}>Gemini</label>
         </div>
         <div class="grid" style="margin-top:14px">
-          <div class="field"><label for="githubRequiredChecksEnforced">GitHub required checks</label><select id="githubRequiredChecksEnforced" name="githubRequiredChecksEnforced">
-            <option value="auto"${selected(settings.serverEnforcement.github.requiredChecksEnforced, "auto")}>Auto</option>
-            <option value="true"${selected(settings.serverEnforcement.github.requiredChecksEnforced, true)}>Declared true</option>
-            <option value="false"${selected(settings.serverEnforcement.github.requiredChecksEnforced, false)}>False</option>
-            <option value="verified"${selected(settings.serverEnforcement.github.requiredChecksEnforced, "verified")}>Verified</option>
+          <div class="field"><label for="githubRequiredChecksEnforced">${escapeHtml(ui.githubRequiredChecks)}</label><select id="githubRequiredChecksEnforced" name="githubRequiredChecksEnforced">
+            <option value="auto"${selected(settings.serverEnforcement.github.requiredChecksEnforced, "auto")}>${escapeHtml(ui.auto)}</option>
+            <option value="true"${selected(settings.serverEnforcement.github.requiredChecksEnforced, true)}>${escapeHtml(ui.declaredTrue)}</option>
+            <option value="false"${selected(settings.serverEnforcement.github.requiredChecksEnforced, false)}>${escapeHtml(ui.falseValue)}</option>
+            <option value="verified"${selected(settings.serverEnforcement.github.requiredChecksEnforced, "verified")}>${escapeHtml(ui.verified)}</option>
           </select></div>
-          <div class="field"><label for="gitlabPipelineMustSucceed">GitLab pipeline must succeed</label><select id="gitlabPipelineMustSucceed" name="gitlabPipelineMustSucceed">
-            <option value="auto"${selected(settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, "auto")}>Auto</option>
-            <option value="true"${selected(settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, true)}>Declared true</option>
-            <option value="false"${selected(settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, false)}>False</option>
-            <option value="verified"${selected(settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, "verified")}>Verified</option>
+          <div class="field"><label for="gitlabPipelineMustSucceed">${escapeHtml(ui.gitlabPipeline)}</label><select id="gitlabPipelineMustSucceed" name="gitlabPipelineMustSucceed">
+            <option value="auto"${selected(settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, "auto")}>${escapeHtml(ui.auto)}</option>
+            <option value="true"${selected(settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, true)}>${escapeHtml(ui.declaredTrue)}</option>
+            <option value="false"${selected(settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, false)}>${escapeHtml(ui.falseValue)}</option>
+            <option value="verified"${selected(settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, "verified")}>${escapeHtml(ui.verified)}</option>
           </select></div>
         </div>
       </div>
       <div class="actions">
-        <button class="primary" type="submit">Save settings</button>
-        <span class="msg" id="message">Current workflow: ${escapeHtml(summary.targetBranch)} target, ${escapeHtml(summary.aiProviders)} AI.</span>
+        <button class="primary" type="submit">${escapeHtml(ui.save)}</button>
+        <span class="msg" id="message">${currentWorkflow}</span>
       </div>
     </form>
   </section>
 
   <section id="tab-commands" class="hidden">
     <div class="panel">
-      <h2>Equivalent CLI</h2>
+      <h2>${escapeHtml(ui.equivalentCli)}</h2>
       <pre id="cli-preview"></pre>
     </div>
     <div class="panel">
-      <h2>Recommended Next Commands</h2>
+      <h2>${escapeHtml(ui.recommendedCommands)}</h2>
       <pre>aigate doctor
 aigate evaluate-project
 aigate start --route default --ask-steps
@@ -5072,6 +5329,11 @@ const form = document.getElementById("settings-form");
 const message = document.getElementById("message");
 const cliPreview = document.getElementById("cli-preview");
 const listFields = new Set(["protectedBranches","workBranches","requiredChecks","qualityCommands"]);
+const uiText = ${JSON.stringify({
+    saving: ui.saving,
+    savedTo: ui.savedTo,
+    saveFailed: ui.saveFailed
+  })};
 function listValue(value){return String(value || "").split(/[\\n,]/).map((item)=>item.trim()).filter(Boolean)}
 function collect(){
   const data = Object.fromEntries(new FormData(form).entries());
@@ -5105,7 +5367,7 @@ document.querySelectorAll(".nav button").forEach((button)=>{
 form.addEventListener("input", refreshPreview);
 form.addEventListener("submit", async (event)=>{
   event.preventDefault();
-  message.textContent = "Saving...";
+  message.textContent = uiText.saving;
   message.className = "msg";
   try {
     const response = await fetch("/api/settings", {
@@ -5114,12 +5376,12 @@ form.addEventListener("submit", async (event)=>{
       body: JSON.stringify(collect())
     });
     const result = await response.json();
-    if (!response.ok || !result.ok) throw new Error(result.error || "Save failed");
-    message.textContent = "Saved to " + result.settingsPath;
+    if (!response.ok || !result.ok) throw new Error(result.error || uiText.saveFailed);
+    message.textContent = uiText.savedTo + result.settingsPath;
     message.className = "msg ok";
     refreshPreview();
   } catch (error) {
-    message.textContent = error.message || "Save failed";
+    message.textContent = error.message || uiText.saveFailed;
     message.className = "msg danger";
   }
 });
