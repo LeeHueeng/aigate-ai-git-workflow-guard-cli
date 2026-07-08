@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { execFileSync, spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { createServer } from "node:http";
 import { dirname, isAbsolute, join } from "node:path";
 import readline from "node:readline";
 import { fileURLToPath } from "node:url";
@@ -1050,6 +1051,7 @@ const HELP_CONTENT = {
       ["doctor", "Diagnose first-run environment and repository setup."],
       ["demo", "Show a guided first-run demo without changing files."],
       ["install-hook", "Install AIGate Git hooks."],
+      ["web", "Start a local web UI for AIGate settings."],
       ["test", "Run Git readiness and the detected project test command."],
       ["aitest", "Create an AI remediation prompt, and optionally run an AI agent."],
       ["ai report", "Explain current problems, strengths, direction, and AI handoff steps."],
@@ -1123,6 +1125,9 @@ const HELP_CONTENT = {
       ["--agent-command <shell>", "Custom AI agent command for aitest or ai report --apply."],
       ["--prompt-output <path>", "Write the AI report handoff prompt to a custom path."],
       ["--pre-push", "Install or target the pre-push Git hook."],
+      ["--host <host>", "Host for the local web UI."],
+      ["--port <number>", "Port for the local web UI."],
+      ["--open", "Open the local web UI in your browser."],
       ["--include-ai-files", "Also target generated AGENTS/GEMINI/CLAUDE files for uninstall."],
       ["--overwrite-ai-files", "Allow integrate --force to overwrite existing root AGENTS/GEMINI/CLAUDE files."],
       ["--github-files", "Also target generated GitHub helper templates during clean."],
@@ -1156,6 +1161,7 @@ const HELP_CONTENT = {
       ["doctor", "첫 실행 환경과 저장소 설정을 진단합니다."],
       ["demo", "파일 변경 없이 첫 실행 데모를 보여줍니다."],
       ["install-hook", "AIGate Git hook을 설치합니다."],
+      ["web", "AIGate 설정용 로컬 웹 UI를 시작합니다."],
       ["test", "Git 준비 상태와 감지된 프로젝트 테스트 명령을 실행합니다."],
       ["aitest", "AI 수정 프롬프트를 만들고, 선택하면 AI 에이전트를 실행합니다."],
       ["ai report", "현재 문제점, 잘된 점, 방향성, AI 전달 단계를 설명합니다."],
@@ -1229,6 +1235,9 @@ const HELP_CONTENT = {
       ["--agent-command <shell>", "aitest 또는 ai report --apply에서 사용할 사용자 지정 AI 에이전트 명령입니다."],
       ["--prompt-output <path>", "AI report 전달 프롬프트를 지정한 경로에 저장합니다."],
       ["--pre-push", "pre-push Git hook을 설치하거나 대상으로 지정합니다."],
+      ["--host <host>", "로컬 웹 UI host입니다."],
+      ["--port <number>", "로컬 웹 UI port입니다."],
+      ["--open", "로컬 웹 UI를 브라우저에서 엽니다."],
       ["--include-ai-files", "uninstall에서 생성된 AGENTS/GEMINI/CLAUDE 파일도 대상으로 포함합니다."],
       ["--overwrite-ai-files", "integrate --force가 기존 루트 AGENTS/GEMINI/CLAUDE 파일을 덮어쓸 수 있게 합니다."],
       ["--github-files", "clean에서 생성된 GitHub 보조 템플릿도 대상으로 포함합니다."],
@@ -1262,6 +1271,7 @@ const HELP_CONTENT = {
       ["doctor", "初回実行環境とリポジトリ設定を診断します。"],
       ["demo", "ファイルを変更せず初回実行デモを表示します。"],
       ["install-hook", "AIGate Git hook をインストールします。"],
+      ["web", "AIGate 設定用のローカル Web UI を開始します。"],
       ["test", "Git 準備状態と検出したプロジェクト test コマンドを実行します。"],
       ["aitest", "AI 修正プロンプトを作成し、必要なら AI エージェントを実行します。"],
       ["ai report", "現在の問題、良い点、方向性、AI 引き継ぎ手順を説明します。"],
@@ -1335,6 +1345,9 @@ const HELP_CONTENT = {
       ["--agent-command <shell>", "aitest または ai report --apply で使うカスタム AI エージェントコマンドです。"],
       ["--prompt-output <path>", "AI report 引き継ぎプロンプトを指定パスへ保存します。"],
       ["--pre-push", "pre-push Git hook をインストールまたは対象にします。"],
+      ["--host <host>", "ローカル Web UI の host です。"],
+      ["--port <number>", "ローカル Web UI の port です。"],
+      ["--open", "ローカル Web UI をブラウザーで開きます。"],
       ["--include-ai-files", "uninstall で生成済み AGENTS/GEMINI/CLAUDE ファイルも対象にします。"],
       ["--overwrite-ai-files", "integrate --force が既存 root AGENTS/GEMINI/CLAUDE files を上書きできるようにします。"],
       ["--github-files", "clean で生成済み GitHub helper template も対象にします。"],
@@ -1368,6 +1381,7 @@ const HELP_CONTENT = {
       ["doctor", "诊断首次运行环境和仓库设置。"],
       ["demo", "不改动文件，显示首次运行演示。"],
       ["install-hook", "安装 AIGate Git hook。"],
+      ["web", "启动 AIGate 设置本地 Web UI。"],
       ["test", "运行 Git 就绪检查和检测到的项目测试命令。"],
       ["aitest", "创建 AI 修复提示，并可选择运行 AI agent。"],
       ["ai report", "说明当前问题、做得好的部分、方向和 AI 交接步骤。"],
@@ -1441,6 +1455,9 @@ const HELP_CONTENT = {
       ["--agent-command <shell>", "aitest 或 ai report --apply 使用的自定义 AI agent 命令。"],
       ["--prompt-output <path>", "将 AI report 交接提示写入指定路径。"],
       ["--pre-push", "安装或指定 pre-push Git hook。"],
+      ["--host <host>", "本地 Web UI host。"],
+      ["--port <number>", "本地 Web UI port。"],
+      ["--open", "在浏览器中打开本地 Web UI。"],
       ["--include-ai-files", "uninstall 时也包含生成的 AGENTS/GEMINI/CLAUDE 文件。"],
       ["--overwrite-ai-files", "允许 integrate --force 覆盖已有 root AGENTS/GEMINI/CLAUDE 文件。"],
       ["--github-files", "clean 时也包含生成的 GitHub helper 模板。"],
@@ -1933,6 +1950,7 @@ const commands = {
   doctor: (args) => commandDoctor(args, commandContext()),
   demo: (args) => commandDemo(args, commandContext()),
   "install-hook": (args) => commandInstallHook(args, commandContext()),
+  web: commandWeb,
   test: commandTest,
   aitest: commandAiTest,
   ai: commandAi,
@@ -2707,6 +2725,47 @@ function commandSettings(args) {
     t(language, "settings.profile", settings),
     t(language, "settings.workflow", settingsSummary(settings))
   ].join("\n");
+}
+
+async function commandWeb(args) {
+  const options = parseOptions(args);
+  const language = resolveLanguage(options);
+  if (!language) {
+    return unsupportedLanguage(options.language);
+  }
+
+  const host = String(options.host ?? "127.0.0.1");
+  const port = webPort(options.port);
+  const dryRunUrl = `http://${host}:${port}/`;
+  const state = buildWebState();
+
+  if (options.dryRun) {
+    const preview = {
+      command: "web",
+      status: "DRY_RUN",
+      host,
+      port,
+      url: dryRunUrl,
+      settingsPath: getSettingsPath(),
+      settings: state.settings,
+      profile: state.profile,
+      projectScore: state.evaluation.score
+    };
+
+    if (options.format === "json") {
+      return JSON.stringify(preview, null, 2);
+    }
+
+    return [
+      "AIGate web: DRY RUN",
+      `URL: ${dryRunUrl}`,
+      `Settings file: ${getSettingsPath()}`,
+      `Project score: ${state.evaluation.score}/100`
+    ].join("\n");
+  }
+
+  await startWebServer({ host, port, open: Boolean(options.open), language });
+  return null;
 }
 
 function commandIntegrate(args) {
@@ -4549,6 +4608,490 @@ function commandDashboard(args) {
   mkdirSync(dirname(outputPath), { recursive: true });
   writeFileSync(outputPath, `${output}\n`, "utf8");
   return t(language, "common.wrote", { path: outputPath });
+}
+
+function webPort(value) {
+  if (value === undefined || value === true) {
+    return 4317;
+  }
+
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 0 || parsed > 65535) {
+    throw new Error("Invalid --port value. Use a number between 0 and 65535.");
+  }
+
+  return parsed;
+}
+
+async function startWebServer({ host, port, open, language }) {
+  const server = createServer((request, response) => {
+    handleWebRequest(request, response, language).catch((error) => {
+      writeWebJson(response, 500, {
+        ok: false,
+        error: error?.message ?? String(error)
+      });
+    });
+  });
+
+  await new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(port, host, () => {
+      server.off("error", reject);
+      resolve();
+    });
+  });
+
+  const address = server.address();
+  const actualPort = typeof address === "object" && address ? address.port : port;
+  const url = `http://${host}:${actualPort}/`;
+  print([
+    "AIGate web: READY",
+    `URL: ${url}`,
+    `Settings file: ${getSettingsPath()}`,
+    "Press Ctrl+C to stop."
+  ].join("\n"));
+
+  if (open) {
+    openBrowser(url);
+  }
+
+  await new Promise((resolve) => {
+    const close = () => server.close(resolve);
+    process.once("SIGINT", close);
+    process.once("SIGTERM", close);
+  });
+}
+
+async function handleWebRequest(request, response, language) {
+  const url = new URL(request.url ?? "/", "http://localhost");
+
+  if (request.method === "GET" && url.pathname === "/") {
+    writeWebHtml(response, renderWebSettingsApp(buildWebState(), language));
+    return;
+  }
+
+  if (request.method === "GET" && url.pathname === "/api/state") {
+    writeWebJson(response, 200, buildWebState());
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/settings") {
+    const payload = await readWebJsonBody(request);
+    const settings = applyWebSettings(payload);
+    writeWebJson(response, 200, {
+      ok: true,
+      settingsPath: getSettingsPath(),
+      settings,
+      state: buildWebState()
+    });
+    return;
+  }
+
+  writeWebJson(response, 404, {
+    ok: false,
+    error: "Not found"
+  });
+}
+
+function writeWebHtml(response, body) {
+  response.writeHead(200, {
+    "content-type": "text/html; charset=utf-8",
+    "cache-control": "no-store"
+  });
+  response.end(body);
+}
+
+function writeWebJson(response, statusCode, payload) {
+  response.writeHead(statusCode, {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store"
+  });
+  response.end(`${JSON.stringify(payload, null, 2)}\n`);
+}
+
+function readWebJsonBody(request) {
+  return new Promise((resolve, reject) => {
+    let body = "";
+    request.setEncoding("utf8");
+    request.on("data", (chunk) => {
+      body += chunk;
+      if (body.length > 64_000) {
+        reject(new Error("Request body is too large."));
+        request.destroy();
+      }
+    });
+    request.on("end", () => {
+      if (!body.trim()) {
+        resolve({});
+        return;
+      }
+
+      try {
+        resolve(JSON.parse(body));
+      } catch {
+        reject(new Error("Request body must be JSON."));
+      }
+    });
+    request.on("error", reject);
+  });
+}
+
+function buildWebState() {
+  const packageJson = readJsonFile("package.json");
+  const settings = normalizeSettings(readSettings());
+  const profile = detectProjectProfile(packageJson);
+  const evaluation = buildEvaluation();
+  const status = buildGitStatus();
+  return {
+    command: "web",
+    version: VERSION,
+    generatedAt: new Date().toISOString(),
+    cwd: process.cwd(),
+    settingsPath: getSettingsPath(),
+    settings,
+    settingsSummary: settingsSummary(settings),
+    profile,
+    evaluation: {
+      score: evaluation.score,
+      rawScore: evaluation.rawScore,
+      grade: evaluation.grade,
+      recommendation: evaluation.recommendation,
+      categories: evaluation.categories,
+      enforcement: evaluation.enforcement,
+      todoChecks: evaluation.checks.filter((check) => check.applicable !== false && !check.pass).map((check) => check.name)
+    },
+    git: {
+      branch: status.branch,
+      changedFiles: status.changedFiles.length,
+      riskLevel: status.riskLevel,
+      recommendation: status.recommendation
+    }
+  };
+}
+
+function applyWebSettings(payload = {}) {
+  const currentSettings = normalizeSettings(readSettings());
+  const language = normalizeLanguage(payload.language ?? currentSettings.language ?? DEFAULT_SETTINGS.language);
+  if (!language) {
+    throw new Error("Unsupported language.");
+  }
+
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    ...currentSettings,
+    language,
+    projectType: settingValue(payload.projectType, currentSettings.projectType, normalizeProjectType, "auto"),
+    hosting: settingValue(payload.hosting, currentSettings.hosting, normalizeHosting, "auto"),
+    ciProvider: settingValue(payload.ciProvider, currentSettings.ciProvider, normalizeCiProvider, "auto"),
+    packageManager: settingValue(payload.packageManager, currentSettings.packageManager, normalizePackageManager, "auto"),
+    distribution: settingValue(payload.distribution, currentSettings.distribution, normalizeDistribution, "auto"),
+    defaultBranch: branchSettingValue(payload.defaultBranch, currentSettings.defaultBranch, "main"),
+    targetBranch: branchSettingValue(payload.targetBranch, currentSettings.targetBranch, payload.defaultBranch ?? currentSettings.defaultBranch ?? "main"),
+    branchStrategy: settingValue(payload.branchStrategy, currentSettings.branchStrategy, normalizeBranchStrategySetting, "auto"),
+    protectedBranches: listSettingValue(payload.protectedBranches, currentSettings.protectedBranches),
+    workBranches: listSettingValue(payload.workBranches, currentSettings.workBranches),
+    requiredChecks: listSettingValue(payload.requiredChecks, currentSettings.requiredChecks),
+    qualityCommands: listSettingValue(payload.qualityCommands, currentSettings.qualityCommands),
+    aiProviders: integrationProviderListSetting(payload.aiProviders, currentSettings.aiProviders),
+    aiRootFiles: aiRootFilesSettingValue(payload.aiRootFiles, currentSettings.aiRootFiles),
+    serverEnforcement: serverEnforcementSetting({
+      gitlabPipelineMustSucceed: payload.gitlabPipelineMustSucceed,
+      githubRequiredChecksEnforced: payload.githubRequiredChecksEnforced
+    }, currentSettings)
+  };
+
+  writeSettings(settings);
+  return settings;
+}
+
+function openBrowser(url) {
+  const command = process.platform === "darwin"
+    ? "open"
+    : process.platform === "win32"
+      ? "cmd"
+      : "xdg-open";
+  const args = process.platform === "win32" ? ["/c", "start", "", url] : [url];
+  const child = spawn(command, args, {
+    detached: true,
+    stdio: "ignore"
+  });
+  child.on("error", () => {});
+  child.unref();
+}
+
+function renderWebSettingsApp(state, language = "en") {
+  const settings = state.settings;
+  const summary = state.settingsSummary;
+  const selected = (value, expected) => String(value) === String(expected) ? " selected" : "";
+  const checked = (values, value) => values.includes(value) ? " checked" : "";
+  const listValue = (value) => escapeHtml(Array.isArray(value) ? value.join("\n") : String(value ?? ""));
+  const todoItems = state.evaluation.todoChecks.length
+    ? state.evaluation.todoChecks.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
+    : "<li>None</li>";
+
+  return `<!doctype html>
+<html lang="${escapeHtml(language)}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AIGate Web Setup</title>
+<style>
+:root{color-scheme:light;--bg:#f7f8fb;--ink:#18202f;--muted:#5e6a7d;--line:#d8dee9;--panel:#ffffff;--accent:#1769aa;--ok:#237a4b;--warn:#a15c00;--danger:#b42318}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit}
+.shell{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:100vh}
+aside{border-right:1px solid var(--line);background:#fff;padding:24px 18px;position:sticky;top:0;height:100vh}
+main{padding:28px;max-width:1180px;width:100%}
+.brand{font-weight:800;font-size:22px;margin-bottom:6px}
+.tagline{color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:24px}
+.nav{display:grid;gap:8px}
+.nav button{border:1px solid transparent;background:transparent;text-align:left;border-radius:6px;padding:10px 12px;color:var(--ink);cursor:pointer}
+.nav button.active{background:#eaf3fb;border-color:#c6dff2;color:#0b5b94}
+.hero{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:22px}
+h1{font-size:28px;line-height:1.15;margin:0 0 8px}
+p{line-height:1.55}
+.sub{color:var(--muted);margin:0}
+.status{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:18px 0 24px}
+.metric,.panel{background:var(--panel);border:1px solid var(--line);border-radius:8px}
+.metric{padding:14px;min-height:92px}
+.metric span{display:block;color:var(--muted);font-size:12px;margin-bottom:8px}
+.metric strong{font-size:22px;line-height:1.1}
+.panel{padding:18px;margin-bottom:16px}
+.panel h2{font-size:18px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.field{display:grid;gap:7px}
+label{font-weight:650;font-size:13px}
+input,select,textarea{width:100%;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);padding:10px 11px;min-height:42px}
+textarea{min-height:92px;resize:vertical;line-height:1.4}
+.hint{font-size:12px;color:var(--muted)}
+.checks{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px}
+.checks label{font-weight:500;border:1px solid var(--line);border-radius:6px;padding:9px 11px;background:#fff}
+.checks input{width:auto;min-height:auto;margin-right:6px}
+.actions{display:flex;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap}
+.primary{border:1px solid #0b5b94;background:#1769aa;color:#fff;border-radius:6px;padding:10px 14px;cursor:pointer}
+.secondary{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:6px;padding:10px 14px;cursor:pointer}
+.msg{font-size:13px;color:var(--muted)}
+.ok{color:var(--ok)}.warn{color:var(--warn)}.danger{color:var(--danger)}
+.hidden{display:none}
+pre{white-space:pre-wrap;word-break:break-word;background:#101828;color:#e6edf6;border-radius:8px;padding:14px;line-height:1.45;overflow:auto}
+ul{margin-top:8px}
+@media (max-width: 860px){.shell{grid-template-columns:1fr}aside{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}main{padding:20px}.status,.grid{grid-template-columns:1fr}.hero{display:block}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside>
+  <div class="brand">AIGate Web</div>
+  <div class="tagline">Configure AIGate without memorizing CLI flags. Settings are saved to <code>${escapeHtml(state.settingsPath)}</code>.</div>
+  <nav class="nav" aria-label="AIGate web sections">
+    <button class="active" data-tab="overview" type="button">Overview</button>
+    <button data-tab="settings" type="button">Settings</button>
+    <button data-tab="commands" type="button">Next Commands</button>
+  </nav>
+</aside>
+<main>
+  <section class="hero">
+    <div>
+      <h1>Project Setup Console</h1>
+      <p class="sub">Pick repository profile, branch policy, AI providers, and enforcement evidence from the browser.</p>
+    </div>
+    <button class="secondary" id="refresh" type="button">Refresh</button>
+  </section>
+
+  <section class="status" aria-label="Current status">
+    <div class="metric"><span>Score</span><strong>${state.evaluation.score}/100</strong><div class="hint">${escapeHtml(state.evaluation.grade)}</div></div>
+    <div class="metric"><span>Branch</span><strong>${escapeHtml(state.git.branch)}</strong><div class="hint">${state.git.changedFiles} changed files</div></div>
+    <div class="metric"><span>Profile</span><strong>${escapeHtml(state.profile.kind)}</strong><div class="hint">${escapeHtml(state.profile.hosting)} / ${escapeHtml(state.profile.packageManager)}</div></div>
+    <div class="metric"><span>Enforcement</span><strong>${escapeHtml(state.evaluation.enforcement.level)}</strong><div class="hint">${escapeHtml(state.evaluation.enforcement.provider)}</div></div>
+  </section>
+
+  <section id="tab-overview">
+    <div class="panel">
+      <h2>Readiness</h2>
+      <p>${escapeHtml(state.evaluation.recommendation)}</p>
+      <p class="hint">Generated at ${escapeHtml(state.generatedAt)} from ${escapeHtml(state.cwd)}</p>
+    </div>
+    <div class="panel">
+      <h2>Open Items</h2>
+      <ul>${todoItems}</ul>
+    </div>
+  </section>
+
+  <section id="tab-settings" class="hidden">
+    <form id="settings-form">
+      <div class="panel">
+        <h2>Project Profile</h2>
+        <div class="grid">
+          <div class="field"><label for="language">CLI output language</label><select id="language" name="language">
+            <option value="en"${selected(settings.language, "en")}>English</option>
+            <option value="ko"${selected(settings.language, "ko")}>Korean</option>
+            <option value="ja"${selected(settings.language, "ja")}>Japanese</option>
+            <option value="zh"${selected(settings.language, "zh")}>Chinese</option>
+          </select></div>
+          <div class="field"><label for="projectType">Project type</label><select id="projectType" name="projectType">
+            <option value="auto"${selected(settings.projectType, "auto")}>Auto</option>
+            <option value="app"${selected(settings.projectType, "app")}>App</option>
+            <option value="package"${selected(settings.projectType, "package")}>Package</option>
+          </select></div>
+          <div class="field"><label for="hosting">Hosting</label><select id="hosting" name="hosting">
+            <option value="auto"${selected(settings.hosting, "auto")}>Auto</option>
+            <option value="github"${selected(settings.hosting, "github")}>GitHub</option>
+            <option value="gitlab"${selected(settings.hosting, "gitlab")}>GitLab</option>
+            <option value="other"${selected(settings.hosting, "other")}>Other</option>
+          </select></div>
+          <div class="field"><label for="ciProvider">CI provider</label><select id="ciProvider" name="ciProvider">
+            <option value="auto"${selected(settings.ciProvider, "auto")}>Auto</option>
+            <option value="github"${selected(settings.ciProvider, "github")}>GitHub Actions</option>
+            <option value="gitlab"${selected(settings.ciProvider, "gitlab")}>GitLab CI</option>
+            <option value="other"${selected(settings.ciProvider, "other")}>Other</option>
+          </select></div>
+          <div class="field"><label for="packageManager">Package manager</label><select id="packageManager" name="packageManager">
+            <option value="auto"${selected(settings.packageManager, "auto")}>Auto</option>
+            <option value="npm"${selected(settings.packageManager, "npm")}>npm</option>
+            <option value="pnpm"${selected(settings.packageManager, "pnpm")}>pnpm</option>
+            <option value="yarn"${selected(settings.packageManager, "yarn")}>yarn</option>
+            <option value="bun"${selected(settings.packageManager, "bun")}>bun</option>
+          </select></div>
+          <div class="field"><label for="distribution">Distribution</label><select id="distribution" name="distribution">
+            <option value="auto"${selected(settings.distribution, "auto")}>Auto</option>
+            <option value="none"${selected(settings.distribution, "none")}>None</option>
+            <option value="npm"${selected(settings.distribution, "npm")}>npm</option>
+          </select></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Workflow</h2>
+        <div class="grid">
+          <div class="field"><label for="defaultBranch">Default branch</label><input id="defaultBranch" name="defaultBranch" value="${escapeHtml(settings.defaultBranch)}"></div>
+          <div class="field"><label for="targetBranch">PR/MR target branch</label><input id="targetBranch" name="targetBranch" value="${escapeHtml(settings.targetBranch)}"></div>
+          <div class="field"><label for="branchStrategy">Branch strategy</label><select id="branchStrategy" name="branchStrategy">
+            <option value="auto"${selected(settings.branchStrategy, "auto")}>Auto</option>
+            <option value="github-flow"${selected(settings.branchStrategy, "GitHub Flow with release channels")}>GitHub Flow</option>
+            <option value="gitlab-flow"${selected(settings.branchStrategy, "GitLab Flow with merge requests")}>GitLab Flow</option>
+            <option value="trunk"${selected(settings.branchStrategy, "Trunk-Based Development")}>Trunk-Based</option>
+            <option value="hybrid"${selected(settings.branchStrategy, "Hybrid Flow")}>Hybrid</option>
+            <option value="git-flow"${selected(settings.branchStrategy, "Git Flow")}>Git Flow</option>
+          </select></div>
+          <div class="field"><label for="aiRootFiles">Root AI files</label><select id="aiRootFiles" name="aiRootFiles">
+            <option value="protect"${selected(settings.aiRootFiles, "protect")}>Protect existing files</option>
+            <option value="sidecar"${selected(settings.aiRootFiles, "sidecar")}>Sidecar only</option>
+            <option value="overwrite"${selected(settings.aiRootFiles, "overwrite")}>Overwrite with force</option>
+          </select></div>
+          <div class="field"><label for="protectedBranches">Protected branches</label><textarea id="protectedBranches" name="protectedBranches">${listValue(settings.protectedBranches)}</textarea></div>
+          <div class="field"><label for="workBranches">Work branch patterns</label><textarea id="workBranches" name="workBranches">${listValue(settings.workBranches)}</textarea></div>
+          <div class="field"><label for="requiredChecks">Required checks</label><textarea id="requiredChecks" name="requiredChecks">${listValue(settings.requiredChecks)}</textarea></div>
+          <div class="field"><label for="qualityCommands">Quality commands</label><textarea id="qualityCommands" name="qualityCommands">${listValue(settings.qualityCommands)}</textarea></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>AI And Enforcement</h2>
+        <div class="checks" aria-label="AI providers">
+          <label><input type="checkbox" name="aiProviders" value="codex"${checked(settings.aiProviders, "codex")}>Codex</label>
+          <label><input type="checkbox" name="aiProviders" value="claude"${checked(settings.aiProviders, "claude")}>Claude</label>
+          <label><input type="checkbox" name="aiProviders" value="gemini"${checked(settings.aiProviders, "gemini")}>Gemini</label>
+        </div>
+        <div class="grid" style="margin-top:14px">
+          <div class="field"><label for="githubRequiredChecksEnforced">GitHub required checks</label><select id="githubRequiredChecksEnforced" name="githubRequiredChecksEnforced">
+            <option value="auto"${selected(settings.serverEnforcement.github.requiredChecksEnforced, "auto")}>Auto</option>
+            <option value="true"${selected(settings.serverEnforcement.github.requiredChecksEnforced, true)}>Declared true</option>
+            <option value="false"${selected(settings.serverEnforcement.github.requiredChecksEnforced, false)}>False</option>
+            <option value="verified"${selected(settings.serverEnforcement.github.requiredChecksEnforced, "verified")}>Verified</option>
+          </select></div>
+          <div class="field"><label for="gitlabPipelineMustSucceed">GitLab pipeline must succeed</label><select id="gitlabPipelineMustSucceed" name="gitlabPipelineMustSucceed">
+            <option value="auto"${selected(settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, "auto")}>Auto</option>
+            <option value="true"${selected(settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, true)}>Declared true</option>
+            <option value="false"${selected(settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, false)}>False</option>
+            <option value="verified"${selected(settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, "verified")}>Verified</option>
+          </select></div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="primary" type="submit">Save settings</button>
+        <span class="msg" id="message">Current workflow: ${escapeHtml(summary.targetBranch)} target, ${escapeHtml(summary.aiProviders)} AI.</span>
+      </div>
+    </form>
+  </section>
+
+  <section id="tab-commands" class="hidden">
+    <div class="panel">
+      <h2>Equivalent CLI</h2>
+      <pre id="cli-preview"></pre>
+    </div>
+    <div class="panel">
+      <h2>Recommended Next Commands</h2>
+      <pre>aigate doctor
+aigate evaluate-project
+aigate start --route default --ask-steps
+aigate verify-enforcement --apply
+aigate git-ready</pre>
+    </div>
+  </section>
+</main>
+</div>
+<script>
+const form = document.getElementById("settings-form");
+const message = document.getElementById("message");
+const cliPreview = document.getElementById("cli-preview");
+const listFields = new Set(["protectedBranches","workBranches","requiredChecks","qualityCommands"]);
+function listValue(value){return String(value || "").split(/[\\n,]/).map((item)=>item.trim()).filter(Boolean)}
+function collect(){
+  const data = Object.fromEntries(new FormData(form).entries());
+  for (const field of listFields) data[field] = listValue(data[field]);
+  data.aiProviders = [...form.querySelectorAll('input[name="aiProviders"]:checked')].map((input)=>input.value);
+  return data;
+}
+function quote(value){return /\\s/.test(value) ? JSON.stringify(value) : value}
+function refreshPreview(){
+  const data = collect();
+  const parts = ["aigate setup"];
+  for (const [key,value] of Object.entries(data)){
+    if (Array.isArray(value)){
+      if (value.length) parts.push("--" + key.replace(/[A-Z]/g, (m)=>"-" + m.toLowerCase()), quote(value.join(",")));
+    } else if (value && value !== "auto") {
+      parts.push("--" + key.replace(/[A-Z]/g, (m)=>"-" + m.toLowerCase()), quote(value));
+    }
+  }
+  cliPreview.textContent = parts.join(" ");
+}
+document.querySelectorAll(".nav button").forEach((button)=>{
+  button.addEventListener("click", ()=>{
+    document.querySelectorAll(".nav button").forEach((item)=>item.classList.remove("active"));
+    button.classList.add("active");
+    for (const section of ["overview","settings","commands"]){
+      document.getElementById("tab-" + section).classList.toggle("hidden", section !== button.dataset.tab);
+    }
+    refreshPreview();
+  });
+});
+form.addEventListener("input", refreshPreview);
+form.addEventListener("submit", async (event)=>{
+  event.preventDefault();
+  message.textContent = "Saving...";
+  message.className = "msg";
+  try {
+    const response = await fetch("/api/settings", {
+      method: "POST",
+      headers: {"content-type":"application/json"},
+      body: JSON.stringify(collect())
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || "Save failed");
+    message.textContent = "Saved to " + result.settingsPath;
+    message.className = "msg ok";
+    refreshPreview();
+  } catch (error) {
+    message.textContent = error.message || "Save failed";
+    message.className = "msg danger";
+  }
+});
+document.getElementById("refresh").addEventListener("click", ()=>location.reload());
+refreshPreview();
+</script>
+</body>
+</html>`;
 }
 
 function commandNotify(args) {
@@ -12354,6 +12897,7 @@ function firstPositionalArg(args) {
     "--gitlab-pipeline-must-succeed",
     "--github-required-checks-enforced",
     "--history",
+    "--host",
     "--issue-type",
     "--jira-api-token",
     "--jira-base-url",
@@ -12370,6 +12914,7 @@ function firstPositionalArg(args) {
     "--owner",
     "--hosting",
     "--package-manager",
+    "--port",
     "--protected-branches",
     "--protected-branch",
     "--work-branches",

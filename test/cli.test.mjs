@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -27,6 +27,44 @@ function run(args, options = {}) {
       AIGATE_SETTINGS_PATH: options.settingsPath ?? createSettingsPath(),
       AIGATE_SLACK_WEBHOOK_URL: options.slackWebhook ?? ""
     }
+  });
+}
+
+function waitForOutput(child, pattern) {
+  return new Promise((resolve, reject) => {
+    let output = "";
+    const timer = setTimeout(() => {
+      reject(new Error(`Timed out waiting for ${pattern}`));
+    }, 5000);
+    const onData = (chunk) => {
+      output += String(chunk);
+      const match = output.match(pattern);
+      if (match) {
+        clearTimeout(timer);
+        child.stdout.off("data", onData);
+        resolve({ output, match });
+      }
+    };
+    child.stdout.on("data", onData);
+    child.stderr.on("data", (chunk) => {
+      output += String(chunk);
+    });
+    child.once("exit", (code) => {
+      clearTimeout(timer);
+      reject(new Error(`Process exited with ${code}: ${output}`));
+    });
+  });
+}
+
+function stopProcess(child) {
+  return new Promise((resolve) => {
+    if (child.exitCode !== null) {
+      resolve();
+      return;
+    }
+
+    child.once("exit", resolve);
+    child.kill("SIGINT");
   });
 }
 
@@ -715,6 +753,69 @@ test("shows settings as json", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.command, "settings");
   assert.equal(output.settings.language, "en");
+});
+
+test("previews the web settings UI without starting a server", () => {
+  const result = run(["web", "--dry-run", "--format", "json"]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "web");
+  assert.equal(output.status, "DRY_RUN");
+  assert.match(output.url, /^http:\/\/127\.0\.0\.1:4317\/$/);
+  assert.equal(output.settingsPath.endsWith("settings.json"), true);
+});
+
+test("serves web settings UI and saves settings", async () => {
+  const settingsPath = createSettingsPath();
+  const child = spawn(process.execPath, [cliPath, "web", "--port", "0"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      AIGATE_SETTINGS_PATH: settingsPath,
+      AIGATE_SLACK_WEBHOOK_URL: ""
+    },
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+
+  try {
+    const { match } = await waitForOutput(child, /URL: (http:\/\/127\.0\.0\.1:\d+\/)/);
+    const baseUrl = match[1];
+    const state = await fetch(`${baseUrl}api/state`).then((response) => response.json());
+
+    assert.equal(state.command, "web");
+    assert.equal(state.settings.language, "en");
+
+    const response = await fetch(`${baseUrl}api/settings`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        language: "ko",
+        hosting: "gitlab",
+        ciProvider: "gitlab",
+        projectType: "app",
+        packageManager: "pnpm",
+        protectedBranches: ["main", "develop"],
+        workBranches: ["feat/*", "fix/*"],
+        aiProviders: ["claude", "codex"],
+        gitlabPipelineMustSucceed: "verified"
+      })
+    });
+    const saved = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.equal(saved.ok, true);
+    assert.equal(saved.settings.language, "ko");
+    assert.equal(saved.settings.hosting, "gitlab");
+    assert.deepEqual(saved.settings.protectedBranches, ["main", "develop"]);
+    assert.deepEqual(saved.settings.aiProviders, ["claude", "codex"]);
+    assert.equal(saved.settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, "verified");
+  } finally {
+    await stopProcess(child);
+  }
 });
 
 test("configures GitLab project profile settings", () => {

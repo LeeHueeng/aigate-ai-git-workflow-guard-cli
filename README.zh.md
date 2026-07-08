@@ -36,6 +36,7 @@ npx -y aigate-cli ai report
 npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
+npx -y aigate-cli web --dry-run
 ```
 
 也可以全局安装:
@@ -43,6 +44,7 @@ npx -y aigate-cli evaluate-project
 ```sh
 npm install -g aigate-cli
 aigate start
+aigate web --open
 aigate start --route default --ask-steps
 aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
@@ -82,6 +84,7 @@ A 等级以下，避免警告被分数掩盖。
 | 场景 | 流程 | 命令 |
 | --- | --- | --- |
 | 接入新仓库 | 逐步创建 AIGate 基础文件，然后安装 pre-push guard。 | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
+| 浏览器设置 | 打开本地设置控制台，选择语言、托管、CI、分支、AI 和强制连接选项，并保存到 CLI 同样使用的 `.aigate/settings.json`。 | `aigate web --open` -> 保存设置 -> `aigate doctor` |
 | AI 修改了很多文件 | 检查 changed paths，运行测试，并把失败内容整理成 AI 修复提示。 | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
 | PR 即将提交 | 通过 gate，经 AIGate push，再生成 reviewer 摘要。 | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
 | private GitLab monorepo | 固定 profile，检测 turbo runner 后自动回退到 workspace tests，并把 GitHub/npm 包检查排除在 app 评分外。 | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
@@ -94,6 +97,7 @@ A 等级以下，避免警告被分数掩盖。
 | --- | --- |
 | 本地 Git readiness check | `aigate check` |
 | 引导式设置路由器 | `aigate start` |
+| 基于浏览器的设置控制台 | `aigate web --open` |
 | 用是/否选择默认设置步骤 | `aigate start --route default --ask-steps` |
 | 只运行指定设置步骤 | `aigate start --route default --steps init,repo-files` |
 | 重置 AIGate 配置和 settings | `aigate reset` |
@@ -138,6 +142,7 @@ repository governance 连接成一个 workflow layer。
 git switch -c feature/my-work
 aigate ai report
 aigate start --route default --ask-steps
+aigate web --open
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
 aigate reset --dry-run
