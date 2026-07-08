@@ -30,6 +30,20 @@ aigate setup --language ja
 aigate setup --language zh
 ```
 
+Prefer a browser-based setup instead of CLI flags:
+
+```sh
+aigate web --open
+```
+
+The web UI starts on localhost, edits the same `.aigate/settings.json` used by
+`aigate setup`, runs safe allowlisted AIGate actions, shows `.aigate/reports`
+newest first, and suggests next actions from current repository signals. It
+does not run arbitrary shell commands from the browser. It tries port `4317` by
+default and automatically switches to a free port when that port is already in
+use. The browser UI follows the saved language setting for English, Korean,
+Japanese, and Chinese.
+
 Pin team workflow settings when the repository is a private GitLab pnpm app or
 uses a develop-target merge flow:
 
@@ -62,6 +76,7 @@ Use these commands after moving into a Git repository.
 
 ```sh
 aigate start
+aigate web --open
 aigate start --route default --ask-steps
 aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
@@ -82,6 +97,7 @@ What they do:
 | Command | Purpose |
 | --- | --- |
 | `aigate start` | Opens a guided route selector in a TTY, or runs the quickstart route in non-interactive shells. The first route is the default setup flow. |
+| `aigate web --open` | Starts a local browser console for settings, allowlisted AIGate command execution, newest-first reports, and AI-suggested next actions. |
 | `aigate start --route default --ask-steps` | Runs the default setup flow and asks yes/no before each recommended step. |
 | `aigate start --route default --steps init,repo-files` | Runs only the selected setup step IDs and marks the rest as skipped. |
 | `aigate start --route oss --owner @your-org/team` | Creates README, contribution docs, issue templates, PR template, CODEOWNERS, and starter operations docs without overwriting existing files unless `--force` is used. |
@@ -104,6 +120,7 @@ right now?"
 | Situation | Process | Example commands |
 | --- | --- | --- |
 | First-time adoption in a repository | Choose the default setup, create only the files you want, then confirm diagnostics. | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
+| You want a visual control surface | Open the local web console, save repository settings, run a check or report, then open the latest report. | `aigate web --open` -> run `git-ready` or `ai report` -> open latest report |
 | After an AI agent changed many files | Inspect changed files and secret risk first, then turn failing tests into an AI repair prompt. | `aigate check` -> `aigate test` -> `aigate aitest` |
 | Right before opening a PR | Pass the local gate, push through the guarded wrapper, and generate a reviewer-ready summary. | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
 | Private GitLab monorepo | Pin the profile, create GitLab MR/CODEOWNERS workflow files, and avoid GitHub-only score noise. | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate start --route default --steps repo-files --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm --owner @team` -> `aigate evaluate-project` |
@@ -375,6 +392,7 @@ channel:
 | `aigate clean` | Preview deletion of generated reports and local state; add `--force` to apply. |
 | `aigate uninstall` | Preview removal of local AIGate config, state, and owned hook; add `--force` to apply. |
 | `aigate start` | Choose and run a guided setup route. |
+| `aigate web` | Start a localhost browser console for editing settings, running allowlisted AIGate actions, viewing newest reports first, and following AI suggestions. |
 | `aigate start --route default --ask-steps` | Confirm each recommended default setup step before running it. |
 | `aigate start --route default --steps init,repo-files` | Run only selected default setup steps. |
 | `aigate start --route oss` | Create open-source starter README, issue templates, PR template, CODEOWNERS, and contribution docs. |

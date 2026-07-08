@@ -30,6 +30,19 @@ aigate setup --language ja
 aigate setup --language zh
 ```
 
+CLI 플래그 대신 브라우저에서 설정하려면 이렇게 실행합니다.
+
+```sh
+aigate web --open
+```
+
+웹 UI는 localhost에서 열리고 `aigate setup`과 같은 `.aigate/settings.json`을
+수정합니다. 허용된 안전한 AIGate 기능을 버튼으로 실행하고, `.aigate/reports`
+파일을 최신순으로 보여주며, 현재 저장소 신호를 바탕으로 다음 작업을 추천합니다.
+브라우저에서는 임의의 shell 명령을 실행하지 않습니다. 기본 포트 `4317`이 이미 사용
+중이면 빈 포트를 자동으로 선택합니다. 브라우저 화면도 저장된 언어 설정에 따라
+한국어, 영어, 일본어, 중국어로 표시됩니다.
+
 private GitLab pnpm 앱이거나 merge target이 `develop`인 팀은 워크플로 설정을
 고정하세요:
 
@@ -62,6 +75,7 @@ Git 저장소 루트로 이동한 뒤 실행합니다.
 
 ```sh
 aigate start
+aigate web --open
 aigate start --route default --ask-steps
 aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
@@ -82,6 +96,7 @@ aigate install-hook --pre-push
 | 명령어 | 목적 |
 | --- | --- |
 | `aigate start` | TTY에서는 화살표 선택 메뉴를 열고, 비대화형 shell에서는 quickstart 루트를 실행합니다. 첫 번째 루트는 기본 설정 흐름입니다. |
+| `aigate web --open` | 설정 선택, 허용된 AIGate 명령 실행, 최신순 보고서 확인, AI 추천 다음 작업을 처리하는 로컬 브라우저 콘솔을 실행합니다. |
 | `aigate start --route default --ask-steps` | 기본 설정 흐름에서 추천 단계마다 예/아니오를 묻고 실행합니다. |
 | `aigate start --route default --steps init,repo-files` | 선택한 설정 단계 ID만 실행하고 나머지는 건너뜁니다. |
 | `aigate start --route oss --owner @your-org/team` | README, 기여 문서, 이슈 템플릿, PR 템플릿, CODEOWNERS, 운영 문서 초안을 생성합니다. 기존 파일은 `--force` 없이는 덮어쓰지 않습니다. |
@@ -103,6 +118,7 @@ aigate install-hook --pre-push
 | 상황 | 프로세스 | 예시 명령 |
 | --- | --- | --- |
 | 처음 저장소에 도입할 때 | 기본 설정을 고르고 필요한 파일만 만든 뒤 진단 결과를 확인합니다. | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
+| 화면에서 제어하고 싶을 때 | 로컬 웹 콘솔에서 저장소 설정을 저장하고 검사나 보고서를 실행한 뒤 최신 보고서를 엽니다. | `aigate web --open` -> `git-ready` 또는 `ai report` 실행 -> 최신 보고서 열기 |
 | AI 에이전트가 파일을 많이 바꾼 뒤 | 변경 파일과 secret 위험을 먼저 보고, 테스트 실패는 AI 수정 프롬프트로 넘깁니다. | `aigate check` -> `aigate test` -> `aigate aitest` |
 | PR을 열기 직전 | 로컬 gate를 통과시키고, 보호된 push 후 리뷰어용 요약을 생성합니다. | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
 | private GitLab 모노레포 | 프로필을 고정하고 GitLab MR/CODEOWNERS 워크플로 파일을 만든 뒤 GitHub 전용 점수 노이즈를 줄입니다. | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate start --route default --steps repo-files --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm --owner @team` -> `aigate evaluate-project` |
@@ -369,6 +385,7 @@ aigate git-ready --notify-channel terminal
 | `aigate clean` | 생성 리포트와 로컬 상태 삭제 대상을 미리 봅니다. 적용하려면 `--force`를 붙입니다. |
 | `aigate uninstall` | 로컬 AIGate 설정, 상태, 소유 hook 제거 대상을 미리 봅니다. 적용하려면 `--force`를 붙입니다. |
 | `aigate start` | 안내형 설정 루트를 선택하고 실행합니다. |
+| `aigate web` | settings 수정, 허용된 AIGate 기능 실행, 최신순 보고서 확인, AI 추천 확인을 위한 localhost 브라우저 콘솔을 실행합니다. |
 | `aigate start --route default --ask-steps` | 기본 추천 단계를 하나씩 확인한 뒤 실행합니다. |
 | `aigate start --route default --steps init,repo-files` | 선택한 기본 설정 단계만 실행합니다. |
 | `aigate start --route oss` | 공개 저장소용 README, 이슈 템플릿, PR 템플릿, CODEOWNERS, 기여 문서를 생성합니다. |

@@ -43,6 +43,7 @@ npx -y aigate-cli ai report
 npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
+npx -y aigate-cli web --dry-run
 ```
 
 Or install it globally:
@@ -50,6 +51,7 @@ Or install it globally:
 ```sh
 npm install -g aigate-cli
 aigate start
+aigate web --open
 aigate start --route default --ask-steps
 aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
@@ -118,6 +120,7 @@ visible.
 | Situation | Process | Commands |
 | --- | --- | --- |
 | New repository adoption | Create the default AIGate files step by step, then install the pre-push guard. | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
+| Browser-based control | Open a local console, choose settings, run allowlisted AIGate commands, view newest reports first, and follow AI-suggested next actions. | `aigate web --open` -> run `git-ready` or `ai report` -> open latest report |
 | AI changed a lot of files | Inspect changed paths, run tests, and turn failures into a focused AI repair prompt. | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
 | PR is almost ready | Pass the gate, push through AIGate, and produce reviewer context. | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
 | Private GitLab monorepo | Pin the profile, run workspace tests with turbo-aware fallback, and keep GitHub/npm package gates out of app scores. | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
@@ -130,6 +133,7 @@ visible.
 | --- | --- |
 | Local Git readiness check | `aigate check` |
 | Guided setup router | `aigate start` |
+| Browser command console, settings, reports, and AI suggestions | `aigate web --open` |
 | Default setup with yes/no step choices | `aigate start --route default --ask-steps` |
 | Deterministic setup step selection | `aigate start --route default --steps init,repo-files` |
 | Reset AIGate config and settings | `aigate reset` |
@@ -183,6 +187,7 @@ with Husky, Lefthook, pre-commit, and Gitleaks.
 git switch -c feature/my-work
 aigate ai report
 aigate start --route default --ask-steps
+aigate web --open
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
 aigate reset --dry-run

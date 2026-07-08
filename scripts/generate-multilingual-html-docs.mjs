@@ -43,6 +43,7 @@ const locales = {
     flowIntro: "AIGate는 개발자가 커밋하기 전부터 PR, CI, 릴리스, npm 배포까지 같은 기준으로 검증하도록 설계되었습니다.",
     processSteps: [
       ["시작 루트", "aigate start 기본 설정과 단계 선택"],
+      ["브라우저 설정", "aigate web --open으로 로컬 설정 콘솔 실행"],
       ["변경 감지", "Git diff와 untracked 파일 확인"],
       ["테스트 자동화", "aigate test가 Git gate와 turbo 실행기 감지 기반 workspace 테스트 실행"],
       ["AI 조치", "aitest가 수정 프롬프트와 선택 실행 제공"],
@@ -70,6 +71,7 @@ const locales = {
     useCaseHeaders: ["상황", "프로세스", "예시 명령"],
     useCases: [
       ["처음 저장소에 도입할 때", "기본 설정을 고르고, 부족한 문서/AI 지침/hook을 단계적으로 만듭니다.", ["aigate start --route default --ask-steps", "aigate doctor", "aigate install-hook --pre-push"]],
+      ["설정을 화면에서 고르고 싶을 때", "브라우저에서 언어, 호스팅, CI, 브랜치, AI, 강제 연결 설정을 선택하고 settings에 저장합니다.", ["aigate web --open", "설정 저장", "aigate doctor"]],
       ["AI가 코드를 많이 바꾼 뒤", "변경 파일과 secret 위험을 먼저 보고, 테스트 실패는 AI 수정 프롬프트로 넘깁니다.", ["aigate check", "aigate test", "aigate aitest"]],
       ["PR을 열기 직전", "push 전 gate를 통과시키고, PR 설명과 리뷰어용 요약을 생성합니다.", ["aigate git-ready", "aigate push -u origin feature/my-work", "aigate pr-check"]],
       ["private GitLab 모노레포", "프로필을 고정하고 turbo 실행기 감지 후 workspace 테스트를 대체 실행하며 GitHub/npm 패키지 검사를 앱 점수에서 제외합니다.", ["aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm", "aigate test", "aigate evaluate-project"]],
@@ -79,7 +81,7 @@ const locales = {
     ],
     commandMapTitle: "명령어 맵",
     commandGroups: [
-      ["설정", ["start", "start --route default", "start --route oss", "init", "reset", "setup", "settings", "integrate"]],
+      ["설정", ["start", "web", "start --route default", "start --route oss", "init", "reset", "setup", "settings", "integrate"]],
       ["첫 실행", ["doctor", "demo", "install-hook"]],
       ["보호 게이트", ["check", "test", "aitest", "git-ready", "push", "pr"]],
       ["유지보수", ["clean", "uninstall", "delete"]],
@@ -92,6 +94,7 @@ const locales = {
       ["npm install -g aigate-cli", "CLI를 전역 설치합니다.", "처음 사용하는 개발자 환경"],
       ["npx aigate-cli check", "설치 없이 현재 저장소 상태를 확인합니다.", "빠른 체험 또는 CI 전 점검"],
       ["aigate start", "화살표 메뉴 또는 route 옵션으로 프로젝트 설정 흐름을 실행합니다.", "처음 프로젝트에 AIGate를 적용할 때"],
+      ["aigate web --open", "localhost 브라우저 설정 콘솔을 열어 language, hosting, CI, branch, AI provider, quality gate, enforcement 옵션을 저장합니다. 기본 포트가 사용 중이면 빈 포트를 자동으로 선택합니다.", "CLI 플래그 대신 화면에서 설정하고 싶을 때"],
       ["aigate start --route default --ask-steps", "추천 설정 단계를 예/아니오로 확인하며 실행합니다.", "처음 적용할 때 필요한 단계만 고르고 싶을 때"],
       ["aigate start --route default --steps init,repo-files", "지정한 설정 단계 ID만 실행하고 나머지는 건너뜁니다.", "문서화된 온보딩이나 반복 실행"],
       ["aigate start --route oss --owner @team", "README, 기여 문서, 이슈 템플릿, PR 템플릿, CODEOWNERS를 생성합니다.", "공개 저장소 기여 흐름을 열 때"],
@@ -145,6 +148,7 @@ const locales = {
     commandPath: [
       "npm install -g aigate-cli",
       "aigate setup --language ko",
+      "aigate web --open",
       "aigate ai report",
       "aigate start --route default --ask-steps",
       "aigate start --route oss --dry-run",
@@ -175,6 +179,7 @@ const locales = {
       "npm 패키지 aigate-cli 공개 배포와 npx 실행",
       "Git 변경사항과 untracked 파일 기반 readiness check",
       "aigate start 기반 안내형 시작 루트",
+      "aigate web 기반 localhost 브라우저 설정 콘솔",
       "aigate start --route default 기반 단계별 기본 설정",
       "aigate reset, clean, uninstall 기반 초기화와 삭제 명령",
       "aigate start --route oss 기반 오픈소스 시작 파일 생성",
@@ -238,6 +243,7 @@ const locales = {
     flowIntro: "AIGate keeps the same quality gate from local development through PR review, CI, release, and npm publishing.",
     processSteps: [
       ["Start route", "Choose default setup steps with aigate start"],
+      ["Browser setup", "Run the local settings console with aigate web --open"],
       ["Detect changes", "Read Git diff and untracked files"],
       ["Test automation", "aigate test runs Git gate plus turbo-aware workspace tests"],
       ["AI remediation", "aitest writes a repair prompt and can run an agent"],
@@ -265,6 +271,7 @@ const locales = {
     useCaseHeaders: ["Situation", "Process", "Example commands"],
     useCases: [
       ["Adopting AIGate in a repository", "Choose the default setup path, then add missing docs, AI instructions, and hooks step by step.", ["aigate start --route default --ask-steps", "aigate doctor", "aigate install-hook --pre-push"]],
+      ["Choosing settings visually", "Select language, hosting, CI, branch, AI, and enforcement settings in the browser and save them to settings.", ["aigate web --open", "save settings", "aigate doctor"]],
       ["After an AI agent changes many files", "Inspect changed files and secret risk first, then turn failing tests into an AI remediation prompt.", ["aigate check", "aigate test", "aigate aitest"]],
       ["Right before opening a PR", "Pass the local gate, push through the guarded wrapper, and generate reviewer context.", ["aigate git-ready", "aigate push -u origin feature/my-work", "aigate pr-check"]],
       ["Private GitLab monorepo", "Pin the profile, run workspace tests with turbo-aware fallback, and keep GitHub/npm package gates out of app scores.", ["aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm", "aigate test", "aigate evaluate-project"]],
@@ -274,7 +281,7 @@ const locales = {
     ],
     commandMapTitle: "Command Map",
     commandGroups: [
-      ["Setup", ["start", "start --route default", "start --route oss", "init", "reset", "setup", "settings", "integrate"]],
+      ["Setup", ["start", "web", "start --route default", "start --route oss", "init", "reset", "setup", "settings", "integrate"]],
       ["First run", ["doctor", "demo", "install-hook"]],
       ["Guard gates", ["check", "test", "aitest", "git-ready", "push", "pr"]],
       ["Maintenance", ["clean", "uninstall", "delete"]],
@@ -287,6 +294,7 @@ const locales = {
       ["npm install -g aigate-cli", "Install the CLI globally.", "First-time developer setup"],
       ["npx aigate-cli check", "Check the repository without installing.", "Quick trial or pre-CI check"],
       ["aigate start", "Run a guided project setup route with arrow keys or --route.", "When adopting AIGate in a project"],
+      ["aigate web --open", "Open a localhost browser settings console for language, hosting, CI, branch, AI provider, quality gate, and enforcement options. If the default port is busy, AIGate picks a free port.", "When you prefer visual setup over CLI flags"],
       ["aigate start --route default --ask-steps", "Ask yes/no for each recommended setup step before running it.", "When you want guided control over the first setup"],
       ["aigate start --route default --steps init,repo-files", "Run only selected setup step IDs and skip the rest.", "Repeatable onboarding or documented setup"],
       ["aigate start --route oss --owner @team", "Create README, contribution docs, issue templates, PR template, and CODEOWNERS.", "Opening the public contribution path"],
@@ -340,6 +348,7 @@ const locales = {
     commandPath: [
       "npm install -g aigate-cli",
       "aigate setup --language en",
+      "aigate web --open",
       "aigate ai report",
       "aigate start --route default --ask-steps",
       "aigate start --route oss --dry-run",
@@ -370,6 +379,7 @@ const locales = {
       "Public npm package aigate-cli and npx execution",
       "Git change and untracked-file readiness checks",
       "Guided start routes through aigate start",
+      "Local browser settings console through aigate web",
       "Stepwise default setup through aigate start --route default",
       "Reset and deletion commands through aigate reset, clean, and uninstall",
       "Open-source starter files through aigate start --route oss",
@@ -433,6 +443,7 @@ const locales = {
     flowIntro: "AIGate はローカル開発から PR、CI、リリース、npm 公開まで同じ品質ゲートでつなぎます。",
     processSteps: [
       ["開始ルート", "aigate start でデフォルト設定手順を選択"],
+      ["ブラウザ設定", "aigate web --open でローカル設定コンソールを起動"],
       ["変更検出", "Git diff と untracked ファイルを確認"],
       ["テスト自動化", "aigate test が Git gate と turbo 実行環境を確認した workspace test を実行"],
       ["AI 修正", "aitest が修正プロンプトと任意の agent 実行を提供"],
@@ -460,6 +471,7 @@ const locales = {
     useCaseHeaders: ["状況", "プロセス", "コマンド例"],
     useCases: [
       ["リポジトリへ初めて導入するとき", "デフォルト設定を選び、不足している文書、AI 指示、hook を段階的に作成します。", ["aigate start --route default --ask-steps", "aigate doctor", "aigate install-hook --pre-push"]],
+      ["画面で設定を選びたいとき", "ブラウザで language、hosting、CI、branch、AI、enforcement を選び settings に保存します。", ["aigate web --open", "設定保存", "aigate doctor"]],
       ["AI が多くのファイルを変更した後", "変更ファイルと secret リスクを先に確認し、失敗したテストは AI 修正プロンプトに変換します。", ["aigate check", "aigate test", "aigate aitest"]],
       ["PR を作成する直前", "ローカル gate を通し、保護付き wrapper で push し、レビュー担当者向けの文脈を作ります。", ["aigate git-ready", "aigate push -u origin feature/my-work", "aigate pr-check"]],
       ["private GitLab monorepo", "profile を固定し、turbo 実行環境を確認して workspace test に切り替え、GitHub/npm パッケージ検査を app score から外します。", ["aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm", "aigate test", "aigate evaluate-project"]],
@@ -469,7 +481,7 @@ const locales = {
     ],
     commandMapTitle: "コマンドマップ",
     commandGroups: [
-      ["セットアップ", ["start", "start --route default", "start --route oss", "init", "reset", "setup", "settings", "integrate"]],
+      ["セットアップ", ["start", "web", "start --route default", "start --route oss", "init", "reset", "setup", "settings", "integrate"]],
       ["初回実行", ["doctor", "demo", "install-hook"]],
       ["保護ゲート", ["check", "test", "aitest", "git-ready", "push", "pr"]],
       ["メンテナンス", ["clean", "uninstall", "delete"]],
@@ -482,6 +494,7 @@ const locales = {
       ["npm install -g aigate-cli", "CLI をグローバルにインストールします。", "初回セットアップ"],
       ["npx aigate-cli check", "インストールせずに現在のリポジトリを確認します。", "試用または CI 前確認"],
       ["aigate start", "矢印キーまたは --route でガイド付き設定ルートを実行します。", "プロジェクトに AIGate を導入するとき"],
+      ["aigate web --open", "localhost のブラウザ設定コンソールを開き、language、hosting、CI、branch、AI provider、quality gate、enforcement を保存します。既定 port が使用中なら空き port を自動選択します。", "CLI flags ではなく画面で設定したいとき"],
       ["aigate start --route default --ask-steps", "推奨設定手順を実行するか一つずつ確認します。", "初回設定で必要な手順だけ選びたいとき"],
       ["aigate start --route default --steps init,repo-files", "指定した設定手順 ID だけを実行し、他はスキップします。", "オンボーディングや手順書で同じ設定を繰り返すとき"],
       ["aigate start --route oss --owner @team", "README、貢献文書、issue テンプレート、PR テンプレート、CODEOWNERS を作成します。", "公開コントリビューション導線を開くとき"],
@@ -535,6 +548,7 @@ const locales = {
     commandPath: [
       "npm install -g aigate-cli",
       "aigate setup --language ja",
+      "aigate web --open",
       "aigate ai report",
       "aigate start --route default --ask-steps",
       "aigate start --route oss --dry-run",
@@ -565,6 +579,7 @@ const locales = {
       "npm パッケージ aigate-cli の公開と npx 実行",
       "Git 変更と untracked ファイルの readiness check",
       "aigate start によるガイド付き開始ルート",
+      "aigate web による localhost ブラウザ設定コンソール",
       "aigate start --route default による段階的なデフォルト設定",
       "aigate reset、clean、uninstall による初期化と削除コマンド",
       "aigate start --route oss によるオープンソース初期ファイル生成",
@@ -628,6 +643,7 @@ const locales = {
     flowIntro: "AIGate 将本地开发、PR、CI、发布和 npm 分发串成同一套质量门禁。",
     processSteps: [
       ["启动路由", "用 aigate start 选择默认设置步骤"],
+      ["浏览器设置", "用 aigate web --open 启动本地设置控制台"],
       ["检测变更", "读取 Git diff 和 untracked 文件"],
       ["测试自动化", "aigate test 运行 Git gate，并检测 turbo runner 后运行 workspace tests"],
       ["AI 修复", "aitest 写入修复提示并可运行 agent"],
@@ -655,6 +671,7 @@ const locales = {
     useCaseHeaders: ["场景", "流程", "命令示例"],
     useCases: [
       ["首次接入仓库", "选择默认设置路径，然后逐步补齐文档、AI 指令和 hook。", ["aigate start --route default --ask-steps", "aigate doctor", "aigate install-hook --pre-push"]],
+      ["想在界面中选择设置", "在浏览器中选择语言、托管、CI、分支、AI 和强制连接设置，并保存到 settings。", ["aigate web --open", "保存设置", "aigate doctor"]],
       ["AI agent 修改了很多文件后", "先检查变更文件和 secret 风险，再把失败测试转成 AI 修复提示。", ["aigate check", "aigate test", "aigate aitest"]],
       ["创建 PR 前", "通过本地 gate，用受保护 wrapper push，并生成给评审者看的上下文。", ["aigate git-ready", "aigate push -u origin feature/my-work", "aigate pr-check"]],
       ["private GitLab monorepo", "固定 profile，检测 turbo runner 后自动回退到 workspace tests，并把 GitHub/npm 包检查排除在 app 评分外。", ["aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm", "aigate test", "aigate evaluate-project"]],
@@ -664,7 +681,7 @@ const locales = {
     ],
     commandMapTitle: "命令地图",
     commandGroups: [
-      ["设置", ["start", "start --route default", "start --route oss", "init", "reset", "setup", "settings", "integrate"]],
+      ["设置", ["start", "web", "start --route default", "start --route oss", "init", "reset", "setup", "settings", "integrate"]],
       ["首次运行", ["doctor", "demo", "install-hook"]],
       ["保护门禁", ["check", "test", "aitest", "git-ready", "push", "pr"]],
       ["维护", ["clean", "uninstall", "delete"]],
@@ -677,6 +694,7 @@ const locales = {
       ["npm install -g aigate-cli", "全局安装 CLI。", "首次开发环境设置"],
       ["npx aigate-cli check", "无需安装即可检查仓库。", "快速体验或 CI 前检查"],
       ["aigate start", "用方向键或 --route 运行引导式项目设置路由。", "在项目中启用 AIGate 时"],
+      ["aigate web --open", "打开 localhost 浏览器设置控制台，保存语言、托管、CI、分支、AI provider、质量门禁和强制连接选项。默认端口被占用时会自动选择空闲端口。", "不想手写 CLI 参数、希望通过界面设置时"],
       ["aigate start --route default --ask-steps", "逐步询问是否运行推荐设置步骤。", "首次设置时想只选择必要步骤"],
       ["aigate start --route default --steps init,repo-files", "只运行指定的设置步骤 ID，其余跳过。", "可重复 onboarding 或文档化设置"],
       ["aigate start --route oss --owner @team", "创建 README、贡献文档、issue 模板、PR 模板和 CODEOWNERS。", "打开公开贡献路径时"],
@@ -730,6 +748,7 @@ const locales = {
     commandPath: [
       "npm install -g aigate-cli",
       "aigate setup --language zh",
+      "aigate web --open",
       "aigate ai report",
       "aigate start --route default --ask-steps",
       "aigate start --route oss --dry-run",
@@ -760,6 +779,7 @@ const locales = {
       "公开 npm 包 aigate-cli 和 npx 运行",
       "基于 Git 变更和 untracked 文件的 readiness check",
       "通过 aigate start 提供引导式启动路由",
+      "通过 aigate web 提供 localhost 浏览器设置控制台",
       "通过 aigate start --route default 提供逐步默认设置",
       "通过 aigate reset、clean、uninstall 提供重置和删除命令",
       "通过 aigate start --route oss 生成开源起始文件",

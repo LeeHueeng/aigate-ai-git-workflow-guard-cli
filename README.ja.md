@@ -37,6 +37,7 @@ npx -y aigate-cli ai report
 npx -y aigate-cli demo
 npx -y aigate-cli pr-check
 npx -y aigate-cli evaluate-project
+npx -y aigate-cli web --dry-run
 ```
 
 グローバルにインストールする場合:
@@ -44,6 +45,7 @@ npx -y aigate-cli evaluate-project
 ```sh
 npm install -g aigate-cli
 aigate start
+aigate web --open
 aigate start --route default --ask-steps
 aigate start --route default --steps init,repo-files
 aigate start --route oss --dry-run
@@ -84,6 +86,7 @@ A グレード未満に制限して警告が埋もれないようにします。
 | 状況 | プロセス | コマンド |
 | --- | --- | --- |
 | 新しいリポジトリに導入 | AIGate の基本ファイルを段階的に作成し、pre-push guard をインストールします。 | `aigate start --route default --ask-steps` -> `aigate doctor` -> `aigate install-hook --pre-push` |
+| ブラウザで制御 | ローカルコンソールを開き、設定選択、allowlist 済み AIGate コマンド実行、最新順レポート確認、AI 推奨アクション実行まで行います。 | `aigate web --open` -> `git-ready` または `ai report` を実行 -> 最新レポートを開く |
 | AI が多くのファイルを変更 | 変更パスを確認し、テストを実行して、失敗内容を AI 修正プロンプトにします。 | `aigate check` -> `aigate test` -> `aigate aitest --provider codex` |
 | PR 直前 | gate を通し、AIGate 経由で push し、reviewer 向けの要約を作成します。 | `aigate git-ready` -> `aigate push -u origin feature/my-work` -> `aigate pr-check` |
 | private GitLab monorepo | profile を固定し、turbo 実行環境を確認して workspace test に切り替え、GitHub/npm パッケージ検査を app score から外します。 | `aigate setup --hosting gitlab --ci-provider gitlab --project-type app --package-manager pnpm` -> `aigate test` -> `aigate evaluate-project` |
@@ -96,6 +99,7 @@ A グレード未満に制限して警告が埋もれないようにします。
 | --- | --- |
 | ローカル Git readiness check | `aigate check` |
 | ガイド付き設定ルーター | `aigate start` |
+| ブラウザのコマンドコンソール、設定、レポート、AI 推奨 | `aigate web --open` |
 | はい/いいえで選ぶデフォルト設定 | `aigate start --route default --ask-steps` |
 | 必要な手順だけを指定して実行 | `aigate start --route default --steps init,repo-files` |
 | AIGate 設定と settings を初期化 | `aigate reset` |
@@ -140,6 +144,7 @@ repository governance をまとめる workflow layer です。
 git switch -c feature/my-work
 aigate ai report
 aigate start --route default --ask-steps
+aigate web --open
 aigate start --route oss --dry-run
 aigate start --route ai --provider all
 aigate reset --dry-run

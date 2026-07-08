@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import { spawn, spawnSync } from "node:child_process";
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, unlinkSync, utimesSync, writeFileSync } from "node:fs";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,6 +28,44 @@ function run(args, options = {}) {
       AIGATE_SETTINGS_PATH: options.settingsPath ?? createSettingsPath(),
       AIGATE_SLACK_WEBHOOK_URL: options.slackWebhook ?? ""
     }
+  });
+}
+
+function waitForOutput(child, pattern) {
+  return new Promise((resolve, reject) => {
+    let output = "";
+    const timer = setTimeout(() => {
+      reject(new Error(`Timed out waiting for ${pattern}`));
+    }, 5000);
+    const onData = (chunk) => {
+      output += String(chunk);
+      const match = output.match(pattern);
+      if (match) {
+        clearTimeout(timer);
+        child.stdout.off("data", onData);
+        resolve({ output, match });
+      }
+    };
+    child.stdout.on("data", onData);
+    child.stderr.on("data", (chunk) => {
+      output += String(chunk);
+    });
+    child.once("exit", (code) => {
+      clearTimeout(timer);
+      reject(new Error(`Process exited with ${code}: ${output}`));
+    });
+  });
+}
+
+function stopProcess(child) {
+  return new Promise((resolve) => {
+    if (child.exitCode !== null) {
+      resolve();
+      return;
+    }
+
+    child.once("exit", resolve);
+    child.kill("SIGINT");
   });
 }
 
@@ -715,6 +754,183 @@ test("shows settings as json", () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.command, "settings");
   assert.equal(output.settings.language, "en");
+});
+
+test("previews the web settings UI without starting a server", () => {
+  const result = run(["web", "--dry-run", "--format", "json"]);
+
+  assert.equal(result.status, 0);
+  const output = JSON.parse(result.stdout);
+  assert.equal(output.command, "web");
+  assert.equal(output.status, "DRY_RUN");
+  assert.match(output.url, /^http:\/\/127\.0\.0\.1:4317\/$/);
+  assert.equal(output.settingsPath.endsWith("settings.json"), true);
+});
+
+test("serves web settings UI and saves settings", async () => {
+  const settingsPath = createSettingsPath();
+  const child = spawn(process.execPath, [cliPath, "web", "--port", "0"], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      AIGATE_SETTINGS_PATH: settingsPath,
+      AIGATE_SLACK_WEBHOOK_URL: ""
+    },
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+
+  try {
+    const { match } = await waitForOutput(child, /URL: (http:\/\/127\.0\.0\.1:\d+\/)/);
+    const baseUrl = match[1];
+    const state = await fetch(`${baseUrl}api/state`).then((response) => response.json());
+    const initialHtml = await fetch(baseUrl).then((response) => response.text());
+
+    assert.equal(state.command, "web");
+    assert.equal(state.settings.language, "en");
+    assert.ok(state.actions.some((group) => group.actions.some((action) => action.id === "check")));
+    assert.ok(Array.isArray(state.reports));
+    assert.ok(state.recommendations.some((item) => item.actionId === "ai-report"));
+    assert.match(initialHtml, /Project Setup Console/);
+    assert.match(initialHtml, /Command Center/);
+    assert.match(initialHtml, /Latest Reports/);
+
+    const response = await fetch(`${baseUrl}api/settings`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        language: "ko",
+        hosting: "gitlab",
+        ciProvider: "gitlab",
+        projectType: "app",
+        packageManager: "pnpm",
+        protectedBranches: ["main", "develop"],
+        workBranches: ["feat/*", "fix/*"],
+        aiProviders: ["claude", "codex"],
+        gitlabPipelineMustSucceed: "verified"
+      })
+    });
+    const saved = await response.json();
+
+    assert.equal(response.status, 200);
+    assert.equal(saved.ok, true);
+    assert.equal(saved.settings.language, "ko");
+    assert.equal(saved.settings.hosting, "gitlab");
+    assert.deepEqual(saved.settings.protectedBranches, ["main", "develop"]);
+    assert.deepEqual(saved.settings.aiProviders, ["claude", "codex"]);
+    assert.equal(saved.settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, "verified");
+
+    const localizedHtml = await fetch(baseUrl).then((htmlResponse) => htmlResponse.text());
+    assert.match(localizedHtml, /프로젝트 설정 콘솔/);
+    assert.match(localizedHtml, /기능 실행 콘솔/);
+    assert.match(localizedHtml, /최신 보고서/);
+    assert.match(localizedHtml, /설정 저장/);
+    assert.doesNotMatch(localizedHtml, /Project Setup Console/);
+
+    for (const [language, titlePattern, savePattern] of [
+      ["ja", /プロジェクト設定コンソール/, /設定を保存/],
+      ["zh", /项目设置控制台/, /保存设置/]
+    ]) {
+      await fetch(`${baseUrl}api/settings`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({ language })
+      });
+      const html = await fetch(baseUrl).then((htmlResponse) => htmlResponse.text());
+      assert.match(html, titlePattern);
+      assert.match(html, savePattern);
+    }
+  } finally {
+    await stopProcess(child);
+  }
+});
+
+test("runs web actions and lists reports newest first", async () => {
+  const settingsPath = createSettingsPath();
+  const projectDir = createMinimalGitProject();
+  const reportsDir = join(projectDir, ".aigate", "reports");
+  mkdirSync(reportsDir, { recursive: true });
+  const oldReport = join(reportsDir, "old.md");
+  const newReport = join(reportsDir, "new.md");
+  writeFileSync(oldReport, "old report\n", "utf8");
+  writeFileSync(newReport, "new report\n", "utf8");
+  utimesSync(oldReport, new Date("2026-01-01T00:00:00Z"), new Date("2026-01-01T00:00:00Z"));
+  utimesSync(newReport, new Date("2026-01-02T00:00:00Z"), new Date("2026-01-02T00:00:00Z"));
+
+  const child = spawn(process.execPath, [cliPath, "web", "--port", "0"], {
+    cwd: projectDir,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      AIGATE_SETTINGS_PATH: settingsPath,
+      AIGATE_SLACK_WEBHOOK_URL: ""
+    },
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+
+  try {
+    const { match } = await waitForOutput(child, /URL: (http:\/\/127\.0\.0\.1:\d+\/)/);
+    const baseUrl = match[1];
+    const reports = await fetch(`${baseUrl}api/reports`).then((response) => response.json());
+    const reportText = await fetch(`${baseUrl}reports/new.md`).then((response) => response.text());
+    const action = await fetch(`${baseUrl}api/actions/run`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify({
+        id: "check"
+      })
+    }).then((response) => response.json());
+
+    assert.equal(reports.ok, true);
+    assert.equal(reports.reports[0].name, "new.md");
+    assert.equal(reports.reports[1].name, "old.md");
+    assert.equal(reportText, "new report\n");
+    assert.equal(action.ok, true);
+    assert.equal(action.command, "aigate check");
+    assert.match(action.output, /AIGate check/);
+  } finally {
+    await stopProcess(child);
+  }
+});
+
+test("falls back to another web port when the requested port is busy", async () => {
+  const settingsPath = createSettingsPath();
+  const occupiedServer = createServer((request, response) => {
+    response.end("busy");
+  });
+
+  await new Promise((resolve) => occupiedServer.listen(0, "127.0.0.1", resolve));
+  const address = occupiedServer.address();
+  const busyPort = typeof address === "object" && address ? address.port : 0;
+  const child = spawn(process.execPath, [cliPath, "web", "--port", String(busyPort)], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      AIGATE_SETTINGS_PATH: settingsPath,
+      AIGATE_SLACK_WEBHOOK_URL: ""
+    },
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+
+  try {
+    const { output, match } = await waitForOutput(child, /URL: (http:\/\/127\.0\.0\.1:(\d+)\/)/);
+    const fallbackPort = Number(match[2]);
+    const state = await fetch(`${match[1]}api/state`).then((response) => response.json());
+
+    assert.notEqual(fallbackPort, busyPort);
+    assert.match(output, new RegExp(`Port ${busyPort} is busy; using ${fallbackPort}\\.`));
+    assert.equal(state.command, "web");
+  } finally {
+    await stopProcess(child);
+    await new Promise((resolve) => occupiedServer.close(resolve));
+  }
 });
 
 test("configures GitLab project profile settings", () => {
