@@ -37,7 +37,8 @@ aigate web --open
 ```
 
 Web UI は localhost で起動し、`aigate setup` と同じ `.aigate/settings.json`
-を編集します。ブラウザから任意の shell コマンドは実行しません。
+を編集します。ブラウザから任意の shell コマンドは実行しません。既定 port
+`4317` が使用中なら、空き port を自動的に選びます。
 
 private GitLab pnpm app や `develop` を merge target にするチームでは、workflow
 設定を固定します:

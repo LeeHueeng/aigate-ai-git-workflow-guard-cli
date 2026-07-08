@@ -37,7 +37,8 @@ aigate web --open
 ```
 
 웹 UI는 localhost에서 열리고 `aigate setup`과 같은 `.aigate/settings.json`을
-수정합니다. 브라우저에서는 임의의 shell 명령을 실행하지 않습니다.
+수정합니다. 브라우저에서는 임의의 shell 명령을 실행하지 않습니다. 기본 포트
+`4317`이 이미 사용 중이면 빈 포트를 자동으로 선택합니다.
 
 private GitLab pnpm 앱이거나 merge target이 `develop`인 팀은 워크플로 설정을
 고정하세요:

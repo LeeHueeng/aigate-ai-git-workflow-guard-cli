@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -815,6 +816,40 @@ test("serves web settings UI and saves settings", async () => {
     assert.equal(saved.settings.serverEnforcement.gitlab.onlyAllowMergeIfPipelineSucceeds, "verified");
   } finally {
     await stopProcess(child);
+  }
+});
+
+test("falls back to another web port when the requested port is busy", async () => {
+  const settingsPath = createSettingsPath();
+  const occupiedServer = createServer((request, response) => {
+    response.end("busy");
+  });
+
+  await new Promise((resolve) => occupiedServer.listen(0, "127.0.0.1", resolve));
+  const address = occupiedServer.address();
+  const busyPort = typeof address === "object" && address ? address.port : 0;
+  const child = spawn(process.execPath, [cliPath, "web", "--port", String(busyPort)], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      AIGATE_SETTINGS_PATH: settingsPath,
+      AIGATE_SLACK_WEBHOOK_URL: ""
+    },
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+
+  try {
+    const { output, match } = await waitForOutput(child, /URL: (http:\/\/127\.0\.0\.1:(\d+)\/)/);
+    const fallbackPort = Number(match[2]);
+    const state = await fetch(`${match[1]}api/state`).then((response) => response.json());
+
+    assert.notEqual(fallbackPort, busyPort);
+    assert.match(output, new RegExp(`Port ${busyPort} is busy; using ${fallbackPort}\\.`));
+    assert.equal(state.command, "web");
+  } finally {
+    await stopProcess(child);
+    await new Promise((resolve) => occupiedServer.close(resolve));
   }
 });
 

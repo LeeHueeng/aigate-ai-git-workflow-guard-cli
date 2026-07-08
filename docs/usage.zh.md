@@ -36,7 +36,8 @@ aigate web --open
 ```
 
 Web UI 会在 localhost 启动，编辑与 `aigate setup` 相同的
-`.aigate/settings.json`。浏览器不会执行任意 shell 命令。
+`.aigate/settings.json`。浏览器不会执行任意 shell 命令。默认端口
+`4317` 已被占用时，会自动选择空闲端口。
 
 对于 private GitLab pnpm app，或以 `develop` 作为 merge target 的团队，可以固定
 workflow 设置:

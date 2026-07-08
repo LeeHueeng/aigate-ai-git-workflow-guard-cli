@@ -1126,7 +1126,7 @@ const HELP_CONTENT = {
       ["--prompt-output <path>", "Write the AI report handoff prompt to a custom path."],
       ["--pre-push", "Install or target the pre-push Git hook."],
       ["--host <host>", "Host for the local web UI."],
-      ["--port <number>", "Port for the local web UI."],
+      ["--port <number>", "Port for the local web UI. If the port is busy, AIGate picks a free port."],
       ["--open", "Open the local web UI in your browser."],
       ["--include-ai-files", "Also target generated AGENTS/GEMINI/CLAUDE files for uninstall."],
       ["--overwrite-ai-files", "Allow integrate --force to overwrite existing root AGENTS/GEMINI/CLAUDE files."],
@@ -1236,7 +1236,7 @@ const HELP_CONTENT = {
       ["--prompt-output <path>", "AI report 전달 프롬프트를 지정한 경로에 저장합니다."],
       ["--pre-push", "pre-push Git hook을 설치하거나 대상으로 지정합니다."],
       ["--host <host>", "로컬 웹 UI host입니다."],
-      ["--port <number>", "로컬 웹 UI port입니다."],
+      ["--port <number>", "로컬 웹 UI port입니다. 포트가 사용 중이면 빈 포트를 자동으로 선택합니다."],
       ["--open", "로컬 웹 UI를 브라우저에서 엽니다."],
       ["--include-ai-files", "uninstall에서 생성된 AGENTS/GEMINI/CLAUDE 파일도 대상으로 포함합니다."],
       ["--overwrite-ai-files", "integrate --force가 기존 루트 AGENTS/GEMINI/CLAUDE 파일을 덮어쓸 수 있게 합니다."],
@@ -1346,7 +1346,7 @@ const HELP_CONTENT = {
       ["--prompt-output <path>", "AI report 引き継ぎプロンプトを指定パスへ保存します。"],
       ["--pre-push", "pre-push Git hook をインストールまたは対象にします。"],
       ["--host <host>", "ローカル Web UI の host です。"],
-      ["--port <number>", "ローカル Web UI の port です。"],
+      ["--port <number>", "ローカル Web UI の port です。使用中なら空き port を自動選択します。"],
       ["--open", "ローカル Web UI をブラウザーで開きます。"],
       ["--include-ai-files", "uninstall で生成済み AGENTS/GEMINI/CLAUDE ファイルも対象にします。"],
       ["--overwrite-ai-files", "integrate --force が既存 root AGENTS/GEMINI/CLAUDE files を上書きできるようにします。"],
@@ -1456,7 +1456,7 @@ const HELP_CONTENT = {
       ["--prompt-output <path>", "将 AI report 交接提示写入指定路径。"],
       ["--pre-push", "安装或指定 pre-push Git hook。"],
       ["--host <host>", "本地 Web UI host。"],
-      ["--port <number>", "本地 Web UI port。"],
+      ["--port <number>", "本地 Web UI port。如果已被占用，AIGate 会自动选择空闲 port。"],
       ["--open", "在浏览器中打开本地 Web UI。"],
       ["--include-ai-files", "uninstall 时也包含生成的 AGENTS/GEMINI/CLAUDE 文件。"],
       ["--overwrite-ai-files", "允许 integrate --force 覆盖已有 root AGENTS/GEMINI/CLAUDE 文件。"],
@@ -4624,28 +4624,29 @@ function webPort(value) {
 }
 
 async function startWebServer({ host, port, open, language }) {
-  const server = createServer((request, response) => {
-    handleWebRequest(request, response, language).catch((error) => {
-      writeWebJson(response, 500, {
-        ok: false,
-        error: error?.message ?? String(error)
-      });
-    });
-  });
+  let server = createWebServer(language);
+  let listenResult;
 
-  await new Promise((resolve, reject) => {
-    server.once("error", reject);
-    server.listen(port, host, () => {
-      server.off("error", reject);
-      resolve();
-    });
-  });
+  try {
+    listenResult = await listenWebServer(server, host, port);
+  } catch (error) {
+    if (error?.code !== "EADDRINUSE" || port === 0) {
+      throw error;
+    }
 
-  const address = server.address();
-  const actualPort = typeof address === "object" && address ? address.port : port;
-  const url = `http://${host}:${actualPort}/`;
+    server.removeAllListeners();
+    server = createWebServer(language);
+    listenResult = {
+      ...(await listenWebServer(server, host, 0)),
+      fallback: true,
+      requestedPort: port
+    };
+  }
+
+  const url = `http://${host}:${listenResult.actualPort}/`;
   print([
     "AIGate web: READY",
+    ...(listenResult.fallback ? [`Port ${listenResult.requestedPort} is busy; using ${listenResult.actualPort}.`] : []),
     `URL: ${url}`,
     `Settings file: ${getSettingsPath()}`,
     "Press Ctrl+C to stop."
@@ -4659,6 +4660,41 @@ async function startWebServer({ host, port, open, language }) {
     const close = () => server.close(resolve);
     process.once("SIGINT", close);
     process.once("SIGTERM", close);
+  });
+}
+
+function createWebServer(language) {
+  return createServer((request, response) => {
+    handleWebRequest(request, response, language).catch((error) => {
+      writeWebJson(response, 500, {
+        ok: false,
+        error: error?.message ?? String(error)
+      });
+    });
+  });
+}
+
+function listenWebServer(server, host, port) {
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      server.off("error", onError);
+    };
+    const onError = (error) => {
+      cleanup();
+      reject(error);
+    };
+
+    server.once("error", onError);
+    server.listen(port, host, () => {
+      cleanup();
+      const address = server.address();
+      const actualPort = typeof address === "object" && address ? address.port : port;
+      resolve({
+        actualPort,
+        fallback: false,
+        requestedPort: port
+      });
+    });
   });
 }
 

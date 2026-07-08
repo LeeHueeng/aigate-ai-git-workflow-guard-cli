@@ -38,6 +38,8 @@ aigate web --open
 
 The web UI starts on localhost, edits the same `.aigate/settings.json` used by
 `aigate setup`, and does not run arbitrary shell commands from the browser.
+It tries port `4317` by default and automatically switches to a free port when
+that port is already in use.
 
 Pin team workflow settings when the repository is a private GitLab pnpm app or
 uses a develop-target merge flow:
